@@ -6,10 +6,10 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'Hasura V3 Documentation',
+  tagline: 'Instant GraphQL on all your data',
   favicon: 'img/favicon.ico',
-
+  plugins: ['docusaurus-plugin-sass'],
   // Set the production url of your site here
   url: 'https://your-docusaurus-test-site.com',
   // Set the /<baseUrl>/ pathname under which your site is served
@@ -52,7 +52,8 @@ const config = {
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          // Used 'docusaurus-plugin-sass' and customized the import here
+          customCss: require.resolve('./src/css/custom.scss'),
         },
       }),
     ],
