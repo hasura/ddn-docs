@@ -25,7 +25,7 @@ const CodeStep = (props) => {
   return (
     <div className={styles.step_container}>
       <div className={styles.item}>
-        <div className={styles.heading}>
+        <div className={styles.code_heading}>
           <MDXProvider children={directive} />
         </div>
         <div className={styles.description}>
