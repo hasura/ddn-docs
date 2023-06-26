@@ -17,7 +17,7 @@ function HomepageHeader() {
           <p className="hero__subtitle">{siteConfig.tagline}</p>
         </div>
         <div className={styles.links}>
-          <VersionedLink className="button button--primary button--lg" to="/">
+          <VersionedLink className="button button--primary button--lg" to="/index">
             Hasura Docs
           </VersionedLink>
           <div className={styles.links}>
