@@ -1,0 +1,47 @@
+#for building image
+steps:
+#update image tag
+- name: 'gcr.io/kaniko-project/executor:latest'
+  id: kaniko
+  args:
+     [
+        "--dockerfile=./Dockerfile",
+        "--context=dir:///workspace/.",
+        "--cache=true",
+        "--cache-ttl=24h",
+        "--destination=us-west1-docker.pkg.dev/${PROJECT_ID}/v3-docs-hasura/v3-docs-hasura:${SHORT_SHA}"
+     ]
+    
+#change in Deployment file
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: update image in deployment file
+  entrypoint: /bin/sh
+  args:
+  - '-c'
+  - |
+        sed -i 's|latest|${SHORT_SHA}|g' ./k8s-manifest/k8s/deployment.yaml
+
+#deploy kubernetes manifest
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: Deploy deployment.yaml
+  args: ['apply' , '-f' , './k8s-manifest/k8s/']
+  env:
+  - 'CLOUDSDK_COMPUTE_REGION=${_REGION}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTERNAME}'
+
+#deploy service file for stage/prod kubernetes manifest
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: Deploy kube files
+  args: ['apply' , '-f' , './k8s-manifest/k8s/service_staging.yaml'] 
+  env:
+  - 'CLOUDSDK_COMPUTE_REGION=${_REGION}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTERNAME}'
+  
+  
+timeout: 3600s
+substitutions:
+    _REGION: us-west2
+    _CLUSTERNAME: prod-website-cloud-us-we2-gke-01
+options:
+    workerPool:
+      'projects/websitecloud-352908/locations/us-west2/workerPools/gke-vpn-pool'
