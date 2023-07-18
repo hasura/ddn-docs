@@ -2,7 +2,7 @@ FROM --platform=linux/amd64 node:18.14.2
 
 ENV PORT=8080
 # Create app directory
-WORKDIR /app
+WORKDIR /
 
 ENV release_mode="production"
 ENV BUILD_VERSION="3.0"
@@ -13,7 +13,7 @@ COPY package*.json ./
 RUN yarn
 
 # Bundle app source
-COPY src /app
+COPY src /
 
 # Build react/vue/angular bundle static files
 RUN yarn run build
