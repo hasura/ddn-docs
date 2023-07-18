@@ -1,28 +1,25 @@
-FROM --platform=linux/amd64 node:17-alpine
+FROM --platform=linux/amd64 node:18.14.2
+
+ENV PORT=8080
+# Create app directory
+WORKDIR /app
 
 ENV release_mode="production"
+ENV BUILD_VERSION="3.0"
 
-ENV BUILD_VERSION="2.0"
-
-RUN apk add --update git \
-    bash \
-    yarn
-
-RUN sh -c 'echo -e "Updated at: 2023-06-13 12:12:12 UTC"'
-RUN git clone https://github.com/hasura/docs-v3.git --single-branch --depth 1 graphql-engine
-
-WORKDIR /
-
-# EDIT TIMESTAMP FOR DEPLOYING PRODUCTION DOCS (Doesn't need to be accurate)
-RUN sh -c 'echo -e "Updated at: 2023-06-13 12:12:12 UTC"'
-# EDIT OVER
-
-RUN git pull
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+COPY package*.json ./
 
 RUN yarn
 
 # Bundle app source
+COPY src /app
 
+# Build react/vue/angular bundle static files
 RUN yarn run build
 
+
+EXPOSE 8080
+
 CMD ["yarn", "run", "serve", "-p", "8080", "--host", "0.0.0.0"]
+
