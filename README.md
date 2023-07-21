@@ -28,11 +28,11 @@ service.
 
 ### Contributing
 
-**Until 21 July 👇**
+**Until 4 August 👇**
 
 This is the Wild West. You can commit directly to `main` and push to `origin`. No PRs required. Why are we doing this?
 Speed. We want to get as much content in as quickly as possible without a docs' review blocking this work. Starting on
-21 July, we'll disable direct commits to `main` and require PRs. On this date we'll begin reshaping and cleaning up
+4 August, we'll disable direct commits to `main` and require PRs. On this date we'll begin reshaping and cleaning up
 existing content; if there's more that needs to be added after that date, you'll have to open a PR.
 
 **NB: PLEASE, before committing, test the build and ensure your changes don't break the site.**
@@ -47,7 +47,7 @@ Then, after it builds without error, run:
 
 If things appear as you expect, you're good to go.
 
-**After 21 July 👇**
+**After 4 August 👇**
 
 We'll use our normal contribution process:
 
