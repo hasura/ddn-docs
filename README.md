@@ -30,7 +30,7 @@ service.
 
 **Until 10 August 👇**
 
-This is the Wild West. You can commit directly to `main` and push to `origin`. No PRs required. Why are we doing this?
+This is the 🤠 Wild West 🤠. You can commit directly to `main` and push to `origin`. No PRs required. Why are we doing this?
 Speed. We want to get as much content in as quickly as possible without a docs' review blocking this work. Starting on
 10 August, we'll disable direct commits to `main` and require PRs. On this date we'll begin reshaping and cleaning up
 existing content; if there's more that needs to be added after that date, you'll have to open a PR.
