@@ -1,0 +1,352 @@
+---
+sidebar_label: Select Many
+sidebar_position: 2
+description: Fetch a list of objects from a model
+keywords:
+  - hasura
+  - docs
+  - model
+  - queries
+  - select
+  - select many
+---
+
+# Select Many
+
+## Introduction
+
+You can fetch multiple nodes of the same type using a select many query.
+
+query:
+```graphql
+query {
+    ArticleMany(limit: 1){
+      article_id
+      title
+    }
+}
+```
+response:
+```json
+{
+  "ArticleMany": [
+    {
+      "article_id": 1,
+      "title": "The Next 700 Programming Languages"
+    }
+  ]
+}
+```
+
+## Open DDS Metadata
+
+You need to define `selectMany` property in [`modelGraphqlApi`](/api-schema/queries/open-dds-reference.mdx#open-dds-reference-modelgraphqlapi) open DDS object.
+It is required to specify root field name of select many query. See [`SelectManyGraphQlDefinition`](/api-schema/queries/open-dds-reference.mdx#selectmanygraphqldefinition) reference for more details.
+
+A sample metadata for `Articles` model:
+```json
+{
+    "kind": "modelGraphqlApi",
+    "modelName": "Articles",
+    "selectUniques": [
+        {
+            "queryRootField": "ArticleByID",
+            "uniqueIdentifier": [
+                "article_id"
+            ]
+        }
+    ],
+    "selectMany": {
+        "queryRootField": "ArticleMany"
+    }
+}
+```
+
+## Filter Expression
+
+Using `filterExpressionType` property in `modelGraphqlApi` metadata object, you can define the type name for
+filter expression input object type. However, it is optional and defaults to `{ModelName}_bool_exp` format.
+
+GraphQL API metadata for `Articles` model with filter expression type:
+```json
+{
+    "kind": "modelGraphqlApi",
+    "modelName": "Articles",
+    "selectUniques": [
+        {
+            "queryRootField": "ArticleByID",
+            "uniqueIdentifier": [
+                "article_id"
+            ]
+        }
+    ],
+    "selectMany": {
+        "queryRootField": "ArticleMany"
+    },
+    "filterExpressionType": "Article_Where_Exp"
+}
+```
+
+Example query:
+```graphql
+query {
+    AuthorMany(where: {_or: [{first_name: {like: "Pet"}}]}) {
+      author_id first_name
+    }
+}
+```
+response:
+```json
+{
+  "AuthorMany": [
+    {
+      "author_id": 1,
+      "first_name": "Peter"
+    }
+  ]
+}
+```
+
+## Sample Metadata
+
+Find a sample Open DDS metadata to enable Select Many queries on `articles` table from a postgres database.
+The Postgres NDC agent is running and serving at `8100`.
+```json
+[
+    {
+        "kind": "dataSource",
+        "name": "db",
+        "dataConnectorUrl": "http://reference_agent:8100",
+        "schema": {
+            "scalar_types": {
+                "Int": {
+                    "aggregate_functions": {
+                        "max": {
+                            "result_type": {
+                                "type": "nullable",
+                                "underlying_type": {
+                                    "type": "named",
+                                    "name": "Int"
+                                }
+                            }
+                        },
+                        "min": {
+                            "result_type": {
+                                "type": "nullable",
+                                "underlying_type": {
+                                    "type": "named",
+                                    "name": "Int"
+                                }
+                            }
+                        }
+                    },
+                    "comparison_operators": {},
+                    "update_operators": {}
+                },
+                "String": {
+                    "aggregate_functions": {},
+                    "comparison_operators": {
+                        "like": {
+                            "argument_type": {
+                                "type": "named",
+                                "name": "String"
+                            }
+                        }
+                    },
+                    "update_operators": {}
+                }
+            },
+            "object_types": {
+                "article": {
+                    "description": "An article",
+                    "fields": {
+                        "id": {
+                            "description": "The article's primary key",
+                            "arguments": {},
+                            "type": {
+                                "type": "named",
+                                "name": "Int"
+                            }
+                        },
+                        "title": {
+                            "description": "The article's title",
+                            "arguments": {},
+                            "type": {
+                                "type": "named",
+                                "name": "String"
+                            }
+                        },
+                        "author_id": {
+                            "description": "The article's author ID",
+                            "arguments": {},
+                            "type": {
+                                "type": "named",
+                                "name": "Int"
+                            }
+                        }
+                    }
+                }
+            },
+            "collections": [
+                {
+                    "name": "articles",
+                    "description": "A collection of articles",
+                    "arguments": {},
+                    "type": "article",
+                    "deletable": false,
+                    "uniqueness_constraints": {
+                        "ArticleByID": {
+                            "unique_columns": [
+                                "id"
+                            ]
+                        }
+                    },
+                    "foreign_keys": {}
+                }
+            ],
+            "functions": [],
+            "procedures": []
+        }
+    },
+    {
+        "kind": "objectType",
+        "name": "article",
+        "fields": [
+            {
+                "name": "article_id",
+                "type": "Int"
+            },
+            {
+                "name": "title",
+                "type": "String"
+            },
+            {
+                "name": "author_id",
+                "type": "Int"
+            }
+        ]
+    },
+    {
+        "kind": "model",
+        "name": "Articles",
+        "dataType": "article"
+    },
+    {
+        "kind": "modelSource",
+        "modelName": "Articles",
+        "dataSource": "db",
+        "table": "articles",
+        "typeMappings": {
+            "article": {
+                "fieldMappings": {
+                    "article_id": {
+                        "column": "id"
+                    },
+                    "title": {
+                        "column": "title"
+                    },
+                    "author_id": {
+                        "column": "author_id"
+                    }
+                }
+            }
+        }
+    },
+    {
+      "kind": "typeOutputPermissions",
+      "typeName": "article",
+      "outputPermissions": {
+          "admin": {
+              "fields": ["article_id", "title", "author_id"]
+          }
+      }
+    },
+    {
+        "kind": "modelSelectPermissions",
+        "modelName": "Articles",
+        "selectPermissions": {
+            "admin": {}
+        }
+    },
+    {
+        "kind": "graphqlType",
+        "typeName": "article",
+        "graphqlTypeName": "Article",
+        "graphqlTypeKind": "Object"
+    },
+    {
+        "kind": "modelGraphqlApi",
+        "modelName": "Articles",
+        "selectUniques": [
+            {
+                "queryRootField": "ArticleByID",
+                "uniqueIdentifier": [
+                    "article_id"
+                ]
+            }
+        ],
+        "selectMany": {
+            "queryRootField": "ArticleMany"
+        },
+        "filterExpressionType": "Article_Where_Exp"
+    },
+    {
+        "kind": "scalarTypeRepresentation",
+        "dataSource": "db",
+        "scalarType": "String",
+        "representation": "String"
+    },
+    {
+        "kind": "scalarTypeRepresentation",
+        "dataSource": "db",
+        "scalarType": "Int",
+        "representation": "Int"
+    },
+    {
+        "kind": "scalarTypeGraphqlExpression",
+        "dataSource": "db",
+        "scalarTypeName": "String",
+        "graphqlComparisonExpressionTypeName": "String_Comparison_Exp"
+    }
+]
+```
+
+The above metadata generates the following graphql schema.
+
+```graphql
+type Article {
+  article_id: Int!
+  author_id: Int!
+  title: String!
+}
+
+input Article_Where_Exp {
+  _and: [Article_Where_Exp!]
+  _not: Article_Where_Exp
+  _or: [Article_Where_Exp!]
+  article_id: db_Int_comparison_exp
+  author_id: db_Int_comparison_exp
+  title: String_Comparison_Exp
+}
+
+input db_Int_comparison_exp {
+  _eq: Int
+  _is_null: Boolean
+}
+
+interface Node {
+  id: ID!
+}
+
+type Query {
+  ArticleByID(article_id: Int!): Article
+  ArticleMany(limit: Int, offset: Int, where: Article_Where_Exp): [Article!]!
+  node(id: ID!): Node
+}
+
+input String_Comparison_Exp {
+  _eq: String
+  _is_null: Boolean
+  like: String
+}
+```

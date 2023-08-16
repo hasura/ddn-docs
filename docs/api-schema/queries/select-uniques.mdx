@@ -1,0 +1,243 @@
+---
+sidebar_label: Select Uniques
+sidebar_position: 3
+description: Fetch a unique object from a model
+keywords:
+  - hasura
+  - docs
+  - model
+  - queries
+  - select
+  - select uniques
+---
+
+# Select Uniques
+
+## Introduction
+
+You can fetch a single object based on unique field values from a model.
+
+query:
+```graphql
+query {
+    ArticleByID(article_id: 1) {
+        article_id title
+    }
+}
+```
+response:
+```json
+{
+  "ArticleByID": {
+    "article_id": 1,
+    "title": "The Next 700 Programming Languages"
+  }
+}
+```
+
+## Open DDS Metadata
+You need to define `selectUniques` property in [`modelGraphqlApi`](/api-schema/queries/open-dds-reference.mdx#open-dds-reference-modelgraphqlapi) open DDS object.
+It is required to specify root field name of select Uniques query and unique identifier fields. See [`SelectUniqueGraphQlDefinition`](/api-schema/queries/open-dds-reference.mdx#selectuniquegraphqldefinition) reference for more details.
+
+A sample metadata for `Articles` momdel:
+```json
+{
+    "kind": "modelGraphqlApi",
+    "modelName": "Articles",
+    "selectUniques": [
+        {
+            "queryRootField": "ArticleByID",
+            "uniqueIdentifier": [
+                "article_id"
+            ]
+        }
+    ]
+}
+```
+The `article_id` field is serving as unique identifier.
+
+## Sample Metadata
+
+Find a sample Open DDS metadata to enable Select Many queries on `articles` table from a postgres database.
+The Postgres NDC agent is running and serving at `8100`.
+```json
+[
+    {
+        "kind": "dataSource",
+        "name": "db",
+        "dataConnectorUrl": "http://reference_agent:8100",
+        "schema": {
+            "scalar_types": {
+                "Int": {
+                    "aggregate_functions": {},
+                    "comparison_operators": {},
+                    "update_operators": {}
+                },
+                "String": {
+                    "aggregate_functions": {},
+                    "comparison_operators": {},
+                    "update_operators": {}
+                }
+            },
+            "object_types": {
+                "article": {
+                    "description": "An article",
+                    "fields": {
+                        "id": {
+                            "description": "The article's primary key",
+                            "arguments": {},
+                            "type": {
+                                "type": "named",
+                                "name": "Int"
+                            }
+                        },
+                        "title": {
+                            "description": "The article's title",
+                            "arguments": {},
+                            "type": {
+                                "type": "named",
+                                "name": "String"
+                            }
+                        },
+                        "author_id": {
+                            "description": "The article's author ID",
+                            "arguments": {},
+                            "type": {
+                                "type": "named",
+                                "name": "Int"
+                            }
+                        }
+                    }
+                }
+            },
+            "collections": [
+                {
+                    "name": "articles",
+                    "description": "A collection of articles",
+                    "arguments": {},
+                    "type": "article",
+                    "deletable": false,
+                    "uniqueness_constraints": {
+                        "ArticleByID": {
+                            "unique_columns": [
+                                "id"
+                            ]
+                        }
+                    },
+                    "foreign_keys": {}
+                }
+            ],
+            "functions": [],
+            "procedures": []
+        }
+    },
+    {
+        "kind": "objectType",
+        "name": "article",
+        "fields": [
+            {
+                "name": "article_id",
+                "type": "Int"
+            },
+            {
+                "name": "title",
+                "type": "String"
+            },
+            {
+                "name": "author_id",
+                "type": "Int"
+            }
+        ]
+    },
+    {
+        "kind": "model",
+        "name": "Articles",
+        "dataType": "article"
+    },
+    {
+        "kind": "modelSource",
+        "modelName": "Articles",
+        "dataSource": "db",
+        "table": "articles",
+        "typeMappings": {
+            "article": {
+                "fieldMappings": {
+                    "article_id": {
+                        "column": "id"
+                    },
+                    "title": {
+                        "column": "title"
+                    },
+                    "author_id": {
+                        "column": "author_id"
+                    }
+                }
+            }
+        }
+    },
+    {
+      "kind": "typeOutputPermissions",
+      "typeName": "article",
+      "outputPermissions": {
+          "admin": {
+              "fields": ["article_id", "title", "author_id"]
+          }
+      }
+    },
+    {
+        "kind": "modelSelectPermissions",
+        "modelName": "Articles",
+        "selectPermissions": {
+            "admin": {}
+        }
+    },
+    {
+        "kind": "graphqlType",
+        "typeName": "article",
+        "graphqlTypeName": "Article",
+        "graphqlTypeKind": "Object"
+    },
+    {
+        "kind": "modelGraphqlApi",
+        "modelName": "Articles",
+        "selectUniques": [
+            {
+                "queryRootField": "ArticleByID",
+                "uniqueIdentifier": [
+                    "article_id"
+                ]
+            }
+        ]
+    },
+    {
+        "kind": "scalarTypeRepresentation",
+        "dataSource": "db",
+        "scalarType": "String",
+        "representation": "String"
+    },
+    {
+        "kind": "scalarTypeRepresentation",
+        "dataSource": "db",
+        "scalarType": "Int",
+        "representation": "Int"
+    }
+]
+```
+The above metadata generates the following graphql schema.
+
+```graphql
+type Article {
+  article_id: Int!
+  author_id: Int!
+  title: String!
+}
+
+interface Node {
+  id: ID!
+}
+
+type Query {
+  ArticleByID(article_id: Int!): Article
+  node(id: ID!): Node
+}
+```
