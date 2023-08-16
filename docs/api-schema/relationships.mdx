@@ -10,4 +10,380 @@ keywords:
 
 # Hasura Relationships
 
-<!-- awaiting content... -->
+## Introduction
+
+A relationship defines that, given an object of a certain type, how to find related
+objects in other model(s).
+
+## Open DDS object reference schema
+
+The JSON schema for the `relationship` object is specified as:
+
+```json
+{
+    "type": "object",
+    "required": [
+      "kind",
+      "mappings",
+      "name",
+      "source",
+      "target"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "enum": [
+          "relationship"
+        ]
+      },
+      "mappings": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/RelationshipMapping"
+        }
+      },
+      "name": {
+        "$ref": "#/definitions/RelationshipName"
+      },
+      "source": {
+        "$ref": "#/definitions/TypeName"
+      },
+      "target": {
+        "$ref": "#/definitions/RelationshipTarget"
+      }
+    }
+}
+```
+
+Related objects:
+
+1. `RelationshipMapping`
+
+```json
+{
+      "type": "object",
+      "required": [
+        "source",
+        "target"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "#/definitions/RelationshipMappingSource"
+        },
+        "target": {
+          "$ref": "#/definitions/RelationshipMappingTarget"
+        }
+      }
+    }
+```
+
+2. `RelationshipMappingSource`
+
+```json
+{
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "$ref": "#/definitions/ValueExpression"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "fieldPath"
+          ],
+          "properties": {
+            "fieldPath": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FieldAccess"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+```
+
+3. `RelationshipMappingTarget`
+
+```json
+{
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "argument"
+          ],
+          "properties": {
+            "argument": {
+              "$ref": "#/definitions/ArgumentName"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "modelField"
+          ],
+          "properties": {
+            "modelField": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FieldAccess"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+```
+
+4. `RelationshipName`
+
+```json
+{
+      "description": "The name of the GraphQL relationship field.",
+      "type": "string"
+    }
+```
+
+5. `RelationshipTarget`
+
+```json
+{
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "modelName",
+            "relationshipType"
+          ],
+          "properties": {
+            "modelName": {
+              "$ref": "#/definitions/ModelName"
+            },
+            "relationshipType": {
+              "$ref": "#/definitions/RelationshipType"
+            }
+          }
+        }
+      ]
+    }
+```
+
+6. `RelationshipType`
+
+```json
+{
+      "description": "Type of the relationship.",
+      "oneOf": [
+        {
+          "description": "Select one related object from the target.",
+          "type": "string",
+          "enum": [
+            "Object"
+          ]
+        },
+        {
+          "description": "Select multiple related objects from the target.",
+          "type": "string",
+          "enum": [
+            "Array"
+          ]
+        }
+      ]
+
+}
+```
+
+7. `FieldAccess`
+
+```json
+{
+      "type": "object",
+      "required": [
+        "fieldName"
+      ],
+      "properties": {
+        "fieldName": {
+          "$ref": "#/definitions/FieldName"
+        }
+      }
+    }
+```
+
+8. `FieldName`
+
+```json
+{
+      "description": "The name of a field in a user-defined object type.",
+      "type": "string"
+    }
+```
+
+9. `ValueExpression`
+
+```json
+{
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "literal"
+          ],
+          "properties": {
+            "literal": true
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "sessionVariable"
+          ],
+          "properties": {
+            "sessionVariable": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+```
+
+10. `ArgumentName`
+
+```json
+{
+  "type": "string"
+}
+```
+
+11. `TypeName`
+
+```json
+{
+  "description": "Metadata type to map to this GraphQl type. One metadata type can map to at most one output type.",
+  "allOf": [
+     {
+       "$ref": "#/definitions/TypeName"
+    }
+  ]
+}
+```
+
+## Example
+
+Consider the following GraphQL schema object types before
+adding relationships to them.
+
+```graphql
+type Authors {
+  author_id Int!
+  first_name String!
+  last_name String!
+}
+
+type Articles {
+  id Int!
+  author_id Int!
+  title String!
+}
+```
+Let's add the following relationships to the above types.
+
+1. `Array` relationship
+
+```json
+{
+        "kind": "relationship",
+        "source": "author",
+        "name": "Articles",
+        "target": {
+            "modelName": "Articles",
+            "relationshipType": "Array"
+        },
+        "mappings": [
+            {
+                "source": {
+                    "fieldPath": [
+                        {
+                            "fieldName": "id"
+                        }
+                    ]
+                },
+                "target": {
+                    "modelField": [
+                        {
+                            "fieldName": "author_id"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+```
+
+
+2. `Object` relationship
+
+```json
+{
+        "kind": "relationship",
+        "source": "article",
+        "name": "Author",
+        "target": {
+            "modelName": "Authors",
+            "relationshipType": "Object"
+        },
+        "mappings": [
+            {
+                "source": {
+                    "fieldPath": [
+                        {
+                            "fieldName": "author_id"
+                        }
+                    ]
+                },
+                "target": {
+                    "modelField": [
+                        {
+                            "fieldName": "id"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+```
+
+The resulting GraphQL schema will look as following:
+
+
+```graphql
+type Authors {
+  author_id Int!
+  first_name String!
+  last_name String!
+  articles: [Articles!]!
+}
+
+type Articles {
+  id Int!
+  author_id Int!
+  title String!
+  author: Authors
+}
+```
