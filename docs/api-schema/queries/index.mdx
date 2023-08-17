@@ -8,19 +8,269 @@ keywords:
 slug: index
 ---
 
+import GraphiQLIDE from '@site/src/components/GraphiQLIDE';
+
 # GraphQL Queries
 
 ## Introduction
 
 GraphQL queries are used to fetch data from a [model](/api-schema/models.mdx).
 
-Hasura auto-generates queries as part of the GraphQL schema from your Open DDS model using
-[`modelGraphqlApi`](/api-schema/queries/open-dds-reference.mdx#open-dds-reference-modelgraphqlapi) Open DDS object.
+## Description
 
-## Exploring queries
+You can define the following kinds of queries in GraphQL API over a model.
 
-Let's take a look at the different queries you can run using the Hasura GraphQL API. We'll use examples based on
-a typical author/article schema for reference.
+- [`Select Unique`](#select-unique): Fetch a single node based on unique fields from a model.
+- [`Select Many`](#select-many): Fetch multiple nodes from a model.
 
-- [Select Many queries](/api-schema/queries/select-many.mdx)
-- [Select Uniques queries](/api-schema/queries/select-uniques.mdx)
+Arguments defined in a model can be exposed over these queries.
+
+## Select Unique
+
+You can fetch a single object based on unique field values from a model.
+
+<GraphiQLIDE
+  query={`query {
+    ArticleByID(article_id: 1) {
+        article_id title
+    }
+}`}
+  response={`{
+  "data": {
+    "ArticleByID": {
+      "article_id": 1,
+      "title": "The Next 700 Programming Languages"
+    }
+  }
+}`}
+/>
+
+### Metadata Structure
+
+To enable select unique queries, you need to define `selectUniques` field in `modelGraphqlApi` DDS object.
+The `selectUniques` field is mandatory and is a list of objects containing `queryRootField` and `uniqueIdentifier`
+fields. You can have multiple select unique query root fields with different set of unique identifier fields.
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": <ModelName>,
+  "selectUniques": [
+    {
+      "queryRootField": <RootFieldName>,
+      "uniqueIdentifier": [<FieldName>]
+    }
+  ],
+  "argumentsInputField": <ArgumentsFieldName>,
+  "argumentsInputType": <ArgumentsInputType>
+}
+```
+
+- `ModelName`: Name of the model in string.
+- `RootFieldName`: Name of the GraphQL root field in string.
+- `FieldName`: Name of the unique field of the object type backing the model.
+- `ArgumentsFieldName`: Name of the input field for model arguments. It is optional and defaults to `args` string.
+- `ArgumentsInputType`: Name of the type for model arguments input object. It is optional and defaults to `{ModelName}_arguments` string format.
+
+:::info Note
+It is unnecessary to define `ArgumentsFieldName` and `ArgumentsInputType` if arguments are not defined for the model.
+:::
+
+### Examples
+A sample metadata for an `Articles` model:
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Articles",
+  "selectUniques": [
+    {
+      "queryRootField": "ArticleByID",
+      "uniqueIdentifier": [
+        "article_id"
+      ]
+    }
+  ]
+}
+```
+The `article_id` field is serving as a unique identifier.
+
+## Select Many
+
+You can fetch multiple nodes of the same type using a select many query.
+
+<GraphiQLIDE
+  query={`query {
+  ArticleMany(limit: 1) {
+    article_id
+    title
+  }
+}`}
+  response={`{
+  "data": {
+    "ArticleMany": [
+      {
+        "article_id": 1,
+        "title": "The Rust Programming Language"
+      }
+    ]
+  }
+}`}
+/>
+
+
+### Metadata Structure
+
+To enable select many queries, you need to define `selectMany` field in `modelGraphqlApi` DDS object.
+The `selectMany` field is an object with `queryRootField` key.
+The `selectMany` field is optional and if omitted the select many queries are disabled.
+Additionally, you can specify the input object type name for `where` filter argument using `filterExpressionType`
+field.
+
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": <ModelName>,
+  "selectUniques": [<SelectUniqueObject>],
+  "selectMany": {
+    "queryRootField": <RootFieldName>
+  }
+  "filterExpressionType": <GraphQLTypeName>,
+  "argumentsInputField": <ArgumentsFieldName>,
+  "argumentsInputType": <ArgumentsInputType>
+}
+```
+
+- `ModelName`: Name of the model in string.
+- `SelectUniqueObject`: It is mandatory to have at least one select unique object. See [here](#select-unique) for more details.
+- `RootFieldName`: Name of the GraphQL root field in string.
+- `GraphQLTypeName`: Name of the GraphQL type in string. It is optional and defaults to `{ModelName}_bool_exp` string format.
+- `ArgumentsFieldName`: Name of the input field for model arguments. It is optional and defaults to `args` string.
+- `ArgumentsInputType`: Name of the type for model arguments input object. It is optional and defaults to `{ModelName}_arguments` string format.
+
+:::info Notes
+- It is unnecessary to define `ArgumentsFieldName` and `ArgumentsInputType` if arguments are not defined for the model.
+- Use [Scalar Type GraphQL Expression](#scalar-type-graphql-expression) to customize type name for comparison operator input objects in filter expression.
+:::
+
+### Examples
+
+1. A sample metadata for an `Articles` model:
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Articles",
+  "selectUniques": [
+    {
+      "queryRootField": "ArticleByID",
+      "uniqueIdentifier": [
+        "article_id"
+      ]
+    }
+  ],
+  "selectMany": {
+    "queryRootField": "ArticleMany"
+  },
+  "filterExpressionType": "Article_Where_Exp"
+}
+```
+
+Example query:
+
+<GraphiQLIDE
+  query={`query {
+    AuthorMany(where: {_or: [{first_name: {like: "Pet"}}]}) {
+      author_id first_name
+    }
+}`}
+  response={`{
+  "data": {
+    "AuthorMany": [
+      {
+        "author_id": 1,
+        "first_name": "Peter"
+      }
+    ]
+  }
+}`}
+/>
+
+2. A sample metadata for an `ArticlesByAuthorID` model which has an `author_id` argument:
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "ArticlesByAuthor",
+  "selectUniques": [
+    {
+      "queryRootField": "ArticlesByAuthorByID",
+      "uniqueIdentifier": [
+        "article_id"
+      ]
+    }
+  ],
+  "selectMany": {
+    "queryRootField": "articles_by_author"
+  },
+  "argumentsInputField": "article_args",
+  "argumentsInputType": "Article_Args_Input"
+}
+```
+
+Example query:
+
+<GraphiQLIDE
+  query={`query {
+    articles_by_author(article_args: {author_id: 1}) {
+      author_id first_name
+    }
+}`}
+  response={`{
+  "data": {
+    "articles_by_author": [
+      {
+        "author_id": 1,
+        "first_name": "Peter"
+      }
+    ]
+  }
+}`}
+/>
+
+## Scalar Type GraphQL Expression
+
+For [Select Many](#select-many) queries, it is necessary to have `where` argument to filter nodes.
+The `where` argument is an input object contains type fields with `_or`, `_and` and `_not` operators.
+Each field is an input object with comparison operators available in the data source. <!-- TODO: refer data source schema docs when available -->
+You can provide custom type name for the comparsion input object for each scalar available.
+
+### Metadata Structure
+In DDS, you can define GraphQL expression for a scalar type using a DDS object of a kind `ScalarTypeGraphQlExpression`
+with data source name and scalar type name.
+
+```json
+{
+  "kind": "ScalarTypeGraphQlExpression",
+  "dataSource": <DataSourceName>,
+  "scalarTypeName": <ScalarTypeName>,
+  "graphqlComparisonExpressionTypeName": <GraphQLTypeName>
+}
+```
+
+- `DataSourceName`: Name of the data source in string.
+- `ScalarTypeName`: Name of the scalar tyep in string.
+- `GraphQLTypeName`: Name of the type name for comparison input object.
+
+:::info Note
+Defining `scalarTypeGraphqlExpression` is completely optional. If not defined for any scalar,
+the `graphqlComparisonExpressionTypeName` will be assumed as `{DataSource}_{ScalarTypeName}_comparison_exp` string format
+:::
+
+### Example
+```json
+{
+  "kind": "scalarTypeGraphqlExpression",
+  "dataSource": "my_source",
+  "scalarTypeName": "String",
+  "graphqlComparisonExpressionTypeName": "String_Comparison_Exp"
+}
+```
