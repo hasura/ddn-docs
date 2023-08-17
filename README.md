@@ -35,4 +35,4 @@ service.
 5. You're used to the flow from here ☝️
 
 
-Kodiak isn't set up on this repository yet. After approval, get your merge on 🎉
+Kodiak isn't set up on this repository yet. After approval, **get your merge on** 🎉
