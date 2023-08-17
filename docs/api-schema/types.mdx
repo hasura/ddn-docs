@@ -1,13 +1,161 @@
 ---
 sidebar_position: 1
 sidebar_label: Types
-description: Hasura GraphQL Types
+description: Open DDS Types
 keywords:
   - hasura
   - graphql
+  - data domain
   - types
 ---
 
-# Hasura GraphQL API Types
+# Open DDS Types
 
-<!-- awaiting content... -->
+## Introduction
+
+Open DDS let's you define types for your data domain. This is useful as you may
+want flexibility in defining your types in the data domain which is decoupled
+from the data types in your data source.
+
+DDS uses a concrete type system with some primitive types and some user defined
+types. All subsequent DDS layers (eg: operators, models, commands) are defined
+in terms of these types.
+
+The types can be one of the following:
+- Primitives: `Int` / `Float` / `Boolean` / `String`
+- Container types: `Nullable` and `Array`
+- Custom types:
+  - Type alias (called `NewType`)
+  - Object type containing fields and values
+
+## Description
+
+Primitives types are self-explanatory.
+
+Container types are types that can contain other types, primitive or custom.
+Right now container types can be nullable or arrays. Nullability in your data
+types are represented using this `Nullable` container type.
+
+You can also define custom types. You can either alias existing types (primitive
+or custom), or you can also define a type with fields. The fields can in turn be
+primitive or other custom types.
+
+## Primitive and Container Types
+
+Primitive types don't have any metadata structure. You can just use the names
+`Int` / `Float` / `Boolean` / `String` directly.
+
+Container types are defined as -
+
+```json
+{
+  "Nullable": <TypeName>
+}
+```
+
+```json
+{
+  "Array": <TypeName>
+}
+```
+
+## NewType
+In DDS, type aliasing can be done by defining DDS object of kind of `NewType`.
+To define a `NewType` you need to define a name and an optional representation.
+This `representation` field can refer to any existing primitive, container or
+custom type. This can be string or object
+
+### Metadata Structure
+
+```json
+{
+    "kind": "newType",
+    "name": <TypeName>,
+    "representation": <Type>
+}
+```
+
+- `TypeName`: Name of the type (in string)
+- `Type`: String in case of primitive or custom types. An object in case of container types. (Link to JSONSchema of `Type`)
+
+### Examples
+
+```json
+{
+  "kind": "newType",
+  "name": "UUID",
+  "representation": "String"
+}
+```
+
+```json
+[
+  {
+    "kind": "newType",
+    "name": "Tag",
+    "representation": "String"
+  },
+  {
+    "kind": "newType",
+    "name": "Tags",
+    "representation": {
+      "Array": "Tag"
+    }
+  }
+]
+```
+
+```json
+{
+  "kind": "newType",
+  "name": "OpaqueDate"
+}
+```
+
+## Object Types
+In DDS, completely new types can be created by defining DDS object of kind of `objectType`. You need to define a name and fields of this type.
+
+### Metadata Structure
+
+```json
+{
+  "kind": "objectType",
+  "name": <TypeName>,
+  "fields": [
+    {
+      "name": "field1",
+      "type": <Type> 
+    },
+    {
+      "name": "field2",
+      "type": <Type>
+    }
+  ]
+}
+```
+
+- `TypeName`: Name of the type (in string)
+- `Type`: String in case of primitive or custom types. An object in case of container types. (Link to JSONSchema of `Type`)
+
+### Examples
+
+```json
+{
+  "kind": "objectType",
+  "name": "author",
+  "fields": [
+    {
+      "name": "author_id",
+      "type": "Int"
+    },
+    {
+      "name": "first_name",
+      "type": "String"
+    },
+    {
+      "name": "last_name",
+      "type": "String"
+    }
+  ]
+}
+```
