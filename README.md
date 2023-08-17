@@ -34,5 +34,4 @@ service.
 4. Our CI will tag either Sean or Rob to review your PR
 5. You're used to the flow from here ☝️
 
-
 Kodiak isn't set up on this repository yet. After approval, **get your merge on** 🎉
