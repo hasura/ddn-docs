@@ -78,137 +78,43 @@ The response corresponding to the above request should identify the `User` with 
 }
 ```
 
+## Description
 
-## Open DDS reference schema
+You can configure an `objectType` to generate a Global ID, by extending its definition
+to accept the list of the fields that will uniquely identify the object.
 
-To set up the metadata object that allows creating a Global ID for an `Object` type, you'll need to define which fields
-within the `Object` type should be used to uniquely identify each individual object of that type. This helps ensure that
-each object can be distinguished accurately when using Global IDs.
+### Metadata structure:
 
-The following is the JSON schema of the `Object` type.
 
-```json
-{
-  "description": "Definition of a user-defined GDS object type.",
-  "type": "object",
-  "required": ["fields", "kind", "name"],
-  "properties": {
-    "fields": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/FieldDefinition"
-      }
-    },
-    "globalID": {
-      "type": ["array", "null"],
-      "items": {
-        "$ref": "#/definitions/FieldName"
-      }
-    },
-    "kind": {
-      "type": "string",
-      "enum": ["objectType"]
-    },
-    "name": {
-      "$ref": "#/definitions/TypeName"
-    }
-  }
-}
-```
-
-### JSON schema of the related types
-
-Our reference schema uses the following related types:
-
-1. `FieldDefinition`
+1. `objectType`
 
 ```json
 {
-  "description": "The definition of a field in a user-defined object type.",
-  "type": "object",
-  "required": ["name", "type"],
-  "properties": {
-    "name": {
-      "$ref": "#/definitions/FieldName"
-    },
-    "type": {
-      "$ref": "#/definitions/Type"
-    }
-  }
+  "kind": "objectType",
+  "name": ...,
+  "fields": ...,
+  // highlight-next-line
+  "globalID": <GlobalId>
 }
 ```
 
-2. `FieldName`
+#### Metadata fields reference:
+
+`GlobalID` - `[String]` -  A list of field(s) which can uniquely identify the object.
+
+
+2. `model`
 
 ```json
 {
-  "description": "The name of a field in a user-defined object type.",
-  "type": "string"
+  "kind": "model",
+  "name": ...,
+  "dataType": ...,
+  // highlight-next-line
+  "globalIDSource": <bool>
 }
 ```
 
-3. `Type`
-
-```json
-{
-  "description": "Types track the valid representations of values as JSON",
-  "oneOf": [
-    {
-      "description": "A named type",
-      "type": "object",
-      "required": ["name", "type"],
-      "properties": {
-        "name": {
-          "description": "The name can refer to a primitive type or a scalar type",
-          "type": "string"
-        },
-        "type": {
-          "type": "string",
-          "enum": ["named"]
-        }
-      }
-    },
-    {
-      "description": "A nullable type",
-      "type": "object",
-      "required": ["type", "underlying_type"],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["nullable"]
-        },
-        "underlying_type": {
-          "description": "The type of the non-null inhabitants of this type",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Type"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "description": "An array type",
-      "type": "object",
-      "required": ["element_type", "type"],
-      "properties": {
-        "element_type": {
-          "description": "The type of the elements of the array",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Type"
-            }
-          ]
-        },
-        "type": {
-          "type": "string",
-          "enum": ["array"]
-        }
-      }
-    }
-  ]
-}
-```
 
 ## Example
 
