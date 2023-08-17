@@ -1,13 +1,247 @@
 ---
 sidebar_position: 1
 sidebar_label: Types
-description: Hasura GraphQL Types
+description: Open DDS Types
 keywords:
   - hasura
   - graphql
+  - data domain
   - types
 ---
 
-# Hasura GraphQL API Types
+# Open DDS Types
 
-<!-- awaiting content... -->
+## Introduction
+
+Open DDS lets you define types for your data domain. This is useful as you may want flexibility in defining your types
+in the data domain, **which is decoupled from the data types in your data source.**
+
+DDS uses a concrete type system with some primitive types and some user-defined types. All subsequent DDS layers (e.g.,
+operators, models, commands) are defined in terms of these types.
+
+The types can be one of the following:
+
+| Open DDS Type | Description                                    |
+| ------------- | ---------------------------------------------- |
+| Primitive     | Such as `Int`, `Float`, `Boolean`, or `String` |
+| Container     | Such as `Nullable` or `Array`                  |
+| Custom        | Such as `NewType` or `ObjectType`              |
+
+Open DDS also lets you map data source scalars to types.
+
+## Description
+
+**Container types are types that can contain other types, primitive or custom.** Currently, container types can be
+nullable or arrays. Nullability in your data types are represented using the `Nullable` container type.
+
+You can also define custom types. You can either alias existing types (such as primitives or custom), or you can also
+define a type with fields. In turn, the fields can be a primitive or another custom type.
+
+<!-- TODO: Add reference to scalars 👇 when data sources are documented -->
+
+[Scalar type representation](#scalar-type-representation) helps in mapping data source scalars to any of Open DDS
+primitive, container or custom types.
+
+## Primitive and container types
+
+Primitive types don't have any metadata structure. Simply use the names `Int` / `Float` / `Boolean` / `String` directly.
+
+Container types are defined as:
+
+```json
+{
+  "Nullable": <Type>
+}
+```
+
+```json
+{
+  "Array": <Type>
+}
+```
+
+| Value  | Description                                                                                                           |
+| ------ | --------------------------------------------------------------------------------------------------------------------- |
+| `Type` | String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
+
+## NewType
+
+In DDS, you can type alias by defining a DDS object of kind of `NewType`. To define a `NewType` you need to define a
+name and an optional representation. This `representation` field can refer to any existing primitive, container or
+custom type. This can be a string or an object.
+
+### Metadata structure
+
+```json
+{
+    "kind": "newType",
+    "name": "<TypeName>",
+    "representation": <Type>
+}
+```
+
+| Field          | Type     | Required | Description                                                                                                           |
+|----------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------|
+| name           | `String` | true     | Name of the type                                                                                                      |
+| representation | `Type`   | false    | String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
+
+### Examples
+
+```json
+{
+  "kind": "newType",
+  "name": "UUID",
+  "representation": "String"
+}
+```
+
+```json
+[
+  {
+    "kind": "newType",
+    "name": "Tag",
+    "representation": "String"
+  },
+  {
+    "kind": "newType",
+    "name": "Tags",
+    "representation": {
+      "Array": "Tag"
+    }
+  }
+]
+```
+
+```json
+{
+  "kind": "newType",
+  "name": "OpaqueDate"
+}
+```
+
+## Object types
+
+In DDS, completely new types can be created by defining a DDS object of kind of `objectType`. You need to define a name
+and the fields of this type.
+
+### Metadata structure
+
+```json
+{
+  "kind": "objectType",
+  "name": "<TypeName>",
+  "fields": [
+    {
+      "name": "field1",
+      "type": <Type>
+    },
+    {
+      "name": "field2",
+      "type": <Type>
+    }
+  ]
+}
+```
+
+| Field  | Type      | Required | Description      |
+|--------|-----------|----------|------------------|
+| name   | `String`  | true     | Name of the type |
+| fields | `[Field]` | true     | List of fields   |
+
+#### Field
+
+| Field | Type     | Required | Description                                                                                                                              |
+|-------|----------|----------|------------------------------------------------------------------------------------------------------------------------------------------|
+| name  | `String` | true     | Name of the field                                                                                                                        |
+| type  | `Type`   | true     | Type of the field. String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
+
+### Examples
+
+```json
+{
+  "kind": "objectType",
+  "name": "author",
+  "fields": [
+    {
+      "name": "author_id",
+      "type": "Int"
+    },
+    {
+      "name": "first_name",
+      "type": "String"
+    },
+    {
+      "name": "last_name",
+      "type": "String"
+    }
+  ]
+}
+```
+
+## Scalar type representation
+
+In DDS, a scalar type from a data source can be represented as a DDS type by defining a DDS object of kind
+`ScalarTypeRepresentation`. To define a scalar type representation, you need to have a data source name, a scalar name
+and a type representation. This `representation` can refer to any existing primitive, container, or custom type. This
+can be a string or an object.
+
+It is necessary to map all available scalars from a data source to DDS types.
+
+### Metadata structure
+
+```json
+{
+  "kind": "scalarTypeRepresentation",
+  "dataSource": "<DataSourceName>",
+  "scalarType": "<ScalarTypeName>",
+  "representation": <Type>
+}
+```
+
+| Field          | Type     | Required | Description                                                                                                       |
+|----------------|----------|----------|-------------------------------------------------------------------------------------------------------------------|
+| dataSource     | `String` | true     | Name of the data source                                                                                           |
+| scalarType     | `String` | true     | Name of the scalar type from the data source                                                                      |
+| representation | `Type`   | true     | String in case of primitive or custom types. An object in case of container types. (Link to JSONSchema of `Type`) |
+
+### Examples
+
+1. Mapping a `text` scalar type from `my_source` source to DDS primitive `String` type.
+
+```json
+{
+  "kind": "scalarTypeRepresentation",
+  "dataSource": "my_source",
+  "scalarType": "text",
+  "representation": "String"
+}
+```
+
+2. Mapping a PostgreSQL scalar `geography` to DDS custom object type.
+
+```json
+[
+  {
+    "kind": "objectType",
+    "name": "Geography",
+    "fields": [
+      {
+        "name": "type",
+        "type": "String"
+      },
+      {
+        "name": "coordinates",
+        "type": {
+          "Array": "Float"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "scalarTypeRepresentation",
+    "dataSource": "pg_source",
+    "scalarType": "geography",
+    "representation": "Geography"
+  }
+]
+```
