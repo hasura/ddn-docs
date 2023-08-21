@@ -29,6 +29,10 @@ useful, as multiple models can return the same output type.
 
 ## Output Type Permissions
 
+An Output Type Permission will need the type and the role(s) for which the
+permission should be defined. For each role, you will need to define the fields
+accessible for that role.
+
 ### Metadata Structure
 
 ```json
@@ -46,8 +50,18 @@ useful, as multiple models can return the same output type.
 }
 ```
 
-- `TypeName` - name of the output type on which the permissions to be defined (in string)
-- `RoleName` - name of the role for which permissions are defined (in string)
+| Field             | Type                                 | Required | Description                                                                                                                    |
+|-------------------|--------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------|
+| typeName          | `String`                             | true     | Name of the output type on which permissions are to be defined.                                                                |
+| outputPermissions | `{"<RoleName>": <OutputPermission>}` | true     | The permissions object for this type. Each key of the object is a role, and the value is an object of type `OutputPermission`. |
+
+Note: `RoleName` is the role in `String`.
+
+#### OutputPermission
+
+| Field  | Type       | Required | Description                                                        |
+|--------|------------|----------|--------------------------------------------------------------------|
+| fields | `[String]` | true     | List of field names (of the type) that are accessible to the role. |
 
 ### Examples
 
@@ -79,6 +93,10 @@ If a role doesn't define any permissions for this type, then it won't be
 accessible to that role.
 
 ## Model Select Permissions
+A Model Select Permission will need the model name and the role(s) for which the
+permission should be defined. For each role, you will need to define an optional
+filter expression. Objects (or rows/documents) that satisfy this filter
+predicate will be returned for that role.
 
 ### Metadata Structure
 
@@ -103,6 +121,19 @@ accessible to that role.
   operators supported by the model’s data source. If the filter is missing then
   all rows are returned. If the filter is present, then only the rows satisfying
   this filter expression are returned. (Reference of [ModelPredicate](./common-syntax.mdx#modelpredicate))
+
+| Field             | Type                                 | Required | Description                                                                                                                    |
+|-------------------|--------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------|
+| modelName         | `String`                             | true     | Name of the model on which permissions are to be defined.                                                                      |
+| selectPermissions | `{"<RoleName>": <SelectPermission>}` | true     | The permissions object for this type. Each key of the object is a role, and the value is an object of type `SelectPermission`. |
+
+Note: `RoleName` is the role in `String`.
+
+#### SelectPermission
+
+| Field  | Type             | Required | Description                                                                                                                                                                                                                                                                                                                 |
+|--------|------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| filter | `ModelPredicate` | false    | Optional predicate to satisfy. This predicate can use operators supported by the model’s data source. If the filter is missing then all rows are returned. If the filter is present, then only the rows satisfying this filter expression are returned. (Reference of [ModelPredicate](./common-syntax.mdx#modelpredicate)) |
 
 ### Examples
 
