@@ -14,11 +14,14 @@ keywords:
 
 ## Introduction
 
+<!-- TODO: Links to other docs when available -->
+
 Hasura provides automatically generated GraphQL APIs for your data domain. To set up the GraphQL API, you'll need to
 define the following DDS metadata objects:
 
 - [modelGraphqlApi](#model-graphql-api): Specify the root fields to be exposed over GraphQL API for a model.
-- [scalarTypeGraphqlExpression](#scalar-type-graphql-expression): Customize type names of schema generated for data source scalars.
+- [scalarTypeGraphqlExpression](#scalar-type-graphql-expression): Customize type names of schema generated for data
+  source scalars.
 
 ## Model GraphQL API
 
@@ -26,8 +29,8 @@ The `modelGraphqlApi` DDS object facilitates establishing GraphQL APIs on any mo
 
 ### Metadata Structure
 
-To define `modelGraphqlApi` object, you will need model's name and at least one select-unique query API definition.
-Find the JSON schema for the object below.
+To define the `modelGraphqlApi` object, you will need the model's name and at least one select-unique query API
+definition. Find the JSON schema for the object below.
 
 ```json
 {
@@ -51,37 +54,43 @@ Find the JSON schema for the object below.
 | argumentsInputType   | `String`                                                          | false    | The type name for model arguments input object. The default value is of format `{ModelName}_arguments`.                         |
 
 :::info Note
-It is unnecessary to define `argumentsInputField` and `argumentsInputType` if arguments are not defined on the model.
+
+It is not necessary to define `argumentsInputField` and `argumentsInputType` if arguments are not defined on the model.
+
 :::
 
 ### Examples
 
-Find examples of the `modelGraphqlApi` DDS object for...
+Find examples of the `modelGraphqlApi` DDS object for:
+
 1. select-unique queries [here](/graphql-api/queries.mdx#examples).
 2. select-many queries [here](/graphql-api/queries.mdx#examples-1).
 
 
 ## Scalar Type GraphQL Expression
 
-For [Select Many](/graphql-api/queries.mdx#select-many) queries, it is necessary to have `where` argument to filter rows.
-The `where` argument is an input object contains model's type fields along with `_or`, `_and` and `_not` operators.
+For [Select Many](/graphql-api/queries.mdx#select-many) queries, it is necessary to have a `where` argument to filter
+rows. The `where` argument is an input object which contains the model's type fields along with `_or`, `_and` and
+`_not` operators.
 
 The model's type field should be mapped to the data source's object type field, which must have a non-list scalar type.
-For example, consider a `Post` model whose type is `post` containing the following fields.
+For example, consider a `Post` model whose type is `post` containing the following fields:
 - `post_id`: `Int`
 - `content`: `String`
 - `tags`: [`String`]
 
-The `Post` model is backed by a source. The fields of the model are mapped to `source_post` object type as the following.
+The `Post` model is backed by a source. The fields of the model are mapped to a `source_post` object type as per the
+following:
 - `post_id` -> `source_post`.`id` of type `Integer`
 - `content` -> `source_post`.`content` of type null `TEXT`
 - `tags` -> `source_post`.`tags` of type `[TEXT]`
 
-In the above case, only `post_id` and `content` fields are present in `where` argument input object.
-You cannot filter objects using `tags` field as it is mapped to an array scalar.
+In the above case, only the `post_id` and `content` fields are present in `where` argument input object.
 
-Each field is an input object with comparison operators as fields. These operators are defined for each
-scalar type in the data source's schema. <!-- TODO: refer data source schema docs when available -->
+You cannot filter objects using the `tags` field as it is mapped to an array scalar.
+
+Each field is an input object with comparison operators as fields. These operators are defined for each scalar type
+in the data source's schema. <!-- TODO: refer data source schema docs when available -->
 
 ```graphql
 input Where_Filter_Input {
@@ -95,10 +104,11 @@ input Where_Filter_Input {
 }
 ```
 
-Using `scalarTypeGraphqlExpression` DDS object, you can provide custom type name for the comparison input object
+Using the `scalarTypeGraphqlExpression` DDS object, you can provide a custom type name for the comparison input object
 of each scalar type.
 
 ### Metadata Structure
+
 To define `scalarTypeGraphqlExpression`, you need the name of the data source and the name of the scalar type.
 
 ```json
@@ -117,14 +127,17 @@ To define `scalarTypeGraphqlExpression`, you need the name of the data source an
 | graphqlComparisonExpressionTypeName | `String` | true     | The type name for the comparison input object |
 
 :::info Note
-Defining `scalarTypeGraphqlExpression` DDS object for a scalar type is completely optional. If not defined,
+
+Defining a `scalarTypeGraphqlExpression` DDS object for a scalar type is completely optional. If not defined,
 the `graphqlComparisonExpressionTypeName` will be of `{DataSource}_{ScalarTypeName}_comparison_exp` format.
+
 :::
 
 ### Example
 
 Consider the `Post` model example explained [above](#scalar-type-graphql-expression).
-Defining a comparison object type name for `TEXT` and `Integer` scalar types.
+
+To define a comparison object type name for `TEXT` and `Integer` scalar types:
 
 ```json
 [
@@ -143,7 +156,8 @@ Defining a comparison object type name for `TEXT` and `Integer` scalar types.
 ]
 ```
 
-Assuming the `TEXT` scalar type is exposing a `like` comparison operator and `Integer` scalar type is exposing `greater_than` and `less_than` operators.
+Assuming the `TEXT` scalar type is exposing a `like` comparison operator and the `Integer` scalar type is exposing
+`greater_than` and `less_than` operators:
 
 ```json
 {
@@ -173,11 +187,15 @@ Assuming the `TEXT` scalar type is exposing a `like` comparison operator and `In
   }
 }
 ```
-And, the source scalar types are [represented](/api-schema/types.mdx#scalar-type-representation) as DDS types as follows.
+
+And, the source scalar types are [represented](/api-schema/types.mdx#scalar-type-representation) as DDS types as
+follows:
+
 - `TEXT` -> DDS `String`
 - `Integer` -> DDS `Int`
 
-The GraphQL schema generated for the `scalarTypeGraphqlExpression` DDS objects above will appear as follows.
+The GraphQL schema generated for the `scalarTypeGraphqlExpression` DDS objects above will appear as follows:
+
 ```graphql
 input String_Comparison_Exp {
   like: String
@@ -197,7 +215,9 @@ input Where_Filter_Input {
 }
 ```
 
-If no `scalarTypeGraphqlExpression` object defined for `TEXT` and `Integer` scalar types, then the GraphQL schema is generated as
+If no `scalarTypeGraphqlExpression` object defined for `TEXT` and `Integer` scalar types, then the GraphQL schema is
+generated as:
+
 ```graphql
 input my_source_TEXT_comparison_exp {
   like: String
