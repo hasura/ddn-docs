@@ -1,0 +1,376 @@
+---
+sidebar_position: 3
+sidebar_label: Queries
+description: Hasura GraphQL API - Queries
+keywords:
+  - hasura
+  - graphql
+  - api
+  - queries
+---
+
+import GraphiQLIDE from '@site/src/components/GraphiQLIDE';
+
+# Hasura GraphQL API: Queries
+
+## Introduction
+
+GraphQL queries are used to fetch data from a [model](/api-schema/models.mdx). As of now, Hasura
+provides support the following queries.
+
+- [`Select Unique`](#select-unique): Fetch a single row based on unique fields from a model.
+- [`Select Many`](#select-many): Fetch multiple rows from a model.
+
+Arguments defined for a model can be exposed over these queries.
+
+## Select Unique
+
+You can fetch a single object based on unique field values from a model.
+
+<GraphiQLIDE
+  query={`query {
+    ArticleByID(article_id: 1) {
+        article_id title
+    }
+}`}
+  response={`{
+  "data": {
+    "ArticleByID": {
+      "article_id": 1,
+      "title": "The Next 700 Programming Languages"
+    }
+  }
+}`}
+/>
+
+To enable select unique queries, you need to define `selectUniques` field in [`modelGraphqlApi`](/graphql-api/dds-metadata.mdx/#metadata-structure) DDS object.
+The `selectUniques` field is mandatory and consists of a list of `SelectUnique` objects. You can have multiple
+select unique query root fields with different sets of unique identifier fields.
+
+### SelectUnique Structure
+The `SelectUnique` object contains `queryRootField` and `uniqueIdentifier` fields.
+
+```json
+{
+  "queryRootField": <RootFieldName>,
+  "uniqueIdentifier": [<FieldName>]
+}
+```
+
+| Field            | Type       | Required | Description                                                |
+|------------------|------------|----------|------------------------------------------------------------|
+| queryRootField   | `String`   | true     | Name of the GraphQL root field                             |
+| uniqueIdentifier | [`String`] | true     | Set of fields that uniquely identifies a node from a model |
+
+### Examples
+
+Examples of [`modelGraphqlApi`](/graphql-api/dds-metadata.mdx/#metadata-structure) DDS objects for an `Author` model.
+
+1. With `author_id` field as unique identifier.
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Author",
+  "selectUniques": [
+    {
+      "queryRootField": "AuthorByID",
+      "uniqueIdentifier": [
+        "author_id"
+      ]
+    }
+  ]
+}
+```
+
+A sample GraphQL query:
+<GraphiQLIDE
+  query={`query {
+    AuthorByID(author_id: 1) {
+        author_id first_name last_name
+    }
+}`}
+  response={`{
+  "data": {
+    "AuthorByID": {
+      "author_id": 1,
+      "first_name": "Author_1_First_Name",
+      "last_name": "Author_1_Last_Name"
+    }
+  }
+}`}
+/>
+
+2. Additional root field with `first_name` and `last_name` as unique identifiers.
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Author",
+  "selectUniques": [
+    {
+      "queryRootField": "AuthorByID",
+      "uniqueIdentifier": [
+        "author_id"
+      ]
+    },
+    {
+      "queryRootField": "AuthorByName",
+      "uniqueIdentifier": [
+        "first_name",
+        "last_name"
+      ]
+    }
+  ]
+}
+```
+
+A sample GraphQL query:
+<GraphiQLIDE
+  query={`query {
+    AuthorByName(first_name: "Author_1_First_Name", last_name: "Author_1_Last_Name") {
+        author_id first_name last_name
+    }
+}`}
+  response={`{
+  "data": {
+    "AuthorByID": {
+      "author_id": 1,
+      "first_name": "Author_1_First_Name",
+      "last_name": "Author_1_Last_Name"
+    }
+  }
+}`}
+/>
+
+3. Assuming `Author` model has `is_banned` argument of boolean type. Customizing arguments input schema in DDS object.
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Author",
+  "selectUniques": [
+    {
+      "queryRootField": "AuthorByID",
+      "uniqueIdentifier": [
+        "author_id"
+      ]
+    },
+    {
+      "queryRootField": "AuthorByName",
+      "uniqueIdentifier": [
+        "first_name",
+        "last_name"
+      ]
+    }
+  ],
+  "argumentsInputField": "author_arguments",
+  "argumentsInputType": "author_arguments_input"
+}
+```
+
+A sample GraphQL query:
+
+<GraphiQLIDE
+  query={`query {
+    AuthorByID(
+      author_id: 1,
+      author_arguments: {is_banned: false}
+      ) {
+        author_id
+        first_name
+        last_name
+    }
+    AuthorByName(
+      first_name: "Author_1_First_Name",
+      last_name: "Author_1_Last_Name",
+      author_arguments: {is_banned: true}
+      ) {
+        author_id
+        first_name
+        last_name
+    }
+}`}
+  response={`{
+  "data": {
+    "AuthorByID": {
+      "author_id": 1,
+      "first_name": "Author_1_First_Name",
+      "last_name": "Author_1_Last_Name"
+    },
+    "AuthorByName": null
+  }
+}`}
+/>
+
+## Select Many
+
+You can fetch multiple rows of the same type using a select many query.
+
+<GraphiQLIDE
+  query={`query {
+  ArticleMany(limit: 1) {
+    article_id
+    title
+  }
+}`}
+  response={`{
+  "data": {
+    "ArticleMany": [
+      {
+        "article_id": 1,
+        "title": "The Rust Programming Language"
+      }
+    ]
+  }
+}`}
+/>
+
+
+To enable select many queries, you need to define `selectMany` field in [`modelGraphqlApi`](/graphql-api/dds-metadata.mdx/#metadata-structure) DDS object.
+The `selectMany` field is optional and if omitted, the select many queries are disabled.
+Additionally, you can specify the input object type name for `where` filter argument using `filterExpressionType`
+field.
+
+:::info Note
+Use [Scalar Type GraphQL Expression](/graphql-api/dds-metadata.mdx#scalar-type-graphql-expression) to customize type name for comparison operator input objects in filter expression.
+:::
+
+### SelectMany Structure
+
+The `selectMany` field is an object with `queryRootField` field.
+
+```json
+{
+  "queryRootField": <RootFieldName>
+}
+```
+
+| Field            | Type       | Required | Description                                                |
+|------------------|------------|----------|------------------------------------------------------------|
+| queryRootField   | `String`   | true     | Name of the GraphQL root field                             |
+
+
+### Examples
+
+Examples of [`modelGraphqlApi`](/graphql-api/dds-metadata.mdx/#metadata-structure) DDS objects for an `Author` model.
+
+1. With `AuthorMany` as query root field:
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Author",
+  "selectUniques": [
+    {
+      "queryRootField": "AuthorByID",
+      "uniqueIdentifier": [
+        "author_id"
+      ]
+    }
+  ],
+  "selectMany": {
+    "queryRootField": "AuthorMany"
+  },
+  "filterExpressionType": "Author_Where_Exp"
+}
+```
+
+Schema generated for `where` input argument:
+```graphql
+input Author_Where_Exp {
+    _and: [Author_Where_Exp]
+    _or: [Author_Where_Exp]
+    _not: Author_Where_Exp
+
+    # Model fields
+    field_1: Field_1_Source_Scalar_Comparison_Expression_Type_Name
+    field_2: Field_2_Source_Scalar_Comparison_Expression_Type_Name
+}
+```
+
+A sample GraphQL query:
+<GraphiQLIDE
+  query={`query {
+    AuthorMany(
+      where: {_or: [{first_name: {like: "Pet"}}]}
+    ) {
+      author_id
+      first_name
+    }
+}`}
+  response={`{
+  "data": {
+    "AuthorMany": [
+      {
+        "author_id": 1,
+        "first_name": "Peter"
+      }
+    ]
+  }
+}`}
+/>
+
+2. Assuming `Author` model has `is_banned` argument of boolean type. Customizing arguments input schema in DDS object.
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Author",
+  "selectUniques": [
+    {
+      "queryRootField": "AuthorByID",
+      "uniqueIdentifier": [
+        "author_id"
+      ]
+    }
+  ],
+  "selectMany": {
+    "queryRootField": "AuthorMany"
+  },
+  "argumentsInputField": "author_args",
+  "argumentsInputType": "Author_Args_Input"
+}
+```
+
+The `filterExpressionType` field is omitted above. Schema generated for `where` input argument:
+```graphql
+input Author_bool_exp {
+    _and: [Author_bool_exp]
+    _or: [Author_bool_exp]
+    _not: Author_bool_exp
+
+    # Model fields
+    field_1: Field_1_Source_Scalar_Comparison_Expression_Type_Name
+    field_2: Field_2_Source_Scalar_Comparison_Expression_Type_Name
+}
+```
+
+A sample GraphQL query:
+<GraphiQLIDE
+  query={`query {
+    authors_not_banned: AuthorMany(
+      author_args: {is_banned: false}
+      where: {_or: [{first_name: {like: "Pet"}}]}
+    ) {
+      author_id
+      first_name
+    }
+    authors_banned: AuthorMany(
+      author_args: {is_banned: true}
+      where: {_or: [{first_name: {like: "Pet"}}]}
+    ) {
+      author_id
+      first_name
+    }
+}`}
+  response={`{
+  "data": {
+    "authors_not_banned": [
+      {
+        "author_id": 1,
+        "first_name": "Peter"
+      }
+    ],
+    "authors_banned": []
+  }
+}`}
+/>
