@@ -1,33 +1,72 @@
 ---
 sidebar_position: 2
-sidebar_label: 'From the Console'
+sidebar_label: Get Started with Hasura
 description: Hasura gives you instant GraphQL on all your data
 keywords:
   - hasura
   - graphql
+  - get started
+  - guide
+  - tutorial
 ---
 
 import Thumbnail from '@site/src/components/Thumbnail';
+import Tabs from '@theme/Tabs';
 
 # Getting Started with Hasura
 
-In this guide, we'll walk you through the steps to create a new project on the Hasura Console, connect a cloud-hosted
-database, execute your first query, and create lightning-fast production builds. Throughout this guide, you'll be
-introduced to new Hasura concepts, like Builds, our new Metadata structure, and more.
+In this guide, we'll walk you through the steps to create a new Hasura project, connect a database, execute your first
+query, and create lightning-fast production builds. Throughout this guide, you'll be introduced to new Hasura concepts,
+like Builds, our new Metadata structure, and more.
 
 ## Introduction
 
-This guide will focus on a Console-first workflow. **You'll need a cloud-hosted database.** If you're interested in
-using a local database, check out our guide on
-[getting started from the CLI and a local database using Secure Connect](/get-started/getting-started-via-cli.mdx).
+This guide allows you to use the Console or the CLI. **If you're using the CLI, you'll need to first install it by
+following [these instructions](/).**
 
-## Step 1: Log into the Hasura Console
+## Step 1: Log into Hasura
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 Go to the [Hasura Console](https://console.hasura.io) and sign into your account:
 
 <Thumbnail src="/img/get-started/0.0.1_console-login.png" alt="Log into Hasura Console" width="1000px" />
 
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+To keep your connection and authentication details secure, you'll need a personal access token (PAT) from Hasura Cloud:
+
+1. Head [here](https://cloud.hasura.io/account-settings/access-tokens) to generate your PAT.
+2. Use the following command to add the token to the CLI, thereby logging you in:
+
+```bash
+hasura3 cloud login --pat <YOUR_PAT>
+```
+
+:::info New CLI?!
+
+Yep! If you can't tell already, we've completely rewritten the CLI from the ground up. You can learn more about the new
+commands by running:
+
+```bash
+hasura3 --help
+```
+
+:::
+
+</TabItem>
+
+</Tabs>
+
 ## Step 2: Create a new project
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 Click on the `Create ->` button to create a new project:
 
@@ -38,7 +77,50 @@ types available in your GraphQL API. That will soon change!
 
 <Thumbnail src="/img/get-started/0.0.1_console-click-metadata.png" alt="Empty GraphiQL" width="1000px" />
 
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+To create a new local project, use the following command, passing the directory where you want to create the metadata
+file as an argument. This command will create a `metadata.yaml` file by default:
+
+```bash
+hasura3 local init --dir <PROJECT_DIRECTORY>
+```
+
+You can then create the corresponding project on Hasura using the following command:
+
+```bash
+hasura3 cloud project create
+```
+
+The CLI will return information about your project:
+
+```text
+ Creating project... ok
+ Name         <PROJECT_NAME>
+ ID           <PROJECT_ID>
+ Console URL  https://console.hasura.io/project/<PROJECT_ID>/graphql
+```
+
+:::info What's a local project?
+
+Each project in Hasura will have a corresponding local project that will be used for development. This local project
+only contains the Hasura Metadata file that follows the new
+[Metadata Spec](https://github.com/hasura/open-data-domain-specification), and can be a `.yaml` or a `.json` file. This
+file can be checked into version control along with other files (if any) of your project and can be shared.
+
+:::
+
+</TabItem>
+
+</Tabs>
+
 ## Step 3: Connect a data source
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 Head to your project's Metadata by clicking on the `Metadata` tab on the left. We'll begin by connecting to a data
 source via the `+ Connect` button:
@@ -61,7 +143,51 @@ If your database has tables present, Hasura automatically detected all of them a
 
 :::
 
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+To create a **Tunnel**:
+
+1. Start a Postgres Database (you can use this [docker image](https://hub.docker.com/_/postgres)).
+2. Start the Secure Connect Tunnel daemon using the following command:
+
+```bash
+hasura3 local tunnel daemon start
+```
+
+3. Create a new Tunnel using the command:
+
+```bash
+hasura3 cloud tunnel create <POSTGRES_URL>
+```
+
+The Tunnel URL will be returned from this command and you'll use this URL in your Metadata. Update the
+`postgres_database_url` in your Metadata file with the Tunnel URL and apply the `metadata.yaml` to read:
+
+```yaml
+postgres_database_url: 'postgres://<TUNNEL_URL>'
+```
+
+:::info What's a Tunnel?
+
+A **Secure Connect Tunnel** (Tunnel, for short) is a new feature designed to allow you to connect your local databases
+to Hasura Cloud.
+
+**Do note: if you haven't been following along with the CLI instructions previous to this step, you'll need to
+authenticate to Hasura using a [PAT](#step-1-log-into-hasura).**
+
+:::
+
+</TabItem>
+
+</Tabs>
+
 ## Step 4: Import Models
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 Now that we've connected to a data source, we can import **Models** from it to our Metadata. Click on the `+ Import`
 button next to `Models` to begin:
@@ -93,21 +219,67 @@ relationships between your tables and added them to your project's Metadata, too
 
 You can even keep scrolling and see the newly-generated `Types` and `GraphQL Interface` sections of your Metadata file.
 
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+Models aren't imported when authoring Metadata locally. You'll need to...
+
+</TabItem>
+
+</Tabs>
+
 ## Step 5: Create a new Build
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 Now that we've connected to a data source and imported our Models, we're ready to create a new **Build**. Click on the
 `+ Create New Build` button in the top-right corner of the Console:
 
 <Thumbnail src="/img/get-started/0.0.1_create-new-build.png" alt="Create a new build" width="1000px" />
 
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+Create a build using the following command:
+
+```bash
+hasura3 cloud build create --project-id <PROJECT_ID> --metadata-file <METADATA_FILE>
+```
+
+The CLI will return:
+
+- a Build Version
+- a Build ID
+- a GraphQL API Endpoint for this Build
+
+We'll use this information in the next step to test our API!
+
+</TabItem>
+
+</Tabs>
+
 :::info What's a Build?
 
-Builds are incremental snapshots of your project's Metadata. They're a new concept in Hasura that allow you to quickly
-iterate and prototype on your project's Metadata.
+Builds are a new concept in Hasura that allow you to quickly iterate and prototype on your project's Metadata. A Build
+is an immutable, fully-functioning GraphQL API that represents a milestone in your development cycle.
+
+It maybe helpful to think of builds as git commits. Since each is deployed on Hasura Cloud, it can be shared with other
+users.
+
+Each Build is completely independent. One project can have multiple Builds, out of which, one is applied to production.
+This workflow allows for easier rollbacks on production, and greater collaboration during development.
 
 :::
 
 ## Step 6: Run your first query
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 Assuming you have some tables and data in your database, you can now run your first query! Click on the `GraphiQL`
 button in the left-hand sidenav of the Console.
@@ -117,12 +289,73 @@ write it manually:
 
 <Thumbnail src="/img/get-started/0.0.1_console-execute-query-on-build.png" alt="Execute a query" width="1000px" />
 
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+Take the GraphQL API endpoint provided by the CLI in the previous step, and execute a curl request:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{
+  "query": "{
+    users {
+      id
+      name
+    }
+  }"
+}' <YOUR_PROJECT_ENDPOINT>
+```
+
+In the example above, we're hitting our most recent Build's endpoint and assuming there's a `users` table with
+properties `id` and `name`. Modify this command as necessary to fit your project's Metadata.
+
+Additionally, you can head to the Console on [Hasura Cloud](https://console.hasura.io) and see this Build's GraphiQL
+Explorer by clicking on the `GraphiQL` button in the left-hand sidenav of the Console.
+
+</TabItem>
+
+</Tabs>
+
 ## Step 7: Apply your Build
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 After you're satisfied your API is behaving as expected, click the `build_id` in the bottom navigation bar. This will
 bring up all your project's Builds and allow you to choose one to apply. Click the `Apply` button to apply your Build:
 
 <Thumbnail src="/img/get-started/0.0.1_console-apply-build.png" alt="Apply a build" width="1000px" />
+
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+To apply a Build, use the following command:
+
+```bash
+hasura3 cloud build apply --project-id <PROJECT_ID> --build-id <BUILD_ID>
+```
+
+:::tip Quickly find IDs for Projects and Builds!
+
+You can use the following command to list your projects:
+
+```bash
+hasura3 cloud project list
+```
+
+You can use the following command to list your builds:
+
+```bash
+hasura3 cloud build list --project-id <PROJECT_ID>
+```
+
+:::
+
+</TabItem>
+
+</Tabs>
 
 :::info What does it mean to apply a Build?
 
@@ -132,12 +365,46 @@ worldwide.**
 
 :::
 
-## Step 8: Toggle your production endpoint
+## Step 8: Query your production endpoint
+
+<Tabs groupId="user-preference" className="api-tabs">
+
+<TabItem value="console" label="Console">
 
 At the top of the Console, you'll see a toggle that allows you to switch between your project's applied Build and your
 project's currently selected Build. Toggle to your project's applied Build:
 
 <Thumbnail src="/img/get-started/0.1.1_console-view-project-graphiql.png" alt="Toggle production" width="1000px" />
+
+You can now execute a query against this endpoint.
+
+</TabItem>
+
+<TabItem value="cli" label="CLI">
+
+Earlier, we tested our Build's endpoint by running a curl request. We can do the same thing, but now against our
+production endpoint. To find this value, run the following:
+
+```bash
+
+```
+
+Then, use the endpoint returned to execute this request:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{
+  "query": "{
+    users {
+      id
+      name
+    }
+  }"
+}' <YOUR_PROJECT_ENDPOINT>
+```
+
+</TabItem>
+
+</Tabs>
 
 ## What's next?
 
