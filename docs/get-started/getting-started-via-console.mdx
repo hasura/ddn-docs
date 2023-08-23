@@ -22,7 +22,21 @@ like Builds, our new Metadata structure, and more.
 ## Introduction
 
 This guide allows you to use the Console or the CLI. **If you're using the CLI, you'll need to first install it by
-following [these instructions](/).**
+following [these instructions](#introduction).**
+
+:::info We're using seed data from the docs sample app
+
+If you have your own database with tables and data, feel free to use that instead.
+
+You can find the relevant files that we'll use throughout this guide here:
+
+- ✅
+  [Up migration](https://raw.githubusercontent.com/hasura/docs-sample-app/main/migrations/default/1669033533483_init/up.sql)
+- ✅ [Seed data](https://raw.githubusercontent.com/hasura/docs-sample-app/main/seeds/default/tables_seed.sql)
+- ✅ [Sample Metadata file](https://raw.githubusercontent.com/hasura/docs-sample-app/main/seeds/default/tables_seed.sql)
+  (following the Open DD Spec)
+
+:::
 
 ## Step 1: Log into Hasura
 
@@ -106,9 +120,10 @@ The CLI will return information about your project:
 :::info What's a local project?
 
 Each project in Hasura will have a corresponding local project that will be used for development. This local project
-only contains the Hasura Metadata file that follows the new
-[Metadata Spec](https://github.com/hasura/open-data-domain-specification), and can be a `.yaml` or a `.json` file. This
-file can be checked into version control along with other files (if any) of your project and can be shared.
+only contains the Hasura Metadata file that follows the new Metadata format of the
+[Open Data Domain Specification (Open DD Spec)](https://github.com/hasura/open-data-domain-specification), and can be a
+`.yaml` or a `.json` file. This file can be checked into version control along with other files (if any) of your project
+and can be shared.
 
 :::
 
@@ -147,37 +162,16 @@ If your database has tables present, Hasura automatically detected all of them a
 
 <TabItem value="cli" label="CLI">
 
-To create a **Tunnel**:
+Hasura determines the connection details for your database using the Metadata file we created when initing the project.
+If you're using the docs sample app data, we have a sample `metadata.yaml` file for you here 🎉
 
-1. Start a Postgres Database (you can use this [docker image](https://hub.docker.com/_/postgres)).
-2. Start the Secure Connect Tunnel daemon using the following command:
-
-```bash
-hasura3 local tunnel daemon start
-```
-
-3. Create a new Tunnel using the command:
-
-```bash
-hasura3 cloud tunnel create <POSTGRES_URL>
-```
-
-The Tunnel URL will be returned from this command and you'll use this URL in your Metadata. Update the
-`postgres_database_url` in your Metadata file with the Tunnel URL and apply the `metadata.yaml` to read:
+You'll need to modify the following value in your local project's `metadata.yaml`:
 
 ```yaml
-postgres_database_url: 'postgres://<TUNNEL_URL>'
+postgres_database_url: <YOUR_DATABASE_URL>
 ```
 
-:::info What's a Tunnel?
-
-A **Secure Connect Tunnel** (Tunnel, for short) is a new feature designed to allow you to connect your local databases
-to Hasura Cloud.
-
-**Do note: if you haven't been following along with the CLI instructions previous to this step, you'll need to
-authenticate to Hasura using a [PAT](#step-1-log-into-hasura).**
-
-:::
+Then, save the file.
 
 </TabItem>
 
@@ -198,16 +192,6 @@ We'll then choose our data source, check the box for all of the tables we want t
 
 <Thumbnail src="/img/get-started/0.0.1_console-check-all-import.png" alt="Add Models" width="1000px" />
 
-:::info What are Models?
-
-This is the first new concept we've introduced in this guide. Models are a new way to represent your data in Hasura.
-
-Models in DDS refer to a collection of objects (such as rows in a relational database, or documents in a NoSQL database)
-of a given DDS type. Models are backed by a data source and can support CRUD operations. You can learn more about Models
-[here](/api-schema/models.mdx).
-
-:::
-
 While we're here, check out the `Relationships` section of your Metadata file. Hasura automatically detected the
 relationships between your tables and added them to your project's Metadata, too:
 
@@ -223,11 +207,25 @@ You can even keep scrolling and see the newly-generated `Types` and `GraphQL Int
 
 <TabItem value="cli" label="CLI">
 
-Models aren't imported when authoring Metadata locally. You'll need to...
+Hasura will use your Metadata file to import Models and other relevant information to build a GraphQL API. If you're
+using our sample app's data, we've already shaped this Metadata for you and you've already imported it in the previous
+step.
+
+If you're curious about authoring these types of files, check the Data Domain Modeling section of the docs.
 
 </TabItem>
 
 </Tabs>
+
+:::info What are Models?
+
+This is the first new concept we've introduced in this guide. Models are a new way to represent your data in Hasura.
+
+Models in the Open DD Spec refer to a collection of objects (such as rows in a relational database, or documents in a
+NoSQL database) of a given Open DD Spec type. Models are backed by a data source and can support CRUD operations. You
+can learn more about Models [here](/api-schema/models.mdx).
+
+:::
 
 ## Step 5: Create a new Build
 
@@ -296,14 +294,7 @@ write it manually:
 Take the GraphQL API endpoint provided by the CLI in the previous step, and execute a curl request:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{
-  "query": "{
-    users {
-      id
-      name
-    }
-  }"
-}' <YOUR_PROJECT_ENDPOINT>
+curl -X POST -H "Content-Type: application/json" -d '{"query": "{ users { id name } }"}' <YOUR_BUILD_GRAPHQL_ENDPOINT>
 ```
 
 In the example above, we're hitting our most recent Build's endpoint and assuming there's a `users` table with
@@ -383,23 +374,12 @@ You can now execute a query against this endpoint.
 <TabItem value="cli" label="CLI">
 
 Earlier, we tested our Build's endpoint by running a curl request. We can do the same thing, but now against our
-production endpoint. To find this value, run the following:
-
-```bash
-
-```
+production endpoint.
 
 Then, use the endpoint returned to execute this request:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{
-  "query": "{
-    users {
-      id
-      name
-    }
-  }"
-}' <YOUR_PROJECT_ENDPOINT>
+curl -X POST -H "Content-Type: application/json" -d '{"query": "{ users { id name } }"}' https://<YOUR_PROJECT_NAME>.ddn.hasura.app/graphql
 ```
 
 </TabItem>
@@ -413,9 +393,3 @@ curl -X POST -H "Content-Type: application/json" -d '{
 We've just demonstrated how to quickly get set up and running with Hasura. Now that you've got a project up and running,
 you can iterate on your Metadata and build out your API. Head back to the Metadata tab, make some modifications, create
 a new Build, and see what happens 🎉
-
-### Check out the CLI
-
-The Hasura Console is a great way to get started with Hasura, but it's not the only way. Check out our guide on
-[getting started from the CLI and a local database using Secure Connect](/get-started/getting-started-via-cli.mdx) to
-learn more.
