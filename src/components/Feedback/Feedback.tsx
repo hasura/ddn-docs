@@ -49,11 +49,11 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
       };
 
       fetch('https://us-central1-websitecloud-352908.cloudfunctions.net/docs-feedback', requestOptions)
-        .then(response => response.text())
-        .catch(error => console.error('error', error));
+        .then((response) => response.text())
+        .catch((error) => console.error('error', error));
     };
 
-    if (window.location.hostname != 'hasura.io' || window.location.hostname != 'stage.hasura.io') {
+    if (!window.location.hostname.includes('hasura.io')) {
       alert(
         'Hey! We like that you like our docs and chose to use them 🎉\n\nHowever, you might want to remove the feedback component or modify the route you hit, lest you want us reading what people think of your site ✌️'
       );
@@ -74,7 +74,7 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
         setNotes(null);
         setIsSubmitSuccess(true);
       })
-      .catch(e => {
+      .catch((e) => {
         console.error(e);
       });
 
@@ -132,8 +132,7 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
                   <a
                     href="https://github.com/hasura/graphql-engine/issues/new/choose"
                     target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                    rel="noopener noreferrer">
                     GitHub issue
                   </a>{' '}
                   if you think this is a bug, or check out our{' '}
@@ -152,8 +151,7 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
                   key={star}
                   onClick={() => handleScoreClick(star)}
                   onMouseEnter={() => setHoveredScore(index + 1)}
-                  onMouseLeave={() => setHoveredScore(-1)}
-                >
+                  onMouseLeave={() => setHoveredScore(-1)}>
                   {rating >= star ? (
                     <svg width="36" height="36" viewBox="0 0 24 24">
                       <path
@@ -181,7 +179,7 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
             value={notes ?? ''}
             placeholder={textAreaPlaceholder ?? ''}
             rows={5}
-            onChange={e => setNotes(e.target.value)}
+            onChange={(e) => setNotes(e.target.value)}
           />
           <div className={styles.errorAndButton}>
             <p className={styles.errorText}>{errorText}</p>

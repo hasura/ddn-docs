@@ -13,13 +13,19 @@ const GraphiQLIDE = ({ query, variables, response, viewOnly = true }) => {
     };
   };
 
+  // new graphiql is being funky on builds — checking to see if we're in the browser
+  const isBrowser = typeof window !== 'undefined';
+
+  if (!isBrowser) {
+    return null;
+  }
+
   return (
     <div
       className={`graphiql ${cslx({
         'with-vars': !!variables,
         'view-only': viewOnly,
-      })}`}
-    >
+      })}`}>
       <GraphiQL
         readOnly={false}
         editorTheme={'dracula'}

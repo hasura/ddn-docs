@@ -45,7 +45,7 @@ definition. Find the JSON schema for the object below.
 ```
 
 | Field                | Type                                                              | Required | Description                                                                                                                     |
-|----------------------|-------------------------------------------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------|
+| -------------------- | ----------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | modelName            | `String`                                                          | true     | Name of the model.                                                                                                              |
 | selectUniques        | [[SelectUnique](/graphql-api/queries.mdx#selectunique-structure)] | true     | Define Select unique queries.                                                                                                   |
 | selectMany           | [SelectMany](/graphql-api/queries.mdx#selectmany-structure)       | false    | Definition to enable select many query.                                                                                         |
@@ -66,21 +66,22 @@ Find examples of the `modelGraphqlApi` DDS object for:
 1. select-unique queries [here](/graphql-api/queries.mdx#examples).
 2. select-many queries [here](/graphql-api/queries.mdx#examples-1).
 
-
 ## Scalar Type GraphQL Expression
 
 For [Select Many](/graphql-api/queries.mdx#select-many) queries, it is necessary to have a `where` argument to filter
-rows. The `where` argument is an input object which contains the model's type fields along with `_or`, `_and` and
-`_not` operators.
+rows. The `where` argument is an input object which contains the model's type fields along with `_or`, `_and` and `_not`
+operators.
 
 The model's type field should be mapped to the data source's object type field, which must have a non-list scalar type.
 For example, consider a `Post` model whose type is `post` containing the following fields:
+
 - `post_id`: `Int`
 - `content`: `String`
 - `tags`: [`String`]
 
 The `Post` model is backed by a source. The fields of the model are mapped to a `source_post` object type as per the
 following:
+
 - `post_id` -> `source_post`.`id` of type `Integer`
 - `content` -> `source_post`.`content` of type null `TEXT`
 - `tags` -> `source_post`.`tags` of type `[TEXT]`
@@ -89,8 +90,8 @@ In the above case, only the `post_id` and `content` fields are present in `where
 
 You cannot filter objects using the `tags` field as it is mapped to an array scalar.
 
-Each field is an input object with comparison operators as fields. These operators are defined for each scalar type
-in the data source's schema. <!-- TODO: refer data source schema docs when available -->
+Each field is an input object with comparison operators as fields. These operators are defined for each scalar type in
+the data source's schema. <!-- TODO: refer data source schema docs when available -->
 
 ```graphql
 input Where_Filter_Input {
@@ -121,15 +122,15 @@ To define `scalarTypeGraphqlExpression`, you need the name of the data source an
 ```
 
 | Field                               | Type     | Required | Description                                   |
-|-------------------------------------|----------|----------|-----------------------------------------------|
+| ----------------------------------- | -------- | -------- | --------------------------------------------- |
 | dataSource                          | `String` | true     | Name of the data source.                      |
 | scalarTypeName                      | `String` | true     | Name of the scalar type                       |
 | graphqlComparisonExpressionTypeName | `String` | true     | The type name for the comparison input object |
 
 :::info Note
 
-Defining a `scalarTypeGraphqlExpression` DDS object for a scalar type is completely optional. If not defined,
-the `graphqlComparisonExpressionTypeName` will be of `{DataSource}_{ScalarTypeName}_comparison_exp` format.
+Defining a `scalarTypeGraphqlExpression` DDS object for a scalar type is completely optional. If not defined, the
+`graphqlComparisonExpressionTypeName` will be of `{DataSource}_{ScalarTypeName}_comparison_exp` format.
 
 :::
 
@@ -188,8 +189,8 @@ Assuming the `TEXT` scalar type is exposing a `like` comparison operator and the
 }
 ```
 
-And, the source scalar types are [represented](/data-domain-modeling/types.mdx#scalar-type-representation) as DDS types as
-follows:
+And, the source scalar types are [represented](/data-domain-modeling/types.mdx#scalar-type-representation) as DDS types
+as follows:
 
 - `TEXT` -> DDS `String`
 - `Integer` -> DDS `Int`

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 6
 sidebar_label: Relationships
 description: Hasura Data Relationships
 keywords:
@@ -18,10 +18,10 @@ A relationship lets you extend objects with related models.
 
 You can define a relationship between a source type and a target model.
 
-To create a relationship, you will need to define a relationship kind object which has a name, the source type, a target model and the mapping between them.
+To create a relationship, you will need to define a relationship kind object which has a name, the source type, a target
+model and the mapping between them.
 
 A mapping defines the link between the source type’s field to the target model’s field.
-
 
 ### Metadata structure:
 
@@ -52,65 +52,57 @@ A mapping defines the link between the source type’s field to the target model
 
 4. `Mappings` - `[Object]` -
 
-      Defines how the `Source` and `Target` should be connected. This field
-      expects a list of objects.
+   Defines how the `Source` and `Target` should be connected. This field expects a list of objects.
 
-      Schema -
+   Schema -
 
-      ```json
-      {
-         "source": <RelationshipMappingSource>,
-         "target": <RelationshipMappingTarget>
-      }
-      ```
+   ```json
+   {
+      "source": <RelationshipMappingSource>,
+      "target": <RelationshipMappingTarget>
+   }
+   ```
 
 5. `RelationshipMappingSource` - `[Object]` -
 
-      Accepts a field path to the source column of the relationship
-      in the source type. A field path is a list of `FieldAccess`.
-      The field path can be used to choose a specific field in the
-      object.
+   Accepts a field path to the source column of the relationship in the source type. A field path is a list of
+   `FieldAccess`. The field path can be used to choose a specific field in the object.
 
-      Schema -
+   Schema -
 
-      ```json
-      {
-         "fieldPath": [
-            <FieldAccess>
-         ]
-      }
-      ```
-
+   ```json
+   {
+      "fieldPath": [
+         <FieldAccess>
+      ]
+   }
+   ```
 
 6. `RelationshipMappingTarget` - `[Object]` -
 
-      Accepts a field path to the target column of the relationship
-      in the target type.
+   Accepts a field path to the target column of the relationship in the target type.
 
-      Schema -
+   Schema -
 
-
-      ```json
-      {
-         "modelField": [
-            <FieldAccess>
-         ]
-      }
-      ```
+   ```json
+   {
+      "modelField": [
+         <FieldAccess>
+      ]
+   }
+   ```
 
 7. `FieldAccess` - `Object`
 
-      Specifies how to access a field of a type.
+   Specifies how to access a field of a type.
 
-      Schema -
+   Schema -
 
-      ```json
-      {
-        "fieldName": <FieldName>
-      }
-      ```
-
-
+   ```json
+   {
+     "fieldName": <FieldName>
+   }
+   ```
 
 ## Example
 
@@ -120,69 +112,67 @@ Let's add the following relationships to the above types.
 
 ```json
 {
-        "kind": "relationship",
-        "source": "author",
-        "name": "Articles",
-        "target": {
-            "modelName": "Articles",
-            "relationshipType": "Array"
-        },
-        "mappings": [
-            {
-                "source": {
-                    "fieldPath": [
-                        {
-                            "fieldName": "id"
-                        }
-                    ]
-                },
-                "target": {
-                    "modelField": [
-                        {
-                            "fieldName": "author_id"
-                        }
-                    ]
-                }
-            }
+  "kind": "relationship",
+  "source": "author",
+  "name": "Articles",
+  "target": {
+    "modelName": "Articles",
+    "relationshipType": "Array"
+  },
+  "mappings": [
+    {
+      "source": {
+        "fieldPath": [
+          {
+            "fieldName": "id"
+          }
         ]
+      },
+      "target": {
+        "modelField": [
+          {
+            "fieldName": "author_id"
+          }
+        ]
+      }
     }
+  ]
+}
 ```
-
 
 2. `Object` relationship
 
 ```json
 {
-        "kind": "relationship",
-        "source": "article",
-        "name": "Author",
-        "target": {
-            "modelName": "Authors",
-            "relationshipType": "Object"
-        },
-        "mappings": [
-            {
-                "source": {
-                    "fieldPath": [
-                        {
-                            "fieldName": "author_id"
-                        }
-                    ]
-                },
-                "target": {
-                    "modelField": [
-                        {
-                            "fieldName": "id"
-                        }
-                    ]
-                }
-            }
+  "kind": "relationship",
+  "source": "article",
+  "name": "Author",
+  "target": {
+    "modelName": "Authors",
+    "relationshipType": "Object"
+  },
+  "mappings": [
+    {
+      "source": {
+        "fieldPath": [
+          {
+            "fieldName": "author_id"
+          }
         ]
+      },
+      "target": {
+        "modelField": [
+          {
+            "fieldName": "id"
+          }
+        ]
+      }
     }
+  ]
+}
 ```
 
 The resulting GraphQL schema will look as following:
-
 
 ```graphql
 type Authors {
