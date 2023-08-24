@@ -53,14 +53,14 @@ const CustomDocItem = (props) => {
   return (
     <div
       className={
-        props.location.pathname === `/docs/latest/index/`
+        props.location.pathname === `/latest/index/`
           ? `custom_doc_item_wrapper custom_doc_item_wrapper-x-wide`
           : `custom_doc_item_wrapper ${styles['custom_doc_item_wrapper']}`
       }>
       <ActualDocItem {...props} />
       <div
         className={
-          props.location.pathname === `/docs/latest/index/` || props.location.pathname.includes('overview')
+          props.location.pathname === `/latest/index/` || props.location.pathname.includes('overview')
             ? `custom_doc_item_footer-x-wide`
             : styles['custom_doc_item_footer']
         }>
