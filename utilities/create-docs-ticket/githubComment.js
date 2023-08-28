@@ -13,6 +13,7 @@ const getAuthor = async (prUrl) => {
     },
   });
   const pr = await response.json();
+  console.log(pr);
   return pr.user.login;
 };
 
