@@ -4,8 +4,8 @@ const assignOnGithub = require('./githubAssignment.js');
 const addCommentToPR = require('./githubComment.js');
 require('dotenv').config();
 
-const title = process.argv[3];
-const url = process.argv[4];
+const title = process.argv[2];
+const url = process.argv[3];
 
 const main = async (title, url) => {
   const newTicket = await generateNewTicket({ title, url });
