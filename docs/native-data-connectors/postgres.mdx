@@ -1,13 +1,81 @@
 ---
 sidebar_position: 4
-sidebar_label: Postgres
-description: Hasura Native Data Connectors for Postgres
+sidebar_label: PostgreSQL
+description: Hasura Native Data Connector for PostgreSQL
 keywords:
   - hasura
   - graphql
   - postgres
+  - postgresql
 ---
 
-# Hasura Postgres
+# Native Data Connector for PostgreSQL
 
-<!-- awaiting content... -->
+The Native Data Connector for PostgreSQL is our flagship connector, with rich support for all kinds of queries.
+
+## Scalar types
+
+SQL data types are mapped to GraphQL types. The current mappings are as follows:
+
+| SQL data type                   | GraphQL type |
+| ------------------------------- | ------------ |
+| `boolean`                       | `Boolean`    |
+| `smallint`                      | `Int`        |
+| `integer`                       | `Int`        |
+| `bigint`                        | `Int`        |
+| `smallserial`                   | `Int`        |
+| `serial`                        | `Int`        |
+| `bigserial`                     | `Int`        |
+| `decimal`                       | `Float`      |
+| `numeric`                       | `Float`      |
+| `real`                          | `Float`      |
+| `double precision`              | `Float`      |
+| `text`                          | `String`     |
+| `character varying` (`varchar`) | `String`     |
+
+Note that many of these SQL data types have aliases in PostgreSQL, which can be found in the [PostgreSQL documentation
+on data types][PostgreSQL: data types].
+
+Other SQL scalar types are unsupported, but may still work in certain situations.
+
+[PostgreSQL: data types]: https://www.postgresql.org/docs/current/datatype.html
+
+## Nested types
+
+The connector does not currently support nested data structures, such as `array`, `hstore`, `json`, or `jsonb`, though
+they may still work in certain situations.
+
+## Queries
+
+The connector supports all query operations; see the general documentation for details.
+
+### Predicates
+
+The `_is_null` operator checks whether a value is `NULL`.
+
+The following binary operators are supported when filtering:
+
+| Name                       | GraphQL operator | PostgreSQL operator | GraphQL types |
+| -------------------------- | ---------------- | ------------------- | ------------- |
+| equals                     | `_eq`            | `=`                 | all           |
+| not equals                 | `_neq`           | `<>`                | all           |
+| less than                  | `_lt`            | `<`                 | all           |
+| less than or equal to      | `_lte`           | `<=`                | all           |
+| greater than               | `_gt`            | `>`                 | all           |
+| greater than or equal to   | `_gte`           | `>=`                | all           |
+| like                       | `_like`          | `LIKE`              | `String`      |
+| not like                   | `_nlike`         | `NOT LIKE`          | `String`      |
+| case-insensitive like      | `_ilike`         | `ILIKE`             | `String`      |
+| not case-insensitive like  | `_nilike`        | `NOT ILIKE`         | `String`      |
+| similar                    | `_similar`       | `SIMILAR TO`        | `String`      |
+| not similar                | `_nsimilar`      | `NOT SIMILAR TO`    | `String`      |
+| regex                      | `_regex`         | `~`                 | `String`      |
+| not regex                  | `_nregex`        | `!~`                | `String`      |
+| case-insensitive regex     | `_iregex`        | `~`                 | `String`      |
+| not case-insensitive regex | `_niregex`       | `!~`                | `String`      |
+
+The `_not`, `_and`, and `_or` operators all work as usual.
+
+## Mutations
+
+Mutations are currently not supported by the connector.
