@@ -3,7 +3,9 @@ const { generateComment, determineReviewer } = require('./helpers');
 
 // get the author of the PR's username
 const getAuthor = async (prUrl) => {
+  console.log(`URL: ${prUrl}`);
   const prNumber = prUrl.split('/').pop();
+  console.log(`PR Number: ${prNumber}`);
   const apiUrl = `https://api.github.com/repos/${process.env.REPO_OWNER}/${process.env.REPO_NAME}/pulls/${prNumber}`;
   const response = await fetch(apiUrl, {
     method: 'GET',
