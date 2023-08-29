@@ -3,7 +3,7 @@ require('dotenv').config();
 const createTicketPayload = (prInfo) => {
   return {
     fields: {
-      summary: `Review: ${prInfo.title}`,
+      summary: `v3 Review: ${prInfo.title}`,
       issuetype: {
         id: `${process.env.DOCS_JIRA_ISSUE_TYPE}`,
       },
