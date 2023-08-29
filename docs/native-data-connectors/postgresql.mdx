@@ -13,6 +13,85 @@ keywords:
 
 The Native Data Connector for PostgreSQL is our flagship connector, with rich support for all kinds of queries.
 
+## Configuration
+
+The configuration structure is subject to change.
+
+The connector will create an empty configuration as follows:
+
+```json
+{
+  "version": 1,
+  "postgres_database_url": "",
+  "metadata": {
+    "tables": {},
+    "native_queries": {}
+  },
+  "aggregate_functions": {}
+}
+```
+
+Once the PostgreSQL database URL is filled in and the configuration is re-submitted, the `"tables"` and
+`"aggregate_functions"` sections will be auto-populated based on the current state of the database.
+
+These will always be regenerated from scratch.
+
+### PostgreSQL connection URI
+
+The PostgreSQL database URL should follow the [PostgreSQL connection URI form][libpq: Connection Strings], which looks
+like this:
+
+```
+postgresql://[user[:password]@][host[:port]][/dbname][?param1=value2&param2=value2&...]
+```
+
+Remember to encode any ambiguous characters using standard URI encoding. For example, if you have an `@` in your
+username, it will need to be written as `%40`.
+
+[libpq: Connection Strings]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+
+### Native Queries
+
+Native queries can be defined by adding them to the `"native_queries"` section. Each query is specified as SQL. The
+return structure of the query must be explicitly specified in the `"columns"` field.
+
+Native queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
+type. The arguments are not interpolated, but provided to PostgreSQL as parameters, and therefore must be specific
+values, not arbitrary SQL.
+
+Here's an example which filters a table called `"Artist"`.
+
+```json
+{
+  "version": 1,
+  "postgres_database_url": "postgresql://alice@database.host",
+  "metadata": {
+    "tables": {},
+    "native_queries": {
+      "artist_below_id": {
+        "sql": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}",
+        "columns": {
+          "ArtistId": {
+            "name": "ArtistId",
+            "type": "Int"
+          },
+          "Name": {
+            "name": "Name",
+            "type": "String"
+          }
+        },
+        "arguments": {
+          "id": {
+            "name": "id",
+            "type": "Int"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ## Scalar types
 
 SQL data types are mapped to GraphQL types. The current mappings are as follows:
