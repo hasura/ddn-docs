@@ -1,22 +1,28 @@
-import React, { useEffect, useMemo } from 'react';
-import clsx from 'clsx';
-import { ThemeClassNames, useThemeConfig, usePrevious, Collapsible, useCollapsible } from '@docusaurus/theme-common';
+import React, { useEffect, useMemo } from "react";
+import clsx from "clsx";
+import {
+  ThemeClassNames,
+  useThemeConfig,
+  usePrevious,
+  Collapsible,
+  useCollapsible,
+} from "@docusaurus/theme-common";
 import {
   isActiveSidebarItem,
   findFirstCategoryLink,
   useDocSidebarItemsExpandedState,
   isSamePath,
-} from '@docusaurus/theme-common/internal';
-import Link from '@docusaurus/Link';
-import { translate } from '@docusaurus/Translate';
-import useIsBrowser from '@docusaurus/useIsBrowser';
-import DocSidebarItems from '@theme/DocSidebarItems';
-import { useColorMode } from '@docusaurus/theme-common';
-import styles from './styles.module.scss';
-import EnterpriseLight from '@site/static/icons/enterprise-dark.svg';
-import EnterpriseDark from '@site/static/icons/enterprise-light.svg';
-import CloudLight from '@site/static/icons/cloud-dark.svg';
-import CloudDark from '@site/static/icons/cloud-light.svg';
+} from "@docusaurus/theme-common/internal";
+import Link from "@docusaurus/Link";
+import { translate } from "@docusaurus/Translate";
+import useIsBrowser from "@docusaurus/useIsBrowser";
+import DocSidebarItems from "@theme/DocSidebarItems";
+import { useColorMode } from "@docusaurus/theme-common";
+import styles from "./styles.module.scss";
+import EnterpriseLight from "@site/static/icons/enterprise-dark.svg";
+import EnterpriseDark from "@site/static/icons/enterprise-light.svg";
+import CloudLight from "@site/static/icons/cloud-dark.svg";
+import CloudDark from "@site/static/icons/cloud-light.svg";
 
 // If we navigate to a category and it becomes active, it should automatically
 // expand itself
@@ -56,9 +62,10 @@ function CollapseButton({ categoryLabel, onClick }) {
     <button
       aria-label={translate(
         {
-          id: 'theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel',
+          id: "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel",
           message: "Toggle the collapsible sidebar category '{label}'",
-          description: 'The ARIA label to toggle the collapsible sidebar category',
+          description:
+            "The ARIA label to toggle the collapsible sidebar category",
         },
         { label: categoryLabel }
       )}
@@ -68,23 +75,30 @@ function CollapseButton({ categoryLabel, onClick }) {
     />
   );
 }
-export default function DocSidebarItemCategory({ item, onItemClick, activePath, level, index, ...props }) {
+export default function DocSidebarItemCategory({
+  item,
+  onItemClick,
+  activePath,
+  level,
+  index,
+  ...props
+}) {
   const { items, label, collapsible, className, href } = item;
   const { isDarkTheme } = useColorMode();
 
   // Conditional rendering for sidebar icons
   function addIcons(className) {
     switch (className) {
-      case 'enterprise-icon':
+      case "enterprise-icon":
         return isDarkTheme ? <EnterpriseDark /> : <EnterpriseLight />;
-      case 'cloud-icon':
+      case "cloud-icon":
         return isDarkTheme ? <CloudDark /> : <CloudLight />;
-      case 'cloud-and-enterprise-icon':
+      case "cloud-and-enterprise-icon":
         return (
-          <div className={styles['cloud-ee-container']}>
+          <div className={styles["cloud-ee-container"]}>
             {isDarkTheme ? (
               <>
-                <CloudDark /> <EnterpriseDark />{' '}
+                <CloudDark /> <EnterpriseDark />{" "}
               </>
             ) : (
               <>
@@ -124,7 +138,12 @@ export default function DocSidebarItemCategory({ item, onItemClick, activePath, 
   };
   useAutoExpandActiveCategory({ isActive, collapsed, updateCollapsed });
   useEffect(() => {
-    if (collapsible && expandedItem != null && expandedItem !== index && autoCollapseCategories) {
+    if (
+      collapsible &&
+      expandedItem != null &&
+      expandedItem !== index &&
+      autoCollapseCategories
+    ) {
       setCollapsed(true);
     }
   }, [collapsible, expandedItem, index, setCollapsed, autoCollapseCategories]);
@@ -133,31 +152,31 @@ export default function DocSidebarItemCategory({ item, onItemClick, activePath, 
       className={clsx(
         ThemeClassNames.docs.docSidebarItemCategory,
         ThemeClassNames.docs.docSidebarItemCategoryLevel(level),
-        'menu__list-item',
+        "menu__list-item",
         {
-          'menu__list-item--collapsed': collapsed,
+          "menu__list-item--collapsed": collapsed,
         },
         className
       )}
     >
       <div
-        className={clsx('menu__list-item-collapsible', {
-          'menu__list-item-collapsible--active': isCurrentPage,
+        className={clsx("menu__list-item-collapsible", {
+          "menu__list-item-collapsible--active": isCurrentPage,
         })}
       >
         <Link
           className={clsx(
-            'menu__link',
+            "menu__link",
             {
-              'menu__link--sublist': collapsible,
-              'menu__link--sublist-caret': !href && collapsible,
-              'menu__link--active': isActive,
+              "menu__link--sublist": collapsible,
+              "menu__link--sublist-caret": !href && collapsible,
+              "menu__link--active": isActive,
             },
             styles[`sidebar_item_wrapper`]
           )}
           onClick={
             collapsible
-              ? e => {
+              ? (e) => {
                   onItemClick?.(item);
                   if (href) {
                     updateCollapsed(false);
@@ -170,9 +189,9 @@ export default function DocSidebarItemCategory({ item, onItemClick, activePath, 
                   onItemClick?.(item);
                 }
           }
-          aria-current={isCurrentPage ? 'page' : undefined}
+          aria-current={isCurrentPage ? "page" : undefined}
           aria-expanded={collapsible ? !collapsed : undefined}
-          href={collapsible ? hrefWithSSRFallback ?? '#' : hrefWithSSRFallback}
+          href={collapsible ? hrefWithSSRFallback ?? "#" : hrefWithSSRFallback}
           {...props}
         >
           {label}
@@ -181,7 +200,7 @@ export default function DocSidebarItemCategory({ item, onItemClick, activePath, 
         {href && collapsible && (
           <CollapseButton
             categoryLabel={label}
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault();
               updateCollapsed();
             }}
