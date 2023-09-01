@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 const determineReviewer = () => {
   const date = new Date();
