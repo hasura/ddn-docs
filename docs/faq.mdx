@@ -22,17 +22,35 @@ Hasura Cloud to deliver ultra-performant production-grade APIs at the edge.
 
 ## Will Hasura v3 be backwards compatible with Hasura v1/v2?
 
-No, Hasura v3 is not backwards compatible with Hasura v1/v2. Hasura v3 is a complete re-architecture of the Hasura
-platform. However we will provide migrations tools to move v2 metadata to v3.
+The default generated GraphQL schema of Hasura v3 is compatible with v2 schemas. However, Hasura v3 is a complete
+re-architecture of the Hasura platform and we will provide migrations tools to move v2 metadata to v3.
 
 ## Will Hasura v2 be supported after Hasura v3 is released?
 
 We will still support, maintain and improve Hasura v2 for the near future and will be providing migration tools to
 move Hasura v2 deployments to v3. At some point when Hasura v3 has achieved feature parity with v2, we will
-begin the deprecation process. To be clear, Hasura v3 is the future of Hasura and we will be investing heavily in
-it going forward.
+begin the v2 deprecation process and keep the community notified and informed. To be clear, Hasura v3 is the future of
+Hasura and we will be investing heavily in it going forward.
+
+[//]: # (## Can Hasura v3 work without Hasura Cloud, can I self-host the runtime engine?)
+
 
 ## What is the general architecture of Hasura v3?
+
+**Open Data Domain Specification (OpenDD Spec):** At the heart of Hasura API development is the OpenDD Spec. It is a
+metadata specification that defines the structure of metadata used by the Hasura runtime engine. Think of the
+specification as an API contract generator helping you to reason about your data domains and model your applications
+and APIs. The spec is API format agnostic and can be used by anyone to generate APIs from GraphQL, to REST, to gRPC.
+
+**Native Data Connector (NDC) Specification:** The NDC specification focuses on enabling the community to build data
+connector agents. It supports building high-quality integrations for almost any conceivable data source, offering
+features like native queries, push-down capabilities, and connection pooling. NDCs help streamline the integration
+of diverse data sources into APIs.
+
+**Hasura Runtime Engine:** The Hasura Engine is responsible for processing and serving APIs based on the
+provided metadata. It has been restructured to work declaratively with metadata, utilizing the OpenDD Spec. This engine
+can serve production-grade APIs from the edge with extremely high performance, as it fetches metadata on a per-request
+basis and benefits from vastly improved startup times. And it's built from the ground up with Rust.
 
 **Hasura Cloud:** The cloud layer in Hasura v3, Hasura Cloud, includes the Data Delivery
 Network (DDN) for global API performance and availability. This layer also facilitates secure tunnels for local
@@ -55,20 +73,11 @@ environments. Data domains allow teams to organize metadata based on their requi
 independent and shared infrastructure. This structure empowers teams to work both autonomously and collaboratively
 within a shared project.
 
-**Open Data Domain Specification (OpenDD Spec):** At the heart of Hasura API development is the OpenDD Spec. It is a
-metadata specification that defines the structure of metadata used by the Hasura runtime engine. Think of the
-specification as an API contract generator helping you to reason about your data domains and model your applications
-and APIs. The spec is API format agnostic and can be used by anyone to generate APIs from GraphQL, to REST, to gRPC.
-
-**Hasura Runtime Engine:** The Hasura Engine is responsible for processing and serving APIs based on the
-provided metadata. It has been restructured to work declaratively with metadata, utilizing the OpenDD Spec. This engine
-can serve production-grade APIs from the edge with extremely high performance, as it fetches metadata on a per-request
-basis and benefits from vastly improved startup times. And it's built from the ground up with Rust.
-
-**Native Data Connector (NDC) Specification:** The NDC specification focuses on enabling the community to build data
-connector agents. It supports building high-quality integrations for almost any conceivable data source, offering
-features like native queries, push-down capabilities, and connection pooling. NDCs help streamline the integration
-of diverse data sources into APIs.
+**Namespaces:** Namespaces is a feature that allows users to differentiate and organize their fields and related
+types within the Hasura GraphQL schema. It helps in avoiding conflicts when there are, for example, tables with the same
+names in different data sources. By using namespaces, users can namespace a conflicting table and all related types. In
+addition to aesthetic preference, resolving conflicts and maintaining a clean and organized GraphQL schema, namespaces
+also ensures a more systematic approach to schema customization and naming.
 
 ## Is a Hasura v3 API faster than Hasura v1/v2?
 
@@ -126,11 +135,7 @@ source of data and are the only way to connect to data sources in Hasura v3.
 Some elements of Hasura v3 will be open sourced and some will not.
 
 [//]: # (## Authoring the metadata file looks hard, how can I get started?)
-
-[//]: # ()
-[//]: # (The Hasura Console can automatically generate metadata for you based on your database schema. You can also refer to)
-
-[//]: # (the documentation )
+[//]: # (The Hasura Console can automatically generate metadata for you based on your database schema. You can also refer to the documentation)
 
 ## Will pricing be different with Hasura v3?
 Our goal with pricing for Hasura v3 is to be half the cost compared to any self-hosted DIY API server at
