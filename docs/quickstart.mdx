@@ -18,12 +18,12 @@ import TabItem from "@theme/TabItem";
 
 In this guide, we'll walk you through the steps to create a new Hasura project, connect a database, execute your first
 query, and create lightning-fast production builds. Throughout this guide, you'll be introduced to new Hasura concepts,
-like Builds, our new Metadata structure, and more.
+like builds, our new metadata structure, and more.
 
 ## Introduction
 
 This guide allows you to use the Console or the CLI. **If you're using the CLI, you'll need to first install it by
-following [these instructions](https://github.com/hasura/v3-cli#hasura-v3-cli).**
+following [these instructions](/ci-cd/hasura-cli.mdx).**
 
 :::info We're using seed data from the docs sample app
 
@@ -34,7 +34,7 @@ You can find the relevant files that we'll use throughout this guide here:
 - ✅
   [Up migration](https://raw.githubusercontent.com/hasura/docs-sample-app/main/migrations/default/1669033533483_init/up.sql)
 - ✅ [Seed data](https://raw.githubusercontent.com/hasura/docs-sample-app/main/seeds/default/tables_seed.sql)
-- ✅ [Sample Metadata file](https://raw.githubusercontent.com/hasura/docs-sample-app/main/v3/metadata.yaml) (following
+- ✅ [Sample metadata file](https://raw.githubusercontent.com/hasura/docs-sample-app/main/v3/metadata.yaml) (following
   the Open DD Spec)
 
 If you plan to use this sample data, ensure you've applied the up migration and seeded your database. Check out our
@@ -124,7 +124,7 @@ The CLI will return information about your project:
 :::info What's a local project?
 
 Each project in Hasura will have a corresponding local project that will be used for development. This local project
-only contains the Hasura Metadata file that follows the new Metadata format of the
+only contains the Hasura metadata file that follows the new metadata format of the
 [Open Data Domain Specification (Open DD Spec)](https://github.com/hasura/open-data-domain-specification), and can be a
 `.yaml` or a `.json` file. This file can be checked into version control along with other files (if any) of your project
 and can be shared.
@@ -141,7 +141,7 @@ and can be shared.
 
 <TabItem value="console" label="Console">
 
-Head to your project's Metadata by clicking on the `Metadata` tab on the left. We'll begin by connecting to a data
+Head to your project's metadata by clicking on the `Metadata` tab on the left. We'll begin by connecting to a data
 source via the `+ Connect` button:
 
 <Thumbnail
@@ -157,7 +157,7 @@ string and then click `Connect`:
 
 :::info All those tables!
 
-If your database has tables present, Hasura automatically detected all of them and added them to your project's Metadata
+If your database has tables present, Hasura automatically detected all of them and added them to your project's metadata
 🎉
 
 :::
@@ -166,7 +166,7 @@ If your database has tables present, Hasura automatically detected all of them a
 
 <TabItem value="cli" label="CLI">
 
-Hasura will determine the connection details for your database using the Metadata file we created when initing the
+Hasura will determine the connection details for your database using the metadata file we created when initing the
 project. If you'd like to test using the docs sample app data, we have a sample `metadata.yaml` file for you
 [here](https://raw.githubusercontent.com/hasura/docs-sample-app/main/v3/metadata.yaml) 🎉
 
@@ -182,23 +182,23 @@ Then, save the file.
 
 </Tabs>
 
-## Step 4: Import Models
+## Step 4: Import models
 
 <Tabs groupId="user-preference" className="api-tabs">
 
 <TabItem value="console" label="Console">
 
-Now that we've connected to a data source, we can import **Models** from it to our Metadata. Click on the `+ Import`
+Now that we've connected to a data source, we can import **models** from it to our metadata. Click on the `+ Import`
 button next to `Models` to begin:
 
 <Thumbnail src="/img/get-started/0.0.1_console-add-models.png" alt="Click + Import for Models" width="1000px" />
 
 We'll then choose our data source, check the box for all of the tables we want to import, and click `Import`:
 
-<Thumbnail src="/img/get-started/0.0.1_console-check-all-import.png" alt="Add Models" width="1000px" />
+<Thumbnail src="/img/get-started/0.0.1_console-check-all-import.png" alt="Add models" width="1000px" />
 
-While we're here, check out the `Relationships` section of your Metadata file. Hasura automatically detected the
-relationships between your tables and added them to your project's Metadata, too:
+While we're here, check out the `Relationships` section of your metadata file. Hasura automatically detected the
+relationships between your tables. You can add them by clicking the `+ Import` button:
 
 <Thumbnail
   src="/img/get-started/0.0.1_console-show-relationships.png"
@@ -206,14 +206,14 @@ relationships between your tables and added them to your project's Metadata, too
   width="1000px"
 />
 
-You can even keep scrolling and see the newly-generated `Types` and `GraphQL Interface` sections of your Metadata file.
+You can even keep scrolling and see the newly-generated `Types` and `GraphQL Interface` sections of your metadata file.
 
 </TabItem>
 
 <TabItem value="cli" label="CLI">
 
-Hasura will use your Metadata file to import Models and other relevant information to build a GraphQL API. If you're
-using our sample app's data, we've already shaped this Metadata for you and you've already imported it in the previous
+Hasura will use your metadata file to import models and other relevant information to build a GraphQL API. If you're
+using our sample app's data, we've already shaped this metadata for you and you've already imported it in the previous
 step.
 
 If you're curious about authoring these types of files, check the Data Domain Modeling section of the docs.
@@ -222,26 +222,28 @@ If you're curious about authoring these types of files, check the Data Domain Mo
 
 </Tabs>
 
-:::info What are Models?
+:::info What are models?
 
-This is the first new concept we've introduced in this guide. Models are a new way to represent your data in Hasura.
+This is the first new concept we've introduced in this guide. models are a new way to represent your data in Hasura.
 
 Models in the Open DD Spec refer to a collection of objects (such as rows in a relational database, or documents in a
 NoSQL database) of a given Open DD Spec type. Models are backed by a data source and can support CRUD operations. You
-can learn more about Models [here](/data-domain-modeling/models.mdx).
+can learn more about models [here](/data-domain-modeling/models.mdx).
 
 :::
 
-## Step 5: Create a new Build
+## Step 5: Create a new build
 
 <Tabs groupId="user-preference" className="api-tabs">
 
 <TabItem value="console" label="Console">
 
-Now that we've connected to a data source and imported our Models, we're ready to create a new **Build**. Click on the
+Now that we've connected to a data source and imported our models, we're ready to create a new **build**. Click on the
 `+ Create New Build` button in the top-right corner of the Console:
 
 <Thumbnail src="/img/get-started/0.0.1_create-new-build.png" alt="Create a new build" width="1000px" />
+
+You can even add a short description so you and your teammates know what this build modifies.
 
 </TabItem>
 
@@ -255,9 +257,9 @@ hasura3 cloud build create --project-id <PROJECT_ID> --metadata-file <METADATA_F
 
 The CLI will return:
 
-- a Build ID
-- a Build Version
-- a GraphQL API Endpoint for this Build
+- a build ID
+- a build Version
+- a GraphQL API Endpoint for this build
 
 We'll use this information in the next step to test our API!
 
@@ -265,15 +267,15 @@ We'll use this information in the next step to test our API!
 
 </Tabs>
 
-:::info What's a Build?
+:::info What's a build?
 
-Builds are a new concept in Hasura that allow you to quickly iterate and prototype on your project's Metadata. A Build
+Builds are a new concept in Hasura that allow you to quickly iterate and prototype on your project's metadata. A build
 is an immutable, fully-functioning GraphQL API that represents a milestone in your development cycle.
 
 It may be helpful to think of builds as git commits. Since each is deployed on Hasura Cloud, it can be shared with other
 users.
 
-Each Build is completely independent. One project can have multiple Builds, out of which, one is applied to production.
+Each build is completely independent. One project can have multiple builds, out of which, one is applied to production.
 This workflow allows for easier rollbacks on production, and greater collaboration during development.
 
 :::
@@ -299,27 +301,35 @@ write it manually:
 Take the GraphQL API endpoint provided by the CLI in the previous step, and execute a curl request:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"query": "{ users { id name } }"}' <YOUR_BUILD_GRAPHQL_ENDPOINT>
+curl -X POST -H "Content-Type: application/json" -H "hasura_cloud_pat: <YOUR_PAT>" -d '{"query": "{ users { id name } }"}' <YOUR_BUILD_GRAPHQL_ENDPOINT>
 ```
 
-In the example above, we're hitting our most recent Build's endpoint and assuming there's a `users` table with
-properties `id` and `name`. Modify this command as necessary to fit your project's Metadata.
+In the example above, we're hitting our most recent build's endpoint and assuming there's a `users` table with
+properties `id` and `name`. Modify this command as necessary to fit your project's metadata.
 
-Additionally, you can head to the Console on [Hasura Cloud](https://console.hasura.io) and see this Build's GraphiQL
+Additionally, you can head to the Console on [Hasura Cloud](https://console.hasura.io) and see this build's GraphiQL
 Explorer by clicking on the `GraphiQL` button in the left-hand sidenav of the Console.
+
+:::info Where can I find my PAT?
+
+If you head to the project's Console URL (which was returned by the CLI when you created the project), you'll see a
+header on the GraphiQL Explorer with your PAT. While you're there, you can also query your API — but, we're
+demonstrating it via curl to show you that you can query your API from anywhere!
+
+:::
 
 </TabItem>
 
 </Tabs>
 
-## Step 7: Apply your Build
+## Step 7: Apply your build
 
 <Tabs groupId="user-preference" className="api-tabs">
 
 <TabItem value="console" label="Console">
 
 After you're satisfied your API is behaving as expected, click the `build_id` in the bottom navigation bar. This will
-bring up all your project's Builds and allow you to choose one to apply. Click the `Apply` button to apply your Build:
+bring up all your project's builds and allow you to choose one to apply. Click the `Apply` button to apply your build:
 
 <Thumbnail src="/img/get-started/0.0.1_console-apply-build.png" alt="Apply a build" width="1000px" />
 
@@ -327,13 +337,13 @@ bring up all your project's Builds and allow you to choose one to apply. Click t
 
 <TabItem value="cli" label="CLI">
 
-To apply a Build, use the following command:
+To apply a build, use the following command:
 
 ```bash
 hasura3 cloud build apply --project-id <PROJECT_ID> --build-id <BUILD_ID>
 ```
 
-:::tip Quickly find IDs for Projects and Builds!
+:::tip Quickly find IDs for Projects and builds!
 
 You can use the following command to list your projects:
 
@@ -353,10 +363,10 @@ hasura3 cloud build list --project-id <PROJECT_ID>
 
 </Tabs>
 
-:::info What does it mean to apply a Build?
+:::info What does it mean to apply a build?
 
-Applying a Build means that it's being promoted to your project's production environment. **This is a new concept in
-Hasura which allows you to quickly iterate — and, if needed, roll back — your project's Metadata to all of your users,
+Applying a build means that it's being promoted to your project's production environment. **This is a new concept in
+Hasura which allows you to quickly iterate — and, if needed, roll back — your project's metadata to all of your users,
 worldwide.**
 
 :::
@@ -367,8 +377,8 @@ worldwide.**
 
 <TabItem value="console" label="Console">
 
-At the top of the Console, you'll see a toggle that allows you to switch between your project's applied Build and your
-project's currently selected Build. Toggle to your project's applied Build:
+At the top of the Console, you'll see a toggle that allows you to switch between your project's applied build and your
+project's currently selected build. Toggle to your project's applied build:
 
 <Thumbnail src="/img/get-started/0.1.1_console-view-project-graphiql.png" alt="Toggle production" width="1000px" />
 
@@ -378,13 +388,13 @@ You can now execute a query against this endpoint.
 
 <TabItem value="cli" label="CLI">
 
-Earlier, we tested our Build's endpoint by running a curl request. We can do the same thing, but now against our
+Earlier, we tested our build's endpoint by running a curl request. We can do the same thing, but now against our
 production endpoint.
 
 Then, use the endpoint returned to execute this request:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"query": "{ users { id name } }"}' https://<YOUR_PROJECT_NAME>.ddn.hasura.app/graphql
+curl -X POST -H "Content-Type: application/json" -H "hasura_cloud_pat: <YOUR_PAT>" -d '{"query": "{ users { id name } }"}' https://<YOUR_PROJECT_NAME>.ddn.hasura.app/graphql
 ```
 
 </TabItem>
@@ -393,8 +403,8 @@ curl -X POST -H "Content-Type: application/json" -d '{"query": "{ users { id nam
 
 ## What's next?
 
-### Iterate on your Metadata
+### Iterate on your metadata
 
 We've just demonstrated how to quickly get set up and running with Hasura. Now that you've got a project up and running,
-you can iterate on your Metadata and build out your API. Head back to the Metadata tab, make some modifications, create
-a new Build, and see what happens 🎉
+you can iterate on your metadata and build out your API. Head back to the Metadata tab, make some modifications, create
+a new build, and see what happens 🎉

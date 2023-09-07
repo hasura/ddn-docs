@@ -1,8 +1,8 @@
-const generateNewTicket = require('./generation.js');
-const moveAndAssign = require('./moveAndAssign.js');
-const assignOnGithub = require('./githubAssignment.js');
-const addCommentToPR = require('./githubComment.js');
-require('dotenv').config();
+const generateNewTicket = require("./generation.js");
+const moveAndAssign = require("./moveAndAssign.js");
+const assignOnGithub = require("./githubAssignment.js");
+const addCommentToPR = require("./githubComment.js");
+require("dotenv").config();
 
 const title = process.argv[2];
 const url = process.argv[3];

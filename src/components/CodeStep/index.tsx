@@ -12,7 +12,10 @@ const CodeStep = (props) => {
     if (props.children && props.children.length) {
       // find the start of the description by finding the first p tag - everything before that is the directive
       for (let i = 0; i < props.children.length; i++) {
-        if (props.children[i].props && props.children[i].props.originalType === "p") {
+        if (
+          props.children[i].props &&
+          props.children[i].props.originalType === "p"
+        ) {
           setStartIndex(i);
           break;
         }
@@ -33,11 +36,15 @@ const CodeStep = (props) => {
         </div>
       </div>
       <div className={styles.item}>
-        <CodeBlock className={`language-${props.language}`}>{props.code}</CodeBlock>
+        <CodeBlock className={`language-${props.language}`}>
+          {props.code}
+        </CodeBlock>
         {props.output && (
           <details>
             <summary>Output</summary>
-            <CodeBlock className={`language-plaintext`}>{props.output}</CodeBlock>
+            <CodeBlock className={`language-plaintext`}>
+              {props.output}
+            </CodeBlock>
           </details>
         )}
       </div>
