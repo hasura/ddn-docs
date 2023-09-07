@@ -20,51 +20,114 @@ declarative approach for structuring your data and establishing your API.
 
 Despite its comprehensive nature, it is designed to be easy to read and write.
 
-## Spec Summary
+## Data Sources
 
-### Types
+The data source will define where the data is coming from. It can be a database, a REST API, a GraphQL API, etc. The
+data source will use a Native Data Connector to connect to the data source and fetch the data.
 
-#### The dataSource object
+### The dataSource object
 
-#### The objectType object
+The dataSource object describes a physical data source.
 
-#### The scalarTypeRepresentation object
+## Types
 
-#### The newType object
+Types are a fundamental building block of Open DDS with every bit of data in Open DDS having a type
 
-### Models
+### The objectType object
 
-#### The model object
+Completely new types can be created by defining an object with `"kind": "objectType"`.
 
-#### The modelSource object
+### The scalarTypeRepresentation object
 
-### Commands
+A scalar type from a data source can be represented as an OpenDD type by defining an object with `"kind":
+"scalarTypeRepresentation"`.
 
-#### The command object
+### The newType object
 
-#### The commandSource object
+You can alias types by defining an object with `"kind": "NewType"`.
 
-### Relationships
+## Models
 
-#### The relationship object
+Models are the primary way of defining data in Hasura DDN and a model would in reality be backed by a database table, an
+ad-hoc SQL query, a pre-materialized view, a custom REST or GraphQL API server, etc.
 
-### Permissions
+### The model object
 
-#### The typeOutputPermissions object
+Models represent a collection of data objects (like rows in a SQL table or documents in collection in a NoSQL
+database) of a certain [type](./types.mdx).
 
-#### The modelSelectPermissions object
+To create a model, you need to define a OpenDD object with `"kind": "model"`.
 
-### GraphQL API
+### The modelSource object
 
-#### The graphqlType object
+A model can be attached to a data source and the `modelSource` object defines how the model and its types or fields
+map to entities in the underlying data source.
 
-#### The modelGraphqlApi object
+## Commands
 
-#### The commandGraphqlApi object
+Commands are the other way of accessing data within the OpenDD spec. Commands are functions / lambdas whose semantics
+are opaque to the spec except for their input arguments and output type.
 
-#### The scalarTypeGraphqlExpression object
+### The command object
 
+The command object defines the name of the command, the arguments to the command and the output type of the command.
 
+### The commandSource object
+
+Similar to `modelSource`, the `commandSource` object defines how the types which the command uses map to an
+underlying data source.
+
+## Relationships
+
+Relationships define that given an object of a certain type, how to find related objects in a model or command
+
+### The relationship object
+
+relationship defined in the Open DD spec allows you extend [type](./types.mdx) objects with related
+[models](./models.mdx) which then allows you to query nested or linked information.
+
+To create a relationship, you will need to define an object with `"kind": "relationship"`.
+
+## Permissions
+
+The OpenDD Spec lets you define permissions, (also known as access control or authorization rules) on
+[models](./models.mdx) and [output types](./types.mdx) in your data domain.
+
+### The typeOutputPermissions object
+
+`typeOutputPermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
+is useful, as multiple models can return the same output type.
+
+### The modelSelectPermissions object
+
+`modelSelectPermissions` define which objects or rows within the model are allowed to be accessed by a role.
+
+## GraphQL API
+
+With the generated API, you can query, insert, update and delete data in your data domain. (Only query APIs are
+available in the current release.) The benefit of defining the GraphQL API in the OpenDD Spec format is that you can
+fully customize it to your needs.
+
+To enable the GraphQL API in Hasura DDN, the following OpenDD spec metadata objects need to be defined:
+
+- [modelGraphqlApi](#model-graphql-api):
+- [scalarTypeGraphqlExpression](#scalar-type-graphql-expression):
+
+### The graphqlType object
+
+[//]: # (TODO: Add description)
+
+### The modelGraphqlApi object
+
+The root fields for a [model](./models.mdx) which are exposed over the GraphQL API.
+
+### The commandGraphqlApi object
+
+[//]: # (TODO: Add description)
+
+### The scalarTypeGraphqlExpression object
+
+[Type](./types.mdx) names in the schema which are generated for data source scalars.
 
 
 ## Learn more
