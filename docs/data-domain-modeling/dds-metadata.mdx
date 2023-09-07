@@ -16,16 +16,92 @@ keywords:
 
 <!-- TODO: Links to other docs when available -->
 
-Hasura provides automatically generated GraphQL APIs for your data domain. To set up the GraphQL API, you'll need to
-define the following DDS metadata objects:
+Hasura provides automatically generated GraphQL APIs for your data domain. The OpenDDS metadata is to define the data
+domain, in way you get the freedom to expose the required data, in the way you want.
 
-- [modelGraphqlApi](#model-graphql-api): Specify the root fields to be exposed over GraphQL API for a model.
-- [scalarTypeGraphqlExpression](#scalar-type-graphql-expression): Customize type names of schema generated for data
+You can define the data types, data models, relationships, permissions, and more using the DDS metadata to define your
+data domain. Thus, your data domain can be agnostic on the shape of your data sources - It makes it so powerfull that a
+data domain can seamlessly serve data even after a source migration, data distribution or any changes that you make to
+your data store with minimal changes in the OpenDDS metadata.
+
+:::info Automatic Metadata generation with Console and CLI
+
+This document will help you understand how the DDS Metadata is structured. however you will also be able to generate the
+Open DD Spec automatically using the Hasura Console and CLI or you can chose to write the metadata manually and create
+builds.
+
+:::
+
+A metadata is a array representation of OpenDDS objects, and a it would look like the following,
+
+```json
+{
+  "metadata": [
+    {"kind": "dataSource", ...},
+    {"kind": "model", ...},
+    {"kind": "modelSource", ...},
+    {"kind": "objectType", ...},
+    {"kind": "modelGraphqlApi", ...}
+    {"kind": "modelSelectPermissions", ...},
+    {"kind": "relationship", ...},
+    ...
+  ]
+}
+```
+
+To set up the GraphQL API, you'll need to define the following DDS metadata objects:
+
+<!-- TODO:  [DataSource] -->
+<!-- TODO:  [Model] -->
+<!-- TODO:  [ModelSource] -->
+
+- [Model Graphql API](#model-graphql-api): Specify the root fields to be exposed over GraphQL API for a model.
+  <!-- TODO:  [ObjectType] -->
+- [Scalar Type Graphql Expression](#scalar-type-graphql-expression): Customize type names of schema generated for data
   source scalars.
+
 
 ## Model GraphQL API
 
-The `modelGraphqlApi` DDS object facilitates establishing GraphQL APIs on any model.
+The `modelGraphqlApi` DDS object facilitates establishing GraphQL APIs on any model and is used to define the root
+fields to be exposed over GraphQL API for a model.
+
+For instance, consider a modal named `Articles` and if you have a unique constraint on the `id` column - which is mapped
+as `ArticleByID` in the source schema, you can define a modelGraphApi as follows
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Authors",
+  "selectUniques": [
+    {
+      "queryRootField": "AuthorByID",
+      "uniqueIdentifier": ["author_id"]
+    }
+  ]
+}
+```
+
+and will be able to see the `AuthorByID` query in the GraphQL API.
+
+and to this, if you want to query many authors as an array, you can add `selectMany` field to the `modelGraphApi` as
+shown below
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Authors",
+  "selectUniques": [
+    {
+      "queryRootField": "AuthorByID",
+      "uniqueIdentifier": ["author_id"]
+    }
+  ],
+  "selectMany": {
+    "queryRootField": "users"
+  }
+}
+```
 
 ### Metadata Structure
 
