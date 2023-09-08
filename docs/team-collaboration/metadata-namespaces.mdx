@@ -12,6 +12,12 @@ keywords:
 
 # Metadata Namespaces
 
+:::danger Coming Soon
+
+Coming soon on V3 cloud.
+
+:::
+
 For a multi-team organization working on a V3 project, it makes sense for a team to not have access to all the metadata
 objects. Namespaces introduces the notion of module system for metadata:
 
@@ -44,24 +50,77 @@ A metadata with namespaces looks something like the following:
 ]
 ```
 
+## Ownership Rules
+
 The metadata objects in a namespaces must follow the ownership rules for the metadata objects:
 
-1. `DataSource`/ `PostgresDataSource` : The namespace that defines a data source owns it. This means that no other
-   namespace can reference this data source in their `ModelSources`, `ScalarTypeRepresentation`, etc.
-2. `ObjectType`: An object type can only be used by the namespace that defines it.
-3. `ScalarTypeRepresentation`: The data source in a `ScalarTypeRepresentation` should be owned by the same namespace
-   that is owing the metadata object.
-4. `NewType`: The wrapped custom type in the new type must be from the same namespace.
-5. `Model`: A `Model` can reference types that belongs to the namespace that defines the `Model`. 
-6. `ModelSource`: A `ModelSource` can reference types, models and data sources defined in the same namespace. 
-7. `Relationship`: The source type used in the `Relationship` should be owned by the namespace defining the
-   `Relationship`. Please note that the the target type can be from any namespace.
-8. `TypeOutputPermissions`: The namespace defining the `TypeOutputPermissions` should own the type on which the
-   permission is being defined.
-9. `ModelSelectPermissions`: Similar to `TypeOutputPermissions`, the namespace should own the model.
-10. `GraphQLTypeDefinition`: Similar to `ModelSelectPermissions`, the namespace should own the graphql type.
-11. `ModelGraphQLAPI`: The namespace defining the `ModelGraphQLAPI` should also own the `Model` used for the graphql
-    API.
-12. `ScalarTypeGraphQLRepresentation`: The data source used in the `ScalarTypeGraphQLRepresentation` should be owned by
-    the same namespace that defines the `ScalarTypeGraphQLRepresentation`.
-13. `AuthConfg`: Any namespace can define this.
+### DataSource/ PostgresDataSource
+
+The data source metadata object (`DataSource`/ `PostgresDataSource`) doesn't depend on (or references) any other
+metadata object. Hence, any namespace can define a data source.
+
+**Note**: The namespace that defines a data source owns it. This means that no other
+namespace can reference this data source in their `ModelSources`, `ScalarTypeRepresentation`, etc.
+
+### ObjectType
+The `ObjectType` metadata object also doesn't reference any other metadata object. Thus, any namespace can define an
+`ObjectType` metadata object.
+
+### ScalarTypeRepresentation
+The `ScalarTypeRepresentation` metadata object references the data source metadata object. Thus, the data source in a
+`ScalarTypeRepresentation` should be owned by the same namespace.
+
+### NewType
+The `NewType` metadata object is a wrapper around a type and thus it references a type. If the `NewType` is referencing
+a `CustomType`, then the custom type should also be part of the same namespace.
+
+### Model
+A `Model` metadata object references a type and is dependent on a `ModelSource`. Thus, the same namespace should own the
+type and `ModelSource` referenced by the `Model`. 
+
+### ModelSource
+A `ModelSource` references types (in type mapping), model and data source. Thus, the same namespace should own the
+following:
+1. Types that are being mapped
+2. `Model` referenced by the metadata object
+3. Data source referenced by the metadata object
+
+### Relationship
+The `Relationship` metadata object references a source type and a target type. The source type used in the
+`Relationship` should be owned by the namespace defining the `Relationship`.
+
+**Note**: Please note that the the target type can be from any namespace.
+
+### TypeOutputPermissions
+
+The `TypeOutputPermissions` metadata object references a type (for which the permission is being defined). Thus, the
+namespace defining the `TypeOutputPermissions` should own the type referenced.
+
+### ModelSelectPermissions
+Similar to `TypeOutputPermissions`, the namespace should also own the model referenced in the metadata object.
+
+### GraphQLTypeDefinition
+Similar to `ModelSelectPermissions`, the namespace should also own the graphql type referenced in the metadata object.
+
+### ModelGraphQLAPI
+The namespace defining the `ModelGraphQLAPI` should also own the `Model` used for the graphql API.
+
+### ScalarTypeGraphQLRepresentation
+The `ScalarTypeGraphQLRepresentation` metadata object references a data source. Thus, the same namespace should own data
+source referenced in the metadata object.
+
+### AuthConfg
+Any namespace can define this.
+
+## Other Rules
+
+Apart from ownership rules, the metadata with namespaces should also follow the following rules:
+
+### Duplicate Namespaces
+
+The metadata should not define two namespaces with same name.
+
+### Duplicate Metadata Objects
+
+The metadata should also not define same metadata object twice (either in the same namespace or in different
+namespaces).
