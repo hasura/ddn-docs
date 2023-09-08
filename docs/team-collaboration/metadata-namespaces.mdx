@@ -21,11 +21,12 @@ Coming soon on V3 cloud.
 For a multi-team organization working on a V3 project, it makes sense for a team to not have access to all the metadata
 objects. Namespaces introduces the notion of module system for metadata:
 
-1. A project can have a collection of namespaces and the project's metadata is the 'union' of metadata objects across all
-   namespaces of the project.
+1. A project can have a collection of namespaces and the project's metadata is the 'union' of metadata objects across
+   all namespaces of the project.
 2. Each namespace can be updated independently.
 
 This patch operation on metadata is governed by the following rules:
+
 1. Teams can only update namespaces that they have access to.
 2. A namespace is the owner of all its metadata objects and no other namespace can "modify" an entity owned by a
    namespace. For example,
@@ -59,33 +60,40 @@ The metadata objects in a namespaces must follow the ownership rules for the met
 The data source metadata object (`DataSource`/ `PostgresDataSource`) doesn't depend on (or references) any other
 metadata object. Hence, any namespace can define a data source.
 
-**Note**: The namespace that defines a data source owns it. This means that no other
-namespace can reference this data source in their `ModelSources`, `ScalarTypeRepresentation`, etc.
+**Note**: The namespace that defines a data source owns it. This means that no other namespace can reference this data
+source in their `ModelSources`, `ScalarTypeRepresentation`, etc.
 
 ### ObjectType
+
 The `ObjectType` metadata object also doesn't reference any other metadata object. Thus, any namespace can define an
 `ObjectType` metadata object.
 
 ### ScalarTypeRepresentation
+
 The `ScalarTypeRepresentation` metadata object references the data source metadata object. Thus, the data source in a
 `ScalarTypeRepresentation` should be owned by the same namespace.
 
 ### NewType
+
 The `NewType` metadata object is a wrapper around a type and thus it references a type. If the `NewType` is referencing
 a `CustomType`, then the custom type should also be part of the same namespace.
 
 ### Model
+
 A `Model` metadata object references a type and is dependent on a `ModelSource`. Thus, the same namespace should own the
-type and `ModelSource` referenced by the `Model`. 
+type and `ModelSource` referenced by the `Model`.
 
 ### ModelSource
+
 A `ModelSource` references types (in type mapping), model and data source. Thus, the same namespace should own the
 following:
+
 1. Types that are being mapped
 2. `Model` referenced by the metadata object
 3. Data source referenced by the metadata object
 
 ### Relationship
+
 The `Relationship` metadata object references a source type and a target type. The source type used in the
 `Relationship` should be owned by the namespace defining the `Relationship`.
 
@@ -97,19 +105,24 @@ The `TypeOutputPermissions` metadata object references a type (for which the per
 namespace defining the `TypeOutputPermissions` should own the type referenced.
 
 ### ModelSelectPermissions
+
 Similar to `TypeOutputPermissions`, the namespace should also own the model referenced in the metadata object.
 
 ### GraphQLTypeDefinition
+
 Similar to `ModelSelectPermissions`, the namespace should also own the graphql type referenced in the metadata object.
 
 ### ModelGraphQLAPI
+
 The namespace defining the `ModelGraphQLAPI` should also own the `Model` used for the graphql API.
 
 ### ScalarTypeGraphQLRepresentation
+
 The `ScalarTypeGraphQLRepresentation` metadata object references a data source. Thus, the same namespace should own data
 source referenced in the metadata object.
 
 ### AuthConfg
+
 Any namespace can define this.
 
 ## Other Rules
