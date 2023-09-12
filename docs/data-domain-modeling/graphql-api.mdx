@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
-sidebar_label: DDS Metadata
-description: Hasura GraphQL API - DDS Metadata
+sidebar_label: GraphQL API
+description: Hasura GraphQL API - OpenDD Spec Metadata
 keywords:
   - hasura
   - graphql
@@ -10,27 +10,33 @@ keywords:
   - dds metadata
 ---
 
-# Hasura GraphQL API: DDS Metadata
+# GraphQL API
 
 ## Introduction
 
-<!-- TODO: Links to other docs when available -->
+[//]: # (TODO: Links to other docs when available)
 
-Hasura provides automatically generated GraphQL APIs for your data domain. To set up the GraphQL API, you'll need to
-define the following DDS metadata objects:
+Hasura DDN generates GraphQL APIs for all your data.
 
-- [modelGraphqlApi](#model-graphql-api): Specify the root fields to be exposed over GraphQL API for a model.
-- [scalarTypeGraphqlExpression](#scalar-type-graphql-expression): Customize type names of schema generated for data
-  source scalars.
+With the generated API, you can query, insert, update and delete data in your data domain. (Only query APIs are
+available in the current release.) The benefit of defining the GraphQL API in the OpenDD Spec format is that you can
+fully customize it to your needs.
+
+To enable the GraphQL API in Hasura DDN, the following OpenDD spec metadata objects need to be defined:
+
+- [modelGraphqlApi](#model-graphql-api): The root fields for a [model](./models.mdx) which are exposed over the GraphQL
+  API.
+- [scalarTypeGraphqlExpression](#scalar-type-graphql-expression): [Type](./types.mdx) names in the schema which are
+  generated for data source scalars.
 
 ## Model GraphQL API
 
-The `modelGraphqlApi` DDS object facilitates establishing GraphQL APIs on any model.
+The `modelGraphqlApi` OpenDD spec object sets up GraphQL APIs on a model.
 
 ### Metadata Structure
 
-To define the `modelGraphqlApi` object, you will need the model's name and at least one select-unique query API
-definition. Find the JSON schema for the object below.
+To create a root field for a model, define an object with `"kind": "modelGraphqlApi"`. Include the model's name
+and at least one select-unique query API definition:
 
 ```json
 {
@@ -63,14 +69,65 @@ It is not necessary to define `argumentsInputField` and `argumentsInputType` if 
 
 ### Examples
 
-Find examples of the `modelGraphqlApi` DDS object for:
+[//]: # (TODO: These are not done - these should be here and not in /graphql-api which is for the api usage docs )
+[//]: # (Find examples of the `modelGraphqlApi` OpenDD spec object for:)
+[//]: # (1. select-unique queries [here]&#40;/graphql-api/queries.mdx#examples&#41;.)
+[//]: # (2. select-many queries [here]&#40;/graphql-api/queries.mdx#examples-1&#41;.)
 
-1. select-unique queries [here](/graphql-api/queries/simple-queries.mdx#examples).
-2. select-many queries [here](/graphql-api/queries/simple-queries.mdx#examples-1).
+#### Select-unique Queries
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "User",
+  "selectUniques": [
+    {
+      "name": "getUserById",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "Int"
+        }
+      ],
+      "outputFields": ["id", "name", "email"]
+    }
+  ],
+  "filterExpressionType": "User_bool_exp",
+  "orderByExpressionType": "User_order_by"
+}
+```
+
+#### Select-many queries
+
+```json
+{
+  "kind": "modelGraphqlApi",
+  "modelName": "Product",
+  "selectUniques": [
+    {
+      "name": "getProductById",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "Int"
+        }
+      ],
+      "outputFields": ["id", "title", "description"]
+    }
+  ],
+  "selectMany": {
+    "name": "getProducts",
+    "outputFields": ["id", "title", "description"]
+  },
+  "filterExpressionType": "Product_bool_exp",
+  "orderByExpressionType": "Product_order_by"
+}
+
+```
 
 ## Scalar Type GraphQL Expression
 
-For [Select Many](/graphql-api/queries/simple-queries.mdx#examples-1) queries, it is necessary to have a `where` argument to filter
+For [Select Many](/graphql-api/queries.mdx#select-many) queries, it is necessary to have a `where` argument to filter
 rows. The `where` argument is an input object which contains the model's type fields along with `_or`, `_and` and `_not`
 operators.
 
@@ -93,7 +150,9 @@ In the above case, only the `post_id` and `content` fields are present in `where
 You cannot filter objects using the `tags` field as it is mapped to an array scalar.
 
 Each field is an input object with comparison operators as fields. These operators are defined for each scalar type in
-the data source's schema. <!-- TODO: refer data source schema docs when available -->
+the data source's schema.
+
+[//]: # (TODO: refer data source schema docs when available)
 
 ```graphql
 input Where_Filter_Input {
@@ -107,12 +166,11 @@ input Where_Filter_Input {
 }
 ```
 
-Using the `scalarTypeGraphqlExpression` DDS object, you can provide a custom type name for the comparison input object
-of each scalar type.
+Using the `scalarTypeGraphqlExpression` OpenDD spec object, you can provide a custom type name for the comparison input
+object of each scalar type.
 
 ### Metadata Structure
 
-To define `scalarTypeGraphqlExpression`, you need the name of the data source and the name of the scalar type.
 
 ```json
 {
@@ -131,7 +189,7 @@ To define `scalarTypeGraphqlExpression`, you need the name of the data source an
 
 :::info Note
 
-Defining a `scalarTypeGraphqlExpression` DDS object for a scalar type is completely optional. If not defined, the
+Defining a `scalarTypeGraphqlExpression` OpenDD spec object for a scalar type is completely optional. If not defined, the
 `graphqlComparisonExpressionTypeName` will be of `{DataSource}_{ScalarTypeName}_comparison_exp` format.
 
 :::
@@ -191,13 +249,13 @@ Assuming the `TEXT` scalar type is exposing a `like` comparison operator and the
 }
 ```
 
-And, the source scalar types are [represented](/data-domain-modeling/types.mdx#scalar-type-representation) as DDS types
-as follows:
+And, the source scalar types are [represented](/data-domain-modeling/types.mdx#scalar-type-representation) as OpenDD
+spec types as follows:
 
-- `TEXT` -> DDS `String`
-- `Integer` -> DDS `Int`
+- `TEXT` -> OpenDD spec `String`
+- `Integer` -> OpenDD spec `Int`
 
-The GraphQL schema generated for the `scalarTypeGraphqlExpression` DDS objects above will appear as follows:
+The GraphQL schema generated for the `scalarTypeGraphqlExpression` OpenDD spec objects above will appear as follows:
 
 ```graphql
 input String_Comparison_Exp {
