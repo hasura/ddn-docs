@@ -1,0 +1,294 @@
+---
+sidebar_position: 8
+sidebar_label: Data Source
+description: Hasura Data Domain Specification for Data Source
+keywords:
+  - hasura
+  - data
+  - data domain specification
+  - dds
+  - datasource
+---
+
+# Hasura Data Domain Specification Data Source
+
+## Introduction
+
+Data Source is the way to define a source of the data with the configuration and the operations that it can support. It
+may be backed with a SQL database, a NoSQL database, a REST API, a GraphQL API, a file or any other data source.
+
+including the connector URL and the schema of the data in which a data source can resolve data or react to any commands.
+
+In the Open Data Domain Specification (OpenDD Spec), a DataSource must have the connector url and the schema of the data
+in which a data source can resolve data in the shape of [Models](./models.mdx) or respond to any commands.
+
+Once a Data Source is declared it can then be referenced on `source` configuration of a [Model](./models.mdx) to bind it
+to the data domain.
+
+## Description
+
+To create a model, you need to define a OpenDD object with `"kind": "DataSource"`, which has `name`,
+`data_connector_url` and `schema` fields.
+
+### Metadata structure
+
+```json
+{
+  "kind": "DataSource",
+  "name": "<DataSourceName>",
+  "data_connector_url": <DataConnectorURL>,
+  "schema": "<SchemaResponse>",
+}
+```
+
+| Field              | Type     | Required | Description                                                                                                            |
+| ------------------ | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| name               | `String` | true     | Name of the Data Source.                                                                                               |
+| data_connector_url | `String` | true     | URL through which the data source connector can be accessed                                                            |
+| schema             | `Object` | true     | The schema response from the data connector- includes scalar_types, object_type, collections, functions and procedures |
+
+#### Schema Response
+
+Schema Response is an object that defines the schema of the data source. It has the following fields:
+
+```json
+{
+  "scalar_types": "<ScalarTypes>",
+  "object_types": "<ObjectTypes>",
+  "collections": "<Collections>",
+  "functions": "<Functions>",
+  "procedures": "<Procedures>"
+}
+```
+
+| Field        | Type    | Required | Description                 |
+| ------------ | ------- | -------- | --------------------------- |
+| scalar_types | `Array` | true     | Scalar types in the schema. |
+| object_types | `Array` | true     | Object types in the schema. |
+| collections  | `Array` | true     | Collections in the schema.  |
+| functions    | `Array` | true     | Functions in the schema.    |
+| procedures   | `Array` | true     | Procedures in the schema.   |
+
+[//]: # "TODO: define the shape of above types"
+
+## Examples
+
+```json
+{
+  "kind": "DataSource",
+  "name": "my_data_source",
+  "data_connector_url": "http://localhost:8080",
+  "schema": {
+    "scalar_types": {
+      "String": {
+        "aggregate_functions": {},
+        "comparison_operators": {
+          "like": {
+            "argument_type": {
+              "type": "named",
+              "name": "String"
+            }
+          }
+        },
+        "update_operators": {}
+      },
+      "Int": {
+        "aggregate_functions": {
+          "min": {
+            "result_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "type": "named",
+                "name": "Int"
+              }
+            }
+          },
+          "max": {
+            "result_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "type": "named",
+                "name": "Int"
+              }
+            }
+          }
+        },
+        "comparison_operators": {},
+        "update_operators": {}
+      }
+    },
+    "object_types": {
+      "Artist": {
+        "description": "An artist",
+        "fields": {
+          "ArtistId": {
+            "description": "The artist's primary key",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Name": {
+            "description": "The artist's name",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          }
+        }
+      },
+      "Album": {
+        "description": "An album",
+        "fields": {
+          "AlbumId": {
+            "description": "The album's primary key",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Title": {
+            "description": "The album's title",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          },
+          "ArtistId": {
+            "description": "The album's artist ID",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          }
+        }
+      },
+      "Track": {
+        "description": "A track",
+        "fields": {
+          "TrackId": {
+            "description": "The track's primary key",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Name": {
+            "description": "The track's name",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          },
+          "AlbumId": {
+            "description": "The track's album ID",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          }
+        }
+      },
+      "artist_below_id": {
+        "description": "An artist",
+        "fields": {
+          "ArtistId": {
+            "description": "The artist's primary key",
+            "arguments": {
+              "id": {
+                "description": "The cyling id",
+                "type": {
+                  "type": "named",
+                  "name": "Int"
+                }
+              }
+            },
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Name": {
+            "description": "The artist's name",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          }
+        }
+      }
+    },
+    "collections": [
+      {
+        "name": "Artist",
+        "description": "A collection of artists",
+        "arguments": {},
+        "type": "Artist",
+        "deletable": false,
+        "uniqueness_constraints": {
+          "ArtistById": {
+            "unique_columns": ["ArtistId"]
+          }
+        },
+        "foreign_keys": {}
+      },
+      {
+        "name": "Album",
+        "description": "A collection of albums",
+        "arguments": {},
+        "type": "Album",
+        "deletable": false,
+        "uniqueness_constraints": {
+          "AlbumById": {
+            "unique_columns": ["AlbumId"]
+          }
+        },
+        "foreign_keys": {}
+      },
+      {
+        "name": "Track",
+        "description": "A collection of tracks",
+        "arguments": {},
+        "type": "Track",
+        "deletable": false,
+        "uniqueness_constraints": {
+          "TrackById": {
+            "unique_columns": ["TrackId"]
+          }
+        },
+        "foreign_keys": {}
+      },
+      {
+        "name": "artist_below_id",
+        "description": "A collection of artists below a certain id",
+        "arguments": {
+          "id": {
+            "description": "The ceiling id",
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          }
+        },
+        "type": "Artist",
+        "deletable": false,
+        "uniqueness_constraints": {},
+        "foreign_keys": {}
+      }
+    ],
+    "functions": [],
+    "procedures": []
+  }
+}
+```
+
+[//]: # "TODO: veruify & expand the example with proper types"
