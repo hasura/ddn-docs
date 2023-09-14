@@ -1,5 +1,5 @@
 ---
-sidebar_position: 8
+sidebar_position: 3
 sidebar_label: Data Source
 description: Hasura Data Domain Specification for Data Source
 keywords:
@@ -23,8 +23,8 @@ A Data Source includes two main things: a connector URL (the link to your data) 
 In the Open Data Domain Specification (OpenDD Spec), every DataSource must have a connector URL and a schema. This
 schema defines how the data is structured and how the data source can respond to commands.
 
-Once you've declared a Data Source, you can use it in your Model's configuration by referencing it with the source
-property, connecting your model to your chosen data source.
+Once you've declared a Data Source, you can use it in your `Model`'s configuration by
+[referencing it with the source](../models/#source) property, connecting your model to your chosen data source.
 
 ## Description
 
@@ -46,7 +46,7 @@ three main fields: `name`, `data_connector_url`, and `schema`.
 | data_connector_url | `String` | true     | URL to access the data source connector.                                                                               |
 | schema             | `Object` | true     | The schema response from the data connector- includes scalar_types, object_type, collections, functions and procedures |
 
-## Schema Response
+## Schema
 
 Schema Response is an object that defines the schema of the data source. It has the following fields:
 
@@ -85,7 +85,7 @@ It has can be denoted as:
 }
 ```
 
-### AggregateFunctionDefinition
+#### AggregateFunctionDefinition
 
 This field defines How the aggregate function will behave. The definition of the aggregate function has the following
 fields:
@@ -102,7 +102,7 @@ fields:
 
 The result type can be a named type, nullable type, or an Array type as defined in the [Type definition](#type).
 
-### ComparisonOperatorDefinition
+#### ComparisonOperatorDefinition
 
 This field defines How the comparison operator will behave. The definition of the comparison operator has the following
 fields:
@@ -119,7 +119,7 @@ fields:
 
 The argument type can be a named type, nullable type, or an Array type as defined in the [Type definition](#type).
 
-### UpdateOperatorDefinition
+#### UpdateOperatorDefinition
 
 This field defines How the update operator will behave. The definition of the update operator has the following fields:
 
@@ -135,7 +135,7 @@ This field defines How the update operator will behave. The definition of the up
 
 The argument type can be a named type, nullable type, or an Array type as defined in the [Type definition](#type).
 
-### Field Definition
+#### Field Definition
 
 This field defines the behaviour of the field in the object type. The definition of the field has the following fields:
 
@@ -253,11 +253,47 @@ functions on a data source in the form of an array. A function can be denoted as
 | arguments   | `Object` | true     | [Arguments](#argument-definition) of the field. |
 | result_type | `Object` | true     | The [Type definition](#type) of the field.      |
 
-### Type
+### Procedures
 
-Types track the valid representations of values as JSON. A type can be a named type, nullable type, or an Array type.
+A procedure can be collections which return multiple columns and rows. This field `procedures` is to represent the
+available procedures on a data source in the form of an array. A procedure can be denoted as:
 
-#### Named Type
+```json
+[
+  {
+    "name": "<String>",
+    "description": "!<String>",
+    "arguments": "<String, ArgumentDefinition>",
+    "result_type": "<TypeDefinition>"
+  }
+]
+```
+
+| Field       | Type     | Required | Description                                     |
+| ----------- | -------- | -------- | ----------------------------------------------- |
+| name        | `String` | true     | Name of the procedure.                          |
+| description | `String` | false    | Description of the field.                       |
+| arguments   | `Object` | true     | [Arguments](#argument-definition) of the field. |
+| result_type | `Object` | true     | The [Type definition](#type) of the field.      |
+
+### Common Definitions
+
+Some of the items mentioned above rely on common concepts for defining data shapes, including type definitions and
+argument definitions. These concepts are explained below
+
+#### Type
+
+In the schema definition context, Types are the valid representations of values as JSON. A type can be a named type,
+nullable type, or an Array type.
+
+:::info
+
+Note: The term 'Types' mentioned here does not refer to the OpenDDS 'Type.' Instead, it solely defines an atomic shape
+of a value that a data source can offer.
+
+:::
+
+##### Named Type
 
 Most atomic types are named types. A named type is a type that has a name.
 
@@ -268,7 +304,7 @@ Most atomic types are named types. A named type is a type that has a name.
 }
 ```
 
-#### Nullable Type
+##### Nullable Type
 
 A nullable type is a type that can be null or the underlying type (a named type). It can be thought of as a wrapper type
 that enabled nullable charactaristics on an underlying type. It can be denotd as:
@@ -280,7 +316,7 @@ that enabled nullable charactaristics on an underlying type. It can be denotd as
 }
 ```
 
-#### Array Type
+##### Array Type
 
 An array type is a type that is an array of the underlying type (a named type). It can be thought of as a wrapper type.
 It can be denotd as:
@@ -292,7 +328,7 @@ It can be denotd as:
 }
 ```
 
-### Argument Definition
+#### Argument Definition
 
 This field defines the behaviour of the argument in the field. The definition of the argument has the following fields:
 
