@@ -53,10 +53,63 @@ It can be summarized as follows:
     * `invoke_list_function_templates`, and
     * `invoke_send_mail`
 * With all this in place the connector can be used by referencing [the repository](https://github.com/hasura/ndc-sendgrid)
-  `> hasura3 connector create sendgrid:v1 --github-repo-url https://github.com/hasura/ndc-sendgrid/tree/main --volume ./sendgrid.connector.configuration.json:/config.json`
+  `> hasura3 connector create sendgrid:v1 --github-repo-url https://github.com/hasura/ndc-sendgrid/tree/main --config-file config.json`
 * The running connector can then be referenced in Hasura V3 Metadata
   * Leveraged by the LSP
   * Targeted by the engine
   * Recieve Translated GraphQL Queries
 
 ## Example: Sendgrid Connector - Typescript Connector
+
+The [Typescript Connector](https://github.com/hasura/ndc-typescript-deno/) provides a simple way to deploy Typescript functions as data connectors.
+There is no need to implement an API, use an SDK, or write a Dockerfile.
+Simply provide a Typescript function to the Typescript Connector and it will be deployed and executed within the [Deno](https://deno.com/) runtime.
+
+As an example, we can write a Sendgrid connector consisting of the following two files:
+
+`functions/sendgrid.ts`:
+```typescript
+import { sendSimpleMail, IResult } from "https://deno.land/x/sendgrid/mod.ts";
+
+declare global {
+	var Deno: any;
+}
+
+export async function send(subject: string, to: string, from: string, plain: string, html: string ): Promise<IResult> {
+	const API_KEY = Deno.env.get("SENDGRID_API_KEY");
+
+	const response = await sendSimpleMail(
+		{
+			subject,
+			to: [{ email: to }],
+			from: { email: from },
+			content: [
+				{ type: "text/plain", value: plain },
+				{ type: "text/html", value: html },
+			],
+		},
+		{
+			apiKey: API_KEY,
+		},
+	);
+
+	return response;
+}
+```
+
+`config.json`:
+```json
+{
+  "typescript_source": "/functions/sendgrid.ts"
+}
+```
+
+The file `config.json` tells the Typescript Connector where to find our Typescript function. The file `functions/sendgrid.ts` contains the function itself.
+
+To deploy the connector you can use the command
+
+```bash
+> hasura3 connector create sendgrid:deno:v1 --github-repo-url https://github.com/hasura/ndc-typescript-deno/tree/main --config-file config.json --volume ./functions:/functions --env SENDGRID_API_KEY='YOUR_SENDGRID_API_KEY'
+```
+
+The example code shown here can be found in the [on Github](https://github.com/hasura/ndc-sendgrid-deno).
