@@ -38,33 +38,69 @@ need to determine access to your data.
 [//]: # ()
 [//]: # (:::)
 
-## Configure Hasura JWT mode
+## JWT authentication {#jwt-auth-config}
 
-You can enable JWT mode by using the `--jwt-secret` flag or `HASURA_GRAPHQL_JWT_SECRET` environment variable; the value
-of which is a JSON object. More info on running Hasura Engine with the flag or environment variable
-[is here](#running-with-jwt).
+You can enable JWT mode by configuring your metadata appropriately:
 
-Example JWT JSON configuration object:
+### Example
+
+```json
+{
+  "kind": "AuthConfig",
+  "jwt": {
+    "type": "HS256",
+    "key": "<JWT Decoding key>"
+  }
+}
+```
+
+### All jwt configuration fields
 
 ```json
 {
   "type": "<optional-type-of-key>",
   "key": "<optional-key-as-string>",
-  "jwk_url": "<optional-url-to-refresh-jwks>",
-  "claims_namespace": "<optional-key-name-in-claims>",
-  "claims_namespace_path":"<optional-json-path-to-the-claims>",
-  "claims_format": "json|stringified_json",
-  "audience": <optional-string-or-list-of-strings-to-verify-audience>,
+  "jwkUrl": "<optional-url-to-refresh-jwks>",
+  "claimsNamespacePath":"<optional-json-path-to-the-claims>",
+  "claimsFormat": "json|stringified_json",
+  "claimsMap": "<optional-object-of-session-variable-to-claim-jsonpath-or-literal-value>",
+  "audience": "<optional-string-or-list-of-strings-to-verify-audience>",
   "issuer": "<optional-string-to-verify-issuer>",
-  "claims_map": <optional-object-of-session-variable-to-claim-jsonpath-or-literal-value>,
-  "allowed_skew": <optional-number-of-seconds-in-integer>,
-  "header": "<optional-key-to-indicate-cookie-or-authorization-header>"
+  "allowedSkew": "<optional-number-of-seconds-in-integer>",
+  "header": "<optional-object-to-indicate-cookie-or-authorization-header>"
 }
 ```
 
-As a minimum, either the `type` **and** `key` values OR the `jwk_url` value **have to be present**.
+| Field               | Type         | Required | Description                                                                                                                                                                                        |
+|---------------------|--------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| type                | String       | false    | Algorithm to use to decode the JWT. Possible values are: `HS256`, `HS384`, `HS512`, `ES256`, `ES384`, `RS256`, `RS384`, `RS512`, `PS256`, `PS384`, `PS512` and `EdDSA`                             |
+| key                 | String       | false    | Key to decode the JWT                                                                                                                                                                              |
+| jwkUrl              | URL          | false    | URL where the provider publishes thier JWKs (JSON Web keys - which are used for signing the JWTs)                                                                                                  |
+| claimsNamespacePath | JSON Pointer | false    | Default path where the Hasura claims object should be looked up at in the decoded JWT. Default: (Default: "https:~1~1hasura.io~1jwt~1claims" (JSON Pointer for `https://hasura.io/jwt/claims`))    |
+| claimsFormat        | String       | false    | Format of the Hasura claims in the decoded JWT. Possible value: `json`, `stringifiedJson`. Default: `json`.                                                                                        |
+| audience            | String       | false    | When set, verifies the `aud` claims in the JWT to be equal to this value.                                                                                                                          |
+| issuer              | String       | false    | When set, verifies the `iss` claim in the JWT claim equal to this value.                                                                                                                           |
+| allowedSkew         | Int          | false    | Optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry time. This field expects an integer value which will be the number of seconds of the skew value. |
+| header              | Object       | false    | Declares the request header or the cookie(with cookie name) from which to read the JWT from. Default: ```json { "type": "Authorization" }```                                                                                                        |
 
-## Hasura JWT
+Note:
+
+#### JWT mode:
+
+One of the below modes is expected:
+
+1. Static mode, the `type` and the `key` fields are expected fields.
+
+2. JWK mode, the `jwkUrl` field is expected.
+
+#### JWT claims config
+
+One of the following is expected:
+
+1. `claimsNamespacePath` and `claimsFormat`
+
+2. `claimsMap`
+
 
 ### Example Decoded Payload
 
@@ -103,7 +139,7 @@ of this example JWT token. The signature secret is `ultra-secret-very-secret-sup
 The `x-hasura-role` value can be sent as a plain **header** in the request to indicate the role which should be used.
 
 When your auth server generates the JWT, the custom claims in the JWT **must contain the following** in a custom
-`https://hasura.io/jwt/claims` [namespace](#claims-namespace):
+claims namespace:
 
 1.  A `x-hasura-allowed-roles` field. A list of allowed roles for the user i.e. acceptable values of the optional
     `x-hasura-role` _header_. [See more](#x-hasura-allowed-roles)
@@ -140,20 +176,20 @@ can cover a wide range of use cases.
 
 ### Hasura JWT Claim Description
 
-#### x-hasura-allowed-roles
+#### x-hasura-allowed-roles {#x-hasura-allowed-roles}
 
 The `x-hasura-allowed-roles` list can contain all the roles which a particular user can assume, eg:
 `[ "user", "manager", "owner" ]`. Usually, these will have varying degrees of access to your data as specified in
 Permissions and by specifying this list it lets the Hasura Engine know that this user
 can assume any of them.
 
-#### x-hasura-default-role
+#### x-hasura-default-role {#x-hasura-default-role}
 
 The `x-hasura-default-role` will be the role that the user falls back to when no `x-hasura-role` value is
 specified in the header of the request. Usually, this will be the role with the least privileges and can be
 overridden by the `x-hasura-role` header when making a request.
 
-#### x-hasura-\*
+#### x-hasura-\* {#x-hasura-}
 
 The JWT can have other user-defined `x-hasura-*` fields and their values can only be strings (they will be converted to
 the right type automatically). You can use these `x-hasura-*` values in your permission rules.
@@ -237,7 +273,8 @@ The JWT token should be in the following format if the `claims_namespace_path` i
 
 :::info Claims namespace values
 
-When the `claims_namespace_path` is not set, the default value is `https:~1~1hasura.io~1jwt~1claims` (JSON pointer for https://hasura.io/jwt/claims)
+When the `claims_namespace_path` is not set, the default value is `https:~1~1hasura.io~1jwt~1claims` (JSON pointer
+for claims namespace).
 
 :::
 
@@ -726,15 +763,21 @@ escaping new lines.
 
 <Thumbnail src="/img/auth/auth_jwt-config-generated.png" alt="Generating JWT config" width="75%" />
 
-## JWT Example Apps
+[//]: # (## JWT Example Apps)
 
-Here are some sample apps that use JWT authorization. You can follow the instructions in the READMEs of the repositories
-to get started.
+[//]: # ()
+[//]: # (Here are some sample apps that use JWT authorization. You can follow the instructions in the READMEs of the repositories)
 
-[//]: # (- [Custom JWT server with Hasura Actions]&#40;/actions/codegen/python-flask.mdx&#41;: A simple Python / Flask API that)
+[//]: # (to get started.)
 
-[//]: # (  implements `Signup` and `Login` methods as Actions returning JWTs)
-- [Auth0 JWT example](https://github.com/hasura/sample-apps/tree/main/todo-auth0-jwt): A todo
-  app that uses Hasura GraphQL Engine and Auth0 JWT
-- [Firebase JWT example](https://github.com/hasura/sample-apps/tree/main/firebase-jwt):
-  Barebones example to show how to have Firebase Auth integrated with Hasura JWT mode
+[//]: # ()
+[//]: # ([//]: # &#40;- [Custom JWT server with Hasura Actions]&#40;/actions/codegen/python-flask.mdx&#41;: A simple Python / Flask API that&#41;)
+[//]: # ()
+[//]: # ([//]: # &#40;  implements `Signup` and `Login` methods as Actions returning JWTs&#41;)
+[//]: # (- [Auth0 JWT example]&#40;https://github.com/hasura/sample-apps/tree/main/todo-auth0-jwt&#41;: A todo)
+
+[//]: # (  app that uses Hasura GraphQL Engine and Auth0 JWT)
+
+[//]: # (- [Firebase JWT example]&#40;https://github.com/hasura/sample-apps/tree/main/firebase-jwt&#41;:)
+
+[//]: # (  Barebones example to show how to have Firebase Auth integrated with Hasura JWT mode)
