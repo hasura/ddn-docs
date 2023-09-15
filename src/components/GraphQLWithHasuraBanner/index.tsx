@@ -1,18 +1,19 @@
-import React from 'react';
-import Link from '@docusaurus/Link';
+import React from "react";
+import Link from "@docusaurus/Link";
 import ArrowRight from "@site/static/icons/arrow_right.svg";
 import Star from "@site/static/img/star.svg";
 import hasuraFree from "@site/static/img/hasura-free.png";
-import styles from './styles.module.scss';
+import styles from "./styles.module.scss";
 
 const GraphQLWithHasuraBanner = () => {
   return (
-    <Link className={styles["remove-text-decoration"]} href="https://cloud.hasura.io/signup?pg=docs&plcmt=pre-footer&cta=try-graphql-with-hasura&tech=default">
+    <Link
+      className={styles["remove-text-decoration"]}
+      href="https://cloud.hasura.io/signup?pg=docs&plcmt=pre-footer&cta=try-graphql-with-hasura&tech=default"
+    >
       <div className={styles["graphql-with-hasura-wrapper"]}>
         <div className={styles["p40"]}>
-          <h3>
-            Start with GraphQL on Hasura for Free
-          </h3>
+          <h3>Start with GraphQL on Hasura for Free</h3>
           <ul className={styles["desc"]}>
             <li>
               <Star />
@@ -40,6 +41,6 @@ const GraphQLWithHasuraBanner = () => {
       </div>
     </Link>
   );
-}
+};
 
 export default GraphQLWithHasuraBanner;

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 sidebar_label: Models
-description: Hasura Data Domain Specification Models
+description: Hasura Data Domain Specification models
 keywords:
   - hasura
   - data
@@ -14,56 +14,121 @@ keywords:
 
 ## Introduction
 
-Models in DDS refer to a collection of objects (otherwise known as rows or documents) of a given DDS type. Models are
-backed by a data source and can support CRUD operations.
+Models are the primary way of defining data in Hasura DDN and a model may in reality be backed by a database table, an
+ad-hoc SQL query, a pre-materialized view, a custom REST or GraphQL API server, etc.
+
+In the Open Data Domain Specification (OpenDD Spec), models represent a collection of data objects (like rows in a
+SQL table or documents in collection in a NoSQL database) of a certain [type](./types.mdx).
+
+Models form the basis of CRUD operations and are backed by a `dataSource`. These models are objects on which you will
+define and configure user facing capabilities in your API. These will be extended in future releases according to
+the [OpenDD Spec](https://github.com/hasura/open-data-domain-specification).
+
+Once a model is declared it will then often be referenced by `Relationship` and/or
+`Permissions` objects.
 
 ## Description
 
-To create a model, you need to define a DDS object of kind `model`, which has both `name` and `dataType` fields.
+To create a model, you need to define a OpenDD object with `"kind": "Model"`, which has both `name` and `dataType` fields.
 
 ### Metadata structure
 
 ```json
 {
-  "kind": "model",
+  "kind": "Model",
   "name": "<ModelName>",
   "dataType": "<TypeName>",
-  "arguments": [
-    {
-      "name": "arg1",
-      "type": <Type>
-    }
-  ],
-  "globalIDSource": true | false
+  "globalIDSource": true | false,
+  "source": "<SourceConfiguration>",
+  "graphql": "<GraphQLConfiguration>",
 }
 ```
 
-| Field          | Type         | Required | Description                                                         |
-| -------------- | ------------ | -------- | ------------------------------------------------------------------- |
-| name           | `String`     | true     | Name of the model.                                                  |
-| dataType       | `String`     | true     | Name of the object type.                                            |
-| arguments      | `[Argument]` | false    | List of arguments.                                                  |
-| globalIDSource | `Boolean`    | false    | If [Global ID](./global-id.mdx) should be generated for this model. |
+| Field          | Type      | Required | Description                                                         |
+| -------------- | --------- | -------- | ------------------------------------------------------------------- |
+| name           | `String`  | true     | Name of the model.                                                  |
+| dataType       | `String`  | true     | Name of the object type.                                            |
+| globalIDSource | `Boolean` | false    | If [Global ID](./global-id.mdx) should be generated for this model. |
+| source         | `Object`  | true     | Source configuration for the model.                                 |
+| graphql        | `Object`  | true     | GraphQL configuration for the model.                                |
 
-#### Argument
+#### Source
 
-| Field | Type     | Required | Description                                                                                                                                 |
-| ----- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| name  | `String` | true     | Name of the argument                                                                                                                        |
-| type  | `Type`   | true     | Type of the argument. String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
+Source is an object that defines the data source for the model. It has the following fields:
+
+```json
+{
+  "dataSource": "<DataSourceName>",
+  "collection": "<CollectionName>",
+  "typeMappings": "<TypeMappings>"
+}
+```
+
+| Field        | Type     | Required | Description                  |
+| ------------ | -------- | -------- | ---------------------------- |
+| dataSource   | `String` | true     | Name of the data source.     |
+| collection   | `String` | true     | Name of the collection.      |
+| typeMappings | `Object` | true     | Type mappings for the model. |
+
+#### GraphQL
+
+GraphQL is an object that defines the GraphQL configuration for the model. It has the following fields:
+
+```json
+{
+  "selectUniques": "<SelectUniques>",
+  "selectMany": "<SelectMany>",
+  "filterExpressionType": "<FilterExpressionType>",
+  "orderByExpressionType": "<OrderByExpressionType>"
+}
+```
+
+| Field         | Type     | Required | Description                                 |
+| ------------- | -------- | -------- | ------------------------------------------- |
+| selectUniques | `Array`  | true     | Select uniques configuration for the model. |
+| selectMany    | `Object` | true     | Select many configuration for the model.    |
+| filter        | `String` | true     | Filter configuration for the model.         |
+| orderBy       | `String` | true     | Order by configuration for the model.       |
 
 ## Examples
 
 ```json
 {
-  "kind": "model",
-  "name": "ArticlesByAuthor",
-  "dataType": "article",
-  "arguments": [
-    {
-      "name": "author_id",
-      "type": "Int"
+  "kind": "Model",
+  "name": "Authors",
+  "dataType": "author",
+  "globalIDSource": true,
+  "source": {
+    "dataSource": "db",
+    "collection": "authors",
+    "typeMappings": {
+      "author": {
+        "fieldMappings": {
+          "author_id": {
+            "column": "id"
+          },
+          "first_name": {
+            "column": "first_name"
+          },
+          "last_name": {
+            "column": "last_name"
+          }
+        }
+      }
     }
-  ]
+  },
+  "graphql": {
+    "selectUniques": [
+      {
+        "queryRootField": "AuthorByID",
+        "uniqueIdentifier": ["author_id"]
+      }
+    ],
+    "selectMany": {
+      "queryRootField": "AuthorMany"
+    },
+    "filterExpressionType": "Author_Where_Exp",
+    "orderByExpressionType": "Author_Order_By"
+  }
 }
 ```
