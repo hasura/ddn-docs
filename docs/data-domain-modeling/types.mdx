@@ -30,7 +30,7 @@ The types can be one of the following:
 |-------------|-------------------------------------------------------------------------|
 | Primitive   | These are basic types such as `Int`, `Float`, `Boolean`, or `String`    |
 | Container   | These are types that can hold other types such as `Nullable` or `Array` |
-| Custom      | These are user-defined types, such as `NewType` or `ObjectType`         |
+| Custom      | These are user-defined types, such as `ScalarType` or `ObjectType`         |
 
 The spec also allows you to map existing data source scalars to types in your data domain.
 
@@ -70,9 +70,9 @@ Container types are defined as:
 | ------ | --------------------------------------------------------------------------------------------------------------------- |
 | `Type` | String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
 
-## NewType
+## ScalarType
 
-In the OpenDD spec, you can alias types by defining an object with `"kind": "NewType"`. To define a `NewType` you
+In the OpenDD spec, you can alias types by defining an object with `"kind": "ScalarType"`. To define a `ScalarType` you
 need to define a name and an optional representation. This `representation` field can refer to any existing
 primitive, container or custom type and can be a string or an object.
 
@@ -80,7 +80,7 @@ primitive, container or custom type and can be a string or an object.
 
 ```json
 {
-    "kind": "newType",
+    "kind": "ScalarType",
     "name": "<TypeName>",
     "representation": <Type>
 }
@@ -97,7 +97,7 @@ primitive, container or custom type and can be a string or an object.
 
 ```json
 {
-  "kind": "newType",
+  "kind": "ScalarType",
   "name": "UUID",
   "representation": "String"
 }
@@ -106,12 +106,12 @@ primitive, container or custom type and can be a string or an object.
 ```json
 [
   {
-    "kind": "newType",
+    "kind": "ScalarType",
     "name": "Tag",
     "representation": "String"
   },
   {
-    "kind": "newType",
+    "kind": "ScalarType",
     "name": "Tags",
     "representation": {
       "Array": "Tag"
@@ -122,21 +122,21 @@ primitive, container or custom type and can be a string or an object.
 
 ```json
 {
-  "kind": "newType",
+  "kind": "ScalarType",
   "name": "OpaqueDate"
 }
 ```
 
 ## Object types
 
-In the OpenDD spec, completely new types can be created by defining an object with `"kind": "objectType"`. You need to
+In the OpenDD spec, completely new types can be created by defining an object with `"kind": "ObjectType"`. You need to
 also define a name and the fields for this type.
 
 ### Metadata structure
 
 ```json
 {
-  "kind": "objectType",
+  "kind": "ObjectType",
   "name": "<TypeName>",
   "fields": [
     {
@@ -169,7 +169,7 @@ also define a name and the fields for this type.
 
 ```json
 {
-  "kind": "objectType",
+  "kind": "ObjectType",
   "name": "author",
   "fields": [
     {
@@ -191,7 +191,7 @@ also define a name and the fields for this type.
 ## Scalar type representation
 
 A scalar type from a data source can be represented as an OpenDD type by defining an object with `"kind":
-"scalarTypeRepresentation"`. To define a scalar type representation, you need to have a data source name, a
+"DataConnectorScalarRepresentation"`. To define a scalar type representation, you need to have a data source name, a
 scalar name and a type representation. This `representation` can refer to any existing primitive, container, or
 custom type and can be a string or an object.
 
@@ -201,7 +201,7 @@ It is necessary to map all available scalars from a data source to OpenDD types.
 
 ```json
 {
-  "kind": "scalarTypeRepresentation",
+  "kind": "DataConnectorScalarRepresentation",
   "dataSource": "<DataSourceName>",
   "scalarType": "<ScalarTypeName>",
   "representation": <Type>
@@ -220,7 +220,7 @@ It is necessary to map all available scalars from a data source to OpenDD types.
 
 ```json
 {
-  "kind": "scalarTypeRepresentation",
+  "kind": "DataConnectorScalarRepresentation",
   "dataSource": "my_source",
   "scalarType": "text",
   "representation": "String"
@@ -232,7 +232,7 @@ It is necessary to map all available scalars from a data source to OpenDD types.
 ```json
 [
   {
-    "kind": "objectType",
+    "kind": "ObjectType",
     "name": "Geography",
     "fields": [
       {
@@ -248,7 +248,7 @@ It is necessary to map all available scalars from a data source to OpenDD types.
     ]
   },
   {
-    "kind": "scalarTypeRepresentation",
+    "kind": "DataConnectorScalarRepresentation",
     "dataSource": "pg_source",
     "scalarType": "geography",
     "representation": "Geography"
