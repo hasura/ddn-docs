@@ -43,11 +43,11 @@ three fields: `name`, `data_connector_url`, and `schema`.
 | ------------------ | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
 | name               | `String` | true     | Name of the Data Source.                                                                                               |
 | data_connector_url | `String` | true     | URL to access the data source connector.                                                                               |
-| schema             | `Object` | true     | The schema response from the data connector- includes scalar_types, object_type, collections, functions and procedures |
+| schema             | `SchemaResponse` | true     | The schema response from the data connector- includes scalar_types, object_type, collections, functions and procedures |
 
-## Schema
+### Schema Response
 
-Schema is an object that defines the types, schema, functions, etc of the data source. 
+Schema Response is an object that defines the types, schema, functions, etc of the data source. 
 This is usually received from the `/schema` endpoint of the data connector. It has the following fields:
 
 ```json
@@ -69,3 +69,223 @@ This is usually received from the `/schema` endpoint of the data connector. It h
 | procedures   | `Array`  | true     | Procedures in the schema.                                                  |
 
 The structure and detailed documentation of these fields can be found here: https://hasura.github.io/ndc-spec/specification/schema/index.html
+
+## Example
+
+```json
+{
+  "kind": "DataSource",
+  "name": "my_data_source",
+  "data_connector_url": "http://localhost:8080",
+  "schema": {
+    "scalar_types": {
+      "String": {
+        "aggregate_functions": {},
+        "comparison_operators": {
+          "like": {
+            "argument_type": {
+              "type": "named",
+              "name": "String"
+            }
+          }
+        },
+        "update_operators": {}
+      },
+      "Int": {
+        "aggregate_functions": {
+          "min": {
+            "result_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "type": "named",
+                "name": "Int"
+              }
+            }
+          },
+          "max": {
+            "result_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "type": "named",
+                "name": "Int"
+              }
+            }
+          }
+        },
+        "comparison_operators": {},
+        "update_operators": {}
+      }
+    },
+    "object_types": {
+      "Artist": {
+        "description": "An artist",
+        "fields": {
+          "ArtistId": {
+            "description": "The artist's primary key",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Name": {
+            "description": "The artist's name",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          }
+        }
+      },
+      "Album": {
+        "description": "An album",
+        "fields": {
+          "AlbumId": {
+            "description": "The album's primary key",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Title": {
+            "description": "The album's title",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          },
+          "ArtistId": {
+            "description": "The album's artist ID",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          }
+        }
+      },
+      "Track": {
+        "description": "A track",
+        "fields": {
+          "TrackId": {
+            "description": "The track's primary key",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Name": {
+            "description": "The track's name",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          },
+          "AlbumId": {
+            "description": "The track's album ID",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          }
+        }
+      },
+      "artist_below_id": {
+        "description": "An artist",
+        "fields": {
+          "ArtistId": {
+            "description": "The artist's primary key",
+            "arguments": {
+              "id": {
+                "description": "The cyling id",
+                "type": {
+                  "type": "named",
+                  "name": "Int"
+                }
+              }
+            },
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          },
+          "Name": {
+            "description": "The artist's name",
+            "arguments": {},
+            "type": {
+              "type": "named",
+              "name": "String"
+            }
+          }
+        }
+      }
+    },
+    "collections": [
+      {
+        "name": "Artist",
+        "description": "A collection of artists",
+        "arguments": {},
+        "type": "Artist",
+        "deletable": false,
+        "uniqueness_constraints": {
+          "ArtistById": {
+            "unique_columns": ["ArtistId"]
+          }
+        },
+        "foreign_keys": {}
+      },
+      {
+        "name": "Album",
+        "description": "A collection of albums",
+        "arguments": {},
+        "type": "Album",
+        "deletable": false,
+        "uniqueness_constraints": {
+          "AlbumById": {
+            "unique_columns": ["AlbumId"]
+          }
+        },
+        "foreign_keys": {}
+      },
+      {
+        "name": "Track",
+        "description": "A collection of tracks",
+        "arguments": {},
+        "type": "Track",
+        "deletable": false,
+        "uniqueness_constraints": {
+          "TrackById": {
+            "unique_columns": ["TrackId"]
+          }
+        },
+        "foreign_keys": {}
+      },
+      {
+        "name": "artist_below_id",
+        "description": "A collection of artists below a certain id",
+        "arguments": {
+          "id": {
+            "description": "The ceiling id",
+            "type": {
+              "type": "named",
+              "name": "Int"
+            }
+          }
+        },
+        "type": "Artist",
+        "deletable": false,
+        "uniqueness_constraints": {},
+        "foreign_keys": {}
+      }
+    ],
+    "functions": [],
+    "procedures": []
+  }
+}
+```
