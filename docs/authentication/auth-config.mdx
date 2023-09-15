@@ -1,0 +1,115 @@
+---
+sidebar_position: 1
+sidebar_label: Authentication
+description: Hasura Authentication
+keywords:
+  - hasura
+  - graphql
+  - authentication
+  - auth
+  - jwt
+  - token
+  - webhook
+---
+
+# Hasura Authentication
+
+## Introduction
+
+This document documents the auth config Hasura metadata object to setup
+authentication in Hasura.
+
+## Auth Config {#auth-config}
+
+| Field                 | Type   | Required | Description                                                                                                                                |
+|-----------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| allowRoleEmulationFor | String | false    | Name of the role which allows role emulation. The webhook should return this role in the `x-hasura-role` key for role emulation to happen. |
+| webhook               | Object | false    | Configuration of the authentication webhook                                                                                                |
+| jwt                   | Object | false    | Configuration of the JWT secret                                                                                                            |
+
+Examples:
+
+
+1. Webhook
+
+```json
+{
+  "kind": "authConfig",
+  "allowRoleEmulationFor": "admin",
+  "webhook": {
+    "webhookUrl": "http://auth.yourservice.com/validate-request"
+  }
+}
+```
+
+2. JWT
+
+```json
+{
+  "kind": "authConfig",
+  "jwt": {
+    "type": "HS256",
+    "key": "<JWT Decoding key>"
+  }
+}
+```
+
+
+
+### Webhook authentication {#webhook-auth-config}
+
+| Field      | Type   | Required | Description                                                                                                                             |
+|------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| webhookUrl | URL    | true     | URL of the authentication webhook                                                                                                       |
+| mode       | String | false    | HTTP method to use while making the request to the authentication webhook. Only `GET` and `POST` methods are supported (default: `GET`) |
+
+
+## JWT authentication
+
+### Configuration
+
+```json
+{
+  "type": "<optional-type-of-key>",
+  "key": "<optional-key-as-string>",
+  "jwkUrl": "<optional-url-to-refresh-jwks>",
+  "claimsNamespacePath":"<optional-json-path-to-the-claims>",
+  "claimsFormat": "json|stringified_json",
+  "claimsMap": "<optional-object-of-session-variable-to-claim-jsonpath-or-literal-value>",
+  "audience": "<optional-string-or-list-of-strings-to-verify-audience>",
+  "issuer": "<optional-string-to-verify-issuer>",
+  "allowedSkew": "<optional-number-of-seconds-in-integer>",
+  "header": "<optional-object-to-indicate-cookie-or-authorization-header>"
+}
+```
+
+| Field               | Type         | Required | Description                                                                                                                                                                                        |
+|---------------------|--------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| type                | String       | false    | Algorithm to use to decode the JWT. Possible values are: `HS256`, `HS384`, `HS512`, `ES256`, `ES384`, `RS256`, `RS384`, `RS512`, `PS256`, `PS384`, `PS512` and `EdDSA`                             |
+| key                 | String       | false    | Key to decode the JWT                                                                                                                                                                              |
+| jwkUrl              | URL          | false    | URL where the provider publishes thier JWKs (JSON Web keys - which are used for signing the JWTs)                                                                                                  |
+| claimsNamespacePath | JSON Pointer | false    | Default path where the Hasura claims object should be looked up at in the decoded JWT. Default: (Default: "https:~1~1hasura.io~1jwt~1claims" (JSON Pointer for `https://hasura.io/jwt/claims`))    |
+| claimsFormat        | String       | false    | Format of the Hasura claims in the decoded JWT. Possible value: `json`, `stringifiedJson`. Default: `json`.                                                                                        |
+| audience            | String       | false    | When set, verifies the `aud` claims in the JWT to be equal to this value.                                                                                                                          |
+| issuer              | String       | false    | When set, verifies the `iss` claim in the JWT claim equal to this value.                                                                                                                           |
+| allowedSkew         | Int          | false    | Optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry time. This field expects an integer value which will be the number of seconds of the skew value. |
+| header              | Object       | false    | Declares the request header or the cookie(with cookie name) from which to read the JWT from. Default: ```json { "type": "Authorization" }```                                                                                                        |
+
+Note:
+
+
+#### JWT mode:
+
+One of the below modes is expected:
+
+1. Static mode, the `type` and the `key` fields are expected fields.
+
+2. JWK mode, the `jwkUrl` field is expected.
+
+#### JWT claims config
+
+One of the following is expected:
+
+1. `claimsNamespacePath` and `claimsFormat`
+
+2. `claimsMap`
