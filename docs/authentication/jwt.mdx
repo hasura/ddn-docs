@@ -205,59 +205,6 @@ publish the JWKs in the standard format as described [here](https://tools.ietf.o
 This is optional as you have the alternative of also providing the key (certificate, PEM-encoded public key) as a
 string - in the [`key`](#jwt-json-key) field along with the [`type`](#jwt-json-type).
 
-#### Rotating JWKs
-
-Some providers rotate their JWKs (e.g. Firebase). If the provider sends any of the following with the response of the
-JWK, then the Hasura Engine will refresh the JWKs automatically.
-
-1. `no-cache`, `no-store` or `must-revalidate` in `Cache-Control` headers
-2. `max-age` or `s-maxage` in `Cache-Control` headers
-3. `Expires` header
-
-If the provider does not send the above, the JWKs are not refreshed.
-
-The following is the behavior in detail:
-
-##### JWK procedure on startup
-
-1.  GraphQL Engine will fetch the JWK and will -
-
-    1. first, try to parse `no-cache`, `no-store` or `must-revalidate` in a `Cache-Control` header.
-    2. second, try to parse an `max-age` or `s-maxage` directive in a `Cache-Control` header.
-    3. third, check if an `Expires` header is present (if `Cache-Control` is not present), and try to parse the value
-       as a timestamp.
-
-2.  If it is able to parse `max-age`, `s-maxage` or `Expires` successfully, then it will use that parsed time to
-    refetch the JWKs again.
-
-    If it is unable to parse those values, then it will not refresh the JWKs (it assumes that if the above headers are
-    not present, the provider doesn't rotate their JWKs). If the parsed time is less than a second, the JWKs
-    will be fetched once per second regardless.
-
-    If `must-revalidate` and `max-age` are present, then it will refresh the JWK again after the time period specified
-    in `max-age` has passed.
-
-    However, if `max-age` is not specified or if `no-cache` or `no-store` are present, then it will refresh the JWKs
-    once a second.
-
-##### JWK procedure while running
-
-1.  While GraphQL Engine is running with refreshing JWKs, in one refresh cycle it will -
-
-    1. first, try to parse an `max-age` or `s-maxage` directive in a `Cache-Control` header.
-    2. second, check if an `Expires` header is present (if `Cache-Control` is not present), and try to parse the value
-       as a timestamp.
-
-2.  If it is able to parse any of the above successfully, then it will use that parsed time to refetch the JWKs
-    again. If it is unable to parse any values, then it will sleep for 1 minute and then start another refresh cycle.
-
-##### JWK publisher URLs
-
-- Auth0 publishes their JWK url at: `https://<YOUR_AUTH0_DOMAIN>.auth0.com` but has a known bug. [See Auth0's issues
-  here](#auth0-issues).
-- Firebase publishes their JWK url at:
-  `https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com`.
-
 ### claims_namespace {#claims-namespace}
 
 This is an optional field. You can specify the key name, inside which the Hasura specific claims will be present, e.g.
@@ -290,14 +237,13 @@ The JWT token should be in the following format if the `claims_namespace_path` i
 
 :::info Claims namespace values
 
-The JWT config can only have one of either `claims_namespace` or `claims_namespace_path` values set. If neither keys
-are set, then the default value of `claims_namespace` i.e. `https://hasura.io/jwt/claims` will be used.
+When the `claims_namespace_path` is not set, the default value is `https:~1~1hasura.io~1jwt~1claims` (JSON pointer for https://hasura.io/jwt/claims)
 
 :::
 
 ### claims_format
 
-This is an optional field, with only the following possible values allowed: `json`, `stringified_json`
+This is an optional field, with only the following possible values allowed: `json`, `stringifiedJson`.
 
 The default is `json`.
 
@@ -577,45 +523,6 @@ If `header` is `{"type": "CustomHeader", "name": "header_name" }` then JWT heade
 header_name: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
 ```
 
-## Run Hasura GraphQL Engine in JWT mode {#running-with-jwt}
-
-### Docker
-
-Using the flag:
-
-```shell
-$ docker run -p 8080:8080 \
-    hasura/graphql-engine:latest \
-    graphql-engine \
-    --database-url postgres://<username>:<password>@<hostname>:<port>/<dbname> \
-    serve \
-    --admin-secret <myadminsecretkey> \
-    --jwt-secret '{"type":"HS256", "key": "3EK6FD+o0+c7tzBNVfjpMkNDi2yARAAKzQlk8O2IKoxQu4nF7EdAh8s3TwpHwrdWT6R"}'
-```
-
-Using environment variables:
-
-```shell
-$ docker run -p 8080:8080 \
-    -e HASURA_GRAPHQL_ADMIN_SECRET="<myadminsecretkey>" \
-    -e HASURA_GRAPHQL_JWT_SECRET='{"type":"RS512", "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n"}' \
-    hasura/graphql-engine:latest \
-    graphql-engine \
-    --database-url postgres://<username>:<password>@<hostname>:<port>/<dbname> \
-    serve
-```
-
-### Hasura Cloud
-
-Add your JWT config to your hasura cloud project with the HASURA_GRAPHQL_JWT_SECRET environment variable as follows:
-
-<Thumbnail src="/img/auth/projects_env-vars-ui_2-17.png" alt="Hasura project environment var UI" />
-
-<Thumbnail
-  src="/img/auth/projects_add-jwt-config-env-var_2-17.png"
-  alt="Hasura project add jwt config environment var"
-/>
-
 ## Hasura JWT Config Examples
 
 #### HMAC-SHA based
@@ -717,15 +624,6 @@ needs to have the public key.
 }
 ```
 
-## Multiple JWT Secrets
-
-By providing a set of JWT secrets to GraphQL Engine on Cloud or Enterprise versions, you can set it up to authenticate
-using various JWT issuers. This configuration option allows for greater flexibility in authentication.
-
-[//]: # (Read more here:)
-
-[//]: # ([Multiple JWT Secrets]&#40;/auth/authentication/multiple-jwt-secrets.mdx&#41;.)
-
 ## Security considerations
 
 ### Setting audience check
@@ -737,14 +635,6 @@ tenants to be valid as well.
 
 In these cases, you **MUST** set the `audience` field to appropriate value. **Failing to do so is a major security
 vulnerability**.
-
-## JWT with the WebSocket protocol
-
-When executing a subscription (or query or mutation) over the WebSocket protocol, the authentication step is executed on
-`connection_init` when the websocket is connected to Hasura GraphQL Engine and is valid until the expiry of the JWT
-when in JWT mode.
-
-Once authenticated, all operations are allowed without further check, until the authentication expires.
 
 ## Popular providers and known issues
 
