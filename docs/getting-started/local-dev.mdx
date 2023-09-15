@@ -1,0 +1,230 @@
+---
+sidebar_position: 2
+sidebar_label: Quickstart from your IDE
+description: Hasura gives you instant GraphQL on all your data
+keywords:
+  - hasura
+  - graphql
+  - get started
+  - guide
+  - tutorial
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Quickstart from your IDE
+
+## Introduction
+
+In this guide, we'll walk you through the steps to create a new Hasura project, connect a database, execute your first
+query, and create lightning-fast production builds — all using the your IDE and the **new Hasura CLI**. Throughout this
+guide, you'll be introduced to new Hasura concepts, like builds, our new metadata structure, and more.
+
+:::tip Prerequisites
+
+1. The [new Hasura CLI](/ci-cd/hasura-cli.mdx)
+2. The [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)
+3. A PostgreSQL database
+
+:::
+
+## Step 1: Log into Hasura
+
+To make a secure connection, you'll need a personal access token (PAT) from Hasura Cloud:
+
+1. Head [here](https://cloud.hasura.io/account-settings/access-tokens) to generate your PAT.
+2. Use the following command to add the token to the CLI, thereby logging you in:
+
+```bash
+hasura3 cloud login --pat <YOUR_PAT>
+```
+
+:::info New CLI?!
+
+Yep! If you can't tell already, we've completely rewritten the CLI from the ground up. You can learn more about the new
+commands by running:
+
+```bash
+hasura3 --help
+```
+
+:::
+
+## Step 2: Create a new project
+
+To create a new local project, use the following command, passing the directory where you want to create the metadata
+file as an argument. This command will create a `metadata.hml` file by default:
+
+```bash
+hasura3 local init --dir <PROJECT_DIRECTORY>
+```
+
+You can then create the corresponding project on Hasura using the following command:
+
+```bash
+hasura3 cloud project create
+```
+
+The CLI will return information about your project:
+
+```text
+ Creating project... ok
+ Name         <PROJECT_NAME>
+ ID           <PROJECT_ID>
+ Console URL  https://console.hasura.io/project/<PROJECT_ID>/graphql
+```
+
+:::info What's a local project?
+
+Each project on Hasura Cloud can have a corresponding local project that can be used for development. This local project
+only contains the Hasura metadata file that follows the new metadata format of the
+[Open Data Domain Specification (OpenDD Spec)](https://github.com/hasura/open-data-domain-specification), and can be an
+`.hml`, `.yaml` or a `.json` file. This file can be checked into version control along with other files (if any) of your
+project and can be shared.
+
+We've created a new flavor of yaml called `Hasura Markup Language` (`.hml`) that allows you to accelerate your workflows
+by using the Hasura VS Code extension.
+
+:::
+
+## Step 3: Connect a data source
+
+Open your empty `metadata.hml` file and start typing `HasuraHubDataSource`. Hit `Enter` and the extension will
+automatically populate the rest of the template for you:
+
+```yaml
+kind: HasuraHubDataSource
+name:
+connectorId:
+connectorConfiguration:
+  version:
+  postgres_database_url:
+```
+
+| Field                    | Description                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| `name`                   | The name of your data source. Put `default` for now.                                    |
+| `connectorId`            | The ID of the connector you want to use. In this example, we'll use `hasura/postgres`.  |
+| `connectorConfiguration` | The configuration for your connector, made up of `version` and `postgres_database_url`. |
+| `version`                | The version of your connector. Put `1` for now.                                         |
+| `postgres_database_url`  | The connection string for your database. Add your database's connection string.         |
+
+## Step 4: Scaffold your metadata
+
+In VS Code, press `Command + Shift + P` (Mac) or `Ctrl + Shift + P` (Windows) to open the Command Palette. Type
+`hasura refresh data source` and choose the option that appears.
+
+<Thumbnail src="/img/get-started/0.0.1_vs-code-refresh-data-source.png" alt="Execute a query" width="1000px" />
+
+You should now see the name you provided in the previous step. Clicking this will introspect your data source and add
+information to your metadata about the tables and views in your database.
+
+From here, you can immediately track tables, views, relationships, and quickly scaffold out your metadata by using the
+Hasura VS Code extension.
+
+Bring up the command palette again, type `hasura track everything in data source` and choose the option from the
+dropdown. Then, select your data source's name and, viola — your metadata file will be populated with **models** and
+everything you need to get started! 🎉
+
+<Thumbnail src="/img/get-started/0.0.1_vs-code-track-everything.png" alt="Execute a query" width="1000px" />
+
+:::info What are models?
+
+This is the first new concept we've introduced in this guide. models are a new way to represent your data in Hasura.
+
+Models in the [OpenDD Spec](/data-domain-modeling/overview.mdx) refer to a collection of objects (such as rows in a
+relational database, or documents in a NoSQL database) of a given OpenDD Spec type. Models are backed by a data source
+and can support CRUD operations. You can learn more about models [here](/data-domain-modeling/models.mdx).
+
+:::
+
+## Step 5: Create a new build
+
+Create a build using the following command:
+
+```bash
+hasura3 cloud build create --project-id <PROJECT_ID> --metadata-file <METADATA_FILE>
+```
+
+The CLI will return:
+
+- a build ID
+- a build Version
+- a GraphQL API Endpoint for this build
+
+We'll use this information in the next step to test our API!
+
+:::info What's a build?
+
+Builds are a new concept in Hasura that allow you to quickly iterate and prototype on your project's metadata. A build
+is an immutable, fully-functioning GraphQL API that represents a milestone in your development cycle.
+
+It may be helpful to think of builds as git commits. Since each is deployed on Hasura Cloud, it can be shared with other
+users.
+
+Each build is completely independent. One project can have multiple builds, out of which, one is applied to production.
+This workflow allows for easier rollbacks on production, and greater collaboration during development.
+
+:::
+
+## Step 6: Run your first query
+
+Assuming you have some tables and data in your database, you can now run your first query! Head to the Console URL
+returned by the CLI in the previous step. You'll be prompted to log in. Once you're logged in, you'll be taken to the
+GraphiQL Explorer, where you can execute queries against your API.
+
+We're using the docs sample app's schema for this guide's visuals, but you can use the Explorer to create your query or
+write it manually:
+
+<Thumbnail src="/img/get-started/0.0.1_console-execute-query-on-build.png" alt="Execute a query" width="1000px" />
+
+## Step 7: Apply your build
+
+To apply a build using the CLI, run the following command:
+
+```bash
+hasura3 cloud build apply --project-id <PROJECT_ID> --build-id <BUILD_ID>
+```
+
+:::tip Quickly find IDs for Projects and builds!
+
+You can use the following command to list your projects:
+
+```bash
+hasura3 cloud project list
+```
+
+You can use the following command to list your builds:
+
+```bash
+hasura3 cloud build list --project-id <PROJECT_ID>
+```
+
+:::
+
+:::info What does it mean to apply a build?
+
+Applying a build means that it's being promoted to your project's production environment. **This is a new concept in
+Hasura which allows you to quickly iterate — and, if needed, roll back — your project's metadata to all of your users,
+worldwide.**
+
+:::
+
+## Step 8: Query your production endpoint
+
+At the top of the Console, you'll see a toggle that allows you to switch between your project's applied build and your
+project's currently selected build. Toggle to your project's applied build:
+
+<Thumbnail src="/img/get-started/0.1.1_console-view-project-graphiql.png" alt="Toggle production" width="1000px" />
+
+You can now execute a query against this endpoint.
+
+## What's next?
+
+### Iterate on your metadata
+
+We've just demonstrated how to quickly get set up and running with Hasura. Now that you've got a project up and running,
+you can iterate on your metadata and build out your API. Head back to the Metadata tab, make some modifications, create
+a new build, and see what happens 🎉
