@@ -18,14 +18,14 @@ Coming soon on Hasura DDN.
 
 :::
 
-For a multi-team organization working on a Hasura DDN project, it makes sense for a team to not have access to all the metadata
-objects. Namespaces introduces the notion of module system for metadata:
+For a multi-team organization working on a Hasura DDN project, it can make sense for any one team to not have access to
+all metadata objects. Namespaces introduces the notion of module system for metadata:
 
 1. A project can have a collection of namespaces and the project's metadata is the 'union' of metadata objects across
    all namespaces of the project.
 2. Each namespace can be updated independently.
 
-This patch operation on metadata is governed by the following rules:
+The build operation for metadata with namespaces is governed by the following rules:
 
 1. Teams can only update namespaces that they have access to.
 2. A namespace is the owner of all its metadata objects and no other namespace can "modify" an entity owned by a
@@ -55,49 +55,45 @@ A metadata with namespaces looks something like the following:
 
 The metadata objects in a namespaces must follow the ownership rules for the metadata objects:
 
-### DataSource/ PostgresDataSource
+### DataSource/ HasuraHubDataSource
 
-The data source metadata object (`DataSource`/ `PostgresDataSource`) doesn't depend on (or references) any other
+The data source metadata object (`DataSource`/ `HasuraHubDataSource`) doesn't depend on (or references) any other
 metadata object. Hence, any namespace can define a data source.
 
 **Note**: The namespace that defines a data source owns it. This means that no other namespace can reference this data
-source in their `ModelSources`, `ScalarTypeRepresentation`, etc.
+source in their model, type representations, etc.
 
 ### ObjectType
 
 The `ObjectType` metadata object also doesn't reference any other metadata object. Thus, any namespace can define an
 `ObjectType` metadata object.
 
-### ScalarTypeRepresentation
+### DataConnectorScalarRepresentation
 
-The `ScalarTypeRepresentation` metadata object references the data source metadata object. Thus, the data source in a
-`ScalarTypeRepresentation` should be owned by the same namespace.
+The `DataConnectorScalarRepresentation` metadata object references the data source metadata object. Thus, the data
+source in a `DataConnectorScalarRepresentation` should be owned by the same namespace.
 
-### NewType
+### ScalarType
 
-The `NewType` metadata object is a wrapper around a type and thus it references a type. If the `NewType` is referencing
-a `CustomType`, then the custom type should also be part of the same namespace.
+The `ScalarType` metadata object also doesn't reference any other metadata object. Thus, any namespace can define an
+`ScalarType` metadata object.
 
 ### Model
 
-A `Model` metadata object references a type and is dependent on a `ModelSource`. Thus, the same namespace should own the
-type and `ModelSource` referenced by the `Model`.
+A `Model` metadata object references a data type. Also, the model's `source` references a data source and some data
+types in type mappings. Thus, the same namespace should own the types and the data source.
 
-### ModelSource
+### Command
 
-A `ModelSource` references types (in type mapping), model and data source. Thus, the same namespace should own the
-following:
-
-1. Types that are being mapped
-2. `Model` referenced by the metadata object
-3. Data source referenced by the metadata object
+A `Command` metadata object references an output data type. Thus, the namespace defining the `Command` metadata object
+should also define the output data type.
 
 ### Relationship
 
 The `Relationship` metadata object references a source type and a target type. The source type used in the
 `Relationship` should be owned by the namespace defining the `Relationship`.
 
-**Note**: Please note that the the target type can be from any namespace.
+**Note**: The target type can be from any namespace. This allows us to define relationship across namespaces.
 
 ### TypeOutputPermissions
 
@@ -106,24 +102,20 @@ namespace defining the `TypeOutputPermissions` should own the type referenced.
 
 ### ModelSelectPermissions
 
-Similar to `TypeOutputPermissions`, the namespace should also own the model referenced in the metadata object.
+Similar to `TypeOutputPermissions`, the namespace should also own the model referenced in the `ModelSelectPermissions`
+metadata object.
 
-### GraphQLTypeDefinition
+### CommandPermissions
 
-Similar to `ModelSelectPermissions`, the namespace should also own the graphql type referenced in the metadata object.
-
-### ModelGraphQLAPI
-
-The namespace defining the `ModelGraphQLAPI` should also own the `Model` used for the graphql API.
-
-### ScalarTypeGraphQLRepresentation
-
-The `ScalarTypeGraphQLRepresentation` metadata object references a data source. Thus, the same namespace should own data
-source referenced in the metadata object.
+The `CommandPermissions` metadata object references a command, which should be defined in the same namespace.
 
 ### AuthConfg
 
 Any namespace can define this.
+
+**Note**: There can be only one `AuthConfig` in the project's metadata. i.e. only one namespace can define one
+`AuthConfig`, if there are more than one `AuthConfig`, then the metadata build will fail with the error
+`Found duplicate authentication config`.
 
 ## Other Rules
 
