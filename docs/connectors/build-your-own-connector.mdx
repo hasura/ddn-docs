@@ -24,6 +24,10 @@ The NDC Specification documentation can be found [here](https://hasura.github.io
 based on developing a connector for CSVs, can be found [here](https://hasura.github.io/ndc-spec/tutorial/index.html).
 You can use this guide as a reference to build your own connector.
 
+## Limitations
+
+* Complex input types in procedures
+
 ## Example: Sendgrid Connector - Rust SDK
 
 An example of implementing the Sendgrid API can be found [on Github here](https://github.com/hasura/ndc-sendgrid/).
@@ -68,15 +72,16 @@ Simply provide a Typescript function to the Typescript Connector and it will be 
 As an example, we can write a Sendgrid connector consisting of the following two files:
 
 `functions/sendgrid.ts`:
-```typescript
-import { sendSimpleMail, IResult } from "https://deno.land/x/sendgrid/mod.ts";
 
-declare global {
-	var Deno: any;
-}
+```typescript
+import { sendSimpleMail, IResult } from 'https://deno.land/x/sendgrid@0.0.3/mod.ts';
 
 export async function send(subject: string, to: string, from: string, plain: string, html: string ): Promise<IResult> {
 	const API_KEY = Deno.env.get("SENDGRID_API_KEY");
+
+  if(! API_KEY) {
+		throw new Error('Error: SENDGRID_API_KEY environment variable must be set.');
+	}
 
 	const response = await sendSimpleMail(
 		{
