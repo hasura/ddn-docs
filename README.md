@@ -1,6 +1,6 @@
 # Website
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+The docs site uses [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
 ### Installation
 
@@ -28,10 +28,6 @@ service.
 
 ### Contributing
 
-1. Create a new branch in the format of `docs/<your-name>/<branch-name>`
-2. Share your brilliance
-3. Open a PR against `main`
-4. Our CI will tag either Sean or Rob to review your PR
-5. You're used to the flow from here ☝️
+Check out our contribution guide on the wiki 🤙
 
-Kodiak isn't set up on this repository yet. After approval, **get your merge on** 🎉
+If you have any questions, reach out on Slack: [#team-docs](https://hasurahq.slack.com/archives/C015EA71MU0)
