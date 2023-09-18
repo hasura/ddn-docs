@@ -1,8 +1,6 @@
-import React from "react";
-import Link from "@docusaurus/Link";
+import React from 'react';
+import Link from '@docusaurus/Link';
 
-const VersionedLink = ({ to, ...props }) => (
-  <Link to={`/latest${to}`} {...props} />
-);
+const VersionedLink = ({ to, ...props }) => <Link to={`/latest${to}`} {...props} />;
 
 export default VersionedLink;
