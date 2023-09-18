@@ -13,10 +13,42 @@ hide_table_of_contents: true
 
 # Using a V3 Connector in a V2 Project via the V2->V3 Proxy
 
-What is the proxy?
+Hasura's [Connector Hub](https://hasura.io/connectors) is designed to act as the new gold-standard for
+data-source compatibility and works seamlessly with Hasura V3 projects to integrate diverse datasets
+and interactions in your projects.
 
-Limitations.
+While this is immensly useful in a V3 context, what does it mean for your existing V2 projects?
+Will they be able to use the new connectors?
 
-Configuration.
+The integrated Connector Proxy addresses this question by providing an optional `/v2` endpoint.
+Any connector using the Hasura Connector SDKs will be able to enable this endpoint and be
+instantly compatible with existing V2 projects without any further modification.
 
-Example.
+## Usage and Configuration
+
+When deploying your connector with the `connector create` plugin, simply enable the `ENABLE_V2_COMPATIBILITY` mode via environment variable:
+
+```
+hasura3 connector create my-connector:v1 \
+  --github-repo-url https://github.com/hasura/cool-connector/tree/v0.7 \
+  --config-file conf.json \
+  --env ENABLE_V2_COMPATIBILITY=true
+```
+
+If your connector has been configured with a SERVICE_TOKEN_SECRET,
+you will need your V2 project to configure the proxy data connector with a corresponding configuration option:
+
+```
+{
+  "service_token_secret": "MY-SECRET-TOKEN-XXX123"
+}
+```
+
+## Limitations
+
+The primary limitation of the proxy is that the V3 architecture no longer allows
+for dynamic configuration of connectors and their configuration is set on creation.
+
+This means that you will have to deploy a V3 connector per-usage-scenario as per the V3 pattern.
+
+You can then track entities as per a normal V2 project once the connector is available via the proxy endpoint.
