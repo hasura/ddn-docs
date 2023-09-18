@@ -1,16 +1,16 @@
-import React from "react";
-import clsx from "clsx";
-import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import hasuras from "@site/static/img/hasuras.png";
-import VersionedLink from "@site/src/components/VersionedLink";
-import styles from "./index.module.scss";
+import React from 'react';
+import clsx from 'clsx';
+import Layout from '@theme/Layout';
+import Link from '@docusaurus/Link';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import hasuras from '@site/static/img/hasuras.png';
+import VersionedLink from '@site/src/components/VersionedLink';
+import styles from './index.module.scss';
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <header className={clsx("hero", styles.heroBanner)}>
+    <header className={clsx('hero', styles.heroBanner)}>
       <div className="container">
         <div
           style={{
@@ -23,10 +23,7 @@ function HomepageHeader() {
           <p className="hero__subtitle">{siteConfig.tagline}</p>
         </div>
         <div className={styles.links}>
-          <VersionedLink
-            className="button button--primary button--lg"
-            to="/index"
-          >
+          <VersionedLink className="button button--primary button--lg" to="/index">
             Hasura Docs
           </VersionedLink>
           <div className={styles.links}>

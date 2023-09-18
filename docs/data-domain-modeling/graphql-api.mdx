@@ -14,7 +14,7 @@ keywords:
 
 ## Introduction
 
-[//]: # (TODO: Links to other docs when available)
+[//]: # "TODO: Links to other docs when available"
 
 Hasura DDN generates GraphQL APIs for all your data.
 
@@ -35,8 +35,8 @@ The `modelGraphqlApi` OpenDD spec object sets up GraphQL APIs on a model.
 
 ### Metadata Structure
 
-To create a root field for a model, define an object with `"kind": "modelGraphqlApi"`. Include the model's name
-and at least one select-unique query API definition:
+To create a root field for a model, define an object with `"kind": "modelGraphqlApi"`. Include the model's name and at
+least one select-unique query API definition:
 
 ```json
 {
@@ -51,15 +51,15 @@ and at least one select-unique query API definition:
 }
 ```
 
-| Field                 | Type                                                              | Required | Description                                                                                                                         |
-| --------------------- | ----------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| modelName             | `String`                                                          | true     | Name of the model.                                                                                                                  |
-| selectUniques         | [[SelectUnique](/graphql-api/queries.mdx#selectunique-structure)] | true     | Define Select unique queries.                                                                                                       |
-| selectMany            | [SelectMany](/graphql-api/queries.mdx#selectmany-structure)       | false    | Definition to enable select many query.                                                                                             |
-| filterExpressionType  | `String`                                                          | false    | The type name for the `where` filter input object for select many query. The default value is of format `{ModelName}_bool_exp`.     |
-| orderByExpressionType | `String`                                                          | false    | The type name for the `order_by` sorting input object for select many query. The default value is of format `{ModelName}_order_by`. |
-| argumentsInputField   | `String`                                                          | false    | The input field name for model's arguments. Default value is `args`.                                                                |
-| argumentsInputType    | `String`                                                          | false    | The type name for model arguments input object. The default value is of format `{ModelName}_arguments`.                             |
+| Field                 | Type                                     | Required | Description                                                                                                                         |
+| --------------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| modelName             | `String`                                 | true     | Name of the model.                                                                                                                  |
+| selectUniques         | [[SelectUnique](#select-unique-queries)] | true     | Define Select unique queries.                                                                                                       |
+| selectMany            | [SelectMany](#select-many-queries)       | false    | Definition to enable select many query.                                                                                             |
+| filterExpressionType  | `String`                                 | false    | The type name for the `where` filter input object for select many query. The default value is of format `{ModelName}_bool_exp`.     |
+| orderByExpressionType | `String`                                 | false    | The type name for the `order_by` sorting input object for select many query. The default value is of format `{ModelName}_order_by`. |
+| argumentsInputField   | `String`                                 | false    | The input field name for model's arguments. Default value is `args`.                                                                |
+| argumentsInputType    | `String`                                 | false    | The type name for model arguments input object. The default value is of format `{ModelName}_arguments`.                             |
 
 :::info Note
 
@@ -69,12 +69,7 @@ It is not necessary to define `argumentsInputField` and `argumentsInputType` if 
 
 ### Examples
 
-[//]: # (TODO: These are not done - these should be here and not in /graphql-api which is for the api usage docs )
-[//]: # (Find examples of the `modelGraphqlApi` OpenDD spec object for:)
-[//]: # (1. select-unique queries [here]&#40;/graphql-api/queries.mdx#examples&#41;.)
-[//]: # (2. select-many queries [here]&#40;/graphql-api/queries.mdx#examples-1&#41;.)
-
-#### Select-unique Queries
+#### Select-unique Queries {#select-unique-queries}
 
 ```json
 {
@@ -97,7 +92,7 @@ It is not necessary to define `argumentsInputField` and `argumentsInputType` if 
 }
 ```
 
-#### Select-many queries
+#### Select-many queries {#select-many-queries}
 
 ```json
 {
@@ -122,14 +117,12 @@ It is not necessary to define `argumentsInputField` and `argumentsInputType` if 
   "filterExpressionType": "Product_bool_exp",
   "orderByExpressionType": "Product_order_by"
 }
-
 ```
 
 ## Scalar Type GraphQL Expression
 
-For [Select Many](/graphql-api/queries.mdx#select-many) queries, it is necessary to have a `where` argument to filter
-rows. The `where` argument is an input object which contains the model's type fields along with `_or`, `_and` and `_not`
-operators.
+For [Select Many](#select-many-queries) queries, it is necessary to have a `where` argument to filter rows. The `where`
+argument is an input object which contains the model's type fields along with `_or`, `_and` and `_not` operators.
 
 The model's type field should be mapped to the data source's object type field, which must have a non-list scalar type.
 For example, consider a `Post` model whose type is `post` containing the following fields:
@@ -152,7 +145,7 @@ You cannot filter objects using the `tags` field as it is mapped to an array sca
 Each field is an input object with comparison operators as fields. These operators are defined for each scalar type in
 the data source's schema.
 
-[//]: # (TODO: refer data source schema docs when available)
+[//]: # "TODO: refer data source schema docs when available"
 
 ```graphql
 input Where_Filter_Input {
@@ -171,7 +164,6 @@ object of each scalar type.
 
 ### Metadata Structure
 
-
 ```json
 {
   "kind": "ScalarTypeGraphQlExpression",
@@ -189,8 +181,8 @@ object of each scalar type.
 
 :::info Note
 
-Defining a `scalarTypeGraphqlExpression` OpenDD spec object for a scalar type is completely optional. If not defined, the
-`graphqlComparisonExpressionTypeName` will be of `{DataSource}_{ScalarTypeName}_comparison_exp` format.
+Defining a `scalarTypeGraphqlExpression` OpenDD spec object for a scalar type is completely optional. If not defined,
+the `graphqlComparisonExpressionTypeName` will be of `{DataSource}_{ScalarTypeName}_comparison_exp` format.
 
 :::
 
