@@ -1,14 +1,14 @@
-const path = require("path");
-const { Joi } = require("@docusaurus/utils-validation");
+const path = require('path');
+const { Joi } = require('@docusaurus/utils-validation');
 //  import type { LoadContext, Plugin } from '@docusaurus/types';
 //  import type { PluginOptions } from './plugin-google-gtm';
 
 function pluginGoogleGTM(context, options) {
   const { trackingID } = options;
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = process.env.NODE_ENV === 'production';
 
   return {
-    name: "docusaurus-plugin-google-gtm",
+    name: 'docusaurus-plugin-google-gtm',
 
     async contentLoaded({ actions }) {
       actions.setGlobalData(options);
@@ -20,14 +20,14 @@ function pluginGoogleGTM(context, options) {
       return {
         headTags: [
           {
-            tagName: "link",
+            tagName: 'link',
             attributes: {
-              rel: "preconnect",
-              href: "https://www.googletagmanager.com",
+              rel: 'preconnect',
+              href: 'https://www.googletagmanager.com',
             },
           },
           {
-            tagName: "script",
+            tagName: 'script',
             innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
                 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
                 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -37,7 +37,7 @@ function pluginGoogleGTM(context, options) {
         ],
         preBodyTags: [
           {
-            tagName: "noscript",
+            tagName: 'noscript',
             innerHTML: `<iframe src="https://www.googletagmanager.com/ns.html?id=${trackingID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
           },
         ],
