@@ -14,7 +14,7 @@ keywords:
 
 You can build your own connector using one of our SDKs. Currently, we have the following available:
 
-- [Rust Data Connector SDK](https://github.com/hasura/ndc-hub#rusk-sdk)
+- [Rust Data Connector SDK](https://github.com/hasura/ndc-hub#rust-sdk)
 
 Alternatively, you can implement the NDC spec directly, or use the
 [TypeScript connector](https://github.com/hasura/ndc-typescript-deno) for simple functions and procedures.
@@ -29,7 +29,7 @@ You can use this guide as a reference to build your own connector.
 
 :::info Limitations
 
-Complex input types in procedures.
+Complex input types in procedures are not supported yet.
 
 :::
 
@@ -37,10 +37,7 @@ Complex input types in procedures.
 
 An example of implementing the Sendgrid API can be found [on GitHub here](https://github.com/hasura/ndc-sendgrid/).
 
-An overview of the architecture of the project can be found in the
-[README.md](https://github.com/hasura/ndc-sendgrid/#sendgrid-connector).
-
-It can be summarized as follows:
+The architecture can be summarized as follows:
 
 - The connector is designed to work via the
   [`hasura3 connector` plugin](https://hasura.io/docs/latest/hasura-cli/connector-plugin/) deployment method.
@@ -48,10 +45,10 @@ It can be summarized as follows:
   [Dockerfile](https://github.com/hasura/ndc-sendgrid/blob/main/Dockerfile)
   - The `Dockerfile`:
     - Installs system dependencies
-    - Builds the Rust Cargo Project
+    - Builds the Rust Cargo project
     - Copies the release build
     - Starts the server reading the configuration from `/config.json`
-- The connector is implemented using the [Rust Data Connector SDK](https://github.com/hasura/ndc-hub#rusk-sdk)
+- The connector is implemented using the [Rust Data Connector SDK](https://github.com/hasura/ndc-hub#rust-sdk)
   - The [`main` entrypoint](https://github.com/hasura/ndc-sendgrid/blob/main/crates/ndc-sendgrid/src/main.rs) uses the
     SDK's `default_main` method invoked with our `SendGridConnector` implementation of the `Connector` trait.
   - The most important aspects of this implementation are
@@ -68,10 +65,11 @@ It can be summarized as follows:
   [the repository](https://github.com/hasura/ndc-sendgrid) and running the following command:
 
   ```bash
-  `hasura3 connector create sendgrid:v1 --github-repo-url https://github.com/hasura/ndc-sendgrid/tree/main --config-file config.json`
+  hasura3 connector create sendgrid:v1 --github-repo-url https://github.com/hasura/ndc-sendgrid/tree/main --config-file config.json
   ```
 
-- The running connector can then be referenced in Hasura V3 Metadata
+- The running connector can then:
+  - Be referenced in Hasura v3 metadata
   - Leveraged by the LSP
   - Targeted by the engine
   - Receive Translated GraphQL Queries
