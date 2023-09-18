@@ -1,13 +1,11 @@
-import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
-import globalData from "@generated/globalData";
-import type { PluginOptions } from "./plugin-segment-analytics";
+import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
+import globalData from '@generated/globalData';
+import type { PluginOptions } from './plugin-segment-analytics';
 
 export default (function segmentAnalyticsModule() {
   if (!ExecutionEnvironment.canUseDOM) return null;
 
-  const { trackPage, trackPageDelay } = globalData[
-    "docusaurus-plugin-segment-analytics"
-  ].default as PluginOptions;
+  const { trackPage, trackPageDelay } = globalData['docusaurus-plugin-segment-analytics'].default as PluginOptions;
 
   return {
     onRouteUpdate({ location }: { location: Location }) {

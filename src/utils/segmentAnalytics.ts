@@ -1,7 +1,7 @@
 type TrackProperties = {
   label: string;
   pageUrl: string;
-  response: "YES" | "NO";
+  response: 'YES' | 'NO';
 };
 
 export const saTrack = (eventName: string, properties: TrackProperties) => {
@@ -9,6 +9,6 @@ export const saTrack = (eventName: string, properties: TrackProperties) => {
   window.analytics &&
     window.analytics.track<TrackProperties>(eventName, {
       ...properties,
-      category: "docs",
+      category: 'docs',
     });
 };
