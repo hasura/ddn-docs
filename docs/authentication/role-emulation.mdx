@@ -8,12 +8,12 @@ sidebar_position: 5
 sidebar_label: Role Emulation
 ---
 
-# Role emulation
+# Role Emulation
 
 ## Introduction
 
 You can configure authentication to allow certain roles to emulate other roles. This can be useful during development
-to test access control rules without setting up authentication.
+to test access-control rules without setting up authentication.
 
 To set up role emulation, the `AuthConfig` Hasura metadata object accepts a field called `allowRoleEmulationFor`.
 
@@ -22,13 +22,11 @@ which is returned in the webhook or JWT response to be equal to the value set in
 values are equal, then role emulation will be enabled for that request. When role emulation is enabled for a request,
 the session variables, including the role, will be considered from the HTTP request headers instead.
 
-For example,
-
-Hasura is set up with the following auth config:
+In the example below, we set up role emulation for the `admin` role, allowing an `admin` to emulate the other roles:
 
 ```json
 {
-  "type": "AuthConfig",
+  "kind": "AuthConfig",
   "allowRoleEmulationFor": "admin",
   "webhook": {
     "webhookUrl": "https://myauth.service.com/validate-request"
@@ -36,7 +34,7 @@ Hasura is set up with the following auth config:
 }
 ```
 
-and the following GraphQL request is made:
+Then, the following GraphQL request is made:
 
 ```http
 POST /graphql HTTP/2.0
@@ -51,13 +49,16 @@ x-hasura-user-id: 2
 }
 ```
 
+This request will be executed as the `user` role with access-control rules applied for the `user` role to the request,
+returning only the `id` and `name` fields of the user with `id` 2.
+
 ### Successful role emulation
 
-Let's assume the webhook response is as following:
+Let's assume the webhook response is as follows:
 
 ```json
 {
-  "x-hasura-role": "admin",
+  "x-hasura-role": "user",
   "x-hasura-user-id": 1
 }
 ```
