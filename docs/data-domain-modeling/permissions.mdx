@@ -29,6 +29,7 @@ The following types of permissions are defined in the OpenDD spec:
 - `typeOutputPermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
   is useful, as multiple models can return the same output type.
 - `modelSelectPermissions` define which objects or rows within the model are allowed to be accessed by a role.
+- `commandPermissions` defines which commands are allowed to be executed by a role.
 
 ## Output Type Permissions
 
@@ -156,3 +157,55 @@ Note: `RoleName` is the role in `String`.
   }
 }
 ```
+
+## Command Permissions
+
+A Command Permissions will need the command name and the role(s) for which the permission should be defined.
+
+### Metadata Structure
+
+```json
+{
+  "kind": "CommandPermissions",
+  "commandName": "<CommandName>",
+  "permissions": {
+    "<RoleName>": {
+      "allowExecution": "<Boolean>"
+    }
+  }
+}
+```
+
+| Field       | Type                                  | Required | Description                                                                                                                        |
+| ----------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| commandName | `String`                              | true     | Name of the command for which permissions are to be defined.                                                                       |
+| permissions | `{"<RoleName>": <CommandPermission>}` | true     | The permissions object for this command. Each key of the object is a role, and the value is an object of type `CommandPermission`. |
+
+Note: `RoleName` is the role in `String`.
+
+#### CommandPermission
+
+| Field           | Type      | Required | Description                                          |
+| --------------- | --------- | -------- | ---------------------------------------------------- |
+| allow_execution | `Boolean` | true     | Is the execution of the command allowed for the role |
+
+### Examples
+
+To define permissions on a command with name `get_article_by_id` for `admin` and `user` role -
+
+```json
+{
+  "kind": "CommandPermissions",
+  "commandName": "get_latest_article_id",
+  "permissions": {
+    "admin": {
+      "allowExecution": true
+    },
+    "user": {
+      "allowExecution": false
+    }
+  }
+}
+```
+
+If a role doesn't define any permissions for this type, then it won't be accessible to that role.
