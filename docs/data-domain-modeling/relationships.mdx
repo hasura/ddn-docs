@@ -19,86 +19,77 @@ relationship defined in the OpenDD spec allows you extend [type](./types.mdx) ob
 To create a relationship, you will need to define an object with `"kind": "Relationship"` which has a name, the source
 type, a target model and the mapping between the two.
 
-### Metadata structure:
+### Metadata structure
 
 ```json
 {
-        "kind": "Relationship",
-        "source": <Source>,
-        "name": <RelationshipName>,
-        "target": <RelationshipTarget>
-        "mappings": [
-            {
-                "source": <RelationshipMappingSource>
-                },
-                "target": <RelationshipMappingTarget>
-            }
-        ]
-    }
+  "kind": "Relationship",
+  "source": <String>,
+  "name": <String>,
+  "target": <String>,
+  "mappings": <RelationshipMapping>
 }
 ```
 
-#### Metadata fields reference:
+| Field      | Type                                            | Required | Description                                                                                      |
+| ---------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `source`   | `String`                                        | Yes      | The source [type](./types.mdx) of the relationship.                                              |
+| `target`   | `String`                                        | Yes      | The target of the relationship.                                                                  |
+| `mappings` | [`[RelationshipMapping]`](#relationshipmapping) | Yes      | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
 
-1. `RelationshipName` - `String` - The name of the relationship.
+#### RelationshipMapping:
 
-2. `Source` - `String` - Source [type](./types.mdx) of the relationship.
+```json
+[
+  "source": <RelationshipMappingSource>,
+  "target": <RelationshipMappingTarget>
+]
+```
 
-3. `Target` - `String` - Target of the relationship.
+| Field    | Type                                                      | Required | Description                             |
+| -------- | --------------------------------------------------------- | -------- | --------------------------------------- |
+| `source` | [`RelationshipMappingSource`](#relationshipmappingsource) | Yes      | Defines how to access the source field. |
+| `target` | [`RelationshipMappingTarget`](#relationshipmappingtarget) | Yes      | Defines how to access the target field. |
 
-4. `Mappings` - `[Object]` -
+#### RelationshipMappingSource:
 
-   Defines how the `Source` and `Target` should be connected. This field expects a list of objects.
+```json
+{
+  "fieldPath": [
+    <FieldAccess>
+  ]
+}
+```
 
-   Schema -
+| Field       | Type                            | Required | Description                             |
+| ----------- | ------------------------------- | -------- | --------------------------------------- |
+| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the source field. |
 
-   ```json
-   {
-      "source": <RelationshipMappingSource>,
-      "target": <RelationshipMappingTarget>
-   }
-   ```
+#### RelationshipMappingTarget:
 
-5. `RelationshipMappingSource` - `[Object]` -
+```json
+{
+  "modelField": [
+    <FieldAccess>
+  ]
+}
+```
 
-   Accepts a field path to the source column of the relationship in the source type. A field path is a list of
-   `FieldAccess`. The field path can be used to choose a specific field in the object.
+| Field        | Type                            | Required | Description                             |
+| ------------ | ------------------------------- | -------- | --------------------------------------- |
+| `modelField` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the target field. |
 
-   Schema -
+#### FieldAccess:
 
-   ```json
-   {
-      "fieldPath": [
-         <FieldAccess>
-      ]
-   }
-   ```
+```json
+{
+  "fieldName": <FieldName>
+}
+```
 
-6. `RelationshipMappingTarget` - `[Object]` -
-
-   Accepts a field path to the target column of the relationship in the target type.
-
-   Schema -
-
-   ```json
-   {
-      "modelField": [
-         <FieldAccess>
-      ]
-   }
-   ```
-
-7. `FieldAccess` - `Object`
-
-   Specifies how to access a field of a type.
-
-   Schema -
-
-   ```json
-   {
-     "fieldName": <FieldName>
-   }
-   ```
+| Field       | Type        | Required | Description                             |
+| ----------- | ----------- | -------- | --------------------------------------- |
+| `fieldName` | `FieldName` | Yes      | Defines how to access the source field. |
 
 ## Example
 
@@ -186,8 +177,10 @@ type Articles {
 }
 ```
 
-## Notes
+:::info Current limitations
 
 1. Only relationships for models within the same data source are supported.
 2. Only types to top-level model types relationships are supported.
 3. Simple top-level type field to top-level model field mapping are supported.
+
+:::
