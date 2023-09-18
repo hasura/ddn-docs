@@ -26,7 +26,7 @@ The connector will create an empty configuration as follows:
 ```json
 {
   "version": 1,
-  "postgres_database_url": "",
+  "connection_uris": [],
   "metadata": {
     "tables": {},
     "native_queries": {}
@@ -55,6 +55,70 @@ username, it will need to be written as `%40`.
 
 [libpq: Connection Strings]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
 
+### Multi-region database configuration
+
+The `connection_uris` field can take on two formats:
+
+- A list of database uris, denoting a region-agnostic set read-only servers
+- An object with keys `reads`, and `writes`, each an object where each key maps
+  a region to a list of database servers.
+
+Example, region agnostic setup:
+
+```json
+{
+  "connection_uris":
+    [
+      "postgresql://user:password@db-server1/default_db",
+      "postgresql://user:password@db-server2/default_db"
+    ]
+}
+```
+
+Example, multi-region setup:
+```json
+{
+  "connection_uris":
+    {
+      "reads":
+        {
+          "aws-us-east-1":
+            [
+              "postgresql://user:password@db-server-boston/default_db",
+              "postgresql://user:password@db-server-new-york/default_db"
+            ],
+          "aws-us-west-1":
+            [
+              "postgresql://user:password@db-server-san-fransisco/default_db",
+              "postgresql://user:password@db-server-los-angeles/default_db"
+            ]
+        },
+      "writes":
+        {
+          "aws-up-northeast-1":
+            [
+              "postgresql://user:password@db-server-singapore/default_db",
+              "postgresql://user:password@db-server-kuala-lumpur/default_db"
+            ]
+        }
+    }
+}
+```
+
+:::info Current support
+
+Currently only queries are supported, so supplying any `writes`
+serves has no effect.
+
+:::
+
+:::info Current support
+
+Currently only a single database per region is supported, so only the
+first uri supplied will be used.
+
+:::
+
 ### Native Queries
 
 Native queries can be defined by adding them to the `"native_queries"` section. Each query is specified as SQL. The
@@ -69,7 +133,7 @@ Here's an example which filters a table called `"Artist"`.
 ```json
 {
   "version": 1,
-  "postgres_database_url": "postgresql://alice@database.host",
+  "connection_uris": ["postgresql://alice@database.host"],
   "metadata": {
     "tables": {},
     "native_queries": {
