@@ -20,28 +20,22 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 <div className="overview-header">
   <div className="overview-text">
+    <p>Native Data Connectors are a way to connect your Hasura GraphQL Engine to external data sources.</p>
     <p>
-      Native Data Connectors are a way to connect your Hasura GraphQL Engine to external data sources.
-    </p>
-    <p>
-      You can use them to query and join data across multiple data sources. Built using 
-      the Native Data Connector Specification, you can use the ones that are available out of the box, or build your own.
+      You can use them to query and join data across multiple data sources. Built using the Native Data Connector
+      Specification, you can use the ones that are available out of the box, or build your own.
     </p>
     <h4>Quick Links</h4>
     <ul>
       <li>
-        <VersionedLink to="/connectors/build-your-own-connector/"> Build (and share) your own connector! </VersionedLink>
-        <VersionedLink to="/connectors/proxy/"> Use V3 Connectors from V2 Projects </VersionedLink>
-        <a href="https://hasura.io/connectors"> Connector Hub </a>
-        <VersionedLink to="/connectors/hub/"> Connector Hub Documentation </VersionedLink>
-        <a href="https://github.com/hasura/ndc-hub"> Connector SDKs </a>
-        <a href="https://github.com/hasura/ndc-sendgrid"> SendGrid Example Connector </a>
-        <a href="https://github.com/hasura/ndc-typescript-deno"> Typescript Connector </a>
+        <VersionedLink to="/connectors/build-your-own-connector/">Build (and share) your own connector!</VersionedLink>
+      </li>
+      <li>
+        <VersionedLink to="/connectors/introduction/">Learn more about connectors.</VersionedLink>
       </li>
     </ul>
-
   </div>
- {/* <iframe
+  {/* <iframe
         src="https://www.youtube.com/embed/9vZeQ5tHiQo"
         frameBorder="0"
         allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
@@ -49,142 +43,25 @@ import Thumbnail from "@site/src/components/Thumbnail";
       /> */}
 </div>
 
-## What is a data connector?
+## Using connectors
 
-A data connector is a HTTP service that exposes a set of APIs that Hasura uses to communicate with the data source. The
-data connector is responsible for interpreting work to be done on behalf of the Hasura Engine, using the native query
-language of the data source.
-
-Data connectors, which are built using the [NDC Specification](http://hasura.github.io/ndc-spec/) and closely integrated
-with [Open DDS](https://github.com/hasura/open-data-domain-specification), enable anyone to create rich, highly-native
-data sources.
-
-The NDC Specification defines a set of APIs that a data connector must implement. These APIs, which accept and return
-JSON, are used by Hasura to communicate with the data connector. The NDC Specification also defines a set of metadata
-that the data connector must provide to Hasura. This metadata is used by Hasura to introspect the data connector,
-generate the GraphQL schema, and execute operations against the data source.
-
-## Types of Data Connector
-
-There are two main types of connector available for use in Hasura V3 projects. Integrated and HTTP connectors.
-
-### Integrated Connectors
-
-Integrated connectors are configured and deployed via your project metadata only and do not require any additional
-processes.
-
-An example of an integrated connector is the [Postgres Connector](https://hasura.io/connectors/postgres).
-
-### HTTP Connectors
-
-HTTP connectors are configured and deployed independently of your project metadata and only the URL of the deployed
-connector is required in your metadata.
-
-While Hasura does not prescribe any process for deploying a HTTP connector it does provide a the `connector` CLI plugin
-for easily deploying connectors that use our SDKs.
-
-An example of a HTTP connector is the [SendGrid Connector](https://hasura.io/connectors/sendgrid).
-
-## The `connector` CLI Plugin
-
-Open-Source repositories that are set up according to the connector convention can be used via the
-[Connector CLI plugin](https://hasura.io/docs/latest/hasura-cli/connector-plugin/).
-
-See the [SendGrid Connector's repository](https://github.com/hasura/ndc-sendgrid/tree/main#sendgrid-connector) for an
-example.
-
-Once you have the Hasura V3 CLI you can install the Connector Plugin as follows:
-
-```
-hasura3 plugin install connector
-```
-
-Once the plugin is installed use the `--help` option for an overview:
-
-```
-> hasura3 connector --help
-This Hasura CLI plugin enables deployment and management of custom Hasura data connector agent to Hasura cloud.
-
-Usage:
-  connector [command]
-
-Available Commands:
-  completion             Generate the autocompletion script for the specified shell
-  create                 Create a new Hasura Cloud connector using CLI
-  delete                 Delete a Hasura Cloud connector.
-  generate-configuration Generate Hasura Connector configuration for the connector given in the flag --github-repo-url
-  help                   Help about any command
-  list                   List all Hasura Cloud data connectors owned by the user.
-  logs                   Tails logs of a deployed custom Hasura data connector.
-  status                 Prints the current status of the custom Hasura data connector deployment.
-  version                get version information of connector CLI
-
-Flags:
-  -h, --help   help for connector
-```
-
-All sub-commands can also use the `--help` option:
-
-```
-> hasura3 connector create --help
-This command triggers deployment of a custom Hasura data connector agent to Hasura Cloud. The source of the connector is fetched from the GitHub repository provided to the flag --github-repo-url. Please make note of these things:
-  - This repository must be publicly accessible.
-  - This repository should follow the GDC spec: https://github.com/hasura/graphql-engine/blob/master/dc-agents/DOCUMENTATION.md.
-  - The repository should have a Dockerfile at the root directory. This will be used to build the image.
-
-Usage:
-  connector create [connector-name] [flags]
-
-Flags:
-  -c, --config-file string       path to the configuration file
-  -e, --env stringArray          Set environment variables
-      --github-repo-url string   url of the github repo which contains connector source code
-  -h, --help                     help for create
-  -v, --volume string            mount a folder in the container. Use docker syntax of <host-dir-path>:<container-target-path>
-```
-
-**Note:** you can set the `SERVICE_TOKEN_SECRET` environment variable to only allow use from authorised Hasura projects.
-
-Set the environment variable on creation:
-
-```
-hasura3 connector create my-connector:v1 \
-  --github-repo-url https://github.com/hasura/cool-connector/tree/v0.7 \
-  --config-file conf.json \
-  --env SERVICE_TOKEN_SECRET='MY-SECRET-TOKEN-XXX123'
-```
-
-Configure your Hasura project metadata with a matching bearer token:
-
-```yaml
-kind: DataSource
-name: sendgrid
-dataConnectorUrl:
-  url: "https://my-connector-9XXX7-hyc5v23h6a-ue.a.run.app"
-auth:
-  type: Bearer
-  token: "SUPER_SECRET_TOKEN_XXX123"
-```
-
-Or via the Hasura secrets functionality:
-
-```yaml
-kind: DataSource
-name: sendgrid
-dataConnectorUrl:
-  url: "https://my-connector-9XXX7-hyc5v23h6a-ue.a.run.app"
-auth:
-  type: Bearer
-  token:
-    valueFromSecret: CONNECTOR_TOKEN
-```
-
-You can set secret wth the Hasura3 CLI for your cloud projects:
-
-```
-hasura3 cloud secret set --project-id $project-id CONNECTOR_TOKEN=SUPER_SECRET_TOKEN_XXX123
-```
-
-## What data connectors are available?
-
-Browse the [Hasura Connector Hub](https://hasura.io/connectors) for an up-to-date list of all available connectors.
+<div className="overview-gallery">
+  <VersionedLink to="/connectors/introduction/">
+    <div className="card">
+      <h3>Learn more about connectors</h3>
+      <p>Check out a broad introduction to connectors and how to use them in your projects.</p>
+    </div>
+  </VersionedLink>
+  <VersionedLink to="/connectors/proxy/">
+    <div className="card">
+      <h3>Use V3 connectors from V2 projects</h3>
+      <p>There are a number of connectors that are available for Hasura GraphQL Engine v3.</p>
+    </div>
+  </VersionedLink>
+  <VersionedLink to="/connectors/postgresql">
+    <div className="card">
+      <h3>Use the PostgreSQL connector</h3>
+      <p>Learn about the PostgreSQL connector for your next project.</p>
+    </div>
+  </VersionedLink>
+</div>
