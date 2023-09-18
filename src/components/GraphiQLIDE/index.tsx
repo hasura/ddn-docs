@@ -1,8 +1,8 @@
-import React from "react";
-import GraphiQL from "graphiql";
-import cslx from "clsx";
-import "graphiql/graphiql.min.css";
-import "./styles.scss";
+import React from 'react';
+import GraphiQL from 'graphiql';
+import cslx from 'clsx';
+import 'graphiql/graphiql.min.css';
+import './styles.scss';
 
 const GraphiQLIDE = ({ query, variables, response, viewOnly = true }) => {
   const notReal = async ({ query }) => {
@@ -14,7 +14,7 @@ const GraphiQLIDE = ({ query, variables, response, viewOnly = true }) => {
   };
 
   // new graphiql is being funky on builds — checking to see if we're in the browser
-  const isBrowser = typeof window !== "undefined";
+  const isBrowser = typeof window !== 'undefined';
 
   if (!isBrowser) {
     return null;
@@ -23,13 +23,13 @@ const GraphiQLIDE = ({ query, variables, response, viewOnly = true }) => {
   return (
     <div
       className={`graphiql ${cslx({
-        "with-vars": !!variables,
-        "view-only": viewOnly,
+        'with-vars': !!variables,
+        'view-only': viewOnly,
       })}`}
     >
       <GraphiQL
         readOnly={false}
-        editorTheme={"dracula"}
+        editorTheme={'dracula'}
         schema={null}
         fetcher={notReal}
         query={query}
