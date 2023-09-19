@@ -18,13 +18,13 @@ Stay tuned. Namespaces are coming soon to Hasura DDN.
 
 :::
 
-For a multi-team organization working on a Hasura DDN project, it can make sense for any one team to not have access to
-all metadata objects. Namespaces introduces the notion of module system for metadata:
+For a multi-team organization working on a Hasura project, it can make sense for any one team to not have access to all
+metadata objects. Namespaces introduces the notion of a module system for metadata.
 
-A project can have a collection of namespaces and the project's metadata becomes the 'union' of metadata objects
-across all namespaces of the project. Each namespace can then be accessed and updated independently.
+A project can have a collection of namespaces and the project's metadata becomes the 'union' of metadata objects across
+all namespaces of the project. Each namespace can then be accessed and updated independently.
 
-A metadata with namespaces looks something like the following:
+Metadata with namespaces looks something like the following:
 
 ```json
 {
@@ -50,35 +50,39 @@ A metadata with namespaces looks something like the following:
 
 ## Ownership Rules
 
-The metadata objects in namespaces must follow the ownership rules for metadata objects:
+The metadata objects in namespaces must follow the ownership rules for metadata objects as outlined below.
 
 ### DataSource/ HasuraHubDataSource
 
 The data source metadata object (`DataSource`/ `HasuraHubDataSource`) doesn't depend on (or reference) any other
 metadata object. Hence, any namespace can define a data source.
 
-**Note**: The namespace that defines a data source then owns it. This means that no other namespace can reference this
-data source in their model, type representations, etc.
+:::info Namespace ownership
+
+The namespace that defines a data source then owns it. This means that no other namespace can reference this data source
+in their type representations, model, etc.
+
+:::
 
 ### ObjectType
 
 The `ObjectType` metadata object also doesn't reference any other metadata object. Thus, any namespace can define an
-`ObjectType` metadata object.
+`ObjectType`.
 
 ### DataConnectorScalarRepresentation
 
 The `DataConnectorScalarRepresentation` metadata object references the data source metadata object. Thus, the data
-source in a `DataConnectorScalarRepresentation` should be owned by the same namespace.
+source in a `DataConnectorScalarRepresentation` should be owned by the **same** namespace.
 
 ### ScalarType
 
-The `ScalarType` metadata object also doesn't reference any other metadata object. Thus, any namespace can define an
-`ScalarType` metadata object.
+The `ScalarType` metadata object also doesn't reference any other metadata object. Thus, **any** namespace can define a
+`ScalarType`.
 
 ### Model
 
 A `Model` metadata object references a data type. Also, the model's `source` references a data source and some data
-types in type mappings. Thus, the same namespace should own the types and the data source.
+types in type mappings. **Thus, the same namespace should own the types and the data source.**
 
 ### Command
 
@@ -87,10 +91,14 @@ should also define the output data type.
 
 ### Relationship
 
-The `Relationship` metadata object references a source type and a target type. The source type used in the
+The `Relationship` metadata object references a source type and a target model. The source type used in the
 `Relationship` should be owned by the namespace defining the `Relationship`.
 
-**Note**: The target type can be from any namespace. This allows us to define relationships across namespaces.
+:::info Target type ownership
+
+The target type can be from any namespace. This allows us to define relationships across namespaces.
+
+:::
 
 ### TypeOutputPermissions
 
@@ -110,9 +118,13 @@ The `CommandPermissions` metadata object references a command, which should be d
 
 Any namespace can define this.
 
-**Note**: There can be only one `AuthConfig` in the project's metadata. i.e. only one namespace can define one
-`AuthConfig`, if there are more than one `AuthConfig`, then the metadata build will fail with the error
+:::info Only one auth config allowed per project
+
+There can be only one `AuthConfig` in the project's metadata. i.e. only one namespace can define one `AuthConfig`, if
+there are more than one `AuthConfig`, then the metadata build will fail with the error
 `Found duplicate authentication config`.
+
+:::
 
 ## Other Rules
 
