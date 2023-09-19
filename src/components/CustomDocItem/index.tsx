@@ -66,7 +66,7 @@ const CustomDocItem = props => {
             : styles['custom_doc_item_footer']
         }
       >
-        <GraphQLWithHasuraBanner />
+        {/* <GraphQLWithHasuraBanner /> */}
         <CustomFooter />
       </div>
     </div>
