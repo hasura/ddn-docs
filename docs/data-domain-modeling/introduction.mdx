@@ -14,35 +14,37 @@ keywords:
 If you've used Hasura before, you'll notice that the Open Data Domain Specification (OpenDD spec) is similar to
 Hasura v2 metadata, but with many extra capabilities.
 
-The OpenDD metadata defines a space of what data is available and its types, where it resides, how to access it and who
-has authority to access it. Metadata is combined with Native Data Connectors (NDCs), services to communicate with
-data sources in order to build your API.
+The OpenDD metadata defines a space of what data types and features are available, where it resides, how it's related,
+how to access it, and who has authority to access it. Metadata is combined with Native Data Connector agents,
+which are services to communicate with data sources in order to deliver your API.
 
-The new Hasura DDN tooling has built-in capabilities to autogenerate the OpenDD spec metadata from your existing data
-via the GUI console or CLI terminal commands, or you can also author metadata manually.
+The new Hasura DDN tooling of Console and the
+[VS Code LSP](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) have built-in capabilities to
+autogenerate the OpenDD spec metadata from your existing data via the GUI console or CLI terminal commands, or you
+can also author metadata manually.
 
 ## How is OpenDD metadata different from Hasura v2 metadata?
 
-- Hasura V2 metadata was specifically designed for Hasura, whereas the OpenDD spec is a specification that can also be
-  used outside Hasura as a source of truth for any data domain.
-- Functionally, the V2 metadata relied on the data source for information like columns and fields, whereas OpenDD
-  metadata is independent of the data source. In OpenDD, all fields and types are defined within the specification
-  itself which eliminates the necessity for data source schema introspection at startup to generate a GraphQL schema.
-  Instead, data source introspection occurs as part of the metadata build process.
+- Hasura V2 metadata was specifically designed for Hasura, whereas OpenDD is a specification that can also be
+  used outside Hasura by anyone as a source of truth for any data domain.
+- Functionally, the V2 metadata relied directly on the data source for information like columns and fields, whereas
+  OpenDD metadata is independent of the data source. In OpenDD, all fields and types are defined within the
+  specification itself which eliminates the necessity for data source schema introspection at startup to generate a
+  GraphQL schema. Instead, data source introspection occurs as part of the metadata build process.
 - In v2, metadata was stored as a JSON blob in a database, in Hasura DDN, after OpenDD metadata is built, it is a binary
   file that is applied to the Hasura project.
 
 ## The OpenDD spec
 
-You can specify and combine data types, data models, relationships, permissions, and more in your OpenDD metadata in
-order to define your data domain.
+You can specify and combine data sources, data types, models, relationships, permissions, and more in your OpenDD
+metadata in order to define your data domain.
 
 In this way, your data domain specification is decoupled from any underlying database, data source or other physical
 layer of storage.
 
 This is powerful in that it allows you to continue to serve data in the same shape and with same authorization rules
 even if, for instance, the underlying source is changed, perhaps if migrating from MySQL to PostgreSQL, or if
-switching to a polyglot data setup using, for example, MongoDB for reads and MySQL for writes.
+switching to MongoDB for reads and MySQL for writes, or if changing transactional email, or even payment providers.
 
 ## Automatic metadata generation
 
@@ -68,46 +70,48 @@ The OpenDD spec describes an array of OpenDD objects, consisting of the followin
     {"kind": "ModelSelectPermissions", ...},
     {"kind": "TypeOutputPermissions", ...},
     {"kind": "CommandPermissions", ...},
-
   ]
 }
 ```
+
+[Primitives and container types](/data-domain-modeling/types.mdx#primitive-and-container-types) are also defined at the
+top level along with these metadata objects.
 
 ## Data Sources
 
 The data source will define where the data is coming from. It can be a database, a REST API, a GraphQL API, etc. The
 data source will use a Native Data Connector to connect to the data source and fetch the data.
 
-#### The HasuraHubDataSource object
+### The HasuraHubDataSource object
 
 The [`HasuraHubDataSource`](/data-domain-modeling/data-source.mdx) object allows you to specify a data source directly
 from the [Hasura Hub](https://hasura.io/hub/).
 
-#### The DataSource object
+### The DataSource object
 
 The [`DataSource`](/data-domain-modeling/data-source.mdx) object describes a physical data source.
 
 ## Types
 
-Types are a fundamental building block of Open DDS with every bit of data in Open DDS having a type
+Types are a fundamental building block of OpenDD metadata with every bit of data in Open DDS having a type
 
 ### The objectType object
 
-The `ObjectType` object allows you to create completely new types.
+The [`ObjectType`](/data-domain-modeling/types.mdx#object-types) object allows you to create completely new types.
 
 #### The ScalarType object
 
-The [`ScalarType`](/data-domain-modeling/types.mdx) object allows aliasing other types.
+The [`ScalarType`](/data-domain-modeling/types.mdx#scalar-types) object allows aliasing other types.
 
 #### The DataConnectorScalarRepresentation object
 
-The [`DataConnectorScalarRepresentation`](/data-domain-modeling/types.mdx) object allows you to define how a scalar
-type from a data source is represented as an OpenDD type.
+The [`DataConnectorScalarRepresentation`](/data-domain-modeling/types.mdx#scalar-type-representation) object allows
+you to define how a scalar type from a data source is represented as an OpenDD type.
 
 ## Models
 
-Models are the primary way of defining data in Hasura DDN and a model would in reality be backed by a database table, an
-ad-hoc SQL query, a pre-materialized view, a custom REST or GraphQL API server, etc.
+Models are the link between your data sources and the API Hasura generates. A model may be backed by a database table,
+an ad-hoc SQL query, a pre-materialized view, a custom REST or GraphQL API server, etc.
 
 ### The Model object
 
@@ -123,91 +127,34 @@ are opaque to the spec except for their input arguments and output type.
 
 ### The Command object
 
-The Command object defines the name of the command, the arguments to the command and the output type of the command.
-
+The [Command](/data-domain-modeling/commands.mdx) object defines the name of the command, the arguments to the
+command and the output type of the command.
 
 ## Relationships
 
-Relationships define that given an object of a certain type, how to find related objects in a model or command
+Relationships allow you extend [type](./types.mdx) objects with related [models](./models.mdx) which then allows you
+to query nested or linked information.
 
 ### The Relationship object
 
-relationship defined in the Open DD spec allows you extend [type](./types.mdx) objects with related
-[models](./models.mdx) which then allows you to query nested or linked information.
-
-To create a relationship, you will need to define an object with `"kind": "relationship"`.
+The [`Relationship`](/data-domain-modeling/relationships.mdx) object defines a relationship between a source
+[type](./types.mdx) and a target [models](./models.mdx).
 
 ## Permissions
 
 The OpenDD Spec lets you define permissions, (also known as access control or authorization rules) on
-[models](./models.mdx) and [output types](./types.mdx) in your data domain.
+[output types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx).
 
 ### The typeOutputPermissions object
 
-`typeOutputPermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
-is useful, as multiple models can return the same output type.
+[`TypeOutputPermissions`](./permissions.mdx#type-output-permissions) define which fields are allowed to be accessed
+by a role. Defining permissions on output types is useful, as multiple models can return the same output type.
 
 ### The modelSelectPermissions object
 
-`modelSelectPermissions` define which objects or rows within the model are allowed to be accessed by a role.
+[`ModelSelectPermissions`](./permissions.mdx#model-select-permissions) define which objects or rows within the model
+are allowed to be accessed by a role.
 
-## GraphQL API
+### The commandPermissions object
 
-With the generated API, you can query, insert, update and delete data in your data domain. (Only query APIs are
-available in the current release.) The benefit of defining the GraphQL API in the OpenDD Spec format is that you can
-fully customize it to your needs.
-
-To enable the GraphQL API in Hasura DDN, the following OpenDD spec metadata objects need to be defined:
-
-- [modelGraphqlApi](#model-graphql-api):
-- [scalarTypeGraphqlExpression](#scalar-type-graphql-expression):
-
-### The graphqlType object
-
-[//]: # (TODO: Add description)
-
-### The modelGraphqlApi object
-
-The root fields for a [model](./models.mdx) which are exposed over the GraphQL API.
-
-### The commandGraphqlApi object
-
-[//]: # (TODO: Add description)
-
-### The scalarTypeGraphqlExpression object
-
-[Type](./types.mdx) names in the schema which are generated for data source scalars.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Hasura GraphQL Data Domain Modeling Overview
-
-Hasura DDN uses the Open Data Domain Specification (Open DD Spec) as the foundation for describing your
-data domain metadata and in turn generating your API.
-
-This metadata specification serves as the definitive reference for your application's data infrastructure. It offers a
-declarative approach for structuring your data and establishing your API.
-
-Despite its comprehensive nature, it is designed to be easy to read and write.
-
-
-
-
-
-[//]: # (TODO does this still exist?)
-[//]: # (#### The NewType object)
-[//]: # (The [`NewType`]&#40;/data-domain-modeling/types.mdx&#41; object allow you to alias types.)
-
-
-
+[`CommandPermissions`](./permissions.mdx#command-permissions) define which commands are allowed to be accessed by a role.
