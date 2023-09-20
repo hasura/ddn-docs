@@ -2,6 +2,7 @@
 sidebar_position: 6
 sidebar_label: Commands
 description: Hasura Data Domain Specification Commands
+toc_max_heading_level: 4
 keywords:
   - hasura
   - data
@@ -10,25 +11,17 @@ keywords:
   - commands
 ---
 
-# Hasura Data Domain Specification Commands
+# OpenDD Commands
 
 ## Introduction
 
-Commands are a convenient way to achieve any business logic you may need, directly from your GraphQL API. You can use
-them to validate, process or enrich some data, call another API, or log a user in. For eg: With Commands you can connect
-to a REST endpoint which can be your own custom server, a public API, or a serverless function.
+Commands are backed by **functions** or **procedures** declared in a `DataSource` allowing you to execute business logic
+directly from your GraphQL API. You can use them to validate, process, or enrich some data, call another API, or log a
+user in. As an example, with commands you can connect to a REST endpoint which can be your own custom server, a public
+API, or a serverless function.
 
-In the Open Data Domain Specification (OpenDD Spec), commands represent an action that can be performed which returns
-back some result of a certain [type](./types.mdx).
-
-They are backed by functions or procedures declared in a `DataSource`. Commands are objects on which you will define and
-configure user facing capabilities in your API. These will be extended in future releases according to the
-[OpenDD Spec](https://github.com/hasura/open-data-domain-specification).
-
-## Description
-
-To create a command, you need to define a OpenDD object with `"kind": "Command"`, which has both `name` and `outputType`
-fields.
+To create a command, you need to define an OpenDD object with `"kind": "Command"`, which has both `name` and
+`outputType` fields.
 
 ### Metadata structure
 
@@ -43,52 +36,60 @@ fields.
 }
 ```
 
-| Field      | Type       | Required | Description                                                                 |
-| ---------- | ---------- | -------- | --------------------------------------------------------------------------- |
-| name       | `String`   | true     | Name of the command.                                                        |
-| outputType | `String`   | true     | The name of the return type of command (either Custom/Primitive/Container). |
-| arguments  | `[Object]` | false    | The argument definition for the command                                     |
-| source     | `Object`   | true     | Source configuration for the command.                                       |
-| graphql    | `Object`   | true     | GraphQL configuration for the command.                                      |
+| Field        | Type                                                        | Required | Description                                                                 |
+| ------------ | ----------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `name`       | `String`                                                    | true     | Name of the command.                                                        |
+| `outputType` | `String`                                                    | true     | The name of the return type of command (either Custom/Primitive/Container). |
+| `arguments`  | [`[ArgumentDefinition]`](#argumentdefinition)               | false    | The argument definition for the command                                     |
+| `source`     | [`CommandSourceConfiguration`](#commandsourceconfiguration) | true     | Source configuration for the command.                                       |
+| `graphql`    | [`GraphQLConfiguration`](#graphqlconfiguration)             | true     | GraphQL configuration for the command.                                      |
 
-#### Arguments
+#### ArgumentDefinition
 
 Arguments is a list of objects that defines the arguments for the command. An argument object has the following fields:
 
 ```json
 {
-  "name": "<ArgumentType>",
+  "name": "<String>",
   "type": "<Type>"
 }
 ```
 
-| Field | Type     | Required | Description           |
-| ----- | -------- | -------- | --------------------- |
-| name  | `String` | true     | Name of the argument. |
-| type  | `String` | true     | Type of the argument  |
+| Field  | Type     | Required | Description           |
+| ------ | -------- | -------- | --------------------- |
+| `name` | `String` | true     | Name of the argument. |
+| `type` | `Type`   | true     | Type of the argument  |
 
-#### Source
+#### CommandSourceConfiguration
 
 Source is an object that defines the data source for the command. It has the following fields:
 
 ```json
 {
-  "dataSource": "<DataSourceName>",
-  "function/procedure": "<CollectionName>",
+  "DataSource": "<DataSourceName>",
+  // Either function or procedure
+  "function": "<CollectionName>",
   "typeMappings": "<TypeMappings>"
 }
 ```
 
 A command can either be backed by a function or a procedure.
 
-| Field              | Type     | Required | Description                                                                |
-| ------------------ | -------- | -------- | -------------------------------------------------------------------------- |
-| dataSource         | `String` | true     | Name of the data source.                                                   |
-| function/procedure | `String` | true     | Name of the function or procedure.                                         |
-| typeMappings       | `Object` | false    | Type mappings for the command. Required only if `outputType` is Custom     |
-| argumentMappings   | `Object` | false    | Argument mappings for the command. Required only if `arguments` is defined |
+| Field                | Type     | Required | Description                                                                |
+| -------------------- | -------- | -------- | -------------------------------------------------------------------------- |
+| `DataSource`         | `String` | true     | Name of the data source.                                                   |
+| `function/procedure` | `String` | true     | Name of the function or procedure. One of these must be chosen.            |
+| `typeMappings`       | `Object` | false    | Type mappings for the command. Required only if `outputType` is Custom     |
+| `argumentMappings`   | `Object` | false    | Argument mappings for the command. Required only if `arguments` is defined |
 
-#### GraphQL
+:::info Functions or Procedures?
+
+Functions always return a value whereas procedures always return an object. Functions are used for read operations and
+procedures are used for write operations.
+
+:::
+
+#### GraphQLConfiguration
 
 GraphQL is an object that defines the GraphQL configuration for the command. It has the following fields:
 
@@ -99,10 +100,10 @@ GraphQL is an object that defines the GraphQL configuration for the command. It 
 }
 ```
 
-| Field         | Type     | Required | Description                                           |
-| ------------- | -------- | -------- | ----------------------------------------------------- |
-| rootFieldName | `String` | true     | The graphql root field name for the command           |
-| rootFieldKind | `String` | true     | The type of graphql operation (`Query` or `Mutation`) |
+| Field           | Type     | Required | Description                                  |
+| --------------- | -------- | -------- | -------------------------------------------- |
+| `rootFieldName` | `String` | true     | The GraphQL root field name for the command. |
+| `rootFieldKind` | `String` | true     | The type of GraphQL operation (`Query`).     |
 
 ## Examples
 

@@ -1,0 +1,140 @@
+---
+sidebar_position: 2
+sidebar_label: Namespaces
+description: Hasura collaboration namespaces
+keywords:
+  - hasura
+  - graphql
+  - collaboration
+  - teams
+  - namespaces
+---
+
+# Namespaces
+
+:::danger Coming Soon
+
+Stay tuned. Namespaces are coming soon to Hasura DDN.
+
+:::
+
+For a multi-team organization working on a Hasura project, it can make sense for any one team to not have access to all
+metadata objects. Namespaces introduces the notion of a module system for metadata.
+
+A project can have a collection of namespaces and the project's metadata becomes the 'union' of metadata objects across
+all namespaces of the project. Each namespace can then be accessed and updated independently.
+
+Metadata with namespaces looks something like the following:
+
+```json
+{
+  "namespaces": [
+    {
+      "name": "foo",
+      "objects": [
+        {
+          "kind": "AuthConfig",
+          "allowRoleEmulationFor": "admin",
+          "webhook": {
+            "webhookUrl": "http://localhost:3050/validate-request"
+          }
+        },
+        {<metadata obj>},
+        ...
+      ]
+    },
+    {<metadata objects with namespace},
+  ]
+}
+```
+
+## Ownership Rules
+
+The metadata objects in namespaces must follow the ownership rules for metadata objects as outlined below.
+
+### DataSource/ HasuraHubDataSource
+
+The data source metadata object (`DataSource`/ `HasuraHubDataSource`) doesn't depend on (or reference) any other
+metadata object. Hence, any namespace can define a data source.
+
+:::info Namespace ownership
+
+The namespace that defines a data source then owns it. This means that no other namespace can reference this data source
+in their type representations, model, etc.
+
+:::
+
+### ObjectType
+
+The `ObjectType` metadata object also doesn't reference any other metadata object. Thus, any namespace can define an
+`ObjectType`.
+
+### DataConnectorScalarRepresentation
+
+The `DataConnectorScalarRepresentation` metadata object references the data source metadata object. Thus, the data
+source in a `DataConnectorScalarRepresentation` should be owned by the **same** namespace.
+
+### ScalarType
+
+The `ScalarType` metadata object also doesn't reference any other metadata object. Thus, **any** namespace can define a
+`ScalarType`.
+
+### Model
+
+A `Model` metadata object references a data type. Also, the model's `source` references a data source and some data
+types in type mappings. **Thus, the same namespace should own the types and the data source.**
+
+### Command
+
+A `Command` metadata object references an output data type. Thus, the namespace defining the `Command` metadata object
+should also define the output data type.
+
+### Relationship
+
+The `Relationship` metadata object references a source type and a target model. The source type used in the
+`Relationship` should be owned by the namespace defining the `Relationship`.
+
+:::info Target type ownership
+
+The target type can be from any namespace. This allows us to define relationships across namespaces.
+
+:::
+
+### TypeOutputPermissions
+
+The `TypeOutputPermissions` metadata object references a type (for which the permission is being defined). Thus, the
+namespace defining the `TypeOutputPermissions` should own the type referenced.
+
+### ModelSelectPermissions
+
+Similar to `TypeOutputPermissions`, the namespace should also own the model referenced in the `ModelSelectPermissions`
+metadata object.
+
+### CommandPermissions
+
+The `CommandPermissions` metadata object references a command, which should be defined in the same namespace.
+
+### AuthConfig
+
+Any namespace can define this.
+
+:::info Only one auth config allowed per project
+
+There can be only one `AuthConfig` in the project's metadata. i.e. only one namespace can define one `AuthConfig`, if
+there are more than one `AuthConfig`, then the metadata build will fail with the error
+`Found duplicate authentication config`.
+
+:::
+
+## Other Rules
+
+Apart from ownership rules, metadata with namespaces should also follow the following rules:
+
+### Duplicate Namespaces
+
+Metadata should not define two namespaces with same name.
+
+### Duplicate Metadata Objects
+
+Metadata should also not define the same metadata object twice (either in the same namespace or in different
+namespaces).

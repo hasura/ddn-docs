@@ -2,6 +2,7 @@
 sidebar_position: 3
 sidebar_label: Data Source
 description: Hasura Data Domain Specification for Data Source
+toc_max_heading_level: 4
 keywords:
   - hasura
   - data
@@ -11,39 +12,41 @@ keywords:
   - source
 ---
 
-# Data Source
+# DataSource
 
 ## Introduction
 
-A data source is a way to specify where your data comes from and how it can be used. It can connect to various types of
+A `DataSource` is a way to specify where your data comes from and how it can be used. It can connect to various types of
 data, like SQL databases, NoSQL databases, REST APIs, GraphQL APIs, files, and more.
 
-In the Open Data Domain Specification (OpenDD Spec), every data source must have a connector URL and a schema. This
-schema defines how the data is structured and what all operations can be performed on the data.
+In the Open Data Domain Specification (OpenDD spec), every data source must have a connector URL and a schema. This
+schema defines how the data is structured and what operations can be performed on the data.
 
 Once you've declared a data source, you can use it in your [model's](/data-domain-modeling/models.mdx) configuration by
-[referencing it with the source](/data-domain-modeling/models.mdx/#source) property, connecting your model to your
-chosen data source.
+[referencing it with the `source`](/data-domain-modeling/models.mdx/#source) property, which connects that model to the
+respective data source.
 
 ## Description
 
-To create a data source, start by defining an OpenDD object with the `kind` set to `DataSource`. This object should also
-include three fields: `name`, `data_connector_url`, and `schema`.
+To create a `DataSource`, start by defining an OpenDD object with the `kind` set to `DataSource`. This object should
+include three fields: `name`, `data_connector_url`, and `schema` and an optional field `auth`.
 
 ```json
 {
   "kind": "DataSource",
   "name": "<DataSourceName>",
   "data_connector_url": "<DataConnectorURL>",
+  "auth": "<DataSourceAuth>",
   "schema": "<SchemaResponse>"
 }
 ```
 
-| Field              | Type               | Required | Description                                                                                                            |
-| ------------------ | ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------- |
-| name               | `String`           | true     | Name of the Data Source.                                                                                               |
-| data_connector_url | `DataConnectorURL` | true     | URL to access the data source connector (and region information for the database).                                     |
-| schema             | `SchemaResponse`   | true     | The schema response from the data connector- includes scalar_types, object_type, collections, functions and procedures |
+| Field                | Type                                     | Required | Description                                                                                                                            |
+| -------------------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`               | `String`                                 | true     | Name of the Data Source.                                                                                                               |
+| `data_connector_url` | [`DataConnectorURL`](#datatconnectorurl) | true     | URL to access the data source connector (and region information for the database).                                                     |
+| `auth`               | [`DataSourceAuth`](#datasourceauth)      | false    | Authentication configuration to access the data source connector.                                                                      |
+| `schema`             | [`SchemaResponse`](#schemaresponse)      | true     | The schema response from the data connector. This includes `scalar_types`, `object_type`, `collections`, `functions` and `procedures`. |
 
 ### DataConnectorURL
 
@@ -57,11 +60,21 @@ include three fields: `name`, `data_connector_url`, and `schema`.
 }
 ```
 
-| Field  | Type     | Required | Description                                                                                                 |
-| ------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| url    | `String` | true     | Fallback Data-Connector URL (this will be used for `reads` if `reads` is empty, and similarly for `writes`) |
-| reads  | `String` | false    | Data-Connector URL for reads (Query and Subscription)                                                       |
-| writes | `String` | false    | Data-Connector URL for writes (Mutation)                                                                    |
+| Field    | Type     | Required | Description                                                                                                  |
+| -------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `url`    | `String` | true     | Fallback Data-Connector URL (this will be used for `reads` if `reads` is empty, and similarly for `writes`). |
+| `reads`  | `String` | false    | Data-Connector URL for reads (Query and Subscription).                                                       |
+| `writes` | `String` | false    | Data-Connector URL for writes (Mutation).                                                                    |
+
+### DataSourceAuth
+
+`DataSourceAuth` is an object that defines the authentication configuration to access the data source connector. This
+will be forwarded to the specified data source connector as an `Authorization: Bearer <token>` header.
+
+| Field   | Type     | Required | Description                                             |
+| ------- | -------- | -------- | ------------------------------------------------------- |
+| `type`  | `Bearer` | true     | Currently we only support `Bearer` type authentication. |
+| `token` | `String` | true     | Token required to access the data source connector.     |
 
 ### SchemaResponse
 

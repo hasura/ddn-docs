@@ -1,7 +1,8 @@
 ---
-sidebar_position: 7
+sidebar_position: 6
 sidebar_label: Permissions
 description: Hasura Data Domain Permissions
+toc_max_heading_level: 4
 keywords:
   - hasura
   - data
@@ -13,59 +14,58 @@ keywords:
   - rbac
 ---
 
-# Hasura Data Domain Permissions
+# OpenDD Permissions
 
 ## Introduction
 
-Hasura DDN lets you define permissions, (also known as access control or authorization rules) on [models](./models.mdx)
-and [output types](./types.mdx) on your data domain.
+The OpenDD Spec lets you define permissions, (also known as access control or authorization rules) on
+[output types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx) in your data domain.
 
-Permissions in an API are essential for ensuring data security and maintaining resource integrity. They restrict access
-to sensitive data and operations to authorized users, reducing the risk of unauthorized or malicious activity and are
-important for compliance with legal and regulatory standards.
+The following types of permissions are defined in the [OpenDD spec](/data-domain-modeling/overview.mdx):
 
-The following types of permissions are defined in the OpenDD spec:
-
-- `typeOutputPermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
+- `TypeOutputPermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
   is useful, as multiple models can return the same output type.
-- `modelSelectPermissions` define which objects or rows within the model are allowed to be accessed by a role.
-- `commandPermissions` defines which commands are allowed to be executed by a role.
+- `ModelSelectPermissions` define which objects or rows within the model are allowed to be accessed by a role.
+- `CommandPermissions` defines which commands are allowed to be executed by a role.
 
-## Output Type Permissions
+## Type output permissions {#type-output-permissions}
 
-An Output Type Permission will need the type and the role(s) for which the permission should be defined. For each role,
+A type output permission will need the type and the role(s) for which the permission should be defined. For each role,
 you will need to define the fields accessible for that role.
 
 ### Metadata Structure
 
 ```json
 {
-  "kind": "TypeOutputPermissions",
-  "typeName": "<TypeName>",
-  "permissions": {
-    "<RoleName>": {
-      "fields": ["field1", "field2"]
-    }
+"kind": "TypeOutputPermissions",
+"typeName": "<TypeName>",
+"permissions": <OutputPermission>
+}
+```
+
+| Field         | Type                                          | Required | Description                                                                                                                    |
+| ------------- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `typeName`    | [`TypeName`](/data-domain-modeling/types.mdx) | true     | Name of the output type on which permissions are to be defined.                                                                |
+| `permissions` | [`OutputPermission`](#outputpermission)       | true     | The permissions object for this type. Each key of the object is a role, and the value is an object of type `OutputPermission`. |
+
+#### OutputPermission
+
+```json
+{
+  "<RoleName>": {
+    "fields": ["field1", "field2"]
   }
 }
 ```
 
-| Field       | Type                                 | Required | Description                                                                                                                    |
-| ----------- | ------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| typeName    | `String`                             | true     | Name of the output type on which permissions are to be defined.                                                                |
-| permissions | `{"<RoleName>": <OutputPermission>}` | true     | The permissions object for this type. Each key of the object is a role, and the value is an object of type `OutputPermission`. |
-
-Note: `RoleName` is the role in `String`.
-
-#### OutputPermission
-
-| Field  | Type       | Required | Description                                                        |
-| ------ | ---------- | -------- | ------------------------------------------------------------------ |
-| fields | `[String]` | true     | List of field names (of the type) that are accessible to the role. |
+| Field      | Type       | Required | Description                                                        |
+| ---------- | ---------- | -------- | ------------------------------------------------------------------ |
+| `RoleName` | `String`   | true     | The name of the role on which you're creating permissions.         |
+| `fields`   | `[String]` | true     | List of field names (of the type) that are accessible to the role. |
 
 ### Examples
 
-To define permissions on an output type `article` for `admin` and `user` role -
+To define permissions on an output type `article` for `admin` and `user` role:
 
 ```json
 {
@@ -82,11 +82,15 @@ To define permissions on an output type `article` for `admin` and `user` role -
 }
 ```
 
+:::info Types are inaccessible when undefined for a role
+
 If a role doesn't define any permissions for this type, then it won't be accessible to that role.
 
-## Model Select Permissions
+:::
 
-A Model Select Permission will need the model name and the role(s) for which the permission should be defined. For each
+## Model Select Permissions {#model-select-permissions}
+
+A model select permission will need the model name and the role(s) for which the permission should be defined. For each
 role, you will need to define an optional filter expression. Objects (or rows/documents) that satisfy this filter
 predicate will be returned for that role.
 
@@ -94,16 +98,16 @@ predicate will be returned for that role.
 
 ```json
 {
-  "kind": "ModelSelectPermissions",
-  "modelName": "<ModelName>",
-  "permissions": {
-    "<RoleName>": {
-      "filter": <ModelPredicate>
-    },
-    "<RoleName>": {
-      "filter": <ModelPredicate>
-    }
+"kind": "ModelSelectPermissions",
+"modelName": "<ModelName>",
+"permissions": {
+  "<RoleName>": {
+    "filter": <ModelPredicate>
+  },
+  "<RoleName>": {
+    "filter": <ModelPredicate>
   }
+}
 }
 ```
 
@@ -158,11 +162,11 @@ Note: `RoleName` is the role in `String`.
 }
 ```
 
-## Command Permissions
+## Command permissions {#command-permissions}
 
-A Command Permissions will need the command name and the role(s) for which the permission should be defined.
+A command permission will need the command name and the role(s) for which the permission should be defined.
 
-### Metadata Structure
+### Metadata structure
 
 ```json
 {
@@ -176,10 +180,10 @@ A Command Permissions will need the command name and the role(s) for which the p
 }
 ```
 
-| Field       | Type                                  | Required | Description                                                                                                                        |
-| ----------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| commandName | `String`                              | true     | Name of the command for which permissions are to be defined.                                                                       |
-| permissions | `{"<RoleName>": <CommandPermission>}` | true     | The permissions object for this command. Each key of the object is a role, and the value is an object of type `CommandPermission`. |
+| Field         | Type                                  | Required | Description                                                                                                                        |
+| ------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `commandName` | `String`                              | true     | Name of the command for which permissions are to be defined.                                                                       |
+| `permissions` | `{"<RoleName>": <CommandPermission>}` | true     | The permissions object for this command. Each key of the object is a role, and the value is an object of type `CommandPermission`. |
 
 Note: `RoleName` is the role in `String`.
 
