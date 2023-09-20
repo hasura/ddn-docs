@@ -41,16 +41,16 @@ include three fields: `name`, `data_connector_url`, and `schema` and an optional
 }
 ```
 
-| Field                | Type                                     | Required | Description                                                                                                                            |
-| -------------------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`               | `String`                                 | true     | Name of the Data Source.                                                                                                               |
-| `data_connector_url` | [`DataConnectorURL`](#dataconnectorurl)  | true     | URL to access the data source connector (and region information for the database).                                                     |
-| `auth`               | [`DataSourceAuth`](#datasourceauth)      | false    | Authentication configuration to access the data source connector.                                                                      |
-| `schema`             | [`SchemaResponse`](#schemaresponse)      | true     | The schema response from the data connector. This includes `scalar_types`, `object_type`, `collections`, `functions` and `procedures`. |
+| Field                | Type                                    | Required | Description                                                                                                                            |
+| -------------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`               | `String`                                | true     | Name of the Data Source.                                                                                                               |
+| `data_connector_url` | [`DataConnectorURL`](#dataconnectorurl) | true     | URL to access the data source connector.                                                                                               |
+| `auth`               | [`DataSourceAuth`](#datasourceauth)     | false    | Authentication configuration to access the data source connector.                                                                      |
+| `schema`             | [`SchemaResponse`](#schemaresponse)     | true     | The schema response from the data connector. This includes `scalar_types`, `object_type`, `collections`, `functions` and `procedures`. |
 
 ### DataConnectorURL
 
-`DataConnectorURL` is an object that defines the Data-Connector URLs. It contains the following fields:
+`DataConnectorURL` is an object that defines URLs for a Data-Connector. It contains the following fields:
 
 ```json
 {
@@ -60,11 +60,16 @@ include three fields: `name`, `data_connector_url`, and `schema` and an optional
 }
 ```
 
-| Field    | Type     | Required | Description                                                                                                  |
-| -------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------ |
-| `url`    | `String` | true     | Fallback Data-Connector URL (this will be used for `reads` if `reads` is empty, and similarly for `writes`). |
-| `reads`  | `String` | false    | Data-Connector URL for reads (Query and Subscription).                                                       |
-| `writes` | `String` | false    | Data-Connector URL for writes (Mutation).                                                                    |
+Data Connector URL is used to access the data source connector based on the GraphQL operation type. For example, if the
+operation type is `Query` or `Subscription`, then the `reads` URL will be used to access the data source connector.
+Similarly, for a `Mutation` operation, the `writes` URL will be used. If either `reads` or `writes` are not provided,
+`url` will be used in their place.
+
+| Field    | Type     | Required | Description                                            |
+| -------- | -------- | -------- | ------------------------------------------------------ |
+| `url`    | `String` | true     | Fallback Data-Connector URL.                           |
+| `reads`  | `String` | false    | Data-Connector URL for reads (Query and Subscription). |
+| `writes` | `String` | false    | Data-Connector URL for writes (Mutation).              |
 
 ### DataSourceAuth
 
