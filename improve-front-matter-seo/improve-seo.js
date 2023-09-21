@@ -27,7 +27,8 @@ const promptGenerator = (content, additionalContext) => {
   - The keywords should all be in lowercase.
   
   For the description:
-  - The improvements should be relevant to the content on the page and
+  - The improvements should be relevant to the content on the page
+  - If the description contains any special characters then output it between double quotes. 
   - Do not exceed 320 characters, which is the ideal Google search meta description length.
  
   Only respond with the same front matter between (and including) the "---" characters but with only the "keywords" and 
