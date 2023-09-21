@@ -1,13 +1,20 @@
 ---
-sidebar_position: 5
+sidebar_position: 3
 sidebar_label: Models
-description: Hasura Data Domain Specification models
+description: Learn how to create and manage Hasura data domain models. These models are crucial links between your data sources and the Hasura generated API.
+toc_max_heading_level: 4
 keywords:
   - hasura
-  - data
-  - data domain specification
-  - dds
-  - models
+  - data domain models
+  - opendd models
+  - hasura api
+  - data sources
+  - graphql configuration
+  - model creation
+  - hasura database
+  - source configuration
+  - rest api
+seoFrontMatterUpdated: true
 ---
 
 # OpenDD Models
@@ -71,16 +78,50 @@ GraphQL is an object that defines the GraphQL configuration for the model. It ha
   "selectUniques": "<SelectUniques>",
   "selectMany": "<SelectMany>",
   "filterExpressionType": "<FilterExpressionType>",
-  "orderByExpressionType": "<OrderByExpressionType>"
+  "orderByExpressionType": "<OrderByExpressionType>",
+  "argumentsInputField": "<ArgumentsInputField>",
+  "argumentsInputType": "<ArgumentsInputType>"
 }
 ```
 
-| Field           | Type     | Required | Description                                 |
-| --------------- | -------- | -------- | ------------------------------------------- |
-| `selectUniques` | `Array`  | true     | Select uniques configuration for the model. |
-| `selectMany`    | `Object` | true     | Select many configuration for the model.    |
-| `filter`        | `String` | true     | Filter configuration for the model.         |
-| `orderBy`       | `String` | true     | Order by configuration for the model.       |
+| Field                   | Type                                | Required | Description                                                                        |
+| ----------------------- | ----------------------------------- | -------- | ---------------------------------------------------------------------------------- |
+| `selectUniques`         | [`[SelectUniques]`](#selectuniques) | true     | Select uniques configuration for the model.                                        |
+| `selectMany`            | [`SelectMany`](#selectmany)         | false    | Select many configuration for the model.                                           |
+| `filterExpressionType`  | `String`                            | false    | GraphQL type name for the filter input. Default - `<ModelName>_bool_exp`           |
+| `orderByExpressionType` | `String`                            | false    | GraphQL type name for the order by input. Default - `<ModelName>_order_by`         |
+| `argumentsInputField`   | `String`                            | false    | GraphQL input field name for the model arguments. Default - `args`                 |
+| `argumentsInputType`    | `String`                            | false    | GraphQL type name for the model arguments input. Default - `<ModelName>_arguments` |
+
+##### SelectUniques
+
+Select uniques is an array of objects that define the unique identifiers for the model. It has the following fields:
+
+```json
+{
+  "queryRootField": "<QueryRootField>",
+  "uniqueIdentifier": "<UniqueIdentifier>"
+}
+```
+
+| Field              | Type     | Required | Description                                                          |
+| ------------------ | -------- | -------- | -------------------------------------------------------------------- |
+| `queryRootField`   | `String` | true     | Name of the query root field.                                        |
+| `uniqueIdentifier` | `Array`  | true     | Set of fields which can uniquely identify a row/object in the model. |
+
+##### SelectMany
+
+Select many is an object that defines the select many configuration for the model. It has the following fields:
+
+```json
+{
+  "queryRootField": "<QueryRootField>"
+}
+```
+
+| Field            | Type     | Required | Description             |
+| ---------------- | -------- | -------- | ----------------------- |
+| `queryRootField` | `String` | true     | Name of the query root. |
 
 ## Examples
 

@@ -1,12 +1,20 @@
 ---
-sidebar_position: 4
+sidebar_position: 2
 sidebar_label: Types
-description: OpenDD Types
+description: Understand OpenDD types in Hasura, including primitive types, container types and custom types. Learn to define the structure of your data and map existing data source scalars to types in your data domain.
+toc_max_heading_level: 4
 keywords:
   - hasura
-  - graphql
-  - data domain
+  - opendd
   - types
+  - data domain
+  - container types
+  - custom types
+  - primitive types
+  - graphql
+  - data structure
+  - data specification
+seoFrontMatterUpdated: true
 ---
 
 # OpenDD Types
@@ -21,13 +29,11 @@ separately from the types in your data source.
 The specification employs a concrete type system that includes both primitive types and user-defined types. All
 subsequent layers, such as models, commands, and relationships are defined in terms of these types.
 
-[//]: # "Link out above para"
-
 The types can be one of the following:
 
 | OpenDD Type | Description                                                             |
 | ----------- | ----------------------------------------------------------------------- |
-| Primitive   | These are basic types such as `Int`, `Float`, `Boolean`, or `String`    |
+| Primitive   | These are the basic types `Int`, `Float`, `Boolean`, or `String`        |
 | Container   | These are types that can hold other types such as `Nullable` or `Array` |
 | Custom      | These are user-defined types, such as `ScalarType` or `ObjectType`      |
 
@@ -44,10 +50,12 @@ type with fields. In turn, the fields themselves can be a primitive or another c
 [Scalar type representation](#scalar-type-representation) helps in mapping data source scalars to any of the OpenDD
 primitive, container or custom types.
 
-## Primitive and container types
+## Primitive and container types {#primitive-and-container-types}
 
 Primitive types don't have any metadata structure and simply use the names `Int` / `Float` / `Boolean` / `String`
 directly.
+
+### Metadata structure
 
 Container types are defined as:
 
@@ -67,7 +75,25 @@ Container types are defined as:
 | ------ | -------------------------------------------------------------------------------------- |
 | `Type` | String in case of primitive or custom types. An object in the case of container types. |
 
-## Scalar types
+### Examples
+
+Examples of container types:
+
+```json
+{
+  "name": "category",
+  "type": { "Nullable": "ProductCategory" }
+}
+```
+
+```json
+{
+  "name": "tags",
+  "type": { "Array": "String" }
+}
+```
+
+## Scalar types {#scalar-types}
 
 In the OpenDD spec, you can alias types by defining an object with `"kind": "ScalarType"`. To define a `ScalarType` you
 need to define a name and an optional representation. This `representation` field can refer to any existing primitive,
@@ -124,7 +150,7 @@ container or custom type and can be a string or an object.
 }
 ```
 
-## Object types
+## Object types {#object-types}
 
 In the OpenDD spec, completely new types can be created by defining an object with `"kind": "ObjectType"`. You need to
 also define a name and the fields for this type.
