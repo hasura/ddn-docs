@@ -29,8 +29,6 @@ Create a .env file in the root directory and add your OpenAI API key:
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-Make sure to add .env to your .gitignore to prevent accidentally pushing sensitive information.
-
 ## Usage
 Run the script using the following command:
 
@@ -52,7 +50,7 @@ This will start the traversal from the provided directory or file and use the pr
 prompt.
 
 ## Features
-- Traverses directories and updates .mdx files.
+- Accepts files or traverses directories and updates only .mdx files with front matter.
 - Uses OpenAI's GPT-4 model to generate improved keywords and descriptions.
 - Skips files that have already been updated.
 - Accepts additional text to augment the prompt for the OpenAI model.
