@@ -4,6 +4,7 @@ const OpenAI = require('openai');
 
 require('dotenv').config();
 
+// Get target path and context enhancement from command line arguments
 const targetPath = process.argv[2];
 const contextEnhancement = process.argv[3] || '';
 
@@ -14,6 +15,7 @@ const openai = new OpenAI({
 // Implementing a delay function using setTimeout and Promise
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// Function to generate prompt for user to update front matter
 const promptGenerator = (content, additionalContext) => {
   return `You are an SEO expert and your task is to improve only the keywords and descriptions for the front matter of 
   the below page of the documentation site for the Hasura software product.
@@ -32,23 +34,25 @@ const promptGenerator = (content, additionalContext) => {
   "description" values updated. 
   
   Also include a new property on a new line of: "seoFrontMatterUpdated: true", to indicate that the front matter has 
-  been updated.  If "seoFrontMatterUpdated: false" exists, flip it to true.  
+  been updated. If "seoFrontMatterUpdated: false" exists, flip it to true.  
   
-  Do not update any of the other values, or change the order of the keys as they appear, and don't include any other 
+  Do not update any of the other values, or change the order of the properties as they appear, and don't include any other 
   text. 
   
   Take into account this additional context for this page (if there is any):
+  ** START OF ADDITIONAL CONTEXT **
   ${additionalContext}
+  ** END OF ADDITIONAL CONTEXT **
   
-  /End of additional context/
   
   Here is the actual content of the page: 
+  ** START OF ACTUAL CONTENT **
   ${content}
-  
-  /End of additional content/
+  ** END OF ACTUAL CONTENT **
   `
 }
 
+// improveSEO function to call OpenAI API and get the improved front matter
 async function improveSEO(fileContent) {
 
   const completion = await openai.chat.completions.create({
@@ -61,6 +65,7 @@ async function improveSEO(fileContent) {
   return completion.choices[0].message.content;
 }
 
+// Function to extract front matter from the content
 function extractFrontMatter(content) {
   const match = content.match(/---\n([\s\S]*?)\n---/);
   if (match) {
@@ -69,6 +74,7 @@ function extractFrontMatter(content) {
   return null;
 }
 
+// Function to process the file and update the front matter
 async function processFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
 
@@ -91,6 +97,7 @@ async function processFile(filePath) {
   }
 }
 
+// Function to traverse the directory and process each file
 async function traverseDirectory(directory) {
   const files = fs.readdirSync(directory);
 
@@ -108,4 +115,5 @@ async function traverseDirectory(directory) {
   }
 }
 
+// Do it
 traverseDirectory("../docs" + targetPath);
