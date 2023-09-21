@@ -78,6 +78,7 @@ You can enable JWT mode by configuring your metadata appropriately:
 | `jwkUrl`              | URL          | false    | URL where the provider publishes thier JWKs (JSON Web keys - which are used for signing the JWTs)                                                                                                  |
 | `claimsNamespacePath` | JSON Pointer | false    | Default path where the Hasura claims object should be looked up at in the decoded JWT. Default: (Default: "https:~1~1hasura.io~1jwt~1claims" (JSON Pointer for `https://hasura.io/jwt/claims`))    |
 | `claimsFormat`        | String       | false    | Format of the Hasura claims in the decoded JWT. Possible value: `json`, `stringifiedJson`. Default: `json`.                                                                                        |
+| `claimsMap`           | Object       | false    | Object of session variables to the pointer or literal value where the Hasura claims object should be looked up in the decoded JWT.                                                                                        |
 | `audience`            | String       | false    | When set, verifies the `aud` claims in the JWT to be equal to this value.                                                                                                                          |
 | `issuer`              | String       | false    | When set, verifies the `iss` claim in the JWT claim equal to this value.                                                                                                                           |
 | `allowedSkew`         | Int          | false    | Optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry time. This field expects an integer value which will be the number of seconds of the skew value. |
@@ -200,7 +201,7 @@ The JWT will normally also contain standard (`sub`, `iat` etc.) and custom (`nam
 - JWT claim fields eg: `x-hasura-default-role` are case-insensitive.
 - Hasura GraphQL Engine only has access to headers and JWT claims which are prefixed with `x-hasura-`.
 - Hasura GraphQL Engine only has access to JWT claims in the `https://hasura.io/jwt/claims` or
-  [custom defined](#claims-namespace) namespace.
+  [custom defined](#claims-namespace-path) namespace.
 - All `x-hasura-*` values should be of type `String`, they will be converted to the right type automatically.
 - In JWT mode on a secured endpoint JWT authentication is **enforced**
   when **both** the `X-Hasura-Admin-Secret` header **and** the `Authorization: Bearer <JWT>` header are found in the
@@ -230,9 +231,9 @@ This is an optional field. This is required only if you are using the `key` prop
 - In the case of an asymmetric key (RSA, EdDSA, ECDSA etc.), only the **public** key, in a PEM-encoded string or as an
   X509 certificate.
 
-This is an optional field. You can also provide a URL to fetch JWKs from using the `jwk_url` field.
+This is an optional field. You can also provide a URL to fetch JWKs from using the `jwkUrl` field.
 
-### jwk_url {#jwt-json-jwk_url}
+### jwkUrl {#jwt-json-jwkUrl}
 
 An URL where a provider publishes their JWKs (JSON Web Keys - which are used for signing the JWTs). The URL **must**
 publish the JWKs in the standard format as described [here](https://tools.ietf.org/html/rfc7517).
@@ -240,17 +241,17 @@ publish the JWKs in the standard format as described [here](https://tools.ietf.o
 This is optional as you have the alternative of also providing the key (certificate, PEM-encoded public key) as a
 string - in the [`key`](#jwt-json-key) field along with the [`type`](#jwt-json-type).
 
-### claims_namespace {#claims-namespace}
+### claimsNamespacePath {#claims-namespace-path}
 
 This is an optional field. You can specify the key name, inside which the Hasura specific claims will be present, e.g.
 `https://mydomain.com/claims`. The default value is `https://hasura.io/jwt/claims`.
 
-##### Configure `claims_namespace_path` {#claims-namespace-path}
+##### Configure `claimsNamespacePath` {#configure-claims-namespace-path}
 
-An optional JSON path value to the Hasura claims present in the JWT token. Example values are `$.hasura.claims` or `$`
+An optional JSON path value to the Hasura claims present in the JWT token. Example values are `/hasura/claims` or `/`
 (i.e. root of the payload).
 
-The JWT token should be in the following format if the `claims_namespace_path` is set to `$.hasura.claims`:
+The JWT token should be in the following format if the `claimsNamespacePath` is set to `/hasura/claims`:
 
 ```json
 {
@@ -272,12 +273,12 @@ The JWT token should be in the following format if the `claims_namespace_path` i
 
 :::info Claims namespace values
 
-When the `claims_namespace_path` is not set, the default value is `https:~1~1hasura.io~1jwt~1claims` (JSON pointer
+When the `claimsNamespacePath` is not set, the default value is `https:~1~1hasura.io~1jwt~1claims` (JSON pointer
 for claims namespace).
 
 :::
 
-### claims_format
+### claimsFormat
 
 This is an optional field, with only the following possible values allowed: `json`, `stringifiedJson`.
 
@@ -290,7 +291,7 @@ This is required because providers like AWS Cognito only allow strings in the JW
 
 Example:
 
-If `claims_format` is `json` then the JWT claims should look like:
+If `claimsFormat` is `json` then the JWT claims should look like:
 
 ```json
 {
@@ -308,7 +309,7 @@ If `claims_format` is `json` then the JWT claims should look like:
 }
 ```
 
-If `claims_format` is `stringified_json` then the JWT claims should look like:
+If `claimsFormat` is `stringified_json` then the JWT claims should look like:
 
 ```json
 {
@@ -319,6 +320,132 @@ If `claims_format` is `stringified_json` then the JWT claims should look like:
   "https://hasura.io/jwt/claims": "{\"x-hasura-allowed-roles\":[\"editor\",\"user\",\"mod\"],\"x-hasura-default-role\":\"user\",\"x-hasura-user-id\":\"1234567890\",\"x-hasura-org-id\":\"123\",\"x-hasura-custom\":\"custom-value\"}"
 }
 ```
+
+### claimsMap
+
+This is an optional field. Certain providers might not allow adding custom claims. In such a case, you can map Hasura
+session variables with existing JWT claims using `claimsMap`. The `claimsMap` is a JSON object where keys are session
+variables and values can be a JSON pointer (with a default value option, when the key specified by the JSON pointer doesn't
+exist) or a literal value.
+
+The literal values should be of type `String`, except for the `x-hasura-allowed-roles` claim which expects a string
+array.
+
+The value of a claim referred by a JSON path must be a string. To use the JSON path value, the path needs to be given
+in a JSON object with `path` as the key and the JSON pointer as the value:
+
+```json
+{
+  "path": "/user/all_roles"
+}
+```
+
+```json
+{
+  "path": "/roles/default",
+  "default": "user"
+}
+```
+
+:::info Claims map precedence
+
+If `claimsMap` is provided in the JWT config, `claimsNamespacePath` and `claimsFormat` will be
+ignored.
+
+:::
+
+**Example: JWT config with JSON path values**
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "user": {
+    "id": "ujdh739kd"
+  },
+  "hasura": {
+    "all_roles": ["user", "editor"]
+  }
+}
+```
+
+The mapping for `x-hasura-allowed-roles`, `x-hasura-default-role` and `x-hasura-user-id` session variables can be
+specified in the `claimsMap` configuration as follows:
+
+```json
+{
+  "type": "RS512",
+  "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n",
+  "claimsMap": {
+    "x-hasura-allowed-roles": { "path": "/hasura/all_roles" },
+    "x-hasura-default-role": { "path": "/hasura/all_roles[0]" },
+    "x-hasura-user-id": { "path": "/user/id" }
+  }
+}
+```
+
+**Example: JWT config with JSON path values and default values**
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "hasura": {
+    "all_roles": ["user", "editor"]
+  }
+}
+```
+
+```json
+{
+  "type": "RS512",
+  "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n",
+  "claimsMap": {
+    "x-hasura-allowed-roles": { "path": "/hasura/all_roles" },
+    "x-hasura-default-role": { "path": "/hasura/all_roles[0]" },
+    "x-hasura-user-id": { "path": "/user/id", "default": "ujdh739kd" }
+  }
+}
+```
+
+In the above case, since the `/user/id` doesn't exist in the JWT token, the default value of the `x-hasura-user-id` i.e
+"ujdh739kd" will be used
+
+**Example: JWT config containing literal values**
+
+```json
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true,
+  "iat": 1516239022,
+  "user": {
+    "id": "ujdh739kd"
+  }
+}
+```
+
+The corresponding JWT config should be:
+
+```json
+{
+  "type": "RS512",
+  "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n",
+  "claimsMap": {
+    "x-hasura-allowed-roles": ["user", "editor"],
+    "x-hasura-default-role": "user",
+    "x-hasura-user-id": { "path": "/user/id" }
+  }
+}
+```
+
+In the above example, the `x-hasura-allowed-roles` and `x-hasura-default-role` values are set in the JWT config and the
+value of the `x-hasura-user-id` is a JSON path to the value in the JWT token.
+
 
 ### audience
 
@@ -337,7 +464,7 @@ Examples:
 
 ```json
 {
-  "jwk_url": "https://......",
+  "jwkUrl": "https://......",
   "audience": "myapp-1234"
 }
 ```
@@ -346,7 +473,7 @@ or
 
 ```json
 {
-  "jwk_url": "https://......",
+  "jwkUrl": "https://......",
   "audience": ["myapp-1234", "myapp-6789"]
 }
 ```
@@ -377,146 +504,21 @@ Examples:
 
 ```json
 {
-  "jwk_url": "https://......",
+  "jwkUrl": "https://......",
   "issuer": "https://my-auth-server.com"
 }
 ```
 
-#### Issuer Notes
+#### Issuer notes
 
 - Certain providers require you to verify the `iss` claim on the JWT. To do that you can set this field to the
   appropriate value.
 - A JWT configuration without an issuer will match any issuer field present in an incoming JWT.
 - An incoming JWT without an issuer specified will match a configuration even if it specifies an issuer.
 
-### claims_map
+### allowedSkew
 
-This is an optional field. Certain providers might not allow adding custom claims. In such a case, you can map Hasura
-session variables with existing JWT claims using `claims_map`. The `claims_map` is a JSON object where keys are session
-variables and values can be a JSON path (with a default value option, when the key specified by the JSON path doesn't
-exist) or a literal value.
-
-The literal values should be of type `String`, except for the `x-hasura-allowed-roles` claim which expects a string
-array.
-
-The value of a claim referred by a JSON path must be a string. To use the JSON path value, the path needs to be given
-in a JSON object with `path` as the key and the JSON path as the value:
-
-```json
-{
-  "path": "$.user.all_roles"
-}
-```
-
-```json
-{
-  "path": "$.roles.default",
-  "default": "user"
-}
-```
-
-:::info Claims map precedence
-
-If `claims_map` is provided in the JWT config, `claims_namespace`/`claims_namespace_path` and `claims_format` will be
-ignored.
-
-:::
-
-**Example: JWT config with JSON path values**
-
-```json
-{
-  "sub": "1234567890",
-  "name": "John Doe",
-  "admin": true,
-  "iat": 1516239022,
-  "user": {
-    "id": "ujdh739kd"
-  },
-  "hasura": {
-    "all_roles": ["user", "editor"]
-  }
-}
-```
-
-The mapping for `x-hasura-allowed-roles`, `x-hasura-default-role` and `x-hasura-user-id` session variables can be
-specified in the `claims_map` configuration as follows:
-
-```json
-{
-  "type": "RS512",
-  "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n",
-  "claims_map": {
-    "x-hasura-allowed-roles": { "path": "$.hasura.all_roles" },
-    "x-hasura-default-role": { "path": "$.hasura.all_roles[0]" },
-    "x-hasura-user-id": { "path": "$.user.id" }
-  }
-}
-```
-
-**Example: JWT config with JSON path values and default values**
-
-```json
-{
-  "sub": "1234567890",
-  "name": "John Doe",
-  "admin": true,
-  "iat": 1516239022,
-  "hasura": {
-    "all_roles": ["user", "editor"]
-  }
-}
-```
-
-```json
-{
-  "type": "RS512",
-  "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n",
-  "claims_map": {
-    "x-hasura-allowed-roles": { "path": "$.hasura.all_roles" },
-    "x-hasura-default-role": { "path": "$.hasura.all_roles[0]" },
-    "x-hasura-user-id": { "path": "$.user.id", "default": "ujdh739kd" }
-  }
-}
-```
-
-In the above case, since the `$.user.id` doesn't exist in the JWT token, the default value of the `x-hasura-user-id` i.e
-"ujdh739kd" will be used
-
-**Example: JWT config containing literal values**
-
-```json
-{
-  "sub": "1234567890",
-  "name": "John Doe",
-  "admin": true,
-  "iat": 1516239022,
-  "user": {
-    "id": "ujdh739kd"
-  }
-}
-```
-
-The corresponding JWT config should be:
-
-```json
-{
-  "type": "RS512",
-  "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n",
-  "claims_map": {
-    "x-hasura-allowed-roles": ["user", "editor"],
-    "x-hasura-default-role": "user",
-    "x-hasura-user-id": { "path": "$.user.id" }
-  }
-}
-```
-
-In the above example, the `x-hasura-allowed-roles` and `x-hasura-default-role` values are set in the JWT config and the
-value of the `x-hasura-user-id` is a JSON path to the value in the JWT token.
-
-### allowed_skew
-
-`allowed_skew` is an optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry
+`allowedSkew` is an optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry
 time. This field expects an integer value which will be the number of seconds of the skew value.
 
 ### header
@@ -602,7 +604,7 @@ have the public key.
 
 ```json
 {
-  "jwk_url": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
+  "jwkUrl": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
 }
 ```
 
@@ -656,7 +658,7 @@ needs to have the public key.
 
 ```json
 {
-  "jwk_url": "https://www.gstatic.com/iap/verify/public_key-jwk"
+  "jwkUrl": "https://www.gstatic.com/iap/verify/public_key-jwk"
 }
 ```
 
@@ -690,7 +692,7 @@ If you are using Firebase and Hasura, use this config:
 
 ```json
 {
-  "jwk_url": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
+  "jwkUrl": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
   "audience": "<firebase-project-id>",
   "issuer": "https://securetoken.google.com/<firebase-project-id>"
 }
