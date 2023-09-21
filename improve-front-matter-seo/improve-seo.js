@@ -97,23 +97,32 @@ async function processFile(filePath) {
   }
 }
 
-// Function to traverse the directory and process each file
-async function traverseDirectory(directory) {
-  const files = fs.readdirSync(directory);
+// Function to traverse the directory or file and process recursively
+async function processPath(inputPath) {
+  const stats = fs.statSync(inputPath);
 
-  for (const file of files) {
-    const filePath = path.join(directory, file);
+  if (stats.isDirectory()) {
+    const files = fs.readdirSync(inputPath);
 
-    if (fs.statSync(filePath).isDirectory()) {
-      await traverseDirectory(filePath);
-    } else if (path.extname(filePath) === '.mdx' && !file.startsWith('_')) {
-      await processFile(filePath);
-      console.log(`Processed ${filePath}. Waiting 2s \n`);
-      await delay(2000);  // Waiting for 2 seconds after each API call
-      console.log(`Finished waiting. Proceeding \n`);
+    for (const file of files) {
+      const filePath = path.join(inputPath, file);
+
+      if (fs.statSync(filePath).isDirectory()) {
+        await processPath(filePath);
+      } else if (path.extname(filePath) === '.mdx' && !file.startsWith('_')) {
+        await processFile(filePath);
+        console.log(`Processed ${filePath}. Waiting 2s \n`);
+        await delay(2000);  // Waiting for 2 seconds after each API call
+        console.log(`Finished waiting. Proceeding \n`);
+      }
     }
+  } else if (stats.isFile() && path.extname(inputPath) === '.mdx' && !path.basename(inputPath).startsWith('_')) {
+    await processFile(inputPath);
+    console.log(`Processed ${inputPath}. Waiting 2s \n`);
+    await delay(2000);  // Waiting for 2 seconds after each API call
+    console.log(`Finished waiting. Proceeding \n`);
   }
 }
 
 // Do it
-traverseDirectory("../docs" + targetPath);
+processPath("../docs" + targetPath);
