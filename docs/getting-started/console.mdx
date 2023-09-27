@@ -1,13 +1,22 @@
 ---
 sidebar_position: 3
 sidebar_label: Quickstart from the Console
-description: Hasura gives you instant GraphQL on all your data
+description:
+  A comprehensive guide for beginners to kickstart Hasura Console, connect to a database, execute queries and create
+  fast production builds using graphql API.
 keywords:
-  - hasura
-  - graphql
-  - get started
-  - guide
-  - tutorial
+  - hasura console
+  - graphql server
+  - connect database
+  - postgres
+  - hasura cloud
+  - hasura project
+  - metadata
+  - graphql query
+  - api builds
+  - hasura quickstart
+seoFrontMatterUpdated: true
+toc_max_heading_level: 2
 ---
 
 import Thumbnail from "@site/src/components/Thumbnail";
@@ -26,7 +35,8 @@ you'll be introduced to new Hasura concepts, like builds, our new metadata struc
 
 A PostgreSQL database
 
-If you're looking for a fast and easy way to get started with a PostgreSQL database, check out our friends at
+You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/ci-cd/cli/index.mdx). If you don't
+have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
 [Neon](https://neon.tech).
 
 :::
@@ -58,6 +68,75 @@ source via the `+ Connect` button:
   alt="Click to connect data source"
   width="1000px"
 />
+
+<Tabs groupId="db-location" className="api-tabs">
+<TabItem value="hosted" label="Hosted Database">
+
+If your database is hosted on a cloud provider, you can connect to it by copying your connection string which should
+look like this:
+
+```text
+postgresql://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DATABASE_NAME>
+```
+
+</TabItem>
+<TabItem value="local" label="Local Database">
+
+If you want to connect a local database for development, you can use the new [Hasura CLI](/ci-cd/cli/index.mdx) to
+create a local daemon and securely connect to your database.
+
+### Step 3.1: Start your database
+
+Start your local database. For example, if you are using Docker, you can run the following command:
+
+```bash
+docker run -d --name <CONTAINER_NAME> -e POSTGRES_PASSWORD=<YOUR_PASSWORD> -p 5432:5432 postgres
+```
+
+### Step 3.2: Start the daemon
+
+Start the Hasura daemon with the `daemon start` command:
+
+```bash
+hasura3 local daemon start
+```
+
+The daemon will block this window while it runs.
+
+### Step 3.3: Create a Secure Connect tunnel
+
+Open a new tab or window for your terminal and run the `create` command:
+
+```bash
+hasura3 cloud tunnel create <SOCKET>
+```
+
+The `<SOCKET>` argument is the address of your local database. For example, if you are running a local PostgreSQL
+database on the default port, you would use `localhost:5432`.
+
+The CLI will return a URL that you can use to connect to your database. You should use this URL to form a connection
+string for your database, like this:
+
+```text
+postgresql://<USERNAME>:<PASSWORD>@<URL_RETURNED_BY_THE_CLI>/<DATABASE_NAME>
+```
+
+</TabItem>
+</Tabs>
+
+:::info Want to keep your connection details secure?
+
+You can utilize **secrets** to store your connection strings. Secrets are a new concept in Hasura that allow you to
+store sensitive information, like connection strings, securely. You can quickly create them
+[using the CLI](/ci-cd/cli/commands/cloud-secret-set.mdx) as key-value pairs:
+
+```bash
+hasura3 cloud secret set --project-id <PROJECT_ID_FROM_PREVIOUS_STEP> <KEY>=<VALUE>
+```
+
+You can now use this `<KEY>` as the connection string in the modal 👇
+
+:::
 
 Enter a name for your data source, and select the `Postgres` option. At the bottom of the modal, enter your connection
 string and then click `Connect`:
