@@ -1,7 +1,9 @@
 ---
 sidebar_position: 6
 sidebar_label: Permissions
-description: Learn how to define permissions, access control or authorization rules on output types, models and commands in Hasura's OpenDD Spec. Useful for managing roles and accessibility.
+description:
+  Learn how to define permissions, access control or authorization rules on output types, models and commands in
+  Hasura's OpenDD Spec. Useful for managing roles and accessibility.
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -37,12 +39,10 @@ you will need to define the fields accessible for that role.
 
 ### Metadata Structure
 
-```json
-{
-"kind": "TypeOutputPermissions",
-"typeName": "<TypeName>",
-"permissions": <OutputPermission>
-}
+```yaml
+kind: TypeOutputPermissions
+typeName: <TypeName>
+permissions: <OutputPermission>
 ```
 
 | Field         | Type                                          | Required | Description                                                                                                                    |
@@ -52,12 +52,11 @@ you will need to define the fields accessible for that role.
 
 #### OutputPermission
 
-```json
-{
-  "<RoleName>": {
-    "fields": ["field1", "field2"]
-  }
-}
+```yaml
+<RoleName>:
+  fields:
+    - <field1>
+    - <field2>
 ```
 
 | Field      | Type       | Required | Description                                                        |
@@ -69,19 +68,19 @@ you will need to define the fields accessible for that role.
 
 To define permissions on an output type `article` for `admin` and `user` role:
 
-```json
-{
-  "kind": "TypeOutputPermissions",
-  "typeName": "article",
-  "permissions": {
-    "admin": {
-      "fields": ["id", "title", "author_id"]
-    },
-    "user": {
-      "fields": ["id", "title"]
-    }
-  }
-}
+```yaml
+kind: TypeOutputPermissions
+typeName: article
+permissions:
+  admin:
+    fields:
+      - id
+      - title
+      - author_id
+  user:
+    fields:
+      - id
+      - title
 ```
 
 :::info Types are inaccessible when undefined for a role
@@ -98,19 +97,14 @@ predicate will be returned for that role.
 
 ### Metadata Structure
 
-```json
-{
-"kind": "ModelSelectPermissions",
-"modelName": "<ModelName>",
-"permissions": {
-  "<RoleName>": {
-    "filter": <ModelPredicate>
-  },
-  "<RoleName>": {
-    "filter": <ModelPredicate>
-  }
-}
-}
+```yaml
+kind: ModelSelectPermissions
+modelName: <ModelName>
+permissions:
+  <RoleName>:
+    filter: <ModelPredicate>
+  <RoleName>:
+    filter: <ModelPredicate>
 ```
 
 | Field       | Type                                 | Required | Description                                                                                                                    |
@@ -128,40 +122,27 @@ Note: `RoleName` is the role in `String`.
 
 ### Examples
 
-```json
-{
-  "kind": "ModelSelectPermissions",
-  "modelName": "Articles",
-  "permissions": {
-    "admin": {},
-    "user_1": {
-      "filter": {
-        "fieldComparison": {
-          "field": "author_id",
-          "operator": "_eq",
-          "value": {
-            "sessionVariable": "x-hasura-user-id"
-          }
-        }
-      }
-    },
-    "user_2": {
-      "filter": {
-        "and": [
-          {
-            "fieldComparison": {
-              "field": "title",
-              "operator": "like",
-              "value": {
-                "literal": "Functional"
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+```yaml
+---
+kind: ModelSelectPermissions
+modelName: Articles
+permissions:
+  admin: {}
+  user_1:
+    filter:
+      fieldComparison:
+        field: author_id
+        operator: _eq
+        value:
+          sessionVariable: x-hasura-user-id
+  user_2:
+    filter:
+      and:
+        - fieldComparison:
+            field: title
+            operator: like
+            value:
+              literal: Functional
 ```
 
 ## Command permissions {#command-permissions}
@@ -170,16 +151,12 @@ A command permission will need the command name and the role(s) for which the pe
 
 ### Metadata structure
 
-```json
-{
-  "kind": "CommandPermissions",
-  "commandName": "<CommandName>",
-  "permissions": {
-    "<RoleName>": {
-      "allowExecution": "<Boolean>"
-    }
-  }
-}
+```yaml
+kind: CommandPermissions
+commandName: <CommandName>
+permissions:
+  <RoleName>:
+    allowExecution: <Boolean>
 ```
 
 | Field         | Type                                  | Required | Description                                                                                                                        |
@@ -199,19 +176,14 @@ Note: `RoleName` is the role in `String`.
 
 To define permissions on a command with name `get_article_by_id` for `admin` and `user` role -
 
-```json
-{
-  "kind": "CommandPermissions",
-  "commandName": "get_latest_article_id",
-  "permissions": {
-    "admin": {
-      "allowExecution": true
-    },
-    "user": {
-      "allowExecution": false
-    }
-  }
-}
+```yaml
+kind: CommandPermissions
+commandName: get_latest_article_id
+permissions:
+  admin:
+    allowExecution: true
+  user:
+    allowExecution: false
 ```
 
 If a role doesn't define any permissions for this type, then it won't be accessible to that role.
