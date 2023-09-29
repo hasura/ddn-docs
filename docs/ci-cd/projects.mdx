@@ -1,0 +1,77 @@
+---
+sidebar_position: 2
+sidebar_label: Projects
+description: Learn what projects are and how to create them for your Hasura project on Hasura DDN.
+keywords:
+  - hasura ddn
+  - hasura api management
+  - hasura cli
+  - ci/cd
+  - projects
+---
+
+# Projects
+
+## Introduction
+
+Broadly, a project is a data supergraph that is managed by Hasura DDN.
+
+This supergraph acts as the API and underlying configuration that serves [**builds**](/ci-cd/builds.mdx), which are
+snapshots of your `metadata.hml` file. A project can contain many builds, but only one build will serve as the project's
+**active** build.
+
+Locally, any directory that contains a `metadata.hml` file is considered a project. This file describes your supergraph
+and is used to generate the API and configuration for your project. You can use the Hasura CLI to generate this file and
+create builds for a particular project.
+
+## Project lifecycle
+
+### Create
+
+#### Locally
+
+Running the following command will create an empty `metadata.hml` file in the current directory:
+
+```bash
+hasura3 local init --dir  .
+```
+
+You can then use the
+[Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura&ssr=false#review-details)
+to scaffold out and populate your `metadata.hml` file.
+
+#### DDN
+
+This local `metadata.hml` file, when properly configured, can be used to generate a build for your project on Hasura
+DDN. However, you'll first need a new project on DDN to associate your build with. You can achieve this by running:
+
+```bash
+hasura3 cloud project create
+```
+
+The CLI wil return information about your new project:
+
+```text
+ Creating project... ok
+ Name         <PROJECT_NAME>
+ ID           <PROJECT_ID>
+ Console URL  https://console.hasura.io/project/<PROJECT_ID>/graphql
+```
+
+### Manage
+
+You can manage your project from the Console endpoint returned by the CLI when creating a new project:
+
+```text
+https://console.hasura.io/project/<PROJECT_ID>/graphql
+```
+
+From the Console, you can view your project's builds, analyze metrics, test your API using GraphiQL, and more.
+
+### Delete
+
+You can delete a project from the Console by navigating to the following link for your project:
+
+```text
+https://console.hasura.io/project/<PROJECT_ID>/settings/summary/project
+```
