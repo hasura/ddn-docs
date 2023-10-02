@@ -31,15 +31,13 @@ To create a command, you need to define an OpenDD object with `"kind": "Command"
 
 ### Metadata structure
 
-```json
-{
-  "kind": "Command",
-  "name": "<String>",
-  "arguments": <ArgumentDefinition>,
-  "outputType": "<String>",
-  "source": <CommandSourceConfiguration>,
-  "graphql": <GraphQLConfiguration>
-}
+```yaml
+kind: Command
+name: <String>
+arguments: <ArgumentDefinition>
+outputType: <String>
+source: <CommandSourceConfiguration>
+graphql: <GraphQLConfiguration>
 ```
 
 | Field        | Type                                                        | Required | Description                                            |
@@ -70,13 +68,13 @@ Arguments is a list of objects that defines the arguments for the command. An ar
 
 Source is an object that defines the data source for the command. It has the following fields:
 
-```json
+```yaml
 {
-  "DataSource": "<String>",
-  // Either function OR procedure
-  "function": "<String>",
-  "typeMappings": "<TypeMappings>",
-  "argumentMappings": "<ArgumentMappings>"
+DataSource: <String>
+// Either function OR procedure
+function: <String>
+typeMappings: <TypeMappings>
+argumentMappings: <ArgumentMappings>
 }
 ```
 
@@ -101,15 +99,13 @@ Functions are used for read operations and procedures are used for write operati
 The `argumentMappings` are used to define the mapping between the arguments of the OpenDD `arguments` and the arguments
 of the `function` or `procedure`. It has the following fields:
 
-```json
-{
-  "<OpenDDSArgumentName>": "<NDCArgumentName>"
-}
+```yaml
+<OpenDDSArgumentName>: <NDCArgumentName>
 ```
 
 | Field                 | Type     | Required | Description                                                                                   |
 |-----------------------|----------|----------|-----------------------------------------------------------------------------------------------|
-| `OpenDDSArgumentName` | `String` | true     | Name of the argument of the command                                                           |                                             
+| `OpenDDSArgumentName` | `String` | true     | Name of the argument of the command                                                           |
 | `NDCArgumentName`     | `String` | true     | The name of the argument in function or procedure to which the `OpenDDSArgumentName` maps to  |
 
 
@@ -117,11 +113,10 @@ of the `function` or `procedure`. It has the following fields:
 
 GraphQL is an object that defines the GraphQL configuration for the command. It has the following fields:
 
-```json
-{
-  "rootFieldName": "<String>",
-  "rootFieldKind": "<String>"
-}
+```yaml
+rootFieldName: <String>
+rootFieldKind: <String>
+
 ```
 
 | Field           | Type     | Required | Description                                  |
@@ -131,42 +126,28 @@ GraphQL is an object that defines the GraphQL configuration for the command. It 
 
 ## Examples
 
-```json
-{
-  "kind": "Command",
-  "name": "get_article_by_id",
-  "arguments": [
-    {
-      "name": "article_id",
-      "type": "Int"
-    }
-  ],
-  "outputType": "commandArticle",
-  "source": {
-    "dataSource": "db",
-    "function": "get_article_by_id",
-    "typeMappings": {
-      "commandArticle": {
-        "fieldMappings": {
-          "article_id": {
-            "column": "id"
-          },
-          "title": {
-            "column": "title"
-          },
-          "author_id": {
-            "column": "author_id"
-          }
-        }
-      }
-    },
-    "argumentMappings": {
-      "article_id": "id"
-    }
-  },
-  "graphql": {
-    "rootFieldName": "getLatestArticle",
-    "rootFieldKind": "Query"
-  }
-}
+```yaml
+kind: Command
+name: get_article_by_id
+arguments:
+- name: article_id
+  type: Int
+outputType: commandArticle
+source:
+  dataSource: db
+  function: get_article_by_id
+  typeMappings:
+    commandArticle:
+      fieldMappings:
+        article_id:
+          column: id
+        title:
+          column: title
+        author_id:
+          column: author_id
+  argumentMappings:
+    article_id: id
+graphql:
+  rootFieldName: getLatestArticle
+  rootFieldKind: Query
 ```

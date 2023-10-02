@@ -1,7 +1,9 @@
 ---
 sidebar_position: 3
 sidebar_label: Models
-description: Learn how to create and manage Hasura data domain models. These models are crucial links between your data sources and the Hasura generated API.
+description:
+  Learn how to create and manage Hasura data domain models. These models are crucial links between your data sources and
+  the Hasura generated API.
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -32,15 +34,13 @@ To create a model, you need to define an OpenDD object with `"kind": "Model"`, w
 
 ### Metadata structure
 
-```json
-{
-  "kind": "Model",
-  "name": "<ModelName>",
-  "dataType": "<TypeName>",
-  "globalIDSource": true | false,
-  "source": "<SourceConfiguration>",
-  "graphql": "<GraphQLConfiguration>",
-}
+```yaml
+kind: Model
+name: <ModelName>
+dataType: <TypeName>
+globalIDSource: true | false
+source: <SourceConfiguration>
+graphql: <GraphQLConfiguration>
 ```
 
 | Field            | Type                                                               | Required | Description                                                           |
@@ -55,12 +55,10 @@ To create a model, you need to define an OpenDD object with `"kind": "Model"`, w
 
 Source is an object that defines the data source for the model. It has the following fields:
 
-```json
-{
-  "dataSource": "<DataSourceName>",
-  "collection": "<CollectionName>",
-  "typeMappings": "<TypeMappings>"
-}
+```yaml
+dataSource: <DataSourceName>
+collection: <CollectionName>
+typeMappings: <TypeMappings>
 ```
 
 | Field          | Type                                               | Required | Description                  |
@@ -73,15 +71,13 @@ Source is an object that defines the data source for the model. It has the follo
 
 GraphQL is an object that defines the GraphQL configuration for the model. It has the following fields:
 
-```json
-{
-  "selectUniques": "<SelectUniques>",
-  "selectMany": "<SelectMany>",
-  "filterExpressionType": "<FilterExpressionType>",
-  "orderByExpressionType": "<OrderByExpressionType>",
-  "argumentsInputField": "<ArgumentsInputField>",
-  "argumentsInputType": "<ArgumentsInputType>"
-}
+```yaml
+selectUniques: <SelectUniques>
+selectMany: <SelectMany>
+filterExpressionType: <FilterExpressionType>
+orderByExpressionType: <OrderByExpressionType>
+argumentsInputField: <ArgumentsInputField>
+argumentsInputType: <ArgumentsInputType>
 ```
 
 | Field                   | Type                                | Required | Description                                                                        |
@@ -97,11 +93,9 @@ GraphQL is an object that defines the GraphQL configuration for the model. It ha
 
 Select uniques is an array of objects that define the unique identifiers for the model. It has the following fields:
 
-```json
-{
-  "queryRootField": "<QueryRootField>",
-  "uniqueIdentifier": "<UniqueIdentifier>"
-}
+```yaml
+queryRootField: <QueryRootField>
+uniqueIdentifier: <UniqueIdentifier>
 ```
 
 | Field              | Type     | Required | Description                                                          |
@@ -113,10 +107,8 @@ Select uniques is an array of objects that define the unique identifiers for the
 
 Select many is an object that defines the select many configuration for the model. It has the following fields:
 
-```json
-{
-  "queryRootField": "<QueryRootField>"
-}
+```yaml
+queryRootField: <QueryRootField>
 ```
 
 | Field            | Type     | Required | Description             |
@@ -125,43 +117,30 @@ Select many is an object that defines the select many configuration for the mode
 
 ## Examples
 
-```json
-{
-  "kind": "Model",
-  "name": "Authors",
-  "dataType": "author",
-  "globalIDSource": true,
-  "source": {
-    "dataSource": "db",
-    "collection": "authors",
-    "typeMappings": {
-      "author": {
-        "fieldMappings": {
-          "author_id": {
-            "column": "id"
-          },
-          "first_name": {
-            "column": "first_name"
-          },
-          "last_name": {
-            "column": "last_name"
-          }
-        }
-      }
-    }
-  },
-  "graphql": {
-    "selectUniques": [
-      {
-        "queryRootField": "AuthorByID",
-        "uniqueIdentifier": ["author_id"]
-      }
-    ],
-    "selectMany": {
-      "queryRootField": "AuthorMany"
-    },
-    "filterExpressionType": "Author_Where_Exp",
-    "orderByExpressionType": "Author_Order_By"
-  }
-}
+```yaml
+kind: Model
+name: Authors
+dataType: author
+globalIDSource: true
+source:
+  dataSource: db
+  collection: authors
+  typeMappings:
+    author:
+      fieldMappings:
+        author_id:
+          column: id
+        first_name:
+          column: first_name
+        last_name:
+          column: last_name
+graphql:
+  selectUniques:
+    - queryRootField: AuthorByID
+      uniqueIdentifier:
+        - author_id
+  selectMany:
+    queryRootField: AuthorMany
+  filterExpressionType: Author_Where_Exp
+  orderByExpressionType: Author_Order_By
 ```

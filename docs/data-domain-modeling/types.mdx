@@ -1,7 +1,9 @@
 ---
 sidebar_position: 2
 sidebar_label: Types
-description: Understand OpenDD types in Hasura, including primitive types, container types and custom types. Learn to define the structure of your data and map existing data source scalars to types in your data domain.
+description:
+  Understand OpenDD types in Hasura, including primitive types, container types and custom types. Learn to define the
+  structure of your data and map existing data source scalars to types in your data domain.
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -59,16 +61,12 @@ directly.
 
 Container types are defined as:
 
-```json
-{
-  "Nullable": <Type>
-}
+```yaml
+Nullable: <Type>
 ```
 
-```json
-{
-  "Array": <Type>
-}
+```yaml
+Array: <Type>
 ```
 
 | Value  | Description                                                                            |
@@ -79,18 +77,16 @@ Container types are defined as:
 
 Examples of container types:
 
-```json
-{
-  "name": "category",
-  "type": { "Nullable": "ProductCategory" }
-}
+```yaml
+name: category
+type:
+  Nullable: ProductCategory
 ```
 
-```json
-{
-  "name": "tags",
-  "type": { "Array": "String" }
-}
+```yaml
+name: tags
+type:
+  Array: String
 ```
 
 ## Scalar types {#scalar-types}
@@ -101,12 +97,10 @@ container or custom type and can be a string or an object.
 
 ### Metadata structure
 
-```json
-{
-    "kind": "ScalarType",
-    "name": "<TypeName>",
-    "representation": <Type>
-}
+```yaml
+kind: ScalarType
+name: <TypeName>
+representation: <Type>
 ```
 
 | Field            | Type     | Required | Description                                                                            |
@@ -118,36 +112,25 @@ container or custom type and can be a string or an object.
 
 ### Examples
 
-```json
-{
-  "kind": "ScalarType",
-  "name": "UUID",
-  "representation": "String"
-}
+```yaml
+kind: ScalarType
+name: UUID
+representation: String
 ```
 
-```json
-[
-  {
-    "kind": "ScalarType",
-    "name": "Tag",
-    "representation": "String"
-  },
-  {
-    "kind": "ScalarType",
-    "name": "Tags",
-    "representation": {
-      "Array": "Tag"
-    }
-  }
-]
+```yaml
+- kind: ScalarType
+  name: Tag
+  representation: String
+- kind: ScalarType
+  name: Tags
+  representation:
+    Array: Tag
 ```
 
-```json
-{
-  "kind": "ScalarType",
-  "name": "OpaqueDate"
-}
+```yaml
+kind: ScalarType
+name: OpaqueDate
 ```
 
 ## Object types {#object-types}
@@ -157,21 +140,14 @@ also define a name and the fields for this type.
 
 ### Metadata structure
 
-```json
-{
-  "kind": "ObjectType",
-  "name": "<TypeName>",
-  "fields": [
-    {
-      "name": "field1",
-      "type": <Type>
-    },
-    {
-      "name": "field2",
-      "type": <Type>
-    }
-  ]
-}
+```yaml
+kind: ObjectType
+name: <TypeName>
+fields:
+  - name: field1
+    type: <Type>
+  - name: field2
+    type: <Type>
 ```
 
 | Field    | Type      | Required | Description       |
@@ -190,25 +166,16 @@ also define a name and the fields for this type.
 
 ### Examples
 
-```json
-{
-  "kind": "ObjectType",
-  "name": "author",
-  "fields": [
-    {
-      "name": "author_id",
-      "type": "Int"
-    },
-    {
-      "name": "first_name",
-      "type": "String"
-    },
-    {
-      "name": "last_name",
-      "type": "String"
-    }
-  ]
-}
+```yaml
+kind: ObjectType
+name: author
+fields:
+  - name: author_id
+    type: Int
+  - name: first_name
+    type: String
+  - name: last_name
+    type: String
 ```
 
 ## Scalar type representation for data connectors {#scalar-type-representation}
@@ -222,13 +189,11 @@ It is necessary to map all available scalars from a data source to OpenDD types.
 
 ### Metadata structure
 
-```json
-{
-  "kind": "DataConnectorScalarRepresentation",
-  "dataSource": "<DataSourceName>",
-  "scalarType": "<ScalarTypeName>",
-  "representation": <Type>
-}
+```yaml
+kind: DataConnectorScalarRepresentation
+dataSource: <DataSourceName>
+scalarType: <ScalarTypeName>
+representation: <Type>
 ```
 
 | Field            | Type     | Required | Description                                                                        |
@@ -241,40 +206,26 @@ It is necessary to map all available scalars from a data source to OpenDD types.
 
 1. Mapping a `text` scalar type from the `my_source` source to a primitive `String` type.
 
-```json
-{
-  "kind": "DataConnectorScalarRepresentation",
-  "dataSource": "my_source",
-  "scalarType": "text",
-  "representation": "String"
-}
+```yaml
+kind: DataConnectorScalarRepresentation
+dataSource: my_source
+scalarType: text
+representation: String
 ```
 
 2. Mapping a PostgreSQL scalar `geography` to a custom object type.
 
-```json
-[
-  {
-    "kind": "ObjectType",
-    "name": "Geography",
-    "fields": [
-      {
-        "name": "type",
-        "type": "String"
-      },
-      {
-        "name": "coordinates",
-        "type": {
-          "Array": "Float"
-        }
-      }
-    ]
-  },
-  {
-    "kind": "DataConnectorScalarRepresentation",
-    "dataSource": "pg_source",
-    "scalarType": "geography",
-    "representation": "Geography"
-  }
-]
+```yaml
+- kind: ObjectType
+  name: Geography
+  fields:
+    - name: type
+      type: String
+    - name: coordinates
+      type:
+        Array: Float
+- kind: DataConnectorScalarRepresentation
+  dataSource: pg_source
+  scalarType: geography
+  representation: Geography
 ```
