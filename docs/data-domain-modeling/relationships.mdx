@@ -1,7 +1,9 @@
 ---
 sidebar_position: 7
 sidebar_label: Relationships
-description: Learn how to define relationships for querying nested or linked information in Hasura using the OpenDD spec in GraphQL. Discover how to create and map relationships between different types and models.
+description:
+  Learn how to define relationships for querying nested or linked information in Hasura using the OpenDD spec in
+  GraphQL. Discover how to create and map relationships between different types and models.
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -30,14 +32,12 @@ type, a target model and the mapping between the two.
 
 ### Metadata structure
 
-```json
-{
-  "kind": "Relationship",
-  "source": <String>,
-  "name": <String>,
-  "target": <TargetConfiguration>,
-  "mappings": <RelationshipMapping>
-}
+```yaml
+kind: Relationship
+source: <String>
+name: <String>
+target: <TargetConfiguration>
+mappings: <RelationshipMapping>
 ```
 
 | Field      | Type                                            | Required | Description                                                                                      |
@@ -48,11 +48,9 @@ type, a target model and the mapping between the two.
 
 #### TargetConfiguration
 
-```json
-{
-  "modelName": <String>,
-  "relationshipType": <RelationshipType>
-}
+```yaml
+modelName: <String>
+relationshipType: <RelationshipType>
 ```
 
 | Field              | Type                                    | Required | Description                                               |
@@ -62,8 +60,8 @@ type, a target model and the mapping between the two.
 
 #### RelationshipType
 
-```json
-"Object" | "Array"
+```yaml
+relationshipType: Object | Array
 ```
 
 | Value    | Description                                     |
@@ -73,11 +71,9 @@ type, a target model and the mapping between the two.
 
 #### RelationshipMapping
 
-```json
-[
-  "source": <RelationshipMappingSource>,
-  "target": <RelationshipMappingTarget>
-]
+```yaml
+- source: <RelationshipMappingSource>
+  target: <RelationshipMappingTarget>
 ```
 
 | Field    | Type                                                      | Required | Description                             |
@@ -87,12 +83,9 @@ type, a target model and the mapping between the two.
 
 #### RelationshipMappingSource
 
-```json
-{
-  "fieldPath": [
-    <FieldAccess>
-  ]
-}
+```yaml
+fieldPath:
+  - <FieldAccess>
 ```
 
 | Field       | Type                            | Required | Description                             |
@@ -101,12 +94,9 @@ type, a target model and the mapping between the two.
 
 #### RelationshipMappingTarget
 
-```json
-{
-  "modelField": [
-    <FieldAccess>
-  ]
-}
+```yaml
+modelField:
+  - <FieldAccess>
 ```
 
 | Field        | Type                            | Required | Description                             |
@@ -115,10 +105,8 @@ type, a target model and the mapping between the two.
 
 #### FieldAccess
 
-```json
-{
-  "fieldName": <FieldName>
-}
+```yaml
+fieldName: <FieldName>
 ```
 
 | Field       | Type        | Required | Description                             |
@@ -131,66 +119,38 @@ Let's add the following relationships to the above types.
 
 1. `Array` relationship where `Authors` have many `Articles`:
 
-```json
-{
-  "kind": "Relationship",
-  "source": "author",
-  "name": "Articles",
-  "target": {
-    "modelName": "Articles",
-    "relationshipType": "Array"
-  },
-  "mappings": [
-    {
-      "source": {
-        "fieldPath": [
-          {
-            "fieldName": "id"
-          }
-        ]
-      },
-      "target": {
-        "modelField": [
-          {
-            "fieldName": "author_id"
-          }
-        ]
-      }
-    }
-  ]
-}
+```yaml
+kind: Relationship
+source: author
+name: Articles
+target:
+  modelName: Articles
+  relationshipType: Array
+mappings:
+  - source:
+      fieldPath:
+        - fieldName: id
+    target:
+      modelField:
+        - fieldName: author_id
 ```
 
 2. `Object` relationship where `Articles` have one `Author`:
 
-```json
-{
-  "kind": "Relationship",
-  "source": "article",
-  "name": "Author",
-  "target": {
-    "modelName": "Authors",
-    "relationshipType": "Object"
-  },
-  "mappings": [
-    {
-      "source": {
-        "fieldPath": [
-          {
-            "fieldName": "author_id"
-          }
-        ]
-      },
-      "target": {
-        "modelField": [
-          {
-            "fieldName": "id"
-          }
-        ]
-      }
-    }
-  ]
-}
+```yaml
+kind: Relationship
+source: article
+name: Author
+target:
+  modelName: Authors
+  relationshipType: Object
+mappings:
+  - source:
+      fieldPath:
+        - fieldName: author_id
+    target:
+      modelField:
+        - fieldName: id
 ```
 
 The resulting GraphQL schema will appear as:
