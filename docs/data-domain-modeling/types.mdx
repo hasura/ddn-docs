@@ -1,43 +1,48 @@
 ---
-sidebar_position: 4
+sidebar_position: 2
 sidebar_label: Types
-description: OpenDD Types
+description:
+  Understand OpenDD types in Hasura, including primitive types, container types and custom types. Learn to define the
+  structure of your data and map existing data source scalars to types in your data domain.
+toc_max_heading_level: 4
 keywords:
   - hasura
-  - graphql
-  - data domain
+  - opendd
   - types
+  - data domain
+  - container types
+  - custom types
+  - primitive types
+  - graphql
+  - data structure
+  - data specification
+seoFrontMatterUpdated: true
 ---
 
 # OpenDD Types
 
 ## Introduction
 
-In the Open Data Domain Specification in Hasura DDN, types serve as the fundamental elements that define the structure
-of your data.
+In the OpenDD spec in Hasura, types serve as the fundamental elements that define the structure of your data.
 
 Being able to define types in your data domain is beneficial because it provides you with the flexibility to define them
 separately from the types in your data source.
 
 The specification employs a concrete type system that includes both primitive types and user-defined types. All
-subsequent layers, such as operators, models, and commands, are defined in terms of these types.
-
-[//]: # "Link out above para"
+subsequent layers, such as models, commands, and relationships are defined in terms of these types.
 
 The types can be one of the following:
 
 | OpenDD Type | Description                                                             |
 | ----------- | ----------------------------------------------------------------------- |
-| Primitive   | These are basic types such as `Int`, `Float`, `Boolean`, or `String`    |
+| Primitive   | These are the basic types `Int`, `Float`, `Boolean`, or `String`        |
 | Container   | These are types that can hold other types such as `Nullable` or `Array` |
 | Custom      | These are user-defined types, such as `ScalarType` or `ObjectType`      |
 
 The spec also allows you to map existing data source scalars to types in your data domain.
 
-## Description
-
-**Container types are types that can contain other primitive or custom types.** Currently, container types can be
-nullable or arrays. Nullability in your data source types are represented using the `Nullable` container type.
+Container types are types that can contain other primitive or custom types. Currently, container types can be nullable
+or arrays. Nullability in your data source types are represented using the `Nullable` container type.
 
 You can also define custom types by either aliasing existing types (such as primitives or custom), or you can define a
 type with fields. In turn, the fields themselves can be a primitive or another custom type.
@@ -47,30 +52,44 @@ type with fields. In turn, the fields themselves can be a primitive or another c
 [Scalar type representation](#scalar-type-representation) helps in mapping data source scalars to any of the OpenDD
 primitive, container or custom types.
 
-## Primitive and container types
+## Primitive and container types {#primitive-and-container-types}
 
 Primitive types don't have any metadata structure and simply use the names `Int` / `Float` / `Boolean` / `String`
 directly.
 
+### Metadata structure
+
 Container types are defined as:
 
-```json
-{
-  "Nullable": <Type>
-}
+```yaml
+Nullable: <Type>
 ```
 
-```json
-{
-  "Array": <Type>
-}
+```yaml
+Array: <Type>
 ```
 
-| Value  | Description                                                                                                           |
-| ------ | --------------------------------------------------------------------------------------------------------------------- |
-| `Type` | String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
+| Value  | Description                                                                            |
+| ------ | -------------------------------------------------------------------------------------- |
+| `Type` | String in case of primitive or custom types. An object in the case of container types. |
 
-## ScalarType
+### Examples
+
+Examples of container types, using objects:
+
+```yaml
+name: category
+type:
+  Nullable: ProductCategory
+```
+
+```yaml
+name: tags
+type:
+  Array: String
+```
+
+## Scalar types {#scalar-types}
 
 In the OpenDD spec, you can alias types by defining an object with `"kind": "ScalarType"`. To define a `ScalarType` you
 need to define a name and an optional representation. This `representation` field can refer to any existing primitive,
@@ -78,117 +97,98 @@ container or custom type and can be a string or an object.
 
 ### Metadata structure
 
-```json
-{
-    "kind": "ScalarType",
-    "name": "<TypeName>",
-    "representation": <Type>
-}
+```yaml
+kind: ScalarType
+name: <TypeName>
+representation: <Type>
 ```
 
-| Field          | Type     | Required | Description                                                                                                           |
-| -------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| name           | `String` | true     | Name of the type                                                                                                      |
-| representation | `Type`   | false    | String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
+| Field            | Type     | Required | Description                                                                            |
+| ---------------- | -------- | -------- | -------------------------------------------------------------------------------------- |
+| `name`           | `String` | true     | Name of the type.                                                                      |
+| `representation` | `Type`   | false    | String in case of primitive or custom types. An object in the case of container types. |
 
 [//]: # "TODO link above"
 
 ### Examples
 
-```json
-{
-  "kind": "ScalarType",
-  "name": "UUID",
-  "representation": "String"
-}
+Below, we define an `Email` type that is represented as a primitive `String` type:
+
+```yaml
+kind: ScalarType
+name: Email
+representation: String
 ```
 
-```json
-[
-  {
-    "kind": "ScalarType",
-    "name": "Tag",
-    "representation": "String"
-  },
-  {
-    "kind": "ScalarType",
-    "name": "Tags",
-    "representation": {
-      "Array": "Tag"
-    }
-  }
-]
+Here, we define a `Tag` type that is represented as a primitive `String` type and an `Array` of `Tag` types that is
+represented as an array of `String` types:
+
+```yaml
+- kind: ScalarType
+  name: Tag
+  representation: String
+- kind: ScalarType
+  name: Tags
+  representation:
+    Array: Tag
 ```
 
-```json
-{
-  "kind": "ScalarType",
-  "name": "OpaqueDate"
-}
+Finally, we define an `OpaqueDate` type that is represented as a custom object type:
+
+```yaml
+kind: ScalarType
+name: OpaqueDate
 ```
 
-## Object types
+## Object types {#object-types}
 
 In the OpenDD spec, completely new types can be created by defining an object with `"kind": "ObjectType"`. You need to
 also define a name and the fields for this type.
 
 ### Metadata structure
 
-```json
-{
-  "kind": "ObjectType",
-  "name": "<TypeName>",
-  "fields": [
-    {
-      "name": "field1",
-      "type": <Type>
-    },
-    {
-      "name": "field2",
-      "type": <Type>
-    }
-  ]
-}
+```yaml
+kind: ObjectType
+name: <TypeName>
+fields:
+  - name: field1
+    type: <Type>
+  - name: field2
+    type: <Type>
 ```
 
-| Field  | Type      | Required | Description      |
-| ------ | --------- | -------- | ---------------- |
-| name   | `String`  | true     | Name of the type |
-| fields | `[Field]` | true     | List of fields   |
+| Field    | Type      | Required | Description       |
+| -------- | --------- | -------- | ----------------- |
+| `name`   | `String`  | true     | Name of the type. |
+| `fields` | `[Field]` | true     | List of fields.   |
 
 #### Field
 
-| Field | Type     | Required | Description                                                                                                                              |
-| ----- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| name  | `String` | true     | Name of the field                                                                                                                        |
-| type  | `Type`   | true     | Type of the field. String in case of primitive or custom types. An object in the case of container types. (Link to JSONSchema of `Type`) |
+| Field  | Type     | Required | Description                                                                                               |
+| ------ | -------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| `name` | `String` | true     | Name of the field .                                                                                       |
+| `type` | `Type`   | true     | Type of the field. String in case of primitive or custom types. An object in the case of container types. |
 
 [//]: # "TODO link above"
 
 ### Examples
 
-```json
-{
-  "kind": "ObjectType",
-  "name": "author",
-  "fields": [
-    {
-      "name": "author_id",
-      "type": "Int"
-    },
-    {
-      "name": "first_name",
-      "type": "String"
-    },
-    {
-      "name": "last_name",
-      "type": "String"
-    }
-  ]
-}
+Below, we define an `author` type that has three fields: `author_id`, `first_name`, and `last_name`. Each field is
+represented as a primitive `Int` or `String` type:
+
+```yaml
+kind: ObjectType
+name: author
+fields:
+  - name: author_id
+    type: Int
+  - name: first_name
+    type: String
+  - name: last_name
+    type: String
 ```
 
-## Scalar type representation
+## Scalar type representation for data connectors {#scalar-type-representation}
 
 A scalar type from a data source can be represented as an OpenDD type by defining an object with
 `"kind": "DataConnectorScalarRepresentation"`. To define a scalar type representation, you need to have a data source
@@ -199,59 +199,43 @@ It is necessary to map all available scalars from a data source to OpenDD types.
 
 ### Metadata structure
 
-```json
-{
-  "kind": "DataConnectorScalarRepresentation",
-  "dataSource": "<DataSourceName>",
-  "scalarType": "<ScalarTypeName>",
-  "representation": <Type>
-}
+```yaml
+kind: DataConnectorScalarRepresentation
+dataSource: <DataSourceName>
+scalarType: <ScalarTypeName>
+representation: <Type>
 ```
 
-| Field          | Type     | Required | Description                                                                                                       |
-| -------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
-| dataSource     | `String` | true     | Name of the data source                                                                                           |
-| scalarType     | `String` | true     | Name of the scalar type from the data source                                                                      |
-| representation | `Type`   | true     | String in case of primitive or custom types. An object in case of container types. (Link to JSONSchema of `Type`) |
+| Field            | Type     | Required | Description                                                                        |
+| ---------------- | -------- | -------- | ---------------------------------------------------------------------------------- |
+| `dataSource`     | `String` | true     | Name of the data source.                                                           |
+| `scalarType`     | `String` | true     | Name of the scalar type from the data source.                                      |
+| `representation` | `Type`   | true     | String in case of primitive or custom types. An object in case of container types. |
 
 ### Examples
 
-1. Mapping a `text` scalar type from `my_source` source to a primitive `String` type.
+1. Mapping a `text` scalar type from the `my_source` source to a primitive `String` type.
 
-```json
-{
-  "kind": "DataConnectorScalarRepresentation",
-  "dataSource": "my_source",
-  "scalarType": "text",
-  "representation": "String"
-}
+```yaml
+kind: DataConnectorScalarRepresentation
+dataSource: my_source
+scalarType: text
+representation: String
 ```
 
 2. Mapping a PostgreSQL scalar `geography` to a custom object type.
 
-```json
-[
-  {
-    "kind": "ObjectType",
-    "name": "Geography",
-    "fields": [
-      {
-        "name": "type",
-        "type": "String"
-      },
-      {
-        "name": "coordinates",
-        "type": {
-          "Array": "Float"
-        }
-      }
-    ]
-  },
-  {
-    "kind": "DataConnectorScalarRepresentation",
-    "dataSource": "pg_source",
-    "scalarType": "geography",
-    "representation": "Geography"
-  }
-]
+```yaml
+- kind: ObjectType
+  name: Geography
+  fields:
+    - name: type
+      type: String
+    - name: coordinates
+      type:
+        Array: Float
+- kind: DataConnectorScalarRepresentation
+  dataSource: pg_source
+  scalarType: geography
+  representation: Geography
 ```

@@ -1,5 +1,5 @@
-import React from "react";
-import VersionedLink from "@site/src/components/VersionedLink";
+import React from 'react';
+import VersionedLink from '@site/src/components/VersionedLink';
 
 // Props, all bool
 type ProductBadgeProps = {
@@ -30,10 +30,7 @@ function createLinks(props: ProductBadgeProps) {
   }
   if (props.standard) {
     links.push(
-      <VersionedLink
-        key="standard"
-        to="/hasura-cloud/overview/#cloud-professional"
-      >
+      <VersionedLink key="standard" to="/hasura-cloud/overview/#cloud-professional">
         Cloud Standard
       </VersionedLink>
     );
@@ -63,14 +60,12 @@ function createLinks(props: ProductBadgeProps) {
     if (index === links.length - 1) {
       return link;
     }
-    return [link, ", "];
+    return [link, ', '];
   });
 }
 
 const ProductBadge = (props: ProductBadgeProps) => (
-  <div className="badge badge--primary heading-badge">
-    Available on: {createLinks(props)}
-  </div>
+  <div className="badge badge--primary heading-badge">Available on: {createLinks(props)}</div>
 );
 
 export default ProductBadge;

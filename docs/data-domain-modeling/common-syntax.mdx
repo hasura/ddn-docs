@@ -1,12 +1,20 @@
 ---
-sidebar_position: 9
+sidebar_position: 10
 sidebar_label: Common OpenDD Spec Syntax
-description: Hasura Open Data Domain Specification Common Syntax
+description: Explore common OpenDD Spec Syntax such as ModelPredicate, FieldComparison and Relationship.
+toc_max_heading_level: 4
 keywords:
   - hasura
-  - data
-  - data domain specification
-  - opendd
+  - opendd syntax
+  - data modelling
+  - field comparison
+  - relationship
+  - modelpredicate
+  - hasura documentation
+  - open data domain specification
+  - hasura data domain
+  - hasura software
+seoFrontMatterUpdated: true
 ---
 
 # Common OpenDD Syntax
@@ -31,14 +39,11 @@ keywords:
 
 ### FieldComparison
 
-```json
-{
-  "fieldComparison": {
-    "field": "<FieldName>",
-    "operator": "<Operator>",
-    "value": <ValueExpression>
-  }
-}
+```yaml
+fieldComparison:
+  field: <FieldName>
+  operator: <Operator>
+  value: <ValueExpression>
 ```
 
 | Field    | Type                                  | Required | Description                                                                                                                           |
@@ -49,19 +54,16 @@ keywords:
 
 ### Relationship
 
-```json
-{
-  "relationship": {
-    "name": "<RelatioshipName>",
-    "predicate": <ModelPredicate>
-  }
-}
+```yaml
+relationship:
+  name: <RelationshipName>
+  predicate: <ModelPredicate>
 ```
 
-| Field        | Type                                | Required | Description                                   |
-| ------------ | ----------------------------------- | -------- | --------------------------------------------- |
-| relationship | `String`                            | true     | Name of relationship of the model to compare. |
-| predicate    | [`ModelPredicate`](#modelpredicate) | false    | The filter or predicate expression.           |
+| Field     | Type                                | Required | Description                                   |
+| --------- | ----------------------------------- | -------- | --------------------------------------------- |
+| name      | `String`                            | true     | Name of relationship of the model to compare. |
+| predicate | [`ModelPredicate`](#modelpredicate) | false    | The filter or predicate expression.           |
 
 ### AndExp
 
@@ -127,24 +129,58 @@ keywords:
 
 #### Examples
 
-```json
-{
-  "literal": "some string"
-}
+```yaml
+literal: some string
 ```
 
 ### SessionVariable
 
-```json
-{
-  "sessionVariable": "String"
-}
+```yaml
+sessionVariable: String
 ```
 
 #### Examples
 
+```yaml
+sessionVariable: x-hasura-user-id
+
+```
+
+## TypeMappings {#typemappings}
+
+The `typemappings` are used by [models](/data-domain-modeling/models.mdx) and
+[commands](/data-domain-modeling/commands.mdx) to define the mapping between the fields of the OpenDD `outputType`
+and the fields of the `result_type` of the `function` or `procedure`. It has the following fields:
+
 ```json
 {
-  "sessionVariable": "x-hasura-user-id"
+  "<CommandName>" : {
+    "fieldMappings": "<FieldMappings>"
+  }
 }
 ```
+
+| Field           | Type                              | Required | Description                                                                           |
+|-----------------|-----------------------------------|----------|---------------------------------------------------------------------------------------|
+| `CommandName`   | `String`                          | true     | Name of the command                                                                   |
+| `fieldMappings` | [`FieldMappings`](#fieldmappings) | true     | The field mapping between the fields of OpenDDS output type and the NDC result_type   |
+
+
+## FieldMappings {#fieldmappings}
+
+The `fieldMappings` are used by [`typemappings`](#typemappings) to define mapping for the fields of the `outputType`.
+
+It has the following fields:
+
+```json
+{
+  "<OpenDDSFieldName>": {
+    "column": "<String>"
+  }
+}
+```
+
+| Field               | Type     | Required | Description                                                                                                      |
+|---------------------|----------|----------|------------------------------------------------------------------------------------------------------------------|
+| `OpenDDSFieldName`  | `String` | true     | Name of the field of the output type                                                                             |
+| `column`            | `String` | true     | The name of the field in the NDC `result_type` of function or procedure to which the `OpenDDSFieldName` maps to  |
