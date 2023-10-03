@@ -33,72 +33,89 @@ To create a command, you need to define an OpenDD object with `"kind": "Command"
 
 ```yaml
 kind: Command
-name: <CommandName>
+name: <String>
 arguments: <ArgumentDefinition>
-outputType: <Type>
+outputType: <String>
 source: <CommandSourceConfiguration>
 graphql: <GraphQLConfiguration>
-
 ```
 
-| Field        | Type                                                        | Required | Description                                                                 |
-| ------------ | ----------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| `name`       | `String`                                                    | true     | Name of the command.                                                        |
-| `outputType` | `String`                                                    | true     | The name of the return type of command (either Custom/Primitive/Container). |
-| `arguments`  | [`[ArgumentDefinition]`](#argumentdefinition)               | false    | The argument definition for the command                                     |
-| `source`     | [`CommandSourceConfiguration`](#commandsourceconfiguration) | true     | Source configuration for the command.                                       |
-| `graphql`    | [`GraphQLConfiguration`](#graphqlconfiguration)             | true     | GraphQL configuration for the command.                                      |
+| Field        | Type                                                        | Required | Description                                            |
+|--------------|-------------------------------------------------------------|----------|--------------------------------------------------------|
+| `name`       | `String`                                                    | true     | Name of the command.                                   |
+| `arguments`  | [`[ArgumentDefinition]`](#argumentdefinition)               | false    | The argument definition for the command.               |
+| `outputType` | `String`                                                    | true     | The name of the return [type](./types.mdx) of command. |
+| `source`     | [`CommandSourceConfiguration`](#commandsourceconfiguration) | true     | Source configuration for the command.                  |
+| `graphql`    | [`GraphQLConfiguration`](#graphqlconfiguration)             | true     | GraphQL configuration for the command.                 |
 
-#### ArgumentDefinition
+#### ArgumentDefinition {#argumentdefinition}
 
 Arguments is a list of objects that defines the arguments for the command. An argument object has the following fields:
 
-```yaml
-name: <String>
-type: <Type>
-
+```json
+{
+  "name": "<String>",
+  "type": "<Type>"
+}
 ```
 
-| Field  | Type     | Required | Description           |
-| ------ | -------- | -------- | --------------------- |
-| `name` | `String` | true     | Name of the argument. |
-| `type` | `Type`   | true     | Type of the argument  |
+| Field  | Type     | Required | Description                                      |
+| ------ | -------- | -------- | ------------------------------------------------ |
+| `name` | `String` | true     | Name of the argument.                            |
+| `type` | `Type`   | true     | [Type](./types.mdx) of the argument as a string. |
 
-#### CommandSourceConfiguration
+#### CommandSourceConfiguration {#commandsourceconfiguration}
 
 Source is an object that defines the data source for the command. It has the following fields:
 
 ```yaml
-DataSource: <DataSourceName>
-# either function or procedure
-function: <CollectionName>
+{
+DataSource: <String>
+// Either function OR procedure
+function: <String>
 typeMappings: <TypeMappings>
-
+argumentMappings: <ArgumentMappings>
+}
 ```
 
 A command can either be backed by a function or a procedure.
 
-| Field                | Type     | Required | Description                                                                |
-| -------------------- | -------- | -------- | -------------------------------------------------------------------------- |
-| `DataSource`         | `String` | true     | Name of the data source.                                                   |
-| `function/procedure` | `String` | true     | Name of the function or procedure. One of these must be chosen.            |
-| `typeMappings`       | `Object` | false    | Type mappings for the command. Required only if `outputType` is Custom     |
-| `argumentMappings`   | `Object` | false    | Argument mappings for the command. Required only if `arguments` is defined |
+| Field                     | Type                                               | Required | Description                                                                |
+|---------------------------|----------------------------------------------------|----------|----------------------------------------------------------------------------|
+| `DataSource`              | `String`                                           | true     | Name of the [data source](./data-sources.mdx).                             |
+| `function` or `procedure` | `String`                                           | true     | Name of the function or procedure. One of these must be chosen.            |
+| `typeMappings`            | [`TypeMappings`](./common-syntax.mdx#typemappings) | false    | [Type](./types.mdx) mappings for the command.                              |
+| `argumentMappings`        | [`ArgumentMappings`](#argumentmappings)            | false    | Argument mappings for the command. Required only if `arguments` is defined |
+
 
 :::info Functions or Procedures?
 
-Functions always return a value whereas procedures always return an object. Functions are used for read operations and
-procedures are used for write operations.
+Functions are used for read operations and procedures are used for write operations.
 
 :::
 
-#### GraphQLConfiguration
+#### ArgumentMappings {#argumentmappings}
+
+The `argumentMappings` are used to define the mapping between the arguments of the OpenDD `arguments` and the arguments
+of the `function` or `procedure`. It has the following fields:
+
+```yaml
+<OpenDDSArgumentName>: <NDCArgumentName>
+```
+
+| Field                 | Type     | Required | Description                                                                                   |
+|-----------------------|----------|----------|-----------------------------------------------------------------------------------------------|
+| `OpenDDSArgumentName` | `String` | true     | Name of the argument of the command                                                           |
+| `NDCArgumentName`     | `String` | true     | The name of the argument in function or procedure to which the `OpenDDSArgumentName` maps to  |
+
+
+#### GraphQLConfiguration {#graphqlconfiguration}
 
 GraphQL is an object that defines the GraphQL configuration for the command. It has the following fields:
 
 ```yaml
-rootFieldName: <GraphQlFieldName>
-rootFieldKind: <GraphQlRootFieldKind>
+rootFieldName: <String>
+rootFieldKind: <String>
 
 ```
 
@@ -110,7 +127,6 @@ rootFieldKind: <GraphQlRootFieldKind>
 ## Examples
 
 ```yaml
----
 kind: Command
 name: get_article_by_id
 arguments:
