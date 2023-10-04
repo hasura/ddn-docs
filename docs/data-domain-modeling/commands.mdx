@@ -72,7 +72,7 @@ Source is an object that defines the data source for the command. It has the fol
 
 ```yaml
 {
-DataSource: <String>
+dataConnectorName: <String>
 // Either function OR procedure
 function: <String>
 typeMappings: <TypeMappings>
@@ -84,10 +84,10 @@ A command can either be backed by a function or a procedure.
 
 | Field                     | Type                                               | Required | Description                                                                |
 | ------------------------- | -------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
-| `DataSource`              | `String`                                           | true     | Name of the [data source](./data-sources.mdx).                             |
+| `dataConnectorName`       | `String`                                           | true     | Name of the [data connector](./data-connectors.mdx).                             |
 | `function` or `procedure` | `String`                                           | true     | Name of the function or procedure. One of these must be chosen.            |
 | `typeMappings`            | [`TypeMappings`](./common-syntax.mdx#typemappings) | false    | [Type](./types.mdx) mappings for the command.                              |
-| `argumentMappings`        | [`ArgumentMappings`](#argumentmappings)            | false    | Argument mappings for the command. Required only if `arguments` is defined |
+| `argumentMapping`         | [`ArgumentMapping`](#argumentmapping)            | false    | Argument mappings for the command. Required only if `arguments` is defined |
 
 :::info Functions or Procedures?
 
@@ -95,9 +95,9 @@ Functions are used for read operations and procedures are used for write operati
 
 :::
 
-#### ArgumentMappings {#argumentmappings}
+#### ArgumentMapping {#argumentmapping}
 
-The `argumentMappings` are used to define the mapping between the arguments of the OpenDD `arguments` and the arguments
+The `argumentMapping` are used to define the mapping between the arguments of the OpenDD `arguments` and the arguments
 of the `function` or `procedure`. It has the following fields:
 
 ```yaml
@@ -128,7 +128,7 @@ rootFieldKind: <String>
 Below, we're creating a `Command` called `get_article_by_id` which takes an argument `article_id` of type `Int` and
 returns an object of type `commandArticle`.
 [The command is backed by a function](/data-domain-modeling/common-syntax.mdx/#typemappings) called `get_article_by_id`
-in the `db` data source. The function returns an object with fields `id`, `title`, and `author_id`. The `id` field is
+in the `db` data connector. The function returns an object with fields `id`, `title`, and `author_id`. The `id` field is
 mapped to the `article_id` argument and the `title` and `author_id` fields are mapped to the `title` and `author_id`
 columns respectively.
 
@@ -140,18 +140,18 @@ arguments:
     type: Int
 outputType: commandArticle
 source:
-  dataSource: db
+  dataConnectorName: db
   function: get_article_by_id
-  typeMappings:
+  typeMapping:
     commandArticle:
-      fieldMappings:
+      fieldMapping:
         article_id:
           column: id
         title:
           column: title
         author_id:
           column: author_id
-  argumentMappings:
+  argumentMapping:
     article_id: id
 graphql:
   rootFieldName: getLatestArticle

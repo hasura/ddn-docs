@@ -1,11 +1,11 @@
 ---
 sidebar_position: 3
-sidebar_label: Data Sources
-description: Learn how to configure data sources for Hasura OpenDD spec.
+sidebar_label: Data Connectors
+description: Learn how to configure data connectors for Hasura OpenDD spec.
 toc_max_heading_level: 4
 keywords:
   - hasura opendd
-  - data source configuration
+  - data connector configuration
   - sql database
   - nosql database
   - rest apis
@@ -16,74 +16,64 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-# OpenDD Data Sources
+# OpenDD Data Connectors
 
 ## Introduction
 
-A `DataSource` is a way to specify where your data comes from and how it can be used. It can connect to various types of
+A `DataConnector` is a way to specify where your data comes from and how it can be used. It can connect to various types of
 data, like SQL databases, NoSQL databases, REST APIs, GraphQL APIs, files, and more.
 
-In the Open Data Domain Specification (OpenDD spec), every data source must have a connector URL and a schema. This
+In the Open Data Domain Specification (OpenDD spec), every data connector must have a connector URL and a schema. This
 schema defines how the data is structured and what operations can be performed on the data.
 
-Once you've declared a data source, you can use it in your [model's](/data-domain-modeling/models.mdx) configuration by
+Once you've declared a data conector, you can use it in your [model's](/data-domain-modeling/models.mdx) configuration by
 [referencing it with the `source`](/data-domain-modeling/models.mdx/#source) property, which connects that model to the
-respective data source.
+respective data connector.
 
 ## Description
 
-To create a `DataSource`, start by defining an OpenDD object with the `kind` set to `DataSource`. This object should
-include three fields: `name`, `data_connector_url`, and `schema` and an optional field `auth`.
+To create a `DataConnector`, start by defining an OpenDD object with the `kind` set to `DataConnector`. This object should
+include three fields: `name`, `url`, and `schema` and an optional field `headers`.
 
 ```yaml
-kind: DataSource
-name: <DataSourceName>
-data_connector_url: <DataConnectorURL>
-auth: <DataSourceAuth>
+kind: DataConnector
+name: <DataConnectorName>
+url: <DataConnectorURL>
+headers: <DataConnectorHeaders>
 schema: <SchemaResponse>
 ```
 
-| Field                | Type                                    | Required | Description                                                                                                                            |
-| -------------------- | --------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`               | `String`                                | true     | Name of the Data Source.                                                                                                               |
-| `data_connector_url` | [`DataConnectorURL`](#dataconnectorurl) | true     | URL to access the data source connector.                                                                                               |
-| `auth`               | [`DataSourceAuth`](#datasourceauth)     | false    | Authentication configuration to access the data source connector.                                                                      |
-| `schema`             | [`SchemaResponse`](#schemaresponse)     | true     | The schema response from the data connector. This includes `scalar_types`, `object_type`, `collections`, `functions` and `procedures`. |
+| Field                | Type                                            | Required | Description                                                                                                                               |
+| -------------------- | ----------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`               | `String`                                        | true     | Name of the Data Connector.                                                                                                               |
+| `url`                | [`DataConnectorURL`](#dataconnectorurl)         | true     | URL to access the data connector.                                                                                                         |
+| `headers`            | [`DataConnectorHeaders`](#dataconnectorheaders) | false    | Headers to pass to the data connector.                                                                                                    |
+| `schema`             | [`SchemaResponse`](#schemaresponse)             | true     | The schema response from the data connector. This includes `scalar_types`, `object_type`, `collections`, `functions` and `procedures`.    |
 
 ### DataConnectorURL
 
-`DataConnectorURL` is an object that defines URLs for a Data-Connector. It contains the following fields:
+`DataConnectorURL` is either a string containing the URL of the data connector or an object that defines separate read/write data connector URLs:
 
 ```yaml
-url: <String URL used for fallback>
-reads: <optional string of read Data-Connector URL>
-writes: <optional string of write Data-Connector URL>
+read: Read URL for the data connector
+write: Write URL for the data connector
 ```
 
-Data Connector URL is used to access the data source connector based on the GraphQL operation type. For example, if the
-operation type is `Query` or `Subscription`, then the `reads` URL will be used to access the data source connector.
-Similarly, for a `Mutation` operation, the `writes` URL will be used. If either `reads` or `writes` are not provided,
-`url` will be used in their place.
+Read/Write URLs are used to access the appropriate data connector based on the GraphQL operation type. For example, if the
+operation type is `Query` or `Subscription`, then the `read` URL will be used to access the data connector connector.
+Similarly, for a `Mutation` operation, the `write` URL will be used. 
 
-| Field    | Type     | Required | Description                                            |
-| -------- | -------- | -------- | ------------------------------------------------------ |
-| `url`    | `String` | true     | Fallback Data-Connector URL.                           |
-| `reads`  | `String` | false    | Data-Connector URL for reads (Query and Subscription). |
-| `writes` | `String` | false    | Data-Connector URL for writes (Mutation).              |
+### DataConnectorHeaders
 
-### DataSourceAuth
-
-`DataSourceAuth` is an object that defines the authentication configuration to access the data source connector. This
-will be forwarded to the specified data source connector as an `Authorization: Bearer <token>` header.
-
-| Field   | Type     | Required | Description                                             |
-| ------- | -------- | -------- | ------------------------------------------------------- |
-| `type`  | `Bearer` | true     | Currently we only support `Bearer` type authentication. |
-| `token` | `String` | true     | Token required to access the data source connector.     |
+`DataConnectorHeaders` is an object that defines the headers to be forwarded to the data connector when making requests. They keys of this object are header names and the values are the header values. Eg: If a bearer authorization token needs to be forwarded, the headers field would be:
+```yaml
+headers:
+  Authorization: Bearer <token>
+```
 
 ### SchemaResponse
 
-`SchemaResponse` is an object that defines the types, schema, functions, etc. of the data source. This is usually
+`SchemaResponse` is an object that defines the types, schema, functions, etc. of the data connector. This is usually
 provided by the `/schema` endpoint of the data connector. It contains the following fields:
 
 ```yaml
@@ -99,14 +89,14 @@ The structure and detailed documentation of these fields can be found
 
 ## Example
 
-In this example, we'll create a data source for the Chinook data set. The Chinook data set is a sample database that
+In this example, we'll create a data connector for the Chinook data set. The Chinook data set is a sample database that
 represents a digital media store, including tables for artists, albums, tracks, and more. Each object we reference above
 is present in the complete example below:
 
 ```yaml
-kind: DataSource
-name: my_data_source
-data_connector_url: http://localhost:8080
+kind: DataConnector
+name: my_data_connector
+url: http://localhost:8080
 schema:
   scalar_types:
     String:
