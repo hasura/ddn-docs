@@ -3,7 +3,7 @@ sidebar_position: 2
 sidebar_label: Types
 description:
   Understand OpenDD types in Hasura, including primitive types, container types and custom types. Learn to define the
-  structure of your data and map existing data source scalars to types in your data domain.
+  structure of your data and map existing data connector scalars to types in your data domain.
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -26,7 +26,7 @@ seoFrontMatterUpdated: true
 In the OpenDD spec in Hasura, types serve as the fundamental elements that define the structure of your data.
 
 Being able to define types in your data domain is beneficial because it provides you with the flexibility to define them
-separately from the types in your data source.
+separately from the types in your data connector.
 
 The specification employs a concrete type system that includes both primitive types and user-defined types. All
 subsequent layers, such as models, commands, and relationships are defined in terms of these types.
@@ -39,17 +39,17 @@ The types can be one of the following:
 | Container   | These are types that can hold other types such as `Nullable` or `Array` |
 | Custom      | These are user-defined types, such as `ScalarType` or `ObjectType`      |
 
-The spec also allows you to map existing data source scalars to types in your data domain.
+The spec also allows you to map existing data connector scalars to types in your data domain.
 
 Container types are types that can contain other primitive or custom types. Currently, container types can be nullable
-or arrays. Nullability in your data source types are represented using the `Nullable` container type.
+or arrays. Nullability in your data connector types are represented using the `Nullable` container type.
 
 You can also define custom types by either aliasing existing types (such as primitives or custom), or you can define a
 type with fields. In turn, the fields themselves can be a primitive or another custom type.
 
-[//]: # "TODO: Add reference to scalars 👇 when data sources are documented"
+[//]: # "TODO: Add reference to scalars 👇 when data connector are documented"
 
-[Scalar type representation](#scalar-type-representation) helps in mapping data source scalars to any of the OpenDD
+[Scalar type representation](#scalar-type-representation) helps in mapping data connector scalars to any of the OpenDD
 primitive, container or custom types.
 
 ## Primitive and container types {#primitive-and-container-types}
@@ -190,36 +190,36 @@ fields:
 
 ## Scalar type representation for data connectors {#scalar-type-representation}
 
-A scalar type from a data source can be represented as an OpenDD type by defining an object with
-`"kind": "DataConnectorScalarRepresentation"`. To define a scalar type representation, you need to have a data source
+A scalar type from a data connector can be represented as an OpenDD type by defining an object with
+`"kind": "DataConnectorScalarRepresentation"`. To define a scalar type representation, you need to have a data connector
 name, a scalar name and a type representation. This `representation` can refer to any existing primitive, container, or
 custom type and can be a string or an object.
 
-It is necessary to map all available scalars from a data source to OpenDD types.
+It is necessary to map all available scalars from a data connector to OpenDD types.
 
 ### Metadata structure
 
 ```yaml
 kind: DataConnectorScalarRepresentation
-dataSource: <DataSourceName>
-scalarType: <ScalarTypeName>
+dataConnectorName: <DataSourceName>
+dataConnectorScalarType: <ScalarTypeName>
 representation: <Type>
 ```
 
-| Field            | Type     | Required | Description                                                                        |
-| ---------------- | -------- | -------- | ---------------------------------------------------------------------------------- |
-| `dataSource`     | `String` | true     | Name of the data source.                                                           |
-| `scalarType`     | `String` | true     | Name of the scalar type from the data source.                                      |
-| `representation` | `Type`   | true     | String in case of primitive or custom types. An object in case of container types. |
+| Field                     | Type     | Required | Description                                                                        |
+| ------------------------- | -------- | -------- | ---------------------------------------------------------------------------------- |
+| `dataConnectorName`       | `String` | true     | Name of the data connector.                                                        |
+| `dataConnectorScalarType` | `String` | true     | Name of the scalar type from the data connector.                                   |
+| `representation`          | `Type`   | true     | String in case of primitive or custom types. An object in case of container types. |
 
 ### Examples
 
-1. Mapping a `text` scalar type from the `my_source` source to a primitive `String` type.
+1. Mapping a `text` scalar type from the `my_source` connector to a primitive `String` type.
 
 ```yaml
 kind: DataConnectorScalarRepresentation
-dataSource: my_source
-scalarType: text
+dataConnectorName: my_source
+dataConnectorScalarType: text
 representation: String
 ```
 
@@ -235,7 +235,7 @@ representation: String
       type:
         Array: Float
 - kind: DataConnectorScalarRepresentation
-  dataSource: pg_source
-  scalarType: geography
+  dataConnectorName: pg_source
+  dataConnectorScalarType: geography
   representation: Geography
 ```
