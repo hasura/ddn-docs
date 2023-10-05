@@ -23,24 +23,27 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-A relationship allows you to define the relationships from a [**type**](./types.mdx) to a [**model**](./models.mdx) in your data
-domain through which you will be able to query related data in one efficient request. For example, a relationship can be
-defined from `Manufacturers` to `Products` so that you can query all the products for a given manufacturer in one nested
-query.
+A relationship allows you to define the relationships from a [**type**](./types.mdx) to a [**model**](./models.mdx) in
+your data domain through which you will be able to query related data in one efficient request. For example, a
+relationship can be defined from `Manufacturers` to `Products` so that you can query all the products for a given
+manufacturer in one nested query.
 
 To create a relationship, you will need to define an object with `"kind": "Relationship"` which has a name, the source
 type, a target model and the mapping between the two.
 
 :::info No distinction between local or remote data relationships
 
-The OpenDD spec doesn't distinguish between local or remote data relationships. If you have data sources present on a Hasura v3 project, Hasura will
-automatically identify this and make efficient queries based on that distinction.
+The OpenDD spec doesn't distinguish between local or remote data relationships. If you have data sources present on a
+Hasura v3 project, Hasura will automatically identify this and make efficient queries based on that distinction.
 
 :::
 
 [//]: # "TODO reference to the query planning docs on how relationships are processed."
 
 ### Metadata structure
+
+To create a relationship, you need to define an OpenDD object with "kind": "Relationship", which has the following
+fields:
 
 ```yaml
 kind: Relationship
@@ -58,6 +61,8 @@ mapping: <RelationshipMapping>
 
 #### TargetConfiguration
 
+The target configuration defines the target model and the type of relationship and can be represented as follows:
+
 ```yaml
 modelName: <String>
 relationshipType: <RelationshipType>
@@ -70,6 +75,9 @@ relationshipType: <RelationshipType>
 
 #### RelationshipType
 
+The relationship type defines the type of relationship between the source and target whether it is a Object (one-to-one)
+or a Array (one-to-many) relationship and can be represented as follows:
+
 ```yaml
 relationshipType: Object | Array
 ```
@@ -80,6 +88,8 @@ relationshipType: Object | Array
 | `Array`  | The relationship is a one-to-many relationship. |
 
 #### RelationshipMapping
+
+The relationship mapping defines how the source and target should be connected and can be represented as follows:
 
 ```yaml
 - source: <RelationshipMappingSource>
@@ -145,6 +155,17 @@ mappings:
         - fieldName: author_id
 ```
 
+The resulting GraphQL schema will appear as:
+
+```graphql
+type Authors {
+  author_id Int!
+  first_name String!
+  last_name String!
+  articles: [Articles!]!
+}
+```
+
 2. `Object` relationship where `Articles` have one `Author`:
 
 ```yaml
@@ -166,12 +187,6 @@ mappings:
 The resulting GraphQL schema will appear as:
 
 ```graphql
-type Authors {
-  author_id Int!
-  first_name String!
-  last_name String!
-  articles: [Articles!]!
-}
 
 type Articles {
   id Int!
