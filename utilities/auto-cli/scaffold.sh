@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directory to store generated MDX files
-MDX_DIR="../../docs/ci-cd/cli/commands"
+MDX_DIR="../../docs/cli/commands"
 
 # Get rid of the old directory if it exists
 rm -rf "$MDX_DIR"
@@ -12,7 +12,7 @@ mkdir -p "$MDX_DIR"
 # Create the _category_.json file
 echo -e '{
   "label": "Commands",
-  "position": 2
+  "position": 3
 }
 ' > "$MDX_DIR/_category_.json"
 

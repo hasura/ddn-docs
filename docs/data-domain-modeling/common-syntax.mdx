@@ -39,37 +39,31 @@ seoFrontMatterUpdated: true
 
 ### FieldComparison
 
-```json
-{
-  "fieldComparison": {
-    "field": "<FieldName>",
-    "operator": "<Operator>",
-    "value": <ValueExpression>
-  }
-}
+```yaml
+fieldComparison:
+  field: <FieldName>
+  operator: <Operator>
+  value: <ValueExpression>
 ```
 
 | Field    | Type                                  | Required | Description                                                                                                                           |
 | -------- | ------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | field    | `String`                              | true     | Name of the field of the model to compare.                                                                                            |
-| operator | `String`                              | true     | Name of the operator. Either the built-in operators `_eq` or `_is_null`, or any of the operators available from the data source.      |
+| operator | `String`                              | true     | Name of the operator. Either the built-in operators `_eq` or `_is_null`, or any of the operators available from the data connector.   |
 | value    | [`ValueExpression`](#valueexpression) | false    | The value to compare. Can be a literal value or a a value from session variables. This can be omitted in case of `_is_null` operator. |
 
 ### Relationship
 
-```json
-{
-  "relationship": {
-    "name": "<RelatioshipName>",
-    "predicate": <ModelPredicate>
-  }
-}
+```yaml
+relationship:
+  name: <RelationshipName>
+  predicate: <ModelPredicate>
 ```
 
-| Field        | Type                                | Required | Description                                   |
-| ------------ | ----------------------------------- | -------- | --------------------------------------------- |
-| relationship | `String`                            | true     | Name of relationship of the model to compare. |
-| predicate    | [`ModelPredicate`](#modelpredicate) | false    | The filter or predicate expression.           |
+| Field     | Type                                | Required | Description                                   |
+| --------- | ----------------------------------- | -------- | --------------------------------------------- |
+| name      | `String`                            | true     | Name of relationship of the model to compare. |
+| predicate | [`ModelPredicate`](#modelpredicate) | false    | The filter or predicate expression.           |
 
 ### AndExp
 
@@ -135,24 +129,56 @@ seoFrontMatterUpdated: true
 
 #### Examples
 
-```json
-{
-  "literal": "some string"
-}
+```yaml
+literal: some string
 ```
 
 ### SessionVariable
 
-```json
-{
-  "sessionVariable": "String"
-}
+```yaml
+sessionVariable: String
 ```
 
 #### Examples
 
+```yaml
+sessionVariable: x-hasura-user-id
+```
+
+## TypeMapping {#typemapping}
+
+The `typemapping` are used by [models](/data-domain-modeling/models.mdx) and
+[commands](/data-domain-modeling/commands.mdx) to define the mapping between the fields of the OpenDD `outputType` and
+the fields of the `result_type` of the `function` or `procedure`. It has the following fields:
+
 ```json
 {
-  "sessionVariable": "x-hasura-user-id"
+  "<CommandName>": {
+    "fieldMapping": "<FieldMapping>"
+  }
 }
 ```
+
+| Field          | Type                            | Required | Description                                                                         |
+| -------------- | ------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `CommandName`  | `String`                        | true     | Name of the command                                                                 |
+| `fieldMapping` | [`FieldMapping`](#fieldmapping) | true     | The field mapping between the fields of OpenDDS output type and the NDC result_type |
+
+## FieldMapping {#fieldmapping}
+
+The `fieldMapping` is used by [`typemapping`](#typemapping) to define mapping for the fields of the `outputType`.
+
+It has the following fields:
+
+```json
+{
+  "<OpenDDSFieldName>": {
+    "column": "<String>"
+  }
+}
+```
+
+| Field              | Type     | Required | Description                                                                                                     |
+| ------------------ | -------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `OpenDDSFieldName` | `String` | true     | Name of the field of the output type                                                                            |
+| `column`           | `String` | true     | The name of the field in the NDC `result_type` of function or procedure to which the `OpenDDSFieldName` maps to |

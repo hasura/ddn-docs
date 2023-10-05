@@ -1,7 +1,9 @@
 ---
 sidebar_position: 3
 sidebar_label: Models
-description: Learn how to create and manage Hasura data domain models. These models are crucial links between your data sources and the Hasura generated API.
+description:
+  Learn how to create and manage Hasura data domain models. These models are crucial links between your data sources and
+  the Hasura generated API.
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -21,8 +23,8 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-Models are the link between your data sources and the API Hasura generates. A model may be backed by a database table,
-an ad-hoc SQL query, a pre-materialized view, a custom REST or GraphQL API server, etc.
+Models are the link between your data connectors and the API Hasura generates. A model may be backed by a database
+table, an ad-hoc SQL query, a pre-materialized view, a custom REST or GraphQL API server, etc.
 
 Once a model is declared it will then often be referenced by `Relationship` and/or `Permissions` objects.
 
@@ -32,21 +34,19 @@ To create a model, you need to define an OpenDD object with `"kind": "Model"`, w
 
 ### Metadata structure
 
-```json
-{
-  "kind": "Model",
-  "name": "<ModelName>",
-  "dataType": "<TypeName>",
-  "globalIDSource": true | false,
-  "source": "<SourceConfiguration>",
-  "graphql": "<GraphQLConfiguration>",
-}
+```yaml
+kind: Model
+name: <ModelName>
+objectType: <TypeName>
+globalIDSource: true | false
+source: <SourceConfiguration>
+graphql: <GraphQLConfiguration>
 ```
 
 | Field            | Type                                                               | Required | Description                                                           |
 | ---------------- | ------------------------------------------------------------------ | -------- | --------------------------------------------------------------------- |
 | `name`           | `String`                                                           | true     | Name of the model.                                                    |
-| `dataType`       | `String`                                                           | true     | [Type](/data-domain-modeling/types.mdx) of this model.                |
+| `objectType`     | `String`                                                           | true     | [Type](/data-domain-modeling/types.mdx) of this model.                |
 | `globalIDSource` | `Boolean`                                                          | false    | If a [Global ID](./global-id.mdx) should be generated for this model. |
 | `source`         | [`SourceConfiguration`](/data-domain-modeling/models.mdx/#source)  | true     | Source configuration for the model.                                   |
 | `graphql`        | [`GraphQLConfiguration`](data-domain-modeling/models.mdx/#graphql) | true     | GraphQL configuration for the model.                                  |
@@ -55,33 +55,28 @@ To create a model, you need to define an OpenDD object with `"kind": "Model"`, w
 
 Source is an object that defines the data source for the model. It has the following fields:
 
-```json
-{
-  "dataSource": "<DataSourceName>",
-  "collection": "<CollectionName>",
-  "typeMappings": "<TypeMappings>"
-}
+```yaml
+dataConnectorName: <DataConnectorName>
+collection: <CollectionName>
+typeMapping: <TypeMapping>
 ```
 
-| Field          | Type           | Required | Description                  |
-| -------------- | -------------- | -------- | ---------------------------- |
-| `dataSource`   | `String`       | true     | Name of the data source.     |
-| `collection`   | `String`       | true     | Name of the collection.      |
-| `typeMappings` | `TypeMappings` | true     | Type mappings for the model. |
+| Field           | Type                                             | Required | Description                  |
+| --------------- | ------------------------------------------------ | -------- | ---------------------------- |
+| `dataConnector` | `String`                                         | true     | Name of the data source.     |
+| `collection`    | `String`                                         | true     | Name of the collection.      |
+| `typeMapping`   | [`TypeMapping`](./common-syntax.mdx#typemapping) | true     | Type mappings for the model. |
 
 #### GraphQLConfiguration
 
 GraphQL is an object that defines the GraphQL configuration for the model. It has the following fields:
 
-```json
-{
-  "selectUniques": "<SelectUniques>",
-  "selectMany": "<SelectMany>",
-  "filterExpressionType": "<FilterExpressionType>",
-  "orderByExpressionType": "<OrderByExpressionType>",
-  "argumentsInputField": "<ArgumentsInputField>",
-  "argumentsInputType": "<ArgumentsInputType>"
-}
+```yaml
+selectUniques: <SelectUniques>
+selectMany: <SelectMany>
+filterExpressionType: <FilterExpressionType>
+orderByExpressionType: <OrderByExpressionType>
+argumentsInputType: <ArgumentsInputType>
 ```
 
 | Field                   | Type                                | Required | Description                                                                        |
@@ -90,18 +85,15 @@ GraphQL is an object that defines the GraphQL configuration for the model. It ha
 | `selectMany`            | [`SelectMany`](#selectmany)         | false    | Select many configuration for the model.                                           |
 | `filterExpressionType`  | `String`                            | false    | GraphQL type name for the filter input. Default - `<ModelName>_bool_exp`           |
 | `orderByExpressionType` | `String`                            | false    | GraphQL type name for the order by input. Default - `<ModelName>_order_by`         |
-| `argumentsInputField`   | `String`                            | false    | GraphQL input field name for the model arguments. Default - `args`                 |
 | `argumentsInputType`    | `String`                            | false    | GraphQL type name for the model arguments input. Default - `<ModelName>_arguments` |
 
 ##### SelectUniques
 
 Select uniques is an array of objects that define the unique identifiers for the model. It has the following fields:
 
-```json
-{
-  "queryRootField": "<QueryRootField>",
-  "uniqueIdentifier": "<UniqueIdentifier>"
-}
+```yaml
+queryRootField: <QueryRootField>
+uniqueIdentifier: <UniqueIdentifier>
 ```
 
 | Field              | Type     | Required | Description                                                          |
@@ -113,10 +105,8 @@ Select uniques is an array of objects that define the unique identifiers for the
 
 Select many is an object that defines the select many configuration for the model. It has the following fields:
 
-```json
-{
-  "queryRootField": "<QueryRootField>"
-}
+```yaml
+queryRootField: <QueryRootField>
 ```
 
 | Field            | Type     | Required | Description             |
@@ -125,43 +115,33 @@ Select many is an object that defines the select many configuration for the mode
 
 ## Examples
 
-```json
-{
-  "kind": "Model",
-  "name": "Authors",
-  "dataType": "author",
-  "globalIDSource": true,
-  "source": {
-    "dataSource": "db",
-    "collection": "authors",
-    "typeMappings": {
-      "author": {
-        "fieldMappings": {
-          "author_id": {
-            "column": "id"
-          },
-          "first_name": {
-            "column": "first_name"
-          },
-          "last_name": {
-            "column": "last_name"
-          }
-        }
-      }
-    }
-  },
-  "graphql": {
-    "selectUniques": [
-      {
-        "queryRootField": "AuthorByID",
-        "uniqueIdentifier": ["author_id"]
-      }
-    ],
-    "selectMany": {
-      "queryRootField": "AuthorMany"
-    },
-    "filterExpressionType": "Author_Where_Exp",
-    "orderByExpressionType": "Author_Order_By"
-  }
-}
+In this example, we're creating a model called `Authors` backed by a database table called `authors` in the `db` data
+source:
+
+```yaml
+kind: Model
+name: Authors
+objectType: author
+globalIdSource: true
+source:
+  dataConnectorName: db
+  collection: authors
+  typeMapping:
+    author:
+      fieldMapping:
+        author_id:
+          column: id
+        first_name:
+          column: first_name
+        last_name:
+          column: last_name
+graphql:
+  selectUniques:
+    - queryRootField: AuthorByID
+      uniqueIdentifier:
+        - author_id
+  selectMany:
+    queryRootField: AuthorMany
+  filterExpressionType: Author_Where_Exp
+  orderByExpressionType: Author_Order_By
 ```

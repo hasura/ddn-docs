@@ -1,7 +1,9 @@
 ---
 sidebar_position: 7
 sidebar_label: Relationships
-description: Learn how to define relationships for querying nested or linked information in Hasura using the OpenDD spec in GraphQL. Discover how to create and map relationships between different types and models.
+description:
+  Learn how to define relationships for querying nested or linked information in Hasura using the OpenDD spec in
+  GraphQL. Discover how to create and map relationships between different types and models.
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -30,29 +32,25 @@ type, a target model and the mapping between the two.
 
 ### Metadata structure
 
-```json
-{
-  "kind": "Relationship",
-  "source": <String>,
-  "name": <String>,
-  "target": <TargetConfiguration>,
-  "mappings": <RelationshipMapping>
-}
+```yaml
+kind: Relationship
+source: <String>
+name: <String>
+target: <TargetConfiguration>
+mapping: <RelationshipMapping>
 ```
 
-| Field      | Type                                            | Required | Description                                                                                      |
-| ---------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `source`   | `String`                                        | Yes      | The source [type](./types.mdx) of the relationship.                                              |
-| `target`   | [`TargetConfiguration`](#targetconfiguration)   | Yes      | The target of the relationship.                                                                  |
-| `mappings` | [`[RelationshipMapping]`](#relationshipmapping) | Yes      | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
+| Field     | Type                                            | Required | Description                                                                                      |
+| --------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `source`  | `String`                                        | Yes      | The source [type](./types.mdx) of the relationship.                                              |
+| `target`  | [`TargetConfiguration`](#targetconfiguration)   | Yes      | The target of the relationship.                                                                  |
+| `mapping` | [`[RelationshipMapping]`](#relationshipmapping) | Yes      | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
 
-#### TargetConfiguration:
+#### TargetConfiguration
 
-```json
-{
-  "modelName": <String>,
-  "relationshipType": <RelationshipType>
-}
+```yaml
+modelName: <String>
+relationshipType: <RelationshipType>
 ```
 
 | Field              | Type                                    | Required | Description                                               |
@@ -60,10 +58,10 @@ type, a target model and the mapping between the two.
 | `modelName`        | `String`                                | Yes      | The target [model](./models.mdx) of the relationship.     |
 | `relationshipType` | [`RelationshipType`](#relationshiptype) | Yes      | The type of the relationship: either `Object` or `Array`. |
 
-#### RelationshipType:
+#### RelationshipType
 
-```json
-"Object" | "Array"
+```yaml
+relationshipType: Object | Array
 ```
 
 | Value    | Description                                     |
@@ -71,13 +69,11 @@ type, a target model and the mapping between the two.
 | `Object` | The relationship is a one-to-one relationship.  |
 | `Array`  | The relationship is a one-to-many relationship. |
 
-#### RelationshipMapping:
+#### RelationshipMapping
 
-```json
-[
-  "source": <RelationshipMappingSource>,
-  "target": <RelationshipMappingTarget>
-]
+```yaml
+- source: <RelationshipMappingSource>
+  target: <RelationshipMappingTarget>
 ```
 
 | Field    | Type                                                      | Required | Description                             |
@@ -85,40 +81,32 @@ type, a target model and the mapping between the two.
 | `source` | [`RelationshipMappingSource`](#relationshipmappingsource) | Yes      | Defines how to access the source field. |
 | `target` | [`RelationshipMappingTarget`](#relationshipmappingtarget) | Yes      | Defines how to access the target field. |
 
-#### RelationshipMappingSource:
+#### RelationshipMappingSource
 
-```json
-{
-  "fieldPath": [
-    <FieldAccess>
-  ]
-}
+```yaml
+fieldPath:
+  - <FieldAccess>
 ```
 
 | Field       | Type                            | Required | Description                             |
 | ----------- | ------------------------------- | -------- | --------------------------------------- |
 | `fieldPath` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the source field. |
 
-#### RelationshipMappingTarget:
+#### RelationshipMappingTarget
 
-```json
-{
-  "modelField": [
-    <FieldAccess>
-  ]
-}
+```yaml
+modelField:
+  - <FieldAccess>
 ```
 
 | Field        | Type                            | Required | Description                             |
 | ------------ | ------------------------------- | -------- | --------------------------------------- |
 | `modelField` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the target field. |
 
-#### FieldAccess:
+#### FieldAccess
 
-```json
-{
-  "fieldName": <FieldName>
-}
+```yaml
+fieldName: <FieldName>
 ```
 
 | Field       | Type        | Required | Description                             |
@@ -129,71 +117,43 @@ type, a target model and the mapping between the two.
 
 Let's add the following relationships to the above types.
 
-1. `Array` relationship
+1. `Array` relationship where `Authors` have many `Articles`:
 
-```json
-{
-  "kind": "Relationship",
-  "source": "author",
-  "name": "Articles",
-  "target": {
-    "modelName": "Articles",
-    "relationshipType": "Array"
-  },
-  "mappings": [
-    {
-      "source": {
-        "fieldPath": [
-          {
-            "fieldName": "id"
-          }
-        ]
-      },
-      "target": {
-        "modelField": [
-          {
-            "fieldName": "author_id"
-          }
-        ]
-      }
-    }
-  ]
-}
+```yaml
+kind: Relationship
+source: author
+name: Articles
+target:
+  modelName: Articles
+  relationshipType: Array
+mappings:
+  - source:
+      fieldPath:
+        - fieldName: id
+    target:
+      modelField:
+        - fieldName: author_id
 ```
 
-2. `Object` relationship
+2. `Object` relationship where `Articles` have one `Author`:
 
-```json
-{
-  "kind": "Relationship",
-  "source": "article",
-  "name": "Author",
-  "target": {
-    "modelName": "Authors",
-    "relationshipType": "Object"
-  },
-  "mappings": [
-    {
-      "source": {
-        "fieldPath": [
-          {
-            "fieldName": "author_id"
-          }
-        ]
-      },
-      "target": {
-        "modelField": [
-          {
-            "fieldName": "id"
-          }
-        ]
-      }
-    }
-  ]
-}
+```yaml
+kind: Relationship
+source: article
+name: Author
+target:
+  modelName: Authors
+  relationshipType: Object
+mappings:
+  - source:
+      fieldPath:
+        - fieldName: author_id
+    target:
+      modelField:
+        - fieldName: id
 ```
 
-The resulting GraphQL schema will look as following:
+The resulting GraphQL schema will appear as:
 
 ```graphql
 type Authors {
