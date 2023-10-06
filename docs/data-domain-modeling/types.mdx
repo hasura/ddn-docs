@@ -157,10 +157,11 @@ fields:
     type: <Type>
 ```
 
-| Field    | Type      | Required | Description       |
-| -------- | --------- | -------- | ----------------- |
-| `name`   | `String`  | true     | Name of the type. |
-| `fields` | `[Field]` | true     | List of fields.   |
+| Field            | Type       | Required | Description                                                                     |
+|------------------|------------|----------|---------------------------------------------------------------------------------|
+| `name`           | `String`   | true     | Name of the type.                                                               |
+| `fields`         | `[Field]`  | true     | List of fields.                                                                 |
+| `globalIdFields` | `[String]` | false    | Name of the fields that will form the Global ID associated with the object type |
 
 #### Field
 
@@ -173,7 +174,7 @@ fields:
 
 ### Examples
 
-Below, we define an `author` type that has three fields: `author_id`, `first_name`, and `last_name`. Each field is
+1. Below, we define an `author` type that has three fields: `author_id`, `first_name`, and `last_name`. Each field is
 represented as a primitive `Int` or `String` type:
 
 ```yaml
@@ -187,6 +188,27 @@ fields:
   - name: last_name
     type: String
 ```
+
+2. Extending the `author` type to also have a Global ID field
+
+```yaml
+kind: ObjectType
+name: author
+fields:
+  - name: author_id
+    type: Int
+  - name: first_name
+    type: String
+  - name: last_name
+    type: String
+globalIdFields:
+  - author_id
+```
+
+Now, the model whose type is `author` and also has `globalIdSource: true` will have an auto-generated `id` field
+which will be based on the `author_id` field, which can be then introduced with the `node` field to uniquely retrieve
+the `author` object corresponding to the global ID.
+
 
 ## Scalar type representation for data connectors {#scalar-type-representation}
 
