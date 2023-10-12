@@ -33,12 +33,13 @@ The connector will create an empty configuration as follows:
 ```yaml
 ---
 version: 1
-connection_uris: []
+connectionUri:
+  uri: ""
 metadata:
   tables: {}
-  native_queries: {}
-aggregate_functions: {}
-
+  nativeQueries: {}
+  aggregateFunctions: {}
+  comparisonOperators: {}
 ```
 
 Once you enter your connection string for a PostgreSQL database and refresh your data source using the
@@ -61,55 +62,9 @@ username, it will need to be written as `%40`.
 
 [libpq: Connection Strings]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
 
-### Multi-region database configuration
-
-The `connection_uris` field can take on two formats:
-
-- A list of database uris, denoting a region-agnostic set read-only servers
-- An object with keys `reads`, and `writes`, each an object where each key maps a region to a list of database servers.
-
-Example, region agnostic setup:
-
-```yaml
-connection_uris:
-- postgresql://user:password@db-server1/default_db
-- postgresql://user:password@db-server2/default_db
-
-```
-
-Example, multi-region setup:
-
-```yaml
-connection_uris:
-  reads:
-    aws-us-east-1:
-    - postgresql://user:password@db-server-boston/default_db
-    - postgresql://user:password@db-server-new-york/default_db
-    aws-us-west-1:
-    - postgresql://user:password@db-server-san-fransisco/default_db
-    - postgresql://user:password@db-server-los-angeles/default_db
-  writes:
-    aws-up-northeast-1:
-    - postgresql://user:password@db-server-singapore/default_db
-    - postgresql://user:password@db-server-kuala-lumpur/default_db
-
-```
-
-:::info Current support
-
-Currently only queries are supported, so supplying any `writes` serves has no effect.
-
-:::
-
-:::info Current support
-
-Currently only a single database per region is supported, so only the first uri supplied will be used.
-
-:::
-
 ### Native Queries
 
-Native queries can be defined by adding them to the `"native_queries"` section. Each query is specified as SQL. The
+Native queries can be defined by adding them to the `"nativeQueries"` section. Each query is specified as SQL. The
 return structure of the query must be explicitly specified in the `"columns"` field.
 
 Native queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
@@ -121,49 +76,48 @@ Here's an example which filters a table called `"Artist"`.
 ```yaml
 ---
 version: 1
-connection_uris:
-- postgresql://alice@database.host
+connectionUri:
+  uri: postgresql://alice@database.host
 metadata:
   tables: {}
-  native_queries:
+  nativeQueries:
     artist_below_id:
       sql: SELECT * FROM public."Artist" WHERE "ArtistId" < {{id}}
       columns:
         ArtistId:
           name: ArtistId
-          type: integer
+          type: int4
         Name:
           name: Name
-          type: character varying
+          type: varchar
       arguments:
         id:
           name: id
-          type: integer
-
+          type: int4
 ```
 
 ## Scalar types
 
 SQL data types are mapped to GraphQL types. The current mappings are as follows:
 
-| SQL data type                   | GraphQL type |
-| ------------------------------- | ------------ |
-| `boolean`                       | `Boolean`    |
-| `smallint`                      | `Int`        |
-| `integer`                       | `Int`        |
-| `bigint`                        | `Int`        |
-| `numeric`                       | `Float`      |
-| `real`                          | `Float`      |
-| `double precision`              | `Float`      |
-| `character`                     | `String`     |
-| `character varying` (`varchar`) | `String`     |
-| `text`                          | `String`     |
-| `uuid`                          | `String`     |
-| `date`                          | `String`     |
-| `time with time zone`           | `String`     |
-| `time without time zone`        | `String`     |
-| `timestamp with time zone`      | `String`     |
-| `timestamp without time zone`   | `String`     |
+| SQL data type | GraphQL type |
+| ------------- | ------------ |
+| `bool`        | `Boolean`    |
+| `int2`        | `Int`        |
+| `int4`        | `Int`        |
+| `int8`        | `Int`        |
+| `float4`      | `Float`      |
+| `float8`      | `Float`      |
+| `numeric`     | `Float`      |
+| `char`        | `String`     |
+| `varchar`     | `String`     |
+| `text`        | `String`     |
+| `uuid`        | `String`     |
+| `date`        | `String`     |
+| `time`        | `String`     |
+| `timestamp`   | `String`     |
+| `timestamptz` | `String`     |
+| `timetz`      | `String`     |
 
 Other SQL scalar types are unsupported, but may still work in certain situations.
 
