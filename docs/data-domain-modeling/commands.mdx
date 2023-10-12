@@ -35,11 +35,13 @@ To create a command, you need to define an OpenDD object with `"kind": "Command"
 
 ```yaml
 kind: Command
-name: <String>
-arguments: <ArgumentDefinition>
-outputType: <String>
-source: <CommandSourceConfiguration>
-graphql: <GraphQLConfiguration>
+version: v1
+definition:
+  name: <String>
+  arguments: <ArgumentDefinition>
+  outputType: <String>
+  source: <CommandSourceConfiguration>
+  graphql: <GraphQLConfiguration>
 ```
 
 | Field        | Type                                                        | Required | Description                                            |
@@ -57,14 +59,14 @@ Arguments is a list of objects that defines the arguments for the command. An ar
 ```json
 {
   "name": "<String>",
-  "type": "<Type>"
+  "type": "<TypeReference>"
 }
 ```
 
-| Field  | Type     | Required | Description                                      |
-| ------ | -------- | -------- | ------------------------------------------------ |
-| `name` | `String` | true     | Name of the argument.                            |
-| `type` | `Type`   | true     | [Type](./types.mdx) of the argument as a string. |
+| Field  | Type     | Required | Description                                               |
+| ------ | -------- | -------- | --------------------------------------------------------- |
+| `name` | `String` | true     | Name of the argument.                                     |
+| `type` | `Type`   | true     | [TypeReference](./types.mdx) of the argument as a string. |
 
 #### CommandSourceConfiguration {#commandsourceconfiguration}
 
@@ -74,7 +76,7 @@ Source is an object that defines the data source for the command. It has the fol
 {
 dataConnectorName: <String>
 // Either function OR procedure
-function: <String>
+dataConnectorCommand: <DataConnectorCommand>
 typeMappings: <TypeMappings>
 argumentMappings: <ArgumentMappings>
 }
@@ -82,12 +84,26 @@ argumentMappings: <ArgumentMappings>
 
 A command can either be backed by a function or a procedure.
 
-| Field                     | Type                                               | Required | Description                                                                |
-| ------------------------- | -------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
-| `dataConnectorName`       | `String`                                           | true     | Name of the [data connector](./data-connectors.mdx).                       |
-| `function` or `procedure` | `String`                                           | true     | Name of the function or procedure. One of these must be chosen.            |
-| `typeMappings`            | [`TypeMappings`](./common-syntax.mdx#typemappings) | false    | [Type](./types.mdx) mappings for the command.                              |
-| `argumentMapping`         | [`ArgumentMapping`](#argumentmapping)              | false    | Argument mappings for the command. Required only if `arguments` is defined |
+| Field                     | Type                                               | Required | Description                                                                      |
+| ------------------------- | -------------------------------------------------- | -------- | -------------------------------------------------------------------------------- |
+| `dataConnectorName`       | `String`                                           | true     | Name of the [data connector](./data-connectors.mdx).                             |
+| `dataConnectorCommand`    | [`DataConnectorCommand`](#dataconnectorcommand)    | true     | Data connector command name. This will either refer to a function or a procedure |
+| `typeMappings`            | [`TypeMappings`](./common-syntax.mdx#typemappings) | false    | [Type](./types.mdx) mappings for the command.                                    |
+| `argumentMapping`         | [`ArgumentMapping`](#argumentmapping)              | false    | Argument mappings for the command. Required only if `arguments` is defined       |
+
+#### DataConnectorCommand {#dataconnectorcommand}
+
+DataConnectorCommand is an object that defines the command reference in the data connector. A command reference can
+either be a `function` or a `procedure`.
+
+```yaml
+// Either function OR procedure
+function: <String>
+```
+| Field                     | Type     | Required | Description                                                     |
+| ------------------------- | -------- | -------- | --------------------------------------------------------------- |
+| `function` or `procedure` | `String` | true     | Name of the function or procedure. One of these must be chosen. |
+
 
 :::info Functions or Procedures?
 
@@ -125,35 +141,37 @@ rootFieldKind: <String>
 
 ## Examples
 
-Below, we're creating a `Command` called `get_article_by_id` which takes an argument `article_id` of type `Int` and
-returns an object of type `commandArticle`.
-[The command is backed by a function](/data-domain-modeling/common-syntax.mdx/#typemappings) called `get_article_by_id`
-in the `db` data connector. The function returns an object with fields `id`, `title`, and `author_id`. The `id` field is
-mapped to the `article_id` argument and the `title` and `author_id` fields are mapped to the `title` and `author_id`
-columns respectively.
+Below, we're creating a `Command` called `get_article_by_id` which takes an argument `article_id` of type `Int!`
+(non-nullable `Int`) and returns an object of type `commandArticle`. [The command is backed by a
+function](/data-domain-modeling/common-syntax.mdx/#typemappings) called `get_article_by_id` in the `db` data connector.
+The function returns an object with fields `id`, `title`, and `author_id`. The `id` field is mapped to the `article_id`
+argument and the `title` and `author_id` fields are mapped to the `title` and `author_id` columns respectively.
 
 ```yaml
 kind: Command
-name: get_article_by_id
-arguments:
-  - name: article_id
-    type: Int
-outputType: commandArticle
-source:
-  dataConnectorName: db
-  function: get_article_by_id
-  typeMapping:
-    commandArticle:
-      fieldMapping:
-        article_id:
-          column: id
-        title:
-          column: title
-        author_id:
-          column: author_id
-  argumentMapping:
-    article_id: id
-graphql:
-  rootFieldName: getLatestArticle
-  rootFieldKind: Query
+version: v1
+definition:
+  name: get_article_by_id
+  arguments:
+    - name: article_id
+      type: Int!
+  dataConnectorCommand:
+    function: commandArticle
+  source:
+    dataConnectorName: db
+    function: get_article_by_id
+    typeMapping:
+      commandArticle:
+        fieldMapping:
+          article_id:
+            column: id
+          title:
+            column: title
+          author_id:
+            column: author_id
+    argumentMapping:
+      article_id: id
+  graphql:
+    rootFieldName: getLatestArticle
+    rootFieldKind: Query
 ```
