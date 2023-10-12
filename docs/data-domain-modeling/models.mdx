@@ -36,20 +36,35 @@ To create a model, you need to define an OpenDD object with `"kind": "Model"`, w
 
 ```yaml
 kind: Model
-name: <ModelName>
-objectType: <TypeName>
-globalIDSource: true | false
-source: <SourceConfiguration>
-graphql: <GraphQLConfiguration>
+version: v1
+definition:
+  name: <ModelName>
+  objectType: <TypeName>
+  globalIDSource: true | false
+  source: <SourceConfiguration>
+  graphql: <GraphQLConfiguration>
+  arguments: <ArgumentDefinition>
+  filterableFields: <FilterableFields>
+  orderableFields: <OrderableFields>
 ```
 
-| Field            | Type                                                               | Required | Description                                                           |
-| ---------------- | ------------------------------------------------------------------ | -------- | --------------------------------------------------------------------- |
-| `name`           | `String`                                                           | true     | Name of the model.                                                    |
-| `objectType`     | `String`                                                           | true     | [Type](/data-domain-modeling/types.mdx) of this model.                |
-| `globalIDSource` | `Boolean`                                                          | false    | If a [Global ID](./global-id.mdx) should be generated for this model. |
-| `source`         | [`SourceConfiguration`](/data-domain-modeling/models.mdx/#source)  | true     | Source configuration for the model.                                   |
-| `graphql`        | [`GraphQLConfiguration`](data-domain-modeling/models.mdx/#graphql) | true     | GraphQL configuration for the model.                                  |
+| Field              | Type                                                                                 | Required | Description                                                           |
+| ------------------ | ------------------------------------------------------------------------------------ | -------- | --------------------------------------------------------------------- |
+| `name`             | `String`                                                                             | true     | Name of the model.                                                    |
+| `objectType`       | `String`                                                                             | true     | [Type](/data-domain-modeling/types.mdx) of this model.                |
+| `globalIDSource`   | `Boolean`                                                                            | false    | If a [Global ID](./global-id.mdx) should be generated for this model. |
+| `source`           | [`SourceConfiguration`](/data-domain-modeling/models.mdx/#source)                    | true     | Source configuration for the model.                                   |
+| `graphql`          | [`GraphQLConfiguration`](data-domain-modeling/models.mdx/#graphql)                   | true     | GraphQL configuration for the model.                                  |
+| `arguments`        | [`[ArgumentDefinition]`](data-domain-modeling/common-syntax.mdx/#argumentdefinition) | false    | The argument definition for the command.                              |
+| `filterableFields` | [`[FilterableFieldDefinition]`](#filterablefielddefinition)                          | true     | Filterable fields for the model.                                  |
+| `orderableFields`  | [`[OrderableFieldDefinition]`](#orderablefielddefinition)                            | true     | Orderable fields for the model.                                  |
+
+:::note Filterable/Orderable Fields support
+
+At the moment, we don't support field level filterable/orderable customizations. So, you will have to provide an
+exhaustive list of the fields in your model in `filterableFields` and `orderableFields`.
+
+:::
 
 #### SourceConfiguration
 
@@ -113,6 +128,35 @@ queryRootField: <QueryRootField>
 | ---------------- | -------- | -------- | ----------------------- |
 | `queryRootField` | `String` | true     | Name of the query root. |
 
+#### FilterableFieldDefinition
+
+Filterable field definition is an object that lists down the allowed operators for a given field.
+
+```yaml
+fieldName: <String>
+operators:
+  enableAll: true
+```
+| Field            | Type     | Required | Description                                                          |
+| ---------------- | -------- | -------- | -------------------------------------------------------------------- |
+| `fieldName`      | `String` | true     | Name of the field.                                              |
+| `operators`      | `Object` | true     | Allowed operators (at the moment, we only support `enableAll: true`) |
+
+#### OrderableFieldDefinition
+
+Orderable field definition is an object that lists down the allowed order by directions for a given field.
+
+```yaml
+fieldName: <String>
+orderByDirections:
+  enableAll: true
+```
+
+| Field               | Type     | Required | Description                                                                    |
+| ------------------- | -------- | -------- | ------------------------------------------------------------------------------ |
+| `fieldName`         | `String` | true     | Name of the field.                                                             |
+| `orderByDirections` | `Object` | true     | Allowed order by directions (at the moment, we only support `enableAll: true`) |
+
 ## Examples
 
 In this example, we're creating a model called `Authors` backed by a database table called `authors` in the `db` data
@@ -120,28 +164,53 @@ source:
 
 ```yaml
 kind: Model
-name: Authors
-objectType: author
-globalIdSource: true
-source:
-  dataConnectorName: db
-  collection: authors
-  typeMapping:
-    author:
-      fieldMapping:
-        author_id:
-          column: id
-        first_name:
-          column: first_name
-        last_name:
-          column: last_name
-graphql:
-  selectUniques:
-    - queryRootField: AuthorByID
+version: v1
+definition:
+  name: ArticlesByAuthor
+  objectType: article
+  arguments:
+  - name: author_id
+    type: Int!
+  source:
+    dataConnectorName: db
+    collection: articles_by_author
+    typeMapping:
+      article:
+        fieldMapping:
+          article_id:
+            column: id
+          title:
+            column: title
+          author_id:
+            column: author_id
+  graphql:
+    selectUniques:
+    - queryRootField: ArticlesByAuthorByID
       uniqueIdentifier:
-        - author_id
-  selectMany:
-    queryRootField: AuthorMany
-  filterExpressionType: Author_Where_Exp
-  orderByExpressionType: Author_Order_By
+      - article_id
+    selectMany:
+      queryRootField: ArticlesByAuthorMany
+    orderByExpressionType: ArticlesByAuthorOrderBy
+    filterExpressionType: ArticlesByAuthorWhereExp
+    argumentsInputType: ArticlesByAuthorArgs
+  filterableFields:
+  - fieldName: article_id
+    operators:
+      enableAll: true
+  - fieldName: title
+    operators:
+      enableAll: true
+  - fieldName: author_id
+    operators:
+      enableAll: true
+  orderableFields:
+  - fieldName: article_id
+    orderByDirections:
+      enableAll: true
+  - fieldName: title
+    orderByDirections:
+      enableAll: true
+  - fieldName: author_id
+    orderByDirections:
+      enableAll: true
 ```
