@@ -33,80 +33,106 @@ subsequent layers, such as models, commands, and relationships are defined in te
 
 The types can be one of the following:
 
-| OpenDD Type | Description                                                             |
-| ----------- | ----------------------------------------------------------------------- |
-| Primitive   | These are the basic types `Int`, `Float`, `Boolean`, or `String`        |
-| Container   | These are types that can hold other types such as `Nullable` or `Array` |
-| Custom      | These are user-defined types, such as `ScalarType` or `ObjectType`      |
+| OpenDD Type     | Description                                                                                              |
+| --------------- | -------------------------------------------------------------------------------------------------------- |
+| Primitive       | These are the basic types `ID`, `Int`, `Float`, `Boolean`, or `String`                                   |
+| Custom          | These are user-defined types, such as `ScalarType` or `ObjectType`                                       |
+| Type References | When specifying the types of a field or an argument, you can mark them as required `!` or repeated `[]`. |
 
 The spec also allows you to map existing data connector scalars to types in your data domain.
-
-Container types are types that can contain other primitive or custom types. Currently, container types can be nullable
-or arrays. Nullability in your data connector types are represented using the `Nullable` container type.
 
 You can also define custom types by either aliasing existing types (such as primitives or custom), or you can define a
 type with fields. In turn, the fields themselves can be a primitive or another custom type.
 
+Type references are types that can contain other primitive or custom types. Currently, OpenDD supports nullable and
+array type references.
+
 [//]: # "TODO: Add reference to scalars 👇 when data connector are documented"
 
 [Scalar type representation](#scalar-type-representation) helps in mapping data connector scalars to any of the OpenDD
-primitive, container or custom types.
+types.
 
-## Primitive and container types {#primitive-and-container-types}
+## Primitive types and type refernces {#primitive-types-and-type-references}
 
-Primitive types don't have any metadata structure and simply use the names `Int` / `Float` / `Boolean` / `String`
-directly.
+Primitive types supported by OpenDD are `ID`, `Int`, `Float`, `Boolean` and `String`.
 
-### Metadata structure
-
-Container types are defined as:
-
-```yaml
-Nullable: <Type>
-```
-
-```yaml
-Array: <Type>
-```
-
-| Value  | Description                                                                            |
-| ------ | -------------------------------------------------------------------------------------- |
-| `Type` | String in case of primitive or custom types. An object in the case of container types. |
+Type references in OpenDD follow [GraphQL type syntax](https://spec.graphql.org/June2018/#sec-Combining-List-and-Non-Null).
+Fields/arguments are nullable by default. To represent non-nullability in them, specify a `!` after the type name.
+Similarly, array fields/arguments are wrapped in `[]`.
 
 ### Examples
 
-Examples of container types, using objects:
-
+If the field is nullable, it should be defined as
 ```yaml
 name: category
 type:
-  Nullable: ProductCategory
+  ProductCategory
 ```
 
+If the field is non-nullable, it should be defined as
+```yaml
+name: category
+type:
+  ProductCategory!
+```
+
+If the field is a nullable array of nullable type, it should be defined as
 ```yaml
 name: tags
 type:
-  Array: String
+  [String]
+```
+
+If the field is a nullable array of non-nullable type, it should be defined as
+```yaml
+name: tags
+type:
+  [String!]
+```
+
+If the field is a non-nullable array of nullable type, it should be defined as
+```yaml
+name: tags
+type:
+  [String]!
+```
+
+If the field is a non-nullable array of non-nullable type, it should be defined as
+```yaml
+name: tags
+type:
+  [String!]!
 ```
 
 ## Scalar types {#scalar-types}
 
-In the OpenDD spec, you can alias types by defining an object with `"kind": "ScalarType"`. To define a `ScalarType` you
-need to define a name and an optional representation. This `representation` field can refer to any existing primitive,
-container or custom type and can be a string or an object.
+In the OpenDD spec, you can alias types by defining an object with `kind: ScalarType` and `version: v1`.
+The object `definition` should include `name` and an optional `graphql` field.
 
 ### Metadata structure
 
 ```yaml
 kind: ScalarType
-name: <TypeName>
-representation: <Type>
+version: v1
+definition:
+  name: <TypeName>
+  graphql: <ScalarTypeGraphQLConfig>
 ```
 
-| Field            | Type     | Required | Description                                                                            |
-| ---------------- | -------- | -------- | -------------------------------------------------------------------------------------- |
-| `name`           | `String` | true     | Name of the type.                                                                      |
-| `representation` | `Type`   | false    | String in case of primitive or custom types. An object in the case of container types. |
+| Field            | Type                                                  | Required | Description                                     |
+| ---------------- | ----------------------------------------------------- | -------- | ----------------------------------------------- |
+| `name`           | `String`                                              | true     | Name of the type.                               |
+| `graphql`        | [`ScalarTypeGraphQLConfig`](#scalartypegraphqlconfig) | false    | Configuration for using this scalar type in the GraphQL API. |
+
+#### ScalarTypeGraphQLConfig
+
+`ScalarTypeGraphQLConfig` is an object that defines the configuration for using this scalar type in the GraphQL API.
+This object has one field `typeName` that corresponds to the GraphQL type name to use for this scalar type.
+
+```yaml
+graphql:
+  typeName: <GraphQLTypeName>
+```
 
 [//]: # "TODO link above"
 
@@ -116,59 +142,64 @@ Below, we define an `Email` type that is represented as a primitive `String` typ
 
 ```yaml
 kind: ScalarType
-name: Email
-representation: String
+version: v1
+definition:
+  name: Email
+  graphql:
+    typeName: String
 ```
 
-Here, we define a `Tag` type that is represented as a primitive `String` type and an `Array` of `Tag` types that is
-represented as an array of `String` types:
-
-```yaml
-- kind: ScalarType
-  name: Tag
-  representation: String
-- kind: ScalarType
-  name: Tags
-  representation:
-    Array: Tag
-```
-
-Finally, we define an `OpaqueDate` type that is represented as a custom object type:
+Below, we define an `OpaqueDate` type that is represented as a custom object type:
 
 ```yaml
 kind: ScalarType
-name: OpaqueDate
+version: v1
+definition:
+  name: OpaqueDate
 ```
 
 ## Object types {#object-types}
 
-In the OpenDD spec, completely new types can be created by defining an object with `"kind": "ObjectType"`. You need to
-also define a name and the fields for this type.
+In the OpenDD spec, completely new types can be created by defining an object with `kind: ObjectType` and `version: v1`.
+You need to also define a name and the fields for this type.
 
 ### Metadata structure
 
 ```yaml
 kind: ObjectType
-name: <TypeName>
-fields:
-  - name: field1
-    type: <Type>
-  - name: field2
-    type: <Type>
+version: v1
+definition:
+  name: <TypeName>
+  fields:
+    - name: field1
+      type: <TypeReference>
+    - name: field2
+      type: <TypeReference>
 ```
 
-| Field            | Type       | Required | Description                                                                     |
-|------------------|------------|----------|---------------------------------------------------------------------------------|
-| `name`           | `String`   | true     | Name of the type.                                                               |
-| `fields`         | `[Field]`  | true     | List of fields.                                                                 |
-| `globalIdFields` | `[String]` | false    | Name of the fields that will form the Global ID associated with the object type |
+| Field            | Type                                                  | Required | Description                                                                      |
+|------------------|-------------------------------------------------------|----------|--------------------------------------------------------------------------------- |
+| `name`           | `String`                                              | true     | Name of the type.                                                                |
+| `fields`         | [`[Field]`](#field)                                   | true     | List of fields.                                                                  |
+| `globalIdFields` | `[String]`                                            | false    | Name of the fields that will form the Global ID associated with the object type. |
+| `graphql`        | [`ObjectTypeGraphQLConfig`](#objecttypegraphqlconfig) | false    | Configuration for using this object type in the GraphQL API.                     |
 
 #### Field
 
 | Field  | Type     | Required | Description                                                                                               |
-| ------ | -------- | -------- | --------------------------------------------------------------------------------------------------------- |
-| `name` | `String` | true     | Name of the field .                                                                                       |
-| `type` | `Type`   | true     | Type of the field. String in case of primitive or custom types. An object in the case of container types. |
+| ------ | -------- | -------- | ------------------ |
+| `name` | `String` | true     | Name of the field. |
+| `type` | `String` | true     | Type of the field. |
+
+#### ObjectTypeGraphQLConfig
+
+`ObjectTypeGraphQLConfig` is an object that defines the configuration for using this object type in the GraphQL API.
+This object has one field `typeName` that corresponds to the GraphQL type name to use for this object type.
+
+```yaml
+graphql:
+  typeName: <GraphQLTypeName>
+```
 
 [//]: # "TODO link above"
 
@@ -179,30 +210,34 @@ represented as a primitive `Int` or `String` type:
 
 ```yaml
 kind: ObjectType
-name: author
-fields:
-  - name: author_id
-    type: Int
-  - name: first_name
-    type: String
-  - name: last_name
-    type: String
+version: v1
+definition:
+  name: author
+  fields:
+    - name: author_id
+      type: Int
+    - name: first_name
+      type: String
+    - name: last_name
+      type: String
 ```
 
 2. Extending the `author` type to also have a Global ID field
 
 ```yaml
 kind: ObjectType
-name: author
-fields:
-  - name: author_id
-    type: Int
-  - name: first_name
-    type: String
-  - name: last_name
-    type: String
-globalIdFields:
-  - author_id
+version: v1
+definition:
+  name: author
+  fields:
+    - name: author_id
+      type: Int
+    - name: first_name
+      type: String
+    - name: last_name
+      type: String
+  globalIdFields:
+    - author_id
 ```
 
 Now, the model whose type is `author` and also has `globalIdSource: true` will have an auto-generated `id` field
@@ -213,9 +248,8 @@ the `author` object corresponding to the global ID.
 ## Scalar type representation for data connectors {#scalar-type-representation}
 
 A scalar type from a data connector can be represented as an OpenDD type by defining an object with
-`"kind": "DataConnectorScalarRepresentation"`. To define a scalar type representation, you need to have a data connector
-name, a scalar name and a type representation. This `representation` can refer to any existing primitive, container, or
-custom type and can be a string or an object.
+`kind: DataConnectorScalarRepresentation` and `version: v1`. To define a scalar type representation, you need to
+have a data connector name, a data connector scalar type, a type representation and an optional graphql field.
 
 It is necessary to map all available scalars from a data connector to OpenDD types.
 
@@ -223,16 +257,29 @@ It is necessary to map all available scalars from a data connector to OpenDD typ
 
 ```yaml
 kind: DataConnectorScalarRepresentation
-dataConnectorName: <DataSourceName>
-dataConnectorScalarType: <ScalarTypeName>
-representation: <Type>
+version: v1
+definition:
+  dataConnectorName: <DataSourceName>
+  dataConnectorScalarType: <ScalarTypeName>
+  representation: <TypeName>
+  graphql: <DataConnectorScalarGraphQLConfig>
 ```
 
-| Field                     | Type     | Required | Description                                                                        |
-| ------------------------- | -------- | -------- | ---------------------------------------------------------------------------------- |
-| `dataConnectorName`       | `String` | true     | Name of the data connector.                                                        |
-| `dataConnectorScalarType` | `String` | true     | Name of the scalar type from the data connector.                                   |
-| `representation`          | `Type`   | true     | String in case of primitive or custom types. An object in case of container types. |
+| Field                     | Type                                             | Required | Description                                                                 |
+| ------------------------- | ------------------------------------------------ | -------- | --------------------------------------------------------------------------- |
+| `dataConnectorName`       | `String`                                         | true     | Name of the data connector.                                                 |
+| `dataConnectorScalarType` | `String`                                         | true     | Name of the scalar type from the data connector.                            |
+| `representation`          | `String`                                         | true     | Representation of the scalar type in GraphQL schema.                        |
+| `graphql`                 | [`DCScalarGraphQLConfig`](#dcscalargraphqlonfig) | false    | Configuration for using this data connector scalar type in the GraphQL API. |
+
+#### DCScalarGraphQLConfig
+`DCScalarGraphQLConfig` is an object that defines the configuration for using this data connector scalar type in the
+GraphQL API. This object has one field `typeName` that corresponds to the GraphQL type name to use for this object type.
+
+```yaml
+graphql:
+  comparison_expression_type_name: <GraphQLTypeName>
+```
 
 ### Examples
 
@@ -240,24 +287,29 @@ representation: <Type>
 
 ```yaml
 kind: DataConnectorScalarRepresentation
-dataConnectorName: my_source
-dataConnectorScalarType: text
-representation: String
+version: v1
+definition:
+  dataConnectorName: my_source
+  dataConnectorScalarType: text
+  representation: String
 ```
 
 2. Mapping a PostgreSQL scalar `geography` to a custom object type.
 
 ```yaml
 - kind: ObjectType
-  name: Geography
-  fields:
-    - name: type
-      type: String
-    - name: coordinates
-      type:
-        Array: Float
+  version: v1
+  definition:
+    name: Geography
+    fields:
+      - name: type
+        type: String
+      - name: coordinates
+        type: [Float]
 - kind: DataConnectorScalarRepresentation
-  dataConnectorName: pg_source
-  dataConnectorScalarType: geography
-  representation: Geography
+  version: v1
+  definition:
+    dataConnectorName: pg_source
+    dataConnectorScalarType: geography
+    representation: Geography
 ```
