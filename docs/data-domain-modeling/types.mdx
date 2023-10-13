@@ -36,7 +36,7 @@ The types can be one of the following:
 | OpenDD Type     | Description                                                                                              |
 | --------------- | -------------------------------------------------------------------------------------------------------- |
 | Primitive       | These are the basic types `ID`, `Int`, `Float`, `Boolean`, or `String`                                   |
-| Custom          | These are user-defined types, such as `ScalarType` or `ObjectType`                                       |
+| Custom          | These are user-defined types, such as [`ScalarType`](#scalar-types) or [`ObjectType`](#object-types)     |
 | Type References | When specifying the types of a field or an argument, you can mark them as required `!` or repeated `[]`. |
 
 The spec also allows you to map existing data connector scalars to types in your data domain.
@@ -127,7 +127,7 @@ definition:
 #### ScalarTypeGraphQLConfig
 
 `ScalarTypeGraphQLConfig` is an object that defines the configuration for using this scalar type in the GraphQL API.
-This object has one field `typeName` that corresponds to the GraphQL type name to use for this scalar type.
+This object has a field `typeName` that corresponds to the GraphQL type name to use for this scalar type.
 
 ```yaml
 graphql:
@@ -175,6 +175,9 @@ definition:
       type: <TypeReference>
     - name: field2
       type: <TypeReference>
+  globalIdFields:
+    - field1
+  graphql: <ObjectTypeGraphQLConfig>
 ```
 
 | Field            | Type                                                  | Required | Description                                                                      |
@@ -187,14 +190,14 @@ definition:
 #### Field
 
 | Field  | Type     | Required | Description                                                                                               |
-| ------ | -------- | -------- | ------------------ |
-| `name` | `String` | true     | Name of the field. |
-| `type` | `String` | true     | Type of the field. |
+| ------ | -------- | -------- | ---------------------------- |
+| `name` | `String` | true     | Name of the field.           |
+| `type` | `String` | true     | Type reference of the field. |
 
 #### ObjectTypeGraphQLConfig
 
 `ObjectTypeGraphQLConfig` is an object that defines the configuration for using this object type in the GraphQL API.
-This object has one field `typeName` that corresponds to the GraphQL type name to use for this object type.
+This object has a field `typeName` that corresponds to the GraphQL type name to use for this object type.
 
 ```yaml
 graphql:
@@ -215,7 +218,7 @@ definition:
   name: author
   fields:
     - name: author_id
-      type: Int
+      type: Int!
     - name: first_name
       type: String
     - name: last_name
@@ -231,7 +234,7 @@ definition:
   name: author
   fields:
     - name: author_id
-      type: Int
+      type: Int!
     - name: first_name
       type: String
     - name: last_name
@@ -274,11 +277,12 @@ definition:
 
 #### DCScalarGraphQLConfig
 `DCScalarGraphQLConfig` is an object that defines the configuration for using this data connector scalar type in the
-GraphQL API. This object has one field `typeName` that corresponds to the GraphQL type name to use for this object type.
+GraphQL API. This object has a field `comparisonExpressionTypeName` that corresponds to the GraphQL type name to use
+for this object type.
 
 ```yaml
 graphql:
-  comparison_expression_type_name: <GraphQLTypeName>
+  comparisonExpressionTypeName: <GraphQLTypeName>
 ```
 
 ### Examples

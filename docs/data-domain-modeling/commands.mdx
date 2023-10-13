@@ -28,8 +28,8 @@ directly from your GraphQL API. You can use them to validate, process, or enrich
 user in. As an example, with commands you can connect to a REST endpoint which can be your own custom server, a public
 API, or a serverless function.
 
-To create a command, you need to define an OpenDD object with `"kind": "Command"`, which has both `name` and
-`outputType` fields.
+To create a command, you need to define an OpenDD object with `kind: Command`  and `version: v1`. The object
+`definition` has the following fields:
 
 ### Metadata structure
 
@@ -57,10 +57,11 @@ definition:
 Source is an object that defines the data source for the command. It has the following fields:
 
 ```yaml
-dataConnectorName: <String>
-dataConnectorCommand: <DataConnectorCommand>
-typeMappings: <TypeMappings>
-argumentMappings: <ArgumentMappings>
+source:
+  dataConnectorName: <String>
+  dataConnectorCommand: <DataConnectorCommand>
+  typeMappings: <TypeMappings>
+  argumentMappings: <ArgumentMappings>
 ```
 
 A command can either be backed by a function or a procedure.
@@ -72,18 +73,19 @@ A command can either be backed by a function or a procedure.
 | `typeMappings`            | [`TypeMappings`](./common-syntax.mdx#typemappings) | false    | [Type](./types.mdx) mappings for the command.                                    |
 | `argumentMapping`         | [`ArgumentMapping`](#argumentmapping)              | false    | Argument mappings for the command. Required only if `arguments` is defined       |
 
-#### DataConnectorCommand {#dataconnectorcommand}
+##### DataConnectorCommand {#dataconnectorcommand}
 
 DataConnectorCommand is an object that defines the command reference in the data connector. A command reference can
 either be a `function` or a `procedure`.
 
 ```yaml
-# Either function OR procedure
-function: <String>
+dataConnectorCommand:
+  # Either function OR procedure
+  function: <String>
 ```
 | Field                     | Type     | Required | Description                                                     |
 | ------------------------- | -------- | -------- | --------------------------------------------------------------- |
-| `function` or `procedure` | `String` | true     | Name of the function or procedure. One of these must be chosen. |
+| `function` / `procedure` | `String` | true     | Name of the function or procedure. One of these must be chosen. |
 
 
 :::info Functions or Procedures?
@@ -92,13 +94,14 @@ Functions are used for read operations and procedures are used for write operati
 
 :::
 
-#### ArgumentMapping {#argumentmapping}
+##### ArgumentMapping {#argumentmapping}
 
 The `argumentMapping` are used to define the mapping between the arguments of the OpenDD `arguments` and the arguments
 of the `function` or `procedure`. It has the following fields:
 
 ```yaml
-<OpenDDSArgumentName>: <NDCArgumentName>
+argumentMappings:
+  <OpenDDSArgumentName>: <NDCArgumentName>
 ```
 
 | Field                 | Type     | Required | Description                                                                                  |
@@ -111,8 +114,9 @@ of the `function` or `procedure`. It has the following fields:
 GraphQL is an object that defines the GraphQL configuration for the command. It has the following fields:
 
 ```yaml
-rootFieldName: <String>
-rootFieldKind: <String>
+graphql:
+  rootFieldName: <String>
+  rootFieldKind: <String>
 ```
 
 | Field           | Type     | Required | Description                                  |
