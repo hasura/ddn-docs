@@ -44,19 +44,19 @@ definition:
   globalIDSource: true | false
   source: <SourceConfiguration>
   graphql: <GraphQLConfiguration>
-  arguments: <ArgumentDefinition>
-  filterableFields: <FilterableFields>
-  orderableFields: <OrderableFields>
+  arguments: [ArgumentDefinition]
+  filterableFields: [FilterableFields]
+  orderableFields: [OrderableFields]
 ```
 
 | Field              | Type                                                                                 | Required | Description                                                           |
 | ------------------ | ------------------------------------------------------------------------------------ | -------- | --------------------------------------------------------------------- |
 | `name`             | `String`                                                                             | true     | Name of the model.                                                    |
 | `objectType`       | `String`                                                                             | true     | [Type](/data-domain-modeling/types.mdx) of this model.                |
-| `globalIDSource`   | `Boolean`                                                                            | false    | If a [Global ID](./global-id.mdx) should be generated for this model. |
-| `source`           | [`SourceConfiguration`](/data-domain-modeling/models.mdx/#source)                    | true     | Source configuration for the model.                                   |
-| `graphql`          | [`GraphQLConfiguration`](data-domain-modeling/models.mdx/#graphql)                   | true     | GraphQL configuration for the model.                                  |
-| `arguments`        | [`[ArgumentDefinition]`](data-domain-modeling/common-syntax.mdx/#argumentdefinition) | false    | The argument definition for the model.                                |
+| `globalIDSource`   | `Boolean`                                                                            | true     | If a [Global ID](./global-id.mdx) should be generated for this model. |
+| `source`           | [`SourceConfiguration`](/data-domain-modeling/models.mdx/#source)                    | false    | Source configuration for the model.                                   |
+| `graphql`          | [`GraphQLConfiguration`](data-domain-modeling/models.mdx/#graphql)                   | false    | GraphQL configuration for the model.                                  |
+| `arguments`        | [`[ArgumentDefinition]`](data-domain-modeling/common-syntax.mdx/#argumentdefinition) | true     | The argument definition for the model.                                |
 | `filterableFields` | [`[FilterableFieldDefinition]`](#filterablefielddefinition)                          | true     | Filterable fields for the model.                                      |
 | `orderableFields`  | [`[OrderableFieldDefinition]`](#orderablefielddefinition)                            | true     | Orderable fields for the model.                                       |
 
@@ -97,13 +97,13 @@ graphql:
   argumentsInputType: <ArgumentsInputType>
 ```
 
-| Field                   | Type                                | Required | Description                                                                        |
-| ----------------------- | ----------------------------------- | -------- | ---------------------------------------------------------------------------------- |
-| `selectUniques`         | [`[SelectUniques]`](#selectuniques) | true     | Select uniques configuration for the model.                                        |
-| `selectMany`            | [`SelectMany`](#selectmany)         | false    | Select many configuration for the model.                                           |
-| `filterExpressionType`  | `String`                            | false    | GraphQL type name for the filter input. Default - `<ModelName>_bool_exp`           |
-| `orderByExpressionType` | `String`                            | false    | GraphQL type name for the order by input. Default - `<ModelName>_order_by`         |
-| `argumentsInputType`    | `String`                            | false    | GraphQL type name for the model arguments input. Default - `<ModelName>_arguments` |
+| Field                   | Type                                | Required | Description                                      |
+| ----------------------- | ----------------------------------- | -------- | ------------------------------------------------ |
+| `selectUniques`         | [`[SelectUniques]`](#selectuniques) | true     | Select uniques configuration for the model.      |
+| `selectMany`            | [`SelectMany`](#selectmany)         | false    | Select many configuration for the model.         |
+| `filterExpressionType`  | `String`                            | false    | GraphQL type name for the filter input.          |
+| `orderByExpressionType` | `String`                            | false    | GraphQL type name for the order by input.        |
+| `argumentsInputType`    | `String`                            | false    | GraphQL type name for the model arguments input. |
 
 ##### SelectUniques
 
@@ -145,7 +145,7 @@ filterableFields:
 ```
 | Field            | Type     | Required | Description                                                          |
 | ---------------- | -------- | -------- | -------------------------------------------------------------------- |
-| `fieldName`      | `String` | true     | Name of the field.                                              |
+| `fieldName`      | `String` | true     | Name of the field.                                                   |
 | `operators`      | `Object` | true     | Allowed operators (at the moment, we only support `enableAll: true`) |
 
 #### OrderableFieldDefinition
@@ -173,51 +173,31 @@ source:
 kind: Model
 version: v1
 definition:
-  name: ArticlesByAuthor
-  objectType: article
-  arguments:
-  - name: author_id
-    type: Int!
+  name: Authors
+  objectType: author
+  globalIdSource: true
   source:
     dataConnectorName: db
-    collection: articles_by_author
+    collection: authors
     typeMapping:
-      article:
+      author:
         fieldMapping:
-          article_id:
-            column: id
-          title:
-            column: title
           author_id:
-            column: author_id
+            column: id
+          first_name:
+            column: first_name
+          last_name:
+            column: last_name
   graphql:
     selectUniques:
-    - queryRootField: ArticlesByAuthorByID
-      uniqueIdentifier:
-      - article_id
+      - queryRootField: AuthorByID
+        uniqueIdentifier:
+          - author_id
     selectMany:
-      queryRootField: ArticlesByAuthorMany
-    orderByExpressionType: ArticlesByAuthorOrderBy
-    filterExpressionType: ArticlesByAuthorWhereExp
-    argumentsInputType: ArticlesByAuthorArgs
-  filterableFields:
-  - fieldName: article_id
-    operators:
-      enableAll: true
-  - fieldName: title
-    operators:
-      enableAll: true
-  - fieldName: author_id
-    operators:
-      enableAll: true
-  orderableFields:
-  - fieldName: article_id
-    orderByDirections:
-      enableAll: true
-  - fieldName: title
-    orderByDirections:
-      enableAll: true
-  - fieldName: author_id
-    orderByDirections:
-      enableAll: true
+      queryRootField: AuthorMany
+    filterExpressionType: Author_Where_Exp
+    orderByExpressionType: Author_Order_By
+  arguments: []
+  filterableFields: []
+  orderableFields: []
 ```

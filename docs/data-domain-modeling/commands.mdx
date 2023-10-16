@@ -54,7 +54,7 @@ definition:
 
 #### CommandSourceConfiguration {#commandsourceconfiguration}
 
-Source is an object that defines the data source for the command. It has the following fields:
+Source is an object that defines the source data connector for the command. It has the following fields:
 
 ```yaml
 source:
@@ -66,12 +66,12 @@ source:
 
 A command can either be backed by a function or a procedure.
 
-| Field                     | Type                                               | Required | Description                                                                      |
-| ------------------------- | -------------------------------------------------- | -------- | -------------------------------------------------------------------------------- |
-| `dataConnectorName`       | `String`                                           | true     | Name of the [data connector](./data-connectors.mdx).                             |
-| `dataConnectorCommand`    | [`DataConnectorCommand`](#dataconnectorcommand)    | true     | Data connector command name. This will either refer to a function or a procedure |
-| `typeMappings`            | [`TypeMappings`](./common-syntax.mdx#typemappings) | false    | [Type](./types.mdx) mappings for the command.                                    |
-| `argumentMapping`         | [`ArgumentMapping`](#argumentmapping)              | false    | Argument mappings for the command. Required only if `arguments` is defined       |
+| Field                     | Type                                               | Required | Description                                                                                        |
+| ------------------------- | -------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `dataConnectorName`       | `String`                                           | true     | Name of the [data connector](./data-connectors.mdx).                                               |
+| `dataConnectorCommand`    | [`DataConnectorCommand`](#dataconnectorcommand)    | true     | What command to invoke in the data connector. This will either refer to a function or a procedure. |
+| `typeMappings`            | [`TypeMappings`](./common-syntax.mdx#typemappings) | false    | [Type](./types.mdx) mappings for the command.                                                      |
+| `argumentMapping`         | [`ArgumentMapping`](#argumentmapping)              | false    | Argument mappings for the command. Required only if `arguments` is defined.                        |
 
 ##### DataConnectorCommand {#dataconnectorcommand}
 
@@ -140,11 +140,10 @@ definition:
   arguments:
     - name: article_id
       type: Int!
-  dataConnectorCommand:
-    function: commandArticle
   source:
     dataConnectorName: db
-    function: get_article_by_id
+    dataConnectorCommand:
+      function: get_article_by_id
     typeMapping:
       commandArticle:
         fieldMapping:
