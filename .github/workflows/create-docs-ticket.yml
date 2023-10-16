@@ -1,102 +1,36 @@
-name: create ticket for docs
+name: Create Jira Ticket
+
 on:
   pull_request:
     types: [opened]
 
 jobs:
-  create-docs-ticket:
+  build:
     runs-on: ubuntu-latest
+
+    env:
+      DOCS_JIRA_API_KEY: ${{ secrets.DOCS_JIRA_API_KEY }}
+      DOCS_JIRA_API_ENDPOINT: ${{ secrets.DOCS_JIRA_API_ENDPOINT }}
+      DOCS_JIRA_BASE_URL: ${{ secrets.DOCS_JIRA_BASE_URL }}
+      DOCS_JIRA_BOARD_NUMBER: ${{ secrets.DOCS_JIRA_BOARD_NUMBER }}
+      DOCS_JIRA_USER_EMAIL: ${{ secrets.DOCS_JIRA_USER_EMAIL }}
+      DOCS_JIRA_ISSUE_TYPE: ${{ secrets.DOCS_JIRA_ISSUE_TYPE }}
+      DOCS_JIRA_PROJECT_KEY: ${{ secrets.DOCS_JIRA_PROJECT_KEY }}
+      DOCS_JIRA_REVIEWER_MORNING: ${{ secrets.DOCS_JIRA_REVIEWER_MORNING }}
+      DOCS_JIRA_REVIEWER_AFTERNOON: ${{ secrets.DOCS_JIRA_REVIEWER_AFTERNOON }}
+      REPO_NAME: ${{ secrets.REPO_NAME }}
+      REPO_OWNER: ${{ secrets.REPO_OWNER }}
+      DOCS_GITHUB_TOKEN: ${{ secrets.DOCS_GITHUB_TOKEN }}
+
     steps:
-      - name: Login
-        uses: atlassian/gajira-login@90a599561baaf8c05b080645ed73db7391c246ed
-        env:
-          JIRA_BASE_URL: https://hasurahq.atlassian.net
-          JIRA_USER_EMAIL: rob.dominguez@hasura.io
-          JIRA_API_TOKEN: ${{ secrets.DOCS_JIRA_API_TOKEN }}
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-      - name: Create ticket
-        id: create
-        uses: atlassian/gajira-create@c0a9c69ac9d6aa063fed57201e55336ada860183
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          project: DOCS
-          issuetype: Review
-          summary: Review ${{ github.event.pull_request.title }}
-          description: ${{ github.event.pull_request.html_url }}
+          node-version: '20'
 
-      - name: Automated logistics
-        id: automate
+      - name: Create ticket and assign reviewer
         run: |
-          # encode auth token + email into BASE64 for Jira's Basic Auth
-          AUTH_TOKEN=`echo -n rob.dominguez@hasura.io:${{ secrets.DOCS_JIRA_API_TOKEN }} | base64`
-          # Call to get our current sprint (using hardcoded 19 as our board's id)
-          json=`
-          curl \
-          -X GET \
-          -H "Authorization: Basic $AUTH_TOKEN" \
-          -H "Content-Type: application/json" \
-          "https://hasurahq.atlassian.net/rest/agile/1.0/board/19/sprint?state=active&maxResults=1"`
-          #  parse the json and get the sprint id
-          SPRINT=`echo $json | jq -r '.values[0].id'`
-
-          # Move the ticket to the current sprint
-          TICKET=${{ steps.create.outputs.issue }}
-          curl -D- \
-          -X POST \
-          --url "https://hasurahq.atlassian.net/rest/agile/1.0/sprint/$SPRINT/issue" \
-          -H "Authorization: Basic $AUTH_TOKEN" \
-          -H "Content-Type: application/json" \
-          --data '{ "issues": [ "'$TICKET'" ]}'
-
-          #  get the current hour and pick the correct reviewer
-          CURRENT_TIME=$(date -u +%k)
-          if [[ $CURRENT_TIME -lt 12 ]]
-          then
-              REVIEWER="6295e2abe76a9c00705da22e"
-              REVIEWER_NAME="Sean"
-              REVIEWER_SLACK="https://hasurahq.slack.com/team/U03J31UJ8V7"
-              REVIEWER_GH="seanparkross"
-          else
-              REVIEWER="6295e2ab1648f2006961ccf1"
-              REVIEWER_NAME="Rob"
-              REVIEWER_SLACK="https://hasurahq.slack.com/team/U03H7ABDMF1"
-              REVIEWER_GH="robertjdominguez"
-          fi
-            echo $REVIEWER
-            echo $REVIEWER_NAME
-            echo $CURRENT_TIME
-
-          # Assign the reviewer
-          curl -D- \
-          -X PUT \
-          -u $REVIEWER:$REVIEWER \
-          --url "https://hasurahq.atlassian.net/rest/api/2/issue/$TICKET/" \
-          -H "Authorization: Basic $AUTH_TOKEN" \
-          -H "Content-Type: application/json" \
-            --data '{ "fields": { "assignee": { "accountId": "'$REVIEWER'" } } }'
-          echo "reviewer=$REVIEWER_NAME" >> "$GITHUB_OUTPUT"
-          echo "reviewer_slack=$REVIEWER_SLACK" >> "$GITHUB_OUTPUT"
-          echo "reviewer_gh=$REVIEWER_GH" >> "$GITHUB_OUTPUT"
-
-      - name: Add reviewer
-        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.pulls.requestReviewers({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              reviewers: [context.payload.pull_request.user.login == '${{ steps.automate.outputs.reviewer_gh }}' ? '' : '${{ steps.automate.outputs.reviewer_gh }}']
-            })
-
-      - name: Add comment
-        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `Hey, @${{ github.event.pull_request.user.login }} :wave:\n\nThanks for this PR! Since you changed docs files, our automated Action assigned ${{ steps.automate.outputs.reviewer }} as your reviewer :tada:\n\nBefore ${{ steps.automate.outputs.reviewer }} looks over the changes, we ask you to take care of a couple of items:\n- [ ] Make sure you've checked over our [PR guide on the wiki](https://hasura.io/docs/wiki/checklist/). It ensures you've done your due diligence on the basics: spelling, heading casings, etc.\n- [ ] ${{ steps.automate.outputs.reviewer }} will need a review from someone on your team to ensure your team-specific content is accurate. Once that's done, ping [${{ steps.automate.outputs.reviewer }} on Slack](${{ steps.automate.outputs.reviewer_slack }}), and he'll give a docs review :fire:\n- [ ] **Additionally, please check this box to confirm your feature works as expected when using the documentation you've written. This is critical to ensuring our users have the information they need.**\n\nThe docs team aims to get all PRs reviewed within 48 hours of your team doing a review in the form of a content pass. Let ${{ steps.automate.outputs.reviewer }} know the level of urgency [on Slack](${{ steps.automate.outputs.reviewer_slack }}) :+1:\n\nYou can access a preview build of this PR [here](https://pr-${{ github.event.pull_request.number }}---docusaurus-5kcgrtdh3a-wl.a.run.app).`
-            })
+          cd utilities/create-docs-ticket && npm install && npm run start "${{ github.event.pull_request.title }}" ${{ github.event.pull_request.html_url }}

@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
-import styles from "./styles.module.scss";
-import CodeBlock from "@theme/CodeBlock";
-import { MDXProvider } from "@mdx-js/react";
+import React, { useEffect, useState } from 'react';
+import styles from './styles.module.scss';
+import CodeBlock from '@theme/CodeBlock';
+import { MDXProvider } from '@mdx-js/react';
 
-const CodeStep = (props) => {
+const CodeStep = props => {
   const [startIndex, setStartIndex] = useState(null);
-  const [directive, setDirective] = useState("");
-  const [description, setDescription] = useState("");
+  const [directive, setDirective] = useState('');
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
     if (props.children && props.children.length) {
       // find the start of the description by finding the first p tag - everything before that is the directive
       for (let i = 0; i < props.children.length; i++) {
-        if (props.children[i].props && props.children[i].props.originalType === "p") {
+        if (props.children[i].props && props.children[i].props.originalType === 'p') {
           setStartIndex(i);
           break;
         }

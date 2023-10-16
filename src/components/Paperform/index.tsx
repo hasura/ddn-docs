@@ -1,30 +1,30 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import useIsBrowser from '@docusaurus/useIsBrowser';
-import BrowserOnly from "@docusaurus/BrowserOnly";
-import styles from "./styles.module.scss";
+import BrowserOnly from '@docusaurus/BrowserOnly';
+import styles from './styles.module.scss';
 
 interface CustomInjectedScript extends HTMLScriptElement {
   onreadystatechange?: () => void;
 }
 
-export default function Paperform({ formId, styleClassName="" }) {
+export default function Paperform({ formId, styleClassName = '' }) {
   const isBrowser = useIsBrowser();
   const [isLoaded, setIsLoaded] = useState(false);
   const embedDivRef = useRef(null);
 
   useEffect(() => {
-    const existingEmbed = document.getElementById("paperform_embed");
+    const existingEmbed = document.getElementById('paperform_embed');
 
     if (existingEmbed) {
       setIsLoaded(true);
       return;
     }
 
-    const script:CustomInjectedScript = document.createElement("script");
-    script.id = "paperform_embed";
-    script.src = "https://forms.hasura.io/__embed.min.js";
+    const script: CustomInjectedScript = document.createElement('script');
+    script.id = 'paperform_embed';
+    script.src = 'https://forms.hasura.io/__embed.min.js';
     script.onreadystatechange = () => {
-      if (this.readyState === "complete" || this.readyState === "loaded") {
+      if (this.readyState === 'complete' || this.readyState === 'loaded') {
         setIsLoaded(true);
       }
     };
@@ -74,7 +74,7 @@ export default function Paperform({ formId, styleClassName="" }) {
   }, [isBrowser]);
 
   return (
-    <div className={`${styles["paperform-embed-wrapper"]} ${styleClassName ? styleClassName : ''}`}>
+    <div className={`${styles['paperform-embed-wrapper']} ${styleClassName ? styleClassName : ''}`}>
       {!isLoaded && <span className={styles.loadingText}>Loading...</span>}
       <BrowserOnly>
         {() => (

@@ -1,0 +1,180 @@
+---
+sidebar_position: 7
+sidebar_label: Relationships
+description:
+  Learn how to define relationships for querying nested or linked information in Hasura using the OpenDD spec in
+  GraphQL. Discover how to create and map relationships between different types and models.
+toc_max_heading_level: 4
+keywords:
+  - hasura
+  - graphql
+  - relationships
+  - opendd
+  - nested queries
+  - linked information
+  - data relationships
+  - relationship mapping
+  - model relationships
+  - type relationships
+seoFrontMatterUpdated: true
+---
+
+# OpenDD Relationships
+
+## Introduction
+
+A relationship allows you to query nested or linked information, for example from `Manufacturers` to `Products`. A
+relationship defined in the OpenDD spec allows you extend [type](./types.mdx) objects with related
+[models](./models.mdx).
+
+To create a relationship, you will need to define an object with `"kind": "Relationship"` which has a name, the source
+type, a target model and the mapping between the two.
+
+### Metadata structure
+
+```yaml
+kind: Relationship
+source: <String>
+name: <String>
+target: <TargetConfiguration>
+mapping: <RelationshipMapping>
+```
+
+| Field     | Type                                            | Required | Description                                                                                      |
+| --------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `source`  | `String`                                        | Yes      | The source [type](./types.mdx) of the relationship.                                              |
+| `target`  | [`TargetConfiguration`](#targetconfiguration)   | Yes      | The target of the relationship.                                                                  |
+| `mapping` | [`[RelationshipMapping]`](#relationshipmapping) | Yes      | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
+
+#### TargetConfiguration
+
+```yaml
+modelName: <String>
+relationshipType: <RelationshipType>
+```
+
+| Field              | Type                                    | Required | Description                                               |
+| ------------------ | --------------------------------------- | -------- | --------------------------------------------------------- |
+| `modelName`        | `String`                                | Yes      | The target [model](./models.mdx) of the relationship.     |
+| `relationshipType` | [`RelationshipType`](#relationshiptype) | Yes      | The type of the relationship: either `Object` or `Array`. |
+
+#### RelationshipType
+
+```yaml
+relationshipType: Object | Array
+```
+
+| Value    | Description                                     |
+| -------- | ----------------------------------------------- |
+| `Object` | The relationship is a one-to-one relationship.  |
+| `Array`  | The relationship is a one-to-many relationship. |
+
+#### RelationshipMapping
+
+```yaml
+- source: <RelationshipMappingSource>
+  target: <RelationshipMappingTarget>
+```
+
+| Field    | Type                                                      | Required | Description                             |
+| -------- | --------------------------------------------------------- | -------- | --------------------------------------- |
+| `source` | [`RelationshipMappingSource`](#relationshipmappingsource) | Yes      | Defines how to access the source field. |
+| `target` | [`RelationshipMappingTarget`](#relationshipmappingtarget) | Yes      | Defines how to access the target field. |
+
+#### RelationshipMappingSource
+
+```yaml
+fieldPath:
+  - <FieldAccess>
+```
+
+| Field       | Type                            | Required | Description                             |
+| ----------- | ------------------------------- | -------- | --------------------------------------- |
+| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the source field. |
+
+#### RelationshipMappingTarget
+
+```yaml
+modelField:
+  - <FieldAccess>
+```
+
+| Field        | Type                            | Required | Description                             |
+| ------------ | ------------------------------- | -------- | --------------------------------------- |
+| `modelField` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the target field. |
+
+#### FieldAccess
+
+```yaml
+fieldName: <FieldName>
+```
+
+| Field       | Type        | Required | Description                             |
+| ----------- | ----------- | -------- | --------------------------------------- |
+| `fieldName` | `FieldName` | Yes      | Defines how to access the source field. |
+
+## Example
+
+Let's add the following relationships to the above types.
+
+1. `Array` relationship where `Authors` have many `Articles`:
+
+```yaml
+kind: Relationship
+source: author
+name: Articles
+target:
+  modelName: Articles
+  relationshipType: Array
+mappings:
+  - source:
+      fieldPath:
+        - fieldName: id
+    target:
+      modelField:
+        - fieldName: author_id
+```
+
+2. `Object` relationship where `Articles` have one `Author`:
+
+```yaml
+kind: Relationship
+source: article
+name: Author
+target:
+  modelName: Authors
+  relationshipType: Object
+mappings:
+  - source:
+      fieldPath:
+        - fieldName: author_id
+    target:
+      modelField:
+        - fieldName: id
+```
+
+The resulting GraphQL schema will appear as:
+
+```graphql
+type Authors {
+  author_id Int!
+  first_name String!
+  last_name String!
+  articles: [Articles!]!
+}
+
+type Articles {
+  id Int!
+  author_id Int!
+  title String!
+  author: Authors
+}
+```
+
+:::info Current limitations
+
+1. Only relationships for models within the same data source are supported.
+2. Only types to top-level model types relationships are supported.
+3. Simple top-level type field to top-level model field mapping are supported.
+
+:::

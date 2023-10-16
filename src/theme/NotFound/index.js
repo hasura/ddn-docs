@@ -32,7 +32,7 @@ export default function NotFound() {
     // Remove the no-no words from the query
     const parsedQuery = query
       .split('/')
-      .filter((word) => !removeList.includes(word))
+      .filter(word => !removeList.includes(word))
       .join(' ');
 
     // Search
@@ -44,7 +44,7 @@ export default function NotFound() {
         setSearchResults(hits);
         setLoading(false);
       })
-      .catch((error) => {
+      .catch(error => {
         console.error(error);
       });
   }, []);
@@ -58,24 +58,24 @@ export default function NotFound() {
         })}
       />
       <Layout>
-        <main className='container margin-vert--xl'>
-          <div className='row'>
+        <main className="container margin-vert--xl">
+          <div className="row">
             <div className={styles['content']}>
               <ThemedImage
                 sources={{
                   light: Light404,
                   dark: Dark404,
                 }}
-                alt='404'
+                alt="404"
               />
               <div>
                 <h1>
-                  <Translate id='theme.NotFound.title' description='The title of the 404 page'>
+                  <Translate id="theme.NotFound.title" description="The title of the 404 page">
                     We have a broken link or the URL entered doesn't exist in our docs.
                   </Translate>
                 </h1>
                 <p>
-                  <Translate id='theme.NotFound.p2' description='The 2nd paragraph of the 404 page'>
+                  <Translate id="theme.NotFound.p2" description="The 2nd paragraph of the 404 page">
                     {!loading && searchResults.length > 0
                       ? `Our team has been notified and they're on it. Is there a chance one of these links will help?`
                       : ``}
@@ -83,7 +83,7 @@ export default function NotFound() {
                 </p>
                 <ul className={styles['results']}>
                   {searchResults &&
-                    searchResults.map((result) => (
+                    searchResults.map(result => (
                       <li key={result.objectID}>
                         <div>
                           <a href={result.url}>{result.hierarchy.lvl1}</a>

@@ -1,0 +1,92 @@
+---
+description: "Discover how you can deploy a data connector for Hasura with our in-depth guide."
+keywords:
+  - hasura
+  - graphql
+  - data connector
+  - API
+  - ndc spec
+  - connector tutorial
+  - deploy
+  - deployment
+---
+
+# Deploy a Data Connector
+
+## Integrated connectors
+
+[Integrated connectors](/connectors/introduction.mdx/#integrated-connectors) do not need to be deployed, and are
+available for immediate use in any project. You can see a full list of integrated connectors on the
+[Connector Hub](https://hasura.io/connectors).
+
+## HTTP connectors
+
+### Deploy an HTTP connector via a cloud provider
+
+[HTTP connectors](/connectors/introduction.mdx/#http-connectors) can easily be deployed to a variety of cloud providers.
+Simply follow the deployment instructions of your chosen provider.
+
+### Deploy an HTTP connector via Hasura using the CLI
+
+You can also deploy them to Hasura using our `connector` CLI plugin. You can see a full list of HTTP connectors on the
+[Connector Hub](https://hasura.io/connectors).
+
+Open source repositories that are set up according to the connector convention can be used via the `connector` CLI
+plugin.
+
+:::info Curious about an example?
+
+See the [SendGrid connector's repository](https://github.com/hasura/ndc-sendgrid/tree/main#sendgrid-connector) to see
+how the connector is set up.
+
+:::
+
+Once you have the Hasura v3 CLI you can install the plugin as follows:
+
+```bash
+hasura3 plugin install connector
+```
+
+### Limit access to your connector
+
+You can set the `SERVICE_TOKEN_SECRET` environment variable to only allow use from authorized Hasura projects.
+
+Set the environment variable on creation:
+
+```
+hasura3 connector create my-connector:v1 \
+  --github-repo-url https://github.com/hasura/cool-connector/tree/v0.7 \
+  --config-file conf.json \
+  --env SERVICE_TOKEN_SECRET='MY-SECRET-TOKEN-XXX123'
+```
+
+Configure your Hasura project metadata with a matching bearer token:
+
+```yaml
+kind: DataSource
+name: sendgrid
+dataConnectorUrl:
+  url: "https://my-connector-9XXX7-hyc5v23h6a-ue.a.run.app"
+auth:
+  type: Bearer
+  token: "SUPER_SECRET_TOKEN_XXX123"
+```
+
+Or via the Hasura secrets functionality:
+
+```yaml
+kind: DataSource
+name: sendgrid
+dataConnectorUrl:
+  url: "https://my-connector-9XXX7-hyc5v23h6a-ue.a.run.app"
+auth:
+  type: Bearer
+  token:
+    valueFromSecret: CONNECTOR_TOKEN
+```
+
+You can set a secret with the CLI for your cloud projects:
+
+```
+hasura3 cloud secret set --project-id $project-id CONNECTOR_TOKEN=SUPER_SECRET_TOKEN_XXX123
+```
