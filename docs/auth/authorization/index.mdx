@@ -1,88 +1,150 @@
 ---
-description: Manage authorization with Hasura
+description: Manage authorization in Hasura DDN
 keywords:
   - hasura
   - docs
+  - openDD spec
   - authorization
-  - auth
+  - permissions
+  - access control
+  - roles and permissions
+  - model select permissions
+  - command permissions
+  - type output permissions
 slug: index
 sidebar_position: 1
+seoFrontMatterUpdated: true
 ---
 
-import Thumbnail from '@site/src/components/Thumbnail';
-
-# Authorization
+# OpenDD Permissions in Hasura
 
 ## Introduction
 
 **Authorization determines what a verified user can access.**
 
-Hasura supports **role-based** authorization where access control over data is achieved by creating **permissions**
-based on the **user role** and **database operation** on the **table**.
+The OpenDD Spec lets you define permissions (also known as access control or authorization rules) on
+[output types](/data-domain-modeling/types.mdx), [models](/data-domain-modeling//models.mdx), and
+[commands](/data-domain-modeling//commands.mdx) in your data domain.
 
-Every authenticated request to Hasura Engine should contain dynamic
-session variables/auth/authorization/roles-variables.mdx from your
-authentication service/auth/authentication/index.mdx of **at least** `X-Hasura-Role`as well as any others you may
-need to use in your authorization rules.
+There are three forms of permissions in the OpenDD Spec:
 
-Authorization rules, or "Permissions", are defined by you in Hasura Engine. To control access to data, you create
-permissions per role and table for each of the `select`, `insert`, `update` and `delete` database operations.
+- [**Type Output Permissions**](#type-output-permissions): Define which fields within a `ScalarType` or `ObjectType` can
+be accessed by a particular role.
+- [**Model Select Permissions**](#model-select-permissions): Define which rows within a
+[model](/data-domain-modeling/models.mdx) can be accessed by a specific role.
+- [**Command Permissions**](#command-permissions): Define which [commands](/data-domain-modeling/commands.mdx) can be
+executed by a given role.
 
-Permissions can also be defined for Actions/actions/action-permissions.mdx and
-Remote Schemas/remote-schemas/auth/remote-schema-permissions.mdx.
+A role comes into existence when it is defined in one of these three ways.
+
+Every request to Hasura should carry the necessary session variables or roles from your authentication service. The
+presence and values of these roles determine which permissions apply to the request. There is no longer the concept
+of a built-in, default, super-user `admin` role in Hasura DDN. You can however set up
+[role emulation](/auth/authentication/role-emulation.mdx) in order to test your permissions with another role.
+
+Hasura roles and permissions via the OpenDD Spec are implemented at the Hasura Engine layer. They have no direct
+relationship to any data source users and roles.
+
+## Type Output Permissions {#type-output-permissions}
+
+With the OpenDD Spec, you can specify which fields of a `ScalarType` or `ObjectType` are accessible to specific roles.
 
 ### Example
 
-If we wanted to create a Permission which allowed users to only view their own data on the `user` table for a
-`select` database operation, we would create a row `select` Permission for the table like this:
+To define permissions on an output type `product` for `admin` and `customer` roles:
 
-```text
+```json
 {
-  “id”: {
-    “_eq”: “X-Hasura-User-Id”
+  "kind": "TypeOutputPermissions",
+  "typeName": "product",
+  "permissions": {
+    "admin": {
+      "fields": ["id", "name", "price", "manufacturer_id"]
+    },
+    "customer": {
+      "fields": ["id", "name", "price"]
+    }
   }
 }
 ```
 
-This would check that the `X-Hasura-User-Id` session variable matches the `id` value in the `user` table of the user
-which is being selected. This is a simple yet effective example and many more complex rules can be created as per
-your needs.
+:::info No access for undefined roles
 
-:::info Note
-
-Hasura roles and permissions are implemented at the Hasura Engine layer. They have no relationship to database users
-and roles.
+If a role doesn't have any permissions defined for a type, it won't have access to it.
 
 :::
 
-## Easily test permissions
+## Model Select Permissions
 
-If you just want to see permissions in action, you don't need to first set up or integrate your auth service with
-GraphQL Engine. You can just do the following:
+You can control which rows or objects within a model a role can access. The syntax for this filter check, known as a
+`FieldComparison` `ModelPredicate`, is available in the
+[OpenDD Spec](/data-domain-modeling/common-syntax.mdx#modelpredicate).
 
-- Define permission rules/auth/authorization/permissions/index.mdx for a table, role and operation. eg: `user`
-table, `user` role and `select` operation.
-- Use the API GraphiQL interface in the Console to make a request and send the session variables as request headers
-(send a `X-Hasura-Role` key, with its value as the name of the role you've defined rules for). The data in the
-response will be restricted as per your configuration.
+### Example
 
-[//]: # (<Thumbnail src='/img/auth/authentication_test-permissions-with-admin-secret_2.16.1.png' alt='Pose as a user using the)
+The following defines permissions for the `Users` model:
 
-[//]: # (admin secret header'  />)
+```json
+{
+  "kind": "ModelSelectPermissions",
+  "modelName": "Users",
+  "permissions": {
+    "admin": {},
+    "customer": {
+      "filter": {
+        "fieldComparison": {
+          "field": "id",
+          "operator": "_eq",
+          "value": {
+            "sessionVariable": "x-hasura-user-id"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
-:::info API limits and access controls in Hasura Cloud
+In the above example, the `admin` role has no restrictions on the `Users` model. The `customer` role can only access the
+row where the `id` field matches the `x-hasura-user-id` session variable ie: themselves.
 
-Additional access controls and API limits like maximum query depth are available in Hasura Cloud and Enterprise. See
-more at API limits with Hasura Cloud/security/api-limits.mdx.
+## Command Permissions
+
+Command permissions determine which roles can execute specific commands by defining one boolean value of
+`allowExecution` for each role.
+
+### Example
+
+For a command named `send_abandoned_cart_email`, the permissions might look like:
+
+```json
+{
+  "kind": "CommandPermissions",
+  "commandName": "send_abandoned_cart_email",
+  "permissions": {
+    "admin": {
+      "allowExecution": true
+    },
+    "user": {
+      "allowExecution": false
+    }
+  }
+}
+```
+
+In the above example the `admin` role can execute the `send_abandoned_cart_email` command, but the `user` role cannot.
+
+:::info No access for undefined roles
+
+If a role doesn't have any permissions defined for a command, it won't have the ability to execute that command.
 
 :::
 
-[//]: # (:::info Additional authorization tutorial)
+## Testing Permissions
 
-[//]: # ()
-[//]: # (- Authorization Patterns with Hasura -)
+You can test permissions directly in the Hasura Console's API interface:
 
-[//]: # ([Check out this tutorial]&#40;https://hasura.io/learn/graphql/hasura-auth-slack/introduction/&#41;.)
-
-[//]: # ()
-[//]: # (:::)
+1. Define the desired permissions for a particular type, model, or command in your metadata.
+2. Make a request through the Hasura DDN Console GraphiQL API interface and send the session variables as request
+   headers (e.g., a role you've defined permissions for).
+3. Check the returned data to ensure it adheres to your permission configurations.
