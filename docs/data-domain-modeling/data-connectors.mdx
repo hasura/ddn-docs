@@ -32,32 +32,40 @@ the respective data connector.
 
 ## Description
 
-To create a `DataConnector`, start by defining an OpenDD object with the `kind` set to `DataConnector`. This object
-should include three fields: `name`, `url`, and `schema` and an optional field `headers`.
+To create a data connector object, you will need to define an object with `kind: DataConnector` and `version: v1`.
+The object `definition` should include four fields: `name`, `url`, `headers` and `schema`.
 
 ```yaml
 kind: DataConnector
-name: <DataConnectorName>
-url: <DataConnectorURL>
-headers: <DataConnectorHeaders>
-schema: <SchemaResponse>
+version: v1
+definition:
+  name: <DataConnectorName>
+  url: <DataConnectorURL>
+  headers: <DataConnectorHeaders>
+  schema: <SchemaResponse>
 ```
 
 | Field     | Type                                            | Required | Description                                                                                                                            |
 | --------- | ----------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`    | `String`                                        | true     | Name of the Data Connector.                                                                                                            |
 | `url`     | [`DataConnectorURL`](#dataconnectorurl)         | true     | URL to access the data connector.                                                                                                      |
-| `headers` | [`DataConnectorHeaders`](#dataconnectorheaders) | false    | Headers to pass to the data connector.                                                                                                 |
+| `headers` | [`DataConnectorHeaders`](#dataconnectorheaders) | true     | Request headers to pass on to the data connector.                                                                                      |
 | `schema`  | [`SchemaResponse`](#schemaresponse)             | true     | The schema response from the data connector. This includes `scalar_types`, `object_type`, `collections`, `functions` and `procedures`. |
 
 ### DataConnectorURL
 
-`DataConnectorURL` is either a string containing the URL of the data connector or an object that defines separate
-read/write data connector URLs:
+`DataConnectorURL` is an object that either defines a single URL for the data connector or separate read/write URLs
+for the data connector. For example, it can take either of the following
 
 ```yaml
-read: Read URL for the data connector
-write: Write URL for the data connector
+url:
+  singleUrl: <URL for the data connector>
+```
+
+```yaml
+url:
+  read: <Read URL for the data connector>
+  write: <Write URL for the data connector>
 ```
 
 Read/Write URLs are used to access the appropriate data connector based on the GraphQL operation type. For example, if
@@ -81,11 +89,12 @@ headers:
 provided by the `/schema` endpoint of the data connector. It contains the following fields:
 
 ```yaml
-scalar_types: <ScalarTypes>
-object_types: <ObjectTypes>
-collections: <Collections>
-functions: <Functions>
-procedures: <Procedures>
+schema:
+  scalar_types: <ScalarTypes>
+  object_types: <ObjectTypes>
+  collections: <Collections>
+  functions: <Functions>
+  procedures: <Procedures>
 ```
 
 The structure and detailed documentation of these fields can be found
@@ -99,155 +108,158 @@ is present in the complete example below:
 
 ```yaml
 kind: DataConnector
-name: my_data_connector
-url: http://localhost:8080
-schema:
-  scalar_types:
-    String:
-      aggregate_functions: {}
-      comparison_operators:
-        like:
-          argument_type:
-            type: named
-            name: String
-      update_operators: {}
-    Int:
-      aggregate_functions:
-        min:
-          result_type:
-            type: nullable
-            underlying_type:
+version: v1
+definition:
+  name: my_data_connector
+  url:
+    singleUrl: http://localhost:8080
+  schema:
+    scalar_types:
+      String:
+        aggregate_functions: {}
+        comparison_operators:
+          like:
+            argument_type:
               type: named
-              name: Int
-        max:
-          result_type:
-            type: nullable
-            underlying_type:
-              type: named
-              name: Int
-      comparison_operators: {}
-      update_operators: {}
-  object_types:
-    Artist:
-      description: An artist
-      fields:
-        ArtistId:
-          description: The artist's primary key
-          arguments: {}
-          type:
-            type: named
-            name: Int
-        Name:
-          description: The artist's name
-          arguments: {}
-          type:
-            type: named
-            name: String
-    Album:
-      description: An album
-      fields:
-        AlbumId:
-          description: The album's primary key
-          arguments: {}
-          type:
-            type: named
-            name: Int
-        Title:
-          description: The album's title
-          arguments: {}
-          type:
-            type: named
-            name: String
-        ArtistId:
-          description: The album's artist ID
-          arguments: {}
-          type:
-            type: named
-            name: Int
-    Track:
-      description: A track
-      fields:
-        TrackId:
-          description: The track's primary key
-          arguments: {}
-          type:
-            type: named
-            name: Int
-        Name:
-          description: The track's name
-          arguments: {}
-          type:
-            type: named
-            name: String
-        AlbumId:
-          description: The track's album ID
-          arguments: {}
-          type:
-            type: named
-            name: Int
-    artist_below_id:
-      description: An artist
-      fields:
-        ArtistId:
-          description: The artist's primary key
-          arguments:
-            id:
-              description: The cyling id
-              type:
+              name: String
+        update_operators: {}
+      Int:
+        aggregate_functions:
+          min:
+            result_type:
+              type: nullable
+              underlying_type:
                 type: named
                 name: Int
-          type:
-            type: named
-            name: Int
-        Name:
-          description: The artist's name
-          arguments: {}
-          type:
-            type: named
-            name: String
-  collections:
-    - name: Artist
-      description: A collection of artists
-      arguments: {}
-      type: Artist
-      deletable: false
-      uniqueness_constraints:
-        ArtistById:
-          unique_columns:
-            - ArtistId
-      foreign_keys: {}
-    - name: Album
-      description: A collection of albums
-      arguments: {}
-      type: Album
-      deletable: false
-      uniqueness_constraints:
-        AlbumById:
-          unique_columns:
-            - AlbumId
-      foreign_keys: {}
-    - name: Track
-      description: A collection of tracks
-      arguments: {}
-      type: Track
-      deletable: false
-      uniqueness_constraints:
-        TrackById:
-          unique_columns:
-            - TrackId
-      foreign_keys: {}
-    - name: artist_below_id
-      description: A collection of artists below a certain id
-      arguments:
-        id:
-          description: The ceiling id
-          type:
-            type: named
-            name: Int
-      type: Artist
-      deletable: false
-      uniqueness_constraints: {}
-      foreign_keys: {}
-  functions: []
-  procedures: []
+          max:
+            result_type:
+              type: nullable
+              underlying_type:
+                type: named
+                name: Int
+        comparison_operators: {}
+        update_operators: {}
+    object_types:
+      Artist:
+        description: An artist
+        fields:
+          ArtistId:
+            description: The artist's primary key
+            arguments: {}
+            type:
+              type: named
+              name: Int
+          Name:
+            description: The artist's name
+            arguments: {}
+            type:
+              type: named
+              name: String
+      Album:
+        description: An album
+        fields:
+          AlbumId:
+            description: The album's primary key
+            arguments: {}
+            type:
+              type: named
+              name: Int
+          Title:
+            description: The album's title
+            arguments: {}
+            type:
+              type: named
+              name: String
+          ArtistId:
+            description: The album's artist ID
+            arguments: {}
+            type:
+              type: named
+              name: Int
+      Track:
+        description: A track
+        fields:
+          TrackId:
+            description: The track's primary key
+            arguments: {}
+            type:
+              type: named
+              name: Int
+          Name:
+            description: The track's name
+            arguments: {}
+            type:
+              type: named
+              name: String
+          AlbumId:
+            description: The track's album ID
+            arguments: {}
+            type:
+              type: named
+              name: Int
+      artist_below_id:
+        description: An artist
+        fields:
+          ArtistId:
+            description: The artist's primary key
+            arguments:
+              id:
+                description: The cyling id
+                type:
+                  type: named
+                  name: Int
+            type:
+              type: named
+              name: Int
+          Name:
+            description: The artist's name
+            arguments: {}
+            type:
+              type: named
+              name: String
+    collections:
+      - name: Artist
+        description: A collection of artists
+        arguments: {}
+        type: Artist
+        deletable: false
+        uniqueness_constraints:
+          ArtistById:
+            unique_columns:
+              - ArtistId
+        foreign_keys: {}
+      - name: Album
+        description: A collection of albums
+        arguments: {}
+        type: Album
+        deletable: false
+        uniqueness_constraints:
+          AlbumById:
+            unique_columns:
+              - AlbumId
+        foreign_keys: {}
+      - name: Track
+        description: A collection of tracks
+        arguments: {}
+        type: Track
+        deletable: false
+        uniqueness_constraints:
+          TrackById:
+            unique_columns:
+              - TrackId
+        foreign_keys: {}
+      - name: artist_below_id
+        description: A collection of artists below a certain id
+        arguments:
+          id:
+            description: The ceiling id
+            type:
+              type: named
+              name: Int
+        type: Artist
+        deletable: false
+        uniqueness_constraints: {}
+        foreign_keys: {}
+    functions: []
+    procedures: []
 ```

@@ -1,5 +1,5 @@
 ---
-description: Explore how to set up role emulation with Hasura, allowing certain roles to emulate other roles. Learn about the AuthConfig Hasura metadata object and the allowRoleEmulationFor field.
+description: Explore how to set up role emulation with Hasura, allowing certain roles to emulate other roles. Learn about the AuthConfig Hasura metadata object and the allowRoleEmulationBy field.
 keywords: 
   - hasura
   - role-emulation
@@ -23,10 +23,10 @@ seoFrontMatterUpdated: true
 You can configure authentication to allow certain roles to emulate other roles. This can be useful during development
 to test access-control rules without setting up authentication.
 
-To set up role emulation, the `AuthConfig` Hasura metadata object accepts a field called `allowRoleEmulationFor`.
+To set up role emulation, the `AuthConfig` Hasura metadata object accepts a field called `allowRoleEmulationBy`.
 
-When `allowRoleEmulationFor` is set up, Hasura will check for the value of the `x-hasura-role` session variable
-which is returned in the webhook or JWT response to be equal to the value set in the `allowRoleEmulationFor`. If the
+When `allowRoleEmulationBy` is set up, Hasura will check for the value of the `x-hasura-role` session variable
+which is returned in the webhook or JWT response to be equal to the value set in the `allowRoleEmulationBy`. If the
 values are equal, then role emulation will be enabled for that request. When role emulation is enabled for a request,
 the session variables, including the role, will be considered from the HTTP request headers instead.
 
@@ -35,9 +35,11 @@ In the example below, we set up role emulation for the `admin` role, allowing an
 ```yaml
 ---
 kind: AuthConfig
-allowRoleEmulationFor: admin
-webhook:
-  webhookUrl: https://myauth.service.com/validate-request
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  webhook:
+    webhookUrl: https://myauth.service.com/validate-request
 
 ```
 

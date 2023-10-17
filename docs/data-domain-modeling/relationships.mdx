@@ -27,36 +27,50 @@ A relationship allows you to query nested or linked information, for example fro
 relationship defined in the OpenDD spec allows you extend [type](./types.mdx) objects with related
 [models](./models.mdx).
 
-To create a relationship, you will need to define an object with `"kind": "Relationship"` which has a name, the source
-type, a target model and the mapping between the two.
+To create a relationship, you will need to define an object with `kind: Relationship` and `version: v1`. The object
+`definition` has a `name`, the `source` type, a `target` model and the `mapping` between the two.
 
 ### Metadata structure
 
 ```yaml
 kind: Relationship
-source: <String>
-name: <String>
-target: <TargetConfiguration>
-mapping: <RelationshipMapping>
+version: v1
+definition:
+  source: <String>
+  name: <String>
+  target: <TargetConfiguration>
+  mapping: <RelationshipMapping>
 ```
 
 | Field     | Type                                            | Required | Description                                                                                      |
 | --------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `source`  | `String`                                        | Yes      | The source [type](./types.mdx) of the relationship.                                              |
-| `target`  | [`TargetConfiguration`](#targetconfiguration)   | Yes      | The target of the relationship.                                                                  |
-| `mapping` | [`[RelationshipMapping]`](#relationshipmapping) | Yes      | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
+| `source`  | `String`                                        | true     | The source [type](./types.mdx) of the relationship.                                              |
+| `name`    | `String`                                        | true     | The name of the relationship.                                                                    |
+| `target`  | [`TargetConfiguration`](#targetconfiguration)   | true     | The target of the relationship.                                                                  |
+| `mapping` | [`[RelationshipMapping]`](#relationshipmapping) | true     | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
 
 #### TargetConfiguration
 
 ```yaml
-modelName: <String>
-relationshipType: <RelationshipType>
+target:
+  model: <TargetModel>
+```
+| Field              | Type                           | Required | Description                                             |
+| ------------------ | ------------------------------ | -------- | ------------------------------------------------------- |
+| `model`            | [`TargetModel`](#targetmodel)  | true     | The target [model](./models.mdx) for the relationship.  |
+
+#### TargetModel
+
+```yaml
+model:
+  name: <String>
+  relationshipType: <RelationshipType>
 ```
 
 | Field              | Type                                    | Required | Description                                               |
 | ------------------ | --------------------------------------- | -------- | --------------------------------------------------------- |
-| `modelName`        | `String`                                | Yes      | The target [model](./models.mdx) of the relationship.     |
-| `relationshipType` | [`RelationshipType`](#relationshiptype) | Yes      | The type of the relationship: either `Object` or `Array`. |
+| `name`             | `String`                                | true     | The name of the target model.                             |
+| `relationshipType` | [`RelationshipType`](#relationshiptype) | true     | The type of the relationship: either `Object` or `Array`. |
 
 #### RelationshipType
 
@@ -72,36 +86,39 @@ relationshipType: Object | Array
 #### RelationshipMapping
 
 ```yaml
-- source: <RelationshipMappingSource>
-  target: <RelationshipMappingTarget>
+mapping:
+  - source: <RelationshipMappingSource>
+    target: <RelationshipMappingTarget>
 ```
 
 | Field    | Type                                                      | Required | Description                             |
 | -------- | --------------------------------------------------------- | -------- | --------------------------------------- |
-| `source` | [`RelationshipMappingSource`](#relationshipmappingsource) | Yes      | Defines how to access the source field. |
-| `target` | [`RelationshipMappingTarget`](#relationshipmappingtarget) | Yes      | Defines how to access the target field. |
+| `source` | [`RelationshipMappingSource`](#relationshipmappingsource) | true     | Defines how to access the source field. |
+| `target` | [`RelationshipMappingTarget`](#relationshipmappingtarget) | true     | Defines how to access the target field. |
 
 #### RelationshipMappingSource
 
 ```yaml
-fieldPath:
-  - <FieldAccess>
+source:
+  fieldPath:
+    - <FieldAccess>
 ```
 
 | Field       | Type                            | Required | Description                             |
 | ----------- | ------------------------------- | -------- | --------------------------------------- |
-| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the source field. |
+| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | true     | Defines how to access the source field. |
 
 #### RelationshipMappingTarget
 
 ```yaml
-modelField:
-  - <FieldAccess>
+target:
+  modelField:
+    - <FieldAccess>
 ```
 
 | Field        | Type                            | Required | Description                             |
 | ------------ | ------------------------------- | -------- | --------------------------------------- |
-| `modelField` | [`[FieldAccess]`](#fieldaccess) | Yes      | Defines how to access the target field. |
+| `modelField` | [`[FieldAccess]`](#fieldaccess) | true     | Defines how to access the target field. |
 
 #### FieldAccess
 
@@ -109,48 +126,54 @@ modelField:
 fieldName: <FieldName>
 ```
 
-| Field       | Type        | Required | Description                             |
-| ----------- | ----------- | -------- | --------------------------------------- |
-| `fieldName` | `FieldName` | Yes      | Defines how to access the source field. |
+| Field       | Type     | Required | Description                             |
+| ----------- | -------- | -------- | --------------------------------------- |
+| `fieldName` | `String` | true     | Defines how to access the source field. |
 
 ## Example
 
 Let's add the following relationships to the above types.
 
-1. `Array` relationship where `Authors` have many `Articles`:
+1. `Array` relationship where `author` has many `Articles`:
 
 ```yaml
 kind: Relationship
-source: author
-name: Articles
-target:
-  modelName: Articles
-  relationshipType: Array
-mappings:
-  - source:
-      fieldPath:
-        - fieldName: id
-    target:
-      modelField:
-        - fieldName: author_id
+version:
+definition:
+  source: author
+  name: Articles
+  target:
+    model:
+      name: Articles
+      relationshipType: Array
+  mappings:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: author_id
 ```
 
-2. `Object` relationship where `Articles` have one `Author`:
+2. `Object` relationship where `article` has one `Author`:
 
 ```yaml
 kind: Relationship
-source: article
-name: Author
-target:
-  modelName: Authors
-  relationshipType: Object
-mappings:
-  - source:
-      fieldPath:
-        - fieldName: author_id
-    target:
-      modelField:
-        - fieldName: id
+version: v1
+definition:
+  source: article
+  name: Author
+  target:
+    model:
+      name: Authors
+      relationshipType: Object
+  mappings:
+    - source:
+        fieldPath:
+          - fieldName: author_id
+      target:
+        modelField:
+          - fieldName: id
 ```
 
 The resulting GraphQL schema will appear as:

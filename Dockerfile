@@ -27,3 +27,4 @@ RUN yarn build
 EXPOSE 8080
 
 CMD ["yarn", "serve", "-p", "8080", "--host", "0.0.0.0"]
+
