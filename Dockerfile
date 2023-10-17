@@ -14,10 +14,12 @@ COPY package*.json ./
 
 COPY yarn.lock ./
 
-RUN yarn install
+#RUN yarn install
 
 # Copy needed files
 COPY . .
+
+RUN corepack enable && corepack prepare yarn@stable --activate && yarn set version 3.3.0 && yarn install
 
 # Build static files
 RUN yarn build
