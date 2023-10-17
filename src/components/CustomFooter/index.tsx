@@ -25,7 +25,7 @@ const CustomFooter = () => {
       <div className={styles['copyright']}>{`© ${new Date().getFullYear()} Hasura Inc. All rights reserved`}</div>
       <div className={styles['footerSocialIconsWrapper']}>
         <div className={styles['socialBrands']}>
-          <Link href={'https://github.com/hasura/graphql-engine'} rel="noopener noreferrer" aria-label={'Github'}>
+          <Link href={'https://github.com/hasura/ndc-hub'} rel="noopener noreferrer" aria-label={'Github'}>
             <GithubIcon />
           </Link>
         </div>
