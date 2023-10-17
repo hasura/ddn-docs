@@ -12,7 +12,9 @@ WORKDIR /graphql-engine/docs
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 
-RUN yarn install --frozen-lockfile
+COPY yarn.lock ./
+
+RUN yarn install
 
 # Copy needed files
 COPY . .
