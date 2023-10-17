@@ -60,9 +60,20 @@ In the object, only one of the supported authentication modes (`jwt` or `webhook
 
 ```yaml
 kind: AuthConfig
-jwt:
-  type: HS256
-  key: <JWT Decoding key>
+version: v1
+definition:
+  jwt:
+    key:
+      fixed:
+        algorithm: HS256
+        key:
+          value: token
+    tokenLocation:
+      type: BearerAuthorization
+    claimsConfig:
+      namespace:
+        claimsFormat: Json
+        location: "/https:~1~1hasura.io~1jwt~1claims"
 ```
 
 For a full description of JWT mode [see here](./jwt.mdx).
@@ -74,14 +85,17 @@ For a full description of JWT mode [see here](./jwt.mdx).
 ```yaml
 ---
 kind: AuthConfig
-allowRoleEmulationBy: admin
-webhook:
-  webhookUrl: http://auth.yourservice.com/validate-request
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  webhook:
+    url: http://auth.yourservice.com/validate-request
+    method: Get
 ```
 
-| Field        | Type   | Required | Description                                                                                                                              |
-| ------------ | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `webhookUrl` | URL    | true     | URL of the authentication webhook.                                                                                                       |
-| `mode`       | String | false    | HTTP method to use while making the request to the authentication webhook. Only `GET` and `POST` methods are supported (default: `GET`). |
+| Field    | Type   | Required | Description                                                                                                             |
+|----------|--------|----------|-------------------------------------------------------------------------------------------------------------------------|
+| `url`    | URL    | true     | URL of the authentication webhook.                                                                                      |
+| `method` | String | false    | HTTP method to use while making the request to the authentication webhook. Only `Get` and `Post` methods are supported. |
 
 For a full description of webhook mode [see here](./webhook.mdx).

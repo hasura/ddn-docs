@@ -47,31 +47,35 @@ You can enable JWT mode by configuring your metadata appropriately:
 
 ### Example
 
-```json
-{
-  "kind": "AuthConfig",
-  "jwt": {
-    "type": "HS256",
-    "key": "<JWT Decoding key>"
-  }
-}
+```yaml
+key:
+  fixed:
+    algorithm: HS256
+    key:
+      value: token
+tokenLocation:
+  type: BearerAuthorization
+claimsConfig:
+  namespace:
+    claimsFormat: Json
+    location: "/https:~1~1hasura.io~1jwt~1claims"
 ```
 
 ### All jwt configuration fields
 
 ```yaml
-mode:
-  # either `viaKey` or `viaJWK` is expected.
-  viaKey:
-    type: optional-type-of-key
+key:
+  # either `fixed` or `jwkFromUrl` is expected.
+  fixed:
+    algorithm: required-algorithm-to-be-used-to-decode-the-JWT
     key: required-key-as-string
-  viaJWK: required-JWK-url
+  jwkFromUrl: required-JWK-url
 claimsConfig:
-  # either `namespace` or `claimsMap`. If nothing is provided, default to `namespace` with its default values.
+  # either `namespace` or `locations` is expected.
   namespace:
-    path: optional-json-pointer-to-the-claims-default-https://hasura.io/jwt/claims
-    format: optional-claims-format-default-Json
-  claimsMap:
+    location: optional-json-pointer-to-the-claims-default-https://hasura.io/jwt/claims
+    claimsFormat: optional-claims-format-default-Json
+  locations:
     # Object with keys as session variables and values as object
     x-hasura-role:
       # either `literal` or `path` is expected.
@@ -79,45 +83,44 @@ claimsConfig:
       path:
         path: required-json-pointer-to-the-claim
         default: optional-default
+tokenLocation: "<optional-object-to-indicate-cookie-or-authorization-header-or-custom->"
 audience: "<optional-string-or-list-of-strings-to-verify-audience>"
 issuer: "<optional-string-to-verify-issuer>"
 allowedSkew: "<optional-number-of-seconds-in-integer>"
-header: "<optional-object-to-indicate-cookie-or-authorization-header-or-custom->"
 
 ```
 
 ### Metadata structure
 
-| Field                 | Type                    | Required | Description                                                                                                                                                                                        |
-|-----------------------|-------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `mode`                | [`JWT mode`](#jwt-mode) | true     | JWT mode to configure the JWT authentication.                                                                                                                                                  |
-| `claimsNamespacePath` | JSON Pointer            | false    | Default path where the Hasura claims object should be looked up in the decoded JWT. Default: (Default: "https:~1~1hasura.io~1jwt~1claims" (JSON Pointer for `https://hasura.io/jwt/claims`)).    |
-| `claimsFormat`        | String                  | false    | Format of the Hasura claims in the decoded JWT. Possible values: `json`, `stringifiedJson`. Default: `json`.                                                                                        |
-| `claimsMap`           | Object                  | false    | Object of session variables to the pointer or literal value where the Hasura claims object should be looked up in the decoded JWT.                                                                 |
-| `audience`            | String                  | false    | When set, verifies the `aud` claims in the JWT to be equal to this value.                                                                                                                          |
-| `issuer`              | String                  | false    | When set, verifies the `iss` claim in the JWT claim equal to this value.                                                                                                                           |
-| `allowedSkew`         | Int                     | false    | Optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry time. This field expects an integer value which will be the number of seconds of the skew value. |
-| `header`              | Object                  | false    | Declares the request header or the cookie (with cookie name) from which to read the JWT. Default: ```json { "type": "Authorization" }```.                                                       |
+| Field           | Type                                | Required | Description                                                                                                                                                                                        |
+|-----------------|-------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `key`           | [`JWT key`](#jwt-key)               | true     | JWT key type to configure the JWT authentication.                                                                                                                                                  |
+| `claimsConfig`  | [Claims Config](#jwt-claims-config) | true     | Configuration of the Hasura claims within the JWT.                                                                                                                                                 |
+| `tokenLocation` | [Object](#jwt-token-location-values)                              | true     | Declares the request header or the cookie (with cookie name) from which to read the JWT. Default: `{"type": "tokenLocationValues"}`.                        |
+| `audience`      | String                              | false    | When set, verifies the `aud` claims in the JWT to be equal to this value.                                                                                                                          |
+| `issuer`        | String                              | false    | When set, verifies the `iss` claim in the JWT claim equal to this value.                                                                                                                           |
+| `allowedSkew`   | Int                                 | false    | Optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry time. This field expects an integer value which will be the number of seconds of the skew value. |
 
 
-#### JWT mode {#jwt-mode}
 
-| Field    | Type                | Required | Description                                                                                                  |
-|----------|---------------------|----------|--------------------------------------------------------------------------------------------------------------|
-| `viaKey` | [`ViaKey`](#viakey) | false    | Static JWT mode, when the `type` and the `key` fields are known and aren't expected to change during runtime. |
-| `viaJWK` | URL                 | false    | JWK URL from which the graphql-engine will determine the `type` and `key` fields from dynamically.            |
+#### JWT key {#jwt-key}
+
+| Field        | Type                        | Required | Description                                                                                                       |
+|--------------|-----------------------------|----------|-------------------------------------------------------------------------------------------------------------------|
+| `fixed`      | [Fixed key](#fixed-jwt-key) | false    | Fixed JWT mode, when the `algorithm` and the `key` fields are known and aren't expected to change during runtime. |
+| `jwkFromUrl` | URL                         | false    | JWK URL from which the graphql-engine will determine the `algorithm` and `key` fields from dynamically.           |
 
 :::info Note
 
-Either, the `viaKey` or the `viaJWK` is expected.
+Either, the `fixed` or the `jwkFromUrl` is expected.
 :::
 
-##### ViaKey
+##### Fixed JWT key {#fixed-jwt-key}
 
-| Field  | Type   | Required | Description                                                                                                                                                            |
-|--------|--------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `type` | String | false    | Algorithm used to decode the JWT. Possible values are: `HS256`, `HS384`, `HS512`, `ES256`, `ES384`, `RS256`, `RS384`, `RS512`, `PS256`, `PS384`, `PS512` and `EdDSA`. |
-| `key`  | String | false    | Key to decode the JWT.                                                                                                                                                  |
+| Field       | Type   | Required | Description                                                                                                                                                           |
+|-------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `algorithm` | String | false    | Algorithm used to decode the JWT. Possible values are: `HS256`, `HS384`, `HS512`, `ES256`, `ES384`, `RS256`, `RS384`, `RS512`, `PS256`, `PS384`, `PS512` and `EdDSA`. |
+| `key`       | String | false    | Key to decode the JWT.                                                                                                                                                |
 
 
 #### JWT claims config {#jwt-claims-config}
@@ -168,6 +171,14 @@ Any number of Custom claims can be added to the claims map.
 | `path`    | [JSON claims map path object](#jwt-claims-map-path-object) | false    | JSON pointer to the Hasura claim.                                              |
 | `default` | T                                                          | false    | Default value of the Hasura claim, if there is no value present at the `path`. |
 
+
+#### JWT token location values {#jwt-token-location-values}
+
+| Field                 | Type   | Required | Description                                                                                                                                                   |
+|-----------------------|--------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `BearerAuthorization` | String | false    | JWT is provided in the `Authorization` header in the format of `Bearer <JWT>`                                                                                 |
+| `Header`              | Object | false    | Name of the header which will contain the JWT. A JSON object with the name of the custom header is expected like: `{ "Header": "<custom-header-name>" }` |
+| `Cookie`              | Object | false    | JWT is provided in the `Cookie` header. A JSON object with the name of the cookie is expected like: `{ "Cookie": "<custom-cookie-name>" }`                                                                                                                                                              |
 
 ### Example Decoded Payload
 
