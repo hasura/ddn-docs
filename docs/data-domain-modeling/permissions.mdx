@@ -27,58 +27,76 @@ The OpenDD Spec lets you define permissions, (also known as access control or au
 
 The following types of permissions are defined in the [OpenDD spec](/data-domain-modeling/overview.mdx):
 
-- `TypeOutputPermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
+- `TypePermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
   is useful, as multiple models can return the same output type.
-- `ModelSelectPermissions` define which objects or rows within the model are allowed to be accessed by a role.
+- `ModelPermissions` define which objects or rows within the model are allowed to be accessed by a role.
 - `CommandPermissions` defines which commands are allowed to be executed by a role.
 
-## Type output permissions {#type-output-permissions}
+## Type permissions {#type-permissions}
 
-A type output permission will need the type and the role(s) for which the permission should be defined. For each role,
+A type permission will need the type and the role(s) for which the permission should be defined. For each role,
 you will need to define the fields accessible for that role.
 
 ### Metadata Structure
 
 ```yaml
-kind: TypeOutputPermissions
-typeName: <TypeName>
-permissions: <OutputPermission>
+kind: TypePermissions
+version: v1
+definition:
+  typeName: <TypeName>
+  permissions: <TypePermission>
 ```
 
-| Field         | Type                                          | Required | Description                                                                                                                    |
-| ------------- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `typeName`    | [`TypeName`](/data-domain-modeling/types.mdx) | true     | Name of the output type on which permissions are to be defined.                                                                |
-| `permissions` | [`OutputPermission`](#outputpermission)       | true     | The permissions object for this type. Each key of the object is a role, and the value is an object of type `OutputPermission`. |
+| Field         | Type                                          | Required | Description                                                   |
+| ------------- | --------------------------------------------- | -------- | ------------------------------------------------------------- |
+| `typeName`    | [`TypeName`](/data-domain-modeling/types.mdx) | true     | The name of the type for which permissions are to be defined. |
+| `permissions` | [`[TypePermission]`](#typepermission)         | true     | The permissions object for this type, one for each role.      |
+
+#### TypePermission
+
+```yaml
+permissions:
+  - role: <RoleName>
+    output: <OutputPermission>
+```
+
+| Field      | Type                                            | Required | Description                                                   |
+| ---------- | ----------------------------------------------- | -------- | ------------------------------------------------------------- |
+| `role`     | `String`                                        | true     | The name of the role for which permissions are to be defined. |
+| `output`   | [`OutputPermission`](#outputpermission)         | true     | The type output permission for the role.                      |
 
 #### OutputPermission
 
 ```yaml
-<RoleName>:
-  fields:
-    - <field1>
-    - <field2>
+output:
+  allowedFields:
+  - <field1>
+  - <field2>
 ```
 
-| Field      | Type       | Required | Description                                                        |
-| ---------- | ---------- | -------- | ------------------------------------------------------------------ |
-| `RoleName` | `String`   | true     | The name of the role on which you're creating permissions.         |
-| `fields`   | `[String]` | true     | List of field names (of the type) that are accessible to the role. |
+| Field           | Type       | Required | Description                                     |
+| --------------- | ---------- | -------- | ----------------------------------------------- |
+| `allowedFields` | `[String]` | true     | List of fields that are accessible to the role. |
 
 ### Examples
 
 To define permissions on an output type `article` for `admin` and `user` role:
 
 ```yaml
-kind: TypeOutputPermissions
-typeName: article
-permissions:
-  admin:
-    fields:
+kind: TypePermissions
+version: v1
+definition:
+  typeName: article
+  permissions:
+  - role: admin
+    output:
+      allowedFields:
       - id
       - title
       - author_id
-  user:
-    fields:
+  - role: user
+    output:
+      allowedFields:
       - id
       - title
 ```
@@ -89,32 +107,46 @@ If a role doesn't define any permissions for this type, then it won't be accessi
 
 :::
 
-## Model Select Permissions {#model-select-permissions}
+## Model Permissions {#model-permissions}
 
-A model select permission will need the model name and the role(s) for which the permission should be defined. For each
+A model permission will need the model name and the role(s) for which the permission should be defined. For each
 role, you will need to define an optional filter expression. Objects (or rows/documents) that satisfy this filter
 predicate will be returned for that role.
 
 ### Metadata Structure
 
 ```yaml
-kind: ModelSelectPermissions
-modelName: <ModelName>
-permissions:
-  <RoleName>:
-    filter: <ModelPredicate>
-  <RoleName>:
-    filter: <ModelPredicate>
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: <ModelName>
+  permissions: <ModelPermission>
 ```
 
-| Field       | Type                               | Required | Description                                                                                                                    |
-| ----------- | ---------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| modelName   | `String`                           | true     | Name of the model on which permissions are to be defined.                                                                      |
-| permissions | `{<RoleName>: <SelectPermission>}` | true     | The permissions object for this type. Each key of the object is a role, and the value is an object of type `SelectPermission`. |
+| Field       | Type                                    | Required | Description                                                    |
+| ----------- | --------------------------------------- | -------- | -------------------------------------------------------------- |
+| modelName   | `String`                                | true     | The name of the model for which permissions are to be defined. |
+| permissions | [`[ModelPermission]`](#modelpermission) | true     | The permissions object for this model, one for each role.      |
 
-Note: `RoleName` is the role in `String`.
+#### ModelPermission
+  
+```yaml
+permissions:
+  - role: <RoleName>
+    select: <SelectPermission>
+```
+
+| Field      | Type                                    | Required | Description                                                   |
+| ---------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
+| `role`     | `String`                                | true     | The name of the role for which permissions are to be defined. |
+| `select`   | [`SelectPermission`](#selectpermission) | true     | The model select permission for the role.                     |
 
 #### SelectPermission
+
+```yaml
+select:
+  filter: <ModelPredicate>
+```
 
 | Field  | Type             | Required | Description                                                                                                                                                                                                                                                                                                                    |
 | ------ | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -122,34 +154,42 @@ Note: `RoleName` is the role in `String`.
 
 ### Examples
 
-Below, we're creating a set of `ModelSelectPermissions` on the `Articles` model for the roles `admin`, `user_1`, and
-`user_2.
+Below, we're creating a set of `ModelPermissions` on the `Articles` model for the roles `admin`, `user_1`, and `user_2`.
 
-As the `admin` object is empty, it will return all rows. The `user_1` object has a filter predicate that will return
-rows where the `author_id` field is equal to the `x-hasura-user-id` session variable. The `user_2` object has a filter
-predicate that will return rows where the `title` field is like the string `Functional`.
+As the `select` object for `admin` role is empty, it will return all rows.
+
+The `user_1` role's `select` object has a filter predicate that will return rows where the `author_id` field is equal to
+the `x-hasura-user-id` session variable.
+
+The `user_2` role's `select` object has a filter predicate that will return rows where the `title` field is like the
+string `Functional`.
 
 ```yaml
----
-kind: ModelSelectPermissions
-modelName: Articles
-permissions:
-  admin: {}
-  user_1:
-    filter:
-      fieldComparison:
-        field: author_id
-        operator: _eq
-        value:
-          sessionVariable: x-hasura-user-id
-  user_2:
-    filter:
-      and:
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Articles
+  permissions:
+  - role: admin
+    select:
+      filter:
+  - role: user_1
+    select:
+      filter:
+        fieldComparison:
+          field: author_id
+          operator: _eq
+          value:
+            sessionVariable: x-hasura-user-id
+  - role: user_2
+    select:
+      filter:
+        and:
         - fieldComparison:
             field: title
-            operator: like
+            operator: _like
             value:
-              literal: Functional
+              literal: "%Functional%"
 ```
 
 ## Command permissions {#command-permissions}
@@ -160,24 +200,29 @@ A command permission will need the command name and the role(s) for which the pe
 
 ```yaml
 kind: CommandPermissions
-commandName: <CommandName>
-permissions:
-  <RoleName>:
-    allowExecution: <Boolean>
+version: v1
+definition:
+  commandName: <CommandName>
+  permissions: <CommandPermission>
 ```
 
-| Field         | Type                                | Required | Description                                                                                                                        |
-| ------------- | ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `commandName` | `String`                            | true     | Name of the command for which permissions are to be defined.                                                                       |
-| `permissions` | `{<RoleName>: <CommandPermission>}` | true     | The permissions object for this command. Each key of the object is a role, and the value is an object of type `CommandPermission`. |
-
-Note: `RoleName` is the role in `String`.
+| Field         | Type                                        | Required | Description                                                      |
+| ------------- | ------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `commandName` | `String`                                    | true     | The name of the command for which permissions are to be defined. |
+| `permissions` | [`[CommandPermission]`](#commandpermission) | true     | The permissions object for this command, one for each role.      |
 
 #### CommandPermission
 
-| Field           | Type      | Required | Description                                          |
-| --------------- | --------- | -------- | ---------------------------------------------------- |
-| allow_execution | `Boolean` | true     | Is the execution of the command allowed for the role |
+```yaml
+permissions:
+  - role: <RoleName>
+    allowExecution: <Boolean>
+```
+
+| Field            | Type      | Required | Description                                                   |
+| ---------------- | --------- | -------- | ------------------------------------------------------------- |
+| `role`           | `String`  | true     | The name of the role for which permissions are to be defined. |
+| `allowExecution` | `Boolean` | true     | Is the execution of the command allowed for the role          |
 
 ### Examples
 
@@ -185,11 +230,13 @@ To define permissions on a command with name `get_article_by_id` for `admin` and
 
 ```yaml
 kind: CommandPermissions
-commandName: get_latest_article_id
-permissions:
-  admin:
+version: v1
+definition:
+  commandName: get_article_by_id
+  permissions:
+  - role: admin
     allowExecution: true
-  user:
+  - role: user
     allowExecution: false
 ```
 
