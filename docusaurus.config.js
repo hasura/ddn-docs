@@ -14,7 +14,7 @@ const config = {
   trailingSlash: true,
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
-  favicon: '/docs/img/favicon.png',
+  favicon: '/img/favicon.png',
   organizationName: 'hasura',
   projectName: 'graphql-engine',
   staticDirectories: ['static', 'public'],
@@ -52,7 +52,7 @@ const config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x',
+              label: 'v3.x alpha',
               badge: true,
               path: 'latest',
             },
