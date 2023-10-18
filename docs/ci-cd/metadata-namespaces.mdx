@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 5
 sidebar_label: Namespaces
 description:
   Explore Hasura's namespaces feature for better collaboration and improved organization in a multi-team project.
@@ -34,26 +34,20 @@ all namespaces of the project. Each namespace can then be accessed and updated i
 
 Metadata with namespaces looks something like the following:
 
-```json
-{
-  "namespaces": [
-    {
-      "name": "foo",
-      "objects": [
-        {
-          "kind": "AuthConfig",
-          "allowRoleEmulationFor": "admin",
-          "webhook": {
-            "webhookUrl": "http://localhost:3050/validate-request"
-          }
-        },
-        {<metadata obj>},
-        ...
-      ]
-    },
-    {<metadata objects with namespace},
-  ]
-}
+```yaml
+namespaces:
+  - name: foo
+    objects:
+      - kind: AuthConfig
+        version: v1
+        definition:
+          allowRoleEmulationBy: admin
+          webhook:
+            webhookUrl: "http://localhost:3050/validate-request"
+      - <metadata obj>
+      # Add more objects here as needed
+  - <metadata objects with namespace>
+  # Add more namespaces with their respective objects here as needed
 ```
 
 ## Ownership Rules
@@ -111,14 +105,14 @@ The target type can be from any namespace. This allows us to define relationship
 
 :::
 
-### TypeOutputPermissions
+### TypePermissions
 
-The `TypeOutputPermissions` metadata object references a type (for which the permission is being defined). Thus, the
-namespace defining the `TypeOutputPermissions` should own the type referenced.
+The `TypePermissions` metadata object references a type (for which the permission is being defined). Thus, the
+namespace defining the `TypePermissions` should own the type referenced.
 
-### ModelSelectPermissions
+### ModelPermissions
 
-Similar to `TypeOutputPermissions`, the namespace should also own the model referenced in the `ModelSelectPermissions`
+Similar to `TypePermissions`, the namespace should also own the model referenced in the `ModelPermissions`
 metadata object.
 
 ### CommandPermissions

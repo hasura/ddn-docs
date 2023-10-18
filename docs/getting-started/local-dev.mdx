@@ -33,11 +33,11 @@ guide, you'll be introduced to new Hasura concepts, like builds, our new metadat
 
 :::tip Prerequisites
 
-1. The [new Hasura CLI](/ci-cd/cli/index.mdx)
+1. The [new Hasura CLI](/cli/overview.mdx)
 2. The [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)
 3. A PostgreSQL database
 
-You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/ci-cd/cli/index.mdx). If you don't
+You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/cli/overview.mdx). If you don't
 have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
 [Neon](https://neon.tech).
 
@@ -103,11 +103,11 @@ by using the Hasura VS Code extension.
 
 ## Step 3: Connect a data source
 
-Open your empty `metadata.hml` file and start typing `HasuraHubDataSource`. Hit `Enter` and the extension will
+Open your empty `metadata.hml` file and start typing `HasuraHubDataConnector`. Hit `Enter` and the extension will
 automatically populate the rest of the template for you:
 
 ```yaml
-kind: HasuraHubDataSource
+kind: HasuraHubDataConnector
 name:
 connectorId:
 connectorConfiguration:
@@ -138,8 +138,8 @@ postgresql://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DATABASE_NAME>
 
 ### Step 3.1: Start your database
 
-If you want to connect a local database for development, you can use the new [Hasura CLI](/ci-cd/cli/index.mdx) to
-create a local daemon and securely connect to your database.
+If you want to connect a local database for development, you can use the new [Hasura CLI](/cli/overview.mdx) to create a
+local daemon and securely connect to your database.
 
 Start your local database. For example, if you are using Docker, you can run the following command:
 
@@ -205,6 +205,18 @@ Models are backed by a data source and can support CRUD operations. You can lear
 [here](/data-domain-modeling/models.mdx).
 
 :::
+
+We'll also need to add an [`AuthConfig`](/authentication/auth-config.mdx). Hasura requires this to keep your API secure;
+you can use JWTs or webhooks. For testing, you can use Hasura DDN as your webhook provider. Simply add the following to
+the bottom of your `metadata.hml`:
+
+```yaml
+kind: AuthConfig
+allowRoleEmulationBy: admin
+webhook:
+  mode: Post
+  webhookUrl: https://auth.pro.hasura.io/webhook/ddn?role=admin
+```
 
 ## Step 5: Create a new build
 

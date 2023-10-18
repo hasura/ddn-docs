@@ -1,8 +1,11 @@
 ---
 sidebar_position: 1.5
 sidebar_label: OpenDD Introduction
-description: Dive into the OpenDD spec, a versatile tool akin to Hasura v2 metadata, offering extra capabilities such as automatic metadata generation and enhanced data source management. Understand the OpenDD spec structure, data sources, types, models, commands, relationships, and permissions.
-keywords: 
+description:
+  Dive into the OpenDD spec, a versatile tool akin to Hasura v2 metadata, offering extra capabilities such as automatic
+  metadata generation and enhanced data source management. Understand the OpenDD spec structure, data connectors, types,
+  models, commands, relationships, and permissions.
+keywords:
   - opendd spec
   - hasura metadata
   - data domain management
@@ -10,7 +13,7 @@ keywords:
   - data source introspection
   - metadata build process
   - hasura ddn tooling
-  - data sources
+  - data connectors
   - models
   - relationships
   - permissions
@@ -19,25 +22,25 @@ seoFrontMatterUpdated: true
 
 # Introduction
 
-If you've used Hasura before, you'll notice that the Open Data Domain Specification (OpenDD spec) is similar to
-Hasura v2 metadata, but with many extra capabilities.
+If you've used Hasura before, you'll notice that the Open Data Domain Specification (OpenDD spec) is similar to Hasura
+v2 metadata, but with many extra capabilities.
 
 The OpenDD metadata defines a space of what data types and features are available, where it resides, how it's related,
-how to access it, and who has authority to access it. Metadata is combined with Native Data Connector agents,
-which are services to communicate with data sources in order to deliver your API.
+how to access it, and who has authority to access it. Metadata is combined with Native Data Connector agents, which are
+services to communicate with data sources in order to deliver your API.
 
 ## How is this different from Hasura v2 metadata?
 
-- Hasura V2 metadata was specifically designed for Hasura, whereas OpenDD is a specification that can also be
-  used outside Hasura by anyone as a source of truth for any data domain.
+- Hasura V2 metadata was specifically designed for Hasura, whereas OpenDD is a specification that can also be used
+  outside Hasura by anyone as a source of truth for any data domain.
 - Functionally, the V2 metadata relied directly on the data source for information like columns and fields, whereas
   OpenDD metadata is independent of the data source. In OpenDD, all fields and types are defined within the
   specification itself which eliminates the necessity for data source schema introspection at startup to generate a
-  GraphQL schema. Instead, data source introspection occurs as part of the metadata build process.
+  GraphQL schema. Instead, data source introspection occurs as part of the metadata authoring process.
 
 ## The OpenDD spec
 
-You can specify and combine data sources, data types, models, relationships, permissions, and more in your OpenDD
+You can specify and combine data connectors, data types, models, relationships, permissions, and more in your OpenDD
 metadata in order to define your data domain.
 
 In this way, your data domain specification is decoupled from any underlying database, data source or other physical
@@ -59,49 +62,48 @@ Alternatively, you can also author metadata manually.
 
 The OpenDD spec describes an array of OpenDD objects, consisting of the following kinds:
 
-```json
-{
-  "metadata": [
-    // Data Sources
-    { "kind": "HasuraHubDataSource", ... },
-    { "kind": "DataSource", ... },
-    // Authentication
-    { "kind": "AuthConfig", ... },
-    // Types
-    { "kind": "ScalarType", ... },
-    { "kind": "ObjectType", ... },
-    { "kind": "DataConnectorScalarRepresentation", ... },
-    // Models
-    { "kind": "Model", ... },
-    // Relationships
-    { "kind": "Relationship", ... },
-    // Commands (Functions / Procedures)
-    { "kind": "Command", ... },
-    // Permissions (Access Control)
-    { "kind": "ModelSelectPermissions", ... },
-    { "kind": "TypeOutputPermissions", ... },
-    { "kind": "CommandPermissions", ... },
-  ]
-}
+```yaml
+metadata:
+  - kind: HasuraHubDataConnector
+    # ... (other properties for HasuraHubDataConnector)
+  - kind: DataConnector
+    # ... (other properties for DataConnector)
+  - kind: AuthConfig
+    # ... (other properties for AuthConfig)
+  - kind: ScalarType
+    # ... (other properties for ScalarType)
+  - kind: ObjectType
+    # ... (other properties for ObjectType)
+  - kind: DataConnectorScalarRepresentation
+    # ... (other properties for DataConnectorScalarRepresentation)
+  - kind: Model
+    # ... (other properties for Model)
+  - kind: Relationship
+    # ... (other properties for Relationship)
+  - kind: Command
+    # ... (other properties for Command)
+  - kind: ModelPermissions
+    # ... (other properties for ModelPermissions)
+  - kind: TypePermissions
+    # ... (other properties for TypePermissions)
+  - kind: CommandPermissions
+    # ... (other properties for CommandPermissions)
 ```
 
-[Primitive and container types](./types.mdx#primitive-and-container-types) are also defined at the
-top level along with these metadata objects.
+## Data Connectors
 
-## Data Sources
+The [data connector](./data-connectors.mdx) will define where the data is coming from. It can be a database, a REST API,
+a GraphQL API, etc. The data connector will use the [Native Data Connector](/connectors/overview.mdx) protocol to
+connect to the data source and fetch the data.
 
-The [data source](./data-sources.mdx) will define where the data is coming from. It can be a database, a REST API, a
-GraphQL API, etc. The data source will use a [Native Data Connector](/connectors/overview.mdx) to connect to the
-data source and fetch the data.
+### The HasuraHubDataConnector object
 
-### The HasuraHubDataSource object
+The [`HasuraHubDataConnector`](./data-connectors.mdx) object allows you to configure a data connector directly from the
+[Connector Hub](https://hasura.io/connectors/).
 
-The [`HasuraHubDataSource`](./data-sources.mdx) object allows you to specify a data source directly
-from the [Hasura Hub](https://hasura.io/connectors/).
+### The DataConnector object
 
-### The DataSource object
-
-The [`DataSource`](./data-sources.mdx) object describes a physical data source.
+The [`DataConnector`](./data-connectors.mdx) object describes a physical data connector.
 
 ## Types
 
@@ -118,8 +120,8 @@ The [`ScalarType`](./types.mdx#scalar-types) object allows aliasing other types.
 
 ### The DataConnectorScalarRepresentation object
 
-The [`DataConnectorScalarRepresentation`](./types.mdx#scalar-type-representation) object allows
-you to define how a scalar type from a data source is represented as an OpenDD type.
+The [`DataConnectorScalarRepresentation`](./types.mdx#scalar-type-representation) object allows you to define how a
+scalar type from a data source is represented as an OpenDD type.
 
 ## Models
 
@@ -128,10 +130,9 @@ database table, an ad-hoc SQL query, a pre-materialized view, a custom REST or G
 
 ### The Model object
 
-The [`Model`](./models.mdx) object represents a collection of data objects (like rows in a SQL table
-or documents in collection in a NoSQL database) of a certain [type](./types.mdx). A Model type also defines how the
-model and its types or fields map to entities in the underlying data source. It also defines how it is represented in
-the GraphQL API.
+The [`Model`](./models.mdx) object represents a collection of data objects (like rows in a SQL table or documents in
+collection in a NoSQL database) of a certain [type](./types.mdx). A Model type also defines how the model and its types
+or fields map to entities in the underlying data source. It also defines how it is represented in the GraphQL API.
 
 ## Commands
 
@@ -140,8 +141,8 @@ procedures whose implementations are unknown to the spec except for their input 
 
 ### The Command object
 
-The [Command](./commands.mdx) object defines the name of the command, the arguments to the
-command and the output type of the command.
+The [Command](./commands.mdx) object defines the name of the command, the arguments to the command and the output type
+of the command.
 
 ## Relationships
 
@@ -150,24 +151,25 @@ which then allows you to query nested or linked information.
 
 ### The Relationship object
 
-The [`Relationship`](./relationships.mdx) object defines a relationship between a source
-[type](./types.mdx) and a target [models](./models.mdx).
+The [`Relationship`](./relationships.mdx) object defines a relationship between a source [type](./types.mdx) and a
+target [models](./models.mdx).
 
 ## Permissions
 
-The OpenDD Spec lets you define [permissions](./permissions.mdx), (also known as access control or authorization
-rules) on [output types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx).
+The OpenDD Spec lets you define [permissions](./permissions.mdx), (also known as access control or authorization rules)
+on [types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx).
 
-### The TypeOutputPermissions object
+### The TypePermissions object
 
-[`TypeOutputPermissions`](./permissions.mdx#type-output-permissions) define which fields are allowed to be accessed
-by a role. Defining permissions on output types is useful, as multiple models can return the same output type.
+[`TypePermissions`](./permissions.mdx#type-permissions) define which fields are allowed to be accessed by a
+role. Defining permissions on output types is useful, as multiple models can return the same output type.
 
-### The ModelSelectPermissions object
+### The ModelPermissions object
 
-[`ModelSelectPermissions`](./permissions.mdx#model-select-permissions) define which objects or rows within the model
-are allowed to be accessed by a role.
+[`ModelPermissions`](./permissions.mdx#model-permissions) define which objects or rows within the model are
+allowed to be accessed by a role.
 
 ### The CommandPermissions object
 
-[`CommandPermissions`](./permissions.mdx#command-permissions) define which commands are allowed to be accessed by a role.
+[`CommandPermissions`](./permissions.mdx#command-permissions) define which commands are allowed to be accessed by a
+role.

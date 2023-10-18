@@ -27,7 +27,7 @@ You can configure the Hasura Engine to use webhook mode in order to authenticate
 This process of using webhook mode for authentication with Hasura requires specifying a URL - which Hasura calls with
 the original request headers - that then returns a body containing the user information in session variables.
 
-<Thumbnail src="/img/auth/auth-webhook-overview.png" alt="Authentication using webhooks" width="1000px" />
+<Thumbnail src="/img/auth/auth-webhook-overview-diagram.png" alt="Authentication using webhooks" width="1000px" />
 
 The webhook service will use your request headers to determine the auth status of the user and return the user role and
 any other information as session variables in the response body.
@@ -39,20 +39,21 @@ metadata.
 
 ### Example
 
-```json
-{
-  "kind": "AuthConfig",
-  "allowRoleEmulationFor": "admin",
-  "webhook": {
-    "webhookUrl": "http://auth.yourservice.com/validate-request"
-  }
-}
+```yaml
+---
+kind: AuthConfig
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  webhook:
+    webhookUrl: http://auth.yourservice.com/validate-request
 ```
 
-| Field      | Type   | Required | Description                                                                                                                             |
-|------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `webhookUrl` | URL    | true     | URL of the authentication webhook                                                                                                       |
-| `mode`       | String | false    | HTTP method to use while making the request to the authentication webhook. Only `GET` and `POST` methods are supported (default: `GET`) |
+| Field        | Type   | Required | Description                                                                                                                             |
+|--------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `webhookUrl` | URL    | true     | URL of the authentication webhook.                                                                                                       |
+| `mode`       | String | false    | HTTP method to use while making the request to the authentication webhook. Only `Get` and `Post` methods are supported (default: `Get`). |
+
 
 
 :::info Note
@@ -70,7 +71,7 @@ GET https://<your-custom-webhook-url>/ HTTP/1.1
 <Header-Key>: <Header-Value>
 ```
 
-If you configure your webhook to use `GET`, then Hasura **will forward all client headers except**:
+If you configure your webhook to use `Get`, then Hasura **will forward all client headers except**:
 
 - `Content-Length`
 - `Content-Type`
@@ -89,7 +90,7 @@ If you configure your webhook to use `GET`, then Hasura **will forward all clien
 
 #### POST request Example
 
-`POST` requests will receive **all the client headers**. Given a request like:
+`Post` requests will receive **all the client headers**. Given a request like:
 
 ```graphql
 query UserQuery($a: Int) {
