@@ -1,9 +1,8 @@
 ---
 sidebar_position: 6
 sidebar_label: Permissions
-description:
-  Learn how to define permissions, access control or authorization rules on output types, models and commands in
-  Hasura's OpenDD Spec. Useful for managing roles and accessibility.
+description: "Learn how to define permissions, access control or authorization rules on output types, models and
+commands in Hasura's OpenDD Spec. Useful for managing roles and accessibility."
 toc_max_heading_level: 4
 keywords:
   - hasura
@@ -25,17 +24,17 @@ seoFrontMatterUpdated: true
 The OpenDD Spec lets you define permissions, (also known as access control or authorization rules) on
 [output types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx) in your data domain.
 
-The following types of permissions are defined in the [OpenDD spec](/data-domain-modeling/overview.mdx):
+The following types of permissions can be defined in the [OpenDD spec](/data-domain-modeling/overview.mdx):
 
-- `TypePermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
-  is useful, as multiple models can return the same output type.
-- `ModelPermissions` define which objects or rows within the model are allowed to be accessed by a role.
+- `TypePermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types is
+  useful, as multiple models can return the same output type.
+- `ModelPermissions` define which objects or rows within a model are allowed to be accessed by a role.
 - `CommandPermissions` defines which commands are allowed to be executed by a role.
 
 ## Type permissions {#type-permissions}
 
-A type permission will need the type and the role(s) for which the permission should be defined. For each role,
-you will need to define the fields accessible for that role.
+A type permission will need the type and the role(s) for which the permission should be defined. For each role, you will
+need to define the fields accessible for that role.
 
 ### Metadata Structure
 
@@ -60,18 +59,18 @@ permissions:
     output: <OutputPermission>
 ```
 
-| Field      | Type                                            | Required | Description                                                   |
-| ---------- | ----------------------------------------------- | -------- | ------------------------------------------------------------- |
-| `role`     | `String`                                        | true     | The name of the role for which permissions are to be defined. |
-| `output`   | [`OutputPermission`](#outputpermission)         | true     | The type output permission for the role.                      |
+| Field    | Type                                    | Required | Description                                                   |
+| -------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
+| `role`   | `String`                                | true     | The name of the role for which permissions are to be defined. |
+| `output` | [`OutputPermission`](#outputpermission) | true     | The type output permission for the role.                      |
 
 #### OutputPermission
 
 ```yaml
 output:
   allowedFields:
-  - <field1>
-  - <field2>
+    - <field1>
+    - <field2>
 ```
 
 | Field           | Type       | Required | Description                                     |
@@ -88,17 +87,17 @@ version: v1
 definition:
   typeName: article
   permissions:
-  - role: admin
-    output:
-      allowedFields:
-      - id
-      - title
-      - author_id
-  - role: user
-    output:
-      allowedFields:
-      - id
-      - title
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - title
+          - author_id
+    - role: user
+      output:
+        allowedFields:
+          - id
+          - title
 ```
 
 :::info Types are inaccessible when undefined for a role
@@ -109,9 +108,9 @@ If a role doesn't define any permissions for this type, then it won't be accessi
 
 ## Model Permissions {#model-permissions}
 
-A model permission will need the model name and the role(s) for which the permission should be defined. For each
-role, you will need to define an optional filter expression. Objects (or rows/documents) that satisfy this filter
-predicate will be returned for that role.
+A model permission will need the model name and the role(s) for which the permission should be defined. For each role,
+you will need to define an optional filter expression. Objects (or rows/documents) that satisfy this filter predicate
+will be returned for that role.
 
 ### Metadata Structure
 
@@ -129,17 +128,17 @@ definition:
 | permissions | [`[ModelPermission]`](#modelpermission) | true     | The permissions object for this model, one for each role.      |
 
 #### ModelPermission
-  
+
 ```yaml
 permissions:
   - role: <RoleName>
     select: <SelectPermission>
 ```
 
-| Field      | Type                                    | Required | Description                                                   |
-| ---------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
-| `role`     | `String`                                | true     | The name of the role for which permissions are to be defined. |
-| `select`   | [`SelectPermission`](#selectpermission) | true     | The model select permission for the role.                     |
+| Field    | Type                                    | Required | Description                                                   |
+| -------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
+| `role`   | `String`                                | true     | The name of the role for which permissions are to be defined. |
+| `select` | [`SelectPermission`](#selectpermission) | true     | The model select permission for the role.                     |
 
 #### SelectPermission
 
@@ -170,26 +169,26 @@ version: v1
 definition:
   modelName: Articles
   permissions:
-  - role: admin
-    select:
-      filter:
-  - role: user_1
-    select:
-      filter:
-        fieldComparison:
-          field: author_id
-          operator: _eq
-          value:
-            sessionVariable: x-hasura-user-id
-  - role: user_2
-    select:
-      filter:
-        and:
-        - fieldComparison:
-            field: title
-            operator: _like
+    - role: admin
+      select:
+        filter:
+    - role: user_1
+      select:
+        filter:
+          fieldComparison:
+            field: author_id
+            operator: _eq
             value:
-              literal: "%Functional%"
+              sessionVariable: x-hasura-user-id
+    - role: user_2
+      select:
+        filter:
+          and:
+            - fieldComparison:
+                field: title
+                operator: _like
+                value:
+                  literal: "%Functional%"
 ```
 
 ## Command permissions {#command-permissions}
@@ -234,10 +233,10 @@ version: v1
 definition:
   commandName: get_article_by_id
   permissions:
-  - role: admin
-    allowExecution: true
-  - role: user
-    allowExecution: false
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: false
 ```
 
 If a role doesn't define any permissions for this type, then it won't be accessible to that role.
