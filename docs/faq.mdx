@@ -75,6 +75,25 @@ objects from all its namespaces, and each namespace can be accessed and updated 
 avoiding conflicts when there are, for example, tables with the same names in different data sources.
 [Learn more](/ci-cd/metadata-namespaces.mdx)
 
+## What is the difference between Hasura v2 and DDN metadata
+
+In practical terms, the Hasura v2 metadata system was designed to draw extra information directly from the data source,
+specifically details such as columns and fields.
+
+This meant that whenever the Hasura GraphQL Engine was initialized, it had to probe or "introspect" the data source's
+schema to create a GraphQL schema. This introduced delays at start-up especially if the data source was large or if
+there were network issues.
+
+OpenDD metadata operates differently as it is inherently self-contained and exists independent of any data source. This
+leads to sub-second startup and deploy times and ensures consistency as the system is no longer polling an underlying
+data source for schema information which may have changed.
+
+The OpenDD metadata has full coverage and details like fields and their respective types are predefined and embedded
+within metadata. This design choice removes the need for the system to check the data source schema every time during
+startup to shape a GraphQL schema. Instead, this introspection or probing of the data source's structure is now carried
+out during the metadata creation, or build phase. This leads to massively improved startup times and ensures that the
+metadata is consistent and self-contained.
+
 ## Is a Hasura DDN API faster than a Hasura v2 API?
 
 Yes. Hasura DDN includes significant performance improvements compared to its predecessors. The optimizations
