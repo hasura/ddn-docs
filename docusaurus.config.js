@@ -54,7 +54,6 @@ const config = {
             current: {
               label: 'v3.x alpha',
               badge: true,
-              path: 'latest',
             },
           },
         },
