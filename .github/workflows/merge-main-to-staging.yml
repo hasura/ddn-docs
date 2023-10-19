@@ -1,0 +1,33 @@
+name: Merge Main to Release Stage
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Merge Main to Release Stage
+        run: |
+          # We can replace these later and use repo secrets — just for testing
+          git config user.name robertjdominguez
+          git config user.email rob.dominguez@hasura.io
+
+          # we'll pull the latest changes from main
+          git pull origin main
+
+          # then, we'll merge main into release-stage
+          git checkout release-stage
+          git merge main -m "Merge main into release-stage"
+
+          # and push the changes
+          git push origin release-stage
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
