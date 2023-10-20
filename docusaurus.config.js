@@ -14,7 +14,7 @@ const config = {
   trailingSlash: true,
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
-  favicon: '/docs/img/favicon.png',
+  favicon: '/img/favicon.png',
   organizationName: 'hasura',
   projectName: 'graphql-engine',
   staticDirectories: ['static', 'public'],
@@ -52,9 +52,8 @@ const config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x',
+              label: 'v3.x alpha',
               badge: true,
-              path: 'latest',
             },
           },
         },
@@ -159,7 +158,7 @@ const config = {
         },
         items: [
           {
-            to: 'https://hasura.io/products/',
+            to: 'https://hasura.io/ddn/',
             label: 'Product',
             position: 'left',
           },
@@ -173,12 +172,12 @@ const config = {
             label: 'Tutorials',
             position: 'left',
           },
-          {
-            to: 'https://hasura.io/changelog',
-            label: "What's New",
-            id: 'whats-new-link',
-            position: 'left',
-          },
+          // {
+          //   to: 'https://hasura.io/changelog',
+          //   label: "What's New",
+          //   id: 'whats-new-link',
+          //   position: 'left',
+          // },
           {
             type: 'docsVersionDropdown',
             position: 'right',
@@ -199,7 +198,7 @@ const config = {
             position: 'right',
           },
           {
-            href: 'https://github.com/hasura/graphql-engine',
+            href: 'https://github.com/hasura/ndc-hub',
             position: 'right',
             className: 'header-github-link',
             'aria-label': 'GitHub repository',
@@ -210,13 +209,13 @@ const config = {
             position: 'right',
           },
           {
-            to: 'https://cloud.hasura.io/login?pg=docs&plcmt=header&cta=log-in&tech=default',
+            to: 'https://console.hasura.io/?pg=docs',
             label: 'Login',
             position: 'right',
             className: 'nav-link_login',
           },
           {
-            to: 'https://cloud.hasura.io/signup?pg=products&plcmt=header&cta=try-hasura&tech=default',
+            to: 'https://console.hasura.io/?pg=products&plcmt=header&cta=try-hasura&tech=default',
             label: 'Get Started',
             position: 'right',
             className: 'nav-link_getting-started',

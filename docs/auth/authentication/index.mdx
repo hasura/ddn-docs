@@ -1,9 +1,7 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 sidebar_label: Auth Config
-description:
-  Get detailed guidance on setting up Hasura authentication for incoming requests. Uncover the structure of the
-  AuthConfig metadata object supporting JWT and webhook methods.
+description: Get detailed guidance on setting up Hasura authentication for incoming requests. Uncover the structure of the AuthConfig metadata object supporting JWT and webhook methods.
 keywords:
   - hasura authconfig
   - hasura authentication setup
@@ -20,6 +18,8 @@ seoFrontMatterUpdated: true
 # Hasura Authentication
 
 ## Introduction
+
+**Authentication verifies the identity of a user.**
 
 Hasura GraphQL Engine utilizes "session variables", with specific user, role, organization and any other information you
 may need to determine the data access rights of the user.
@@ -42,11 +42,11 @@ This document details the `AuthConfig` metadata object used to set up authentica
 
 Only a single `AuthConfig` object can be defined in the metadata. It has the following structure:
 
-| Field                  | Type   | Required | Description                                                                                                              |
-|------------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------|
-| `allowRoleEmulationBy` | String | false    | Name of the role which allows role emulation. Read more about role emulation [here](/authentication/role-emulation.mdx). |
-| `webhook`              | Object | false    | Configuration of the authentication webhook.                                                                             |
-| `jwt`                  | Object | false    | Configuration of the JWT secret.                                                                                         |
+| Field                   | Type   | Required | Description                                                                                                              |
+| ----------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `allowRoleEmulationFor` | String | false    | Name of the role which allows role emulation. Read more about role emulation [here](./role-emulation.mdx). |
+| `webhook`               | Object | false    | Configuration of the authentication webhook.                                                                             |
+| `jwt`                   | Object | false    | Configuration of the JWT secret.                                                                                         |
 
 :::info You must select one of the supported authentication modes
 
@@ -58,11 +58,14 @@ In the object, only one of the supported authentication modes (`jwt` or `webhook
 
 ### Example
 
-```yaml
-kind: AuthConfig
-jwt:
-  type: HS256
-  key: <JWT Decoding key>
+```json
+{
+  "kind": "AuthConfig",
+  "jwt": {
+    "type": "HS256",
+    "key": "<JWT Decoding key>"
+  }
+}
 ```
 
 For a full description of JWT mode [see here](./jwt.mdx).
@@ -71,12 +74,14 @@ For a full description of JWT mode [see here](./jwt.mdx).
 
 ### Example
 
-```yaml
----
-kind: AuthConfig
-allowRoleEmulationBy: admin
-webhook:
-  webhookUrl: http://auth.yourservice.com/validate-request
+```json
+{
+  "kind": "AuthConfig",
+  "allowRoleEmulationFor": "admin",
+  "webhook": {
+    "webhookUrl": "http://auth.yourservice.com/validate-request"
+  }
+}
 ```
 
 | Field        | Type   | Required | Description                                                                                                                              |
