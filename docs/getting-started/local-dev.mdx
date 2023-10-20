@@ -91,34 +91,37 @@ The CLI will return information about your project:
 
 :::info What's a local project?
 
-Each project on Hasura Cloud can have a corresponding local project that can be used for development. This local project
+Each project on Hasura DDN can have a corresponding local project that can be used for development. This local project
 contains:
 
-1. `hasura.yaml`: This is the entrypoint to a local Hasura project. Replace the `project` field with the ID of the
+1. `hasura.yaml`: This is the entrypoint to a local Hasura project. Replace the `project` field with the **ID** of the
    project that you just created
 
 ```yaml
 version: 1
 project: # add your PROJECT_ID here
 
-# A build profile specifices your projects environment
+# A build profile specifies your project's environment
 # and the association of namespaces to HML files
 # You can create different build profiles for different environments,
-# like production and staging, which may reference environment specific auth configs
+# like production and staging, which may reference environment-specific auth configs.
 # We have created one for you to get you started
 buildProfiles:
   - build-profile.yaml
 
-# Default build profile refers to build profile
-# that is used when you create a build and don't specify the build profile
+# This refers to the default build profile
+# that is used when you create a build and
+# don't specify which build profile to use.
 defaultBuildProfile: build-profile.yaml
 ```
 
 2. `build-profile.yaml`: This file specifies how the metadata in your local Hasura project must be built. It contains
-   `environment` of the Hasura DDN project that you wish to create builds on and it specifies the namespaces of the
-   `.hml` files in this project. You can have different build profiles for different environments of your project. You
-   can create different environments like `stage`, `preproduction` and `production`, and have a different build profile
-   for each of them for creating builds on different environments in your CI.
+   the `environment` of the Hasura DDN project that you wish to create builds on and it specifies the namespaces of the
+   `.hml` files in this project.
+
+   You can have different build profiles for different environments of your project. You can create different
+   environments like `stage`, `preproduction` and `production`, and have a different build profile for each of them for
+   creating builds on different environments in your CI.
 
 ```yaml
 version: 1
@@ -126,12 +129,12 @@ spec:
   environment: default
 
   # Namespaces can be used to group certain objects of your metadata
-  # in a way that makes sense for you and your team
-  # You can have mulitple HML files belong to a namespace
-  # and you can have multiple namespaces in a project
-  # We have created a `default` namespace for you, and added a HML file to it to get you started
+  # in a way that makes sense for you and your team.
+  # You can have multiple HML files belong to a namespace
+  # and you can have multiple namespaces in a project.
+  # We have created a `default` namespace for you, and added an HML file to it to get you started
   # Please note that `default` is a special namespace that is created for every project
-  # and it cannot be deleted
+  # and it CANNOT be deleted.
   namespaces:
     - name: default
       resources:
@@ -140,7 +143,7 @@ spec:
 
 3. `metadata.hml`: This is a Hasura metadata file that follows the new metadata format of the
    [Open Data Domain Specification (OpenDD Spec)](/data-domain-modeling/overview.mdx), and is an `.hml` file. This file
-   can be checked into version control along with other files (if any) of your project and can be shared.
+   can be checked into version control along with other files (if any) in your project and can be shared.
 
 We've created a new flavor of yaml called `Hasura Metadata Language` (`hml`) that allows you to accelerate your
 workflows by using the Hasura VS Code extension.
@@ -165,16 +168,16 @@ definition:
         version:
 ```
 
-| Field                    | Description                                                                                                                         |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                   | The name of your data source. Put `default` for now.                                                                                |
-| `connectorId`            | The ID of the connector you want to use. In this example, we'll use `hasura/postgres`.                                              |
-| `connectorConfiguration` | List of regional configurations or your data connector. You can specify different configurations for different regions              |
-| `region`                 | Hit `Ctrl + Space` and choose the region that your database is closest to. If you're not sure, just use `gcp-us-east4`              |
-| `mode`                   | This can be `ReadOnly`, `ReadWrite` and `WriteOnly`. In this example, we'll use `ReadWrite`                                         |
-| `configuration`          | The configuration for your data source. Contains `version`, `connectionUri` and some more fields                                    |
-| `version`                | Version of the data source configuration. We'll use `1`                                                                             |
-| `connectionUri`          | Connection string for your Postgres database which can be a value or a secret. For this example, enter your database URL as a value |
+| Field                    | Description                                                                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                   | The name of your data source. Put `default` for now.                                                                                                     |
+| `connectorId`            | The ID of the connector you want to use. In this example, we'll use `hasura/postgres`.                                                                   |
+| `connectorConfiguration` | List of regional configurations or your data connector. You can specify different configurations for different regions.                                  |
+| `region`                 | Hit `Ctrl + Space` and choose the region that your database is closest to. If you're not sure, just use `gcp-us-east4`.                                  |
+| `mode`                   | This can be `ReadOnly`, `ReadWrite` and `WriteOnly`. In this example, we'll use `ReadWrite`.                                                             |
+| `configuration`          | The configuration for your data source. Contains `version`, `connectionUri`, and other fields.                                                           |
+| `version`                | Version of the data source configuration. We'll use `1`.                                                                                                 |
+| `connectionUri`          | Connection string for your Postgres database which can be a value or a [secret](/ci-cd/secrets.mdx). For this guide, enter your database URL as a value. |
 
 <Tabs groupId="db-location" className="api-tabs">
 <TabItem value="hosted" label="Hosted Database">
@@ -249,8 +252,11 @@ definition:
             value: <postgres://user:pass@host:port/db>
 ```
 
-:::info Note You can always hit `Ctrl + Space` in VSCode while editing HML files to get autocompletion on Hasura
-Metadata. :::
+:::tip Autocomplete your metadata
+
+You can always hit `Ctrl + Space` in VSCode while editing HML files to get autocompletion 🚀
+
+:::
 
 ## Step 4: Scaffold your metadata
 
