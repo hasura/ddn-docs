@@ -17,7 +17,7 @@ echo -e '{
 ' > "$MDX_DIR/_category_.json"
 
 # List of CLI commands
-COMMANDS=("" "local" "local init" "local daemon" "local daemon start" "cloud" "cloud project" "cloud project list" "cloud project create" "cloud project details" "cloud project remove" "cloud build" "cloud build apply" "cloud build create" "cloud build list" "cloud build remove" "cloud tunnel" "cloud tunnel list" "cloud tunnel create" "cloud tunnel activate" "cloud tunnel pause" "cloud tunnel delete" "cloud secret" "cloud secret list" "cloud secret set" "cloud secret delete" "cloud login" "cloud logout" "plugin")
+COMMANDS=("" "local" "local init" "local daemon" "local daemon start" "cloud" "cloud project" "cloud project list" "cloud project create" "cloud project details" "cloud project remove" "cloud build" "cloud build apply" "cloud build create" "cloud build list" "cloud build remove" "cloud environment" "cloud environment create" "cloud environment list" "cloud environment remove" "cloud namespace" "cloud namespace create" "cloud namespace list" "cloud namespace remove" "cloud tunnel" "cloud tunnel list" "cloud tunnel create" "cloud tunnel activate" "cloud tunnel pause" "cloud tunnel delete" "cloud secret" "cloud secret list" "cloud secret set" "cloud secret delete" "cloud login" "cloud logout" "plugin")
 
 # Position counter
 position=1
