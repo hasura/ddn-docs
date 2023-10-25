@@ -1,0 +1,60 @@
+---
+sidebar_position: 6
+sidebar_label: Environments
+description:
+  Explore Hasura's environments feature for better collaboration and improved organization in a multi-team project.
+  Understand the utilization of environments with builds.
+keywords:
+  - hasura
+  - environments
+  - collaboration tools
+  - multi-team projects
+  - metadata objects
+  - hasura graphql
+  - data source
+---
+
+# Environments
+
+## Introduction
+
+Environments allow you to organize your [project](/ci-cd/projects.mdx) by stage or any other criteria that makes sense
+for your organization. Environments are also used to manage [builds](/ci-cd/builds.mdx) for a project.
+
+## Environment lifecycle
+
+### Create
+
+You can create a new environment using the CLI by running:
+
+```bash
+hasura3 cloud environment create --project <PATH_TO_hasura.yaml> --name <ENVIRONMENT_NAME>
+```
+
+### Manage
+
+Once you've created an environment, you can then create builds that use it by configuring your `build-profile.yaml` to
+reference the environment name under the `environments` key:
+
+```yaml
+version: 1
+spec:
+  # highlight-start
+  environment: staging
+  # highlight-end
+  namespaces:
+    - name: default
+      resources:
+        - ./metadata.hml
+```
+
+In the example above, the `staging` environment, which would have been created in the previous step, is used for the
+build.
+
+### Delete
+
+You can delete an environment using the CLI by running:
+
+```bash
+hasura3 cloud environment remove --project <PATH_TO_hasura.yaml> --name <ENVIRONMENT_NAME>
+```
