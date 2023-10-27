@@ -24,6 +24,24 @@ const CustomDocItem = props => {
         });
       });
     });
+
+    // dynamically updating the pg prop for the getting started cta
+    function updateGettingStartedParam() {
+      const linkElement = document.querySelector('.navbar__link.nav-link_getting-started');
+
+      if (linkElement) {
+        let page = props.location.pathname;
+        page = page.slice(0, -1);
+        page = page.slice(1);
+        page = page.replace(/\//g, '_');
+
+        const href = linkElement.getAttribute('href');
+        const newHref = href.replace(/pg=docs_v3_[a-z_-]+/, `pg=docs_v3_${page}`);
+        linkElement.setAttribute('href', newHref);
+      }
+    }
+
+    updateGettingStartedParam();
   }, []);
 
   useEffect(() => {
