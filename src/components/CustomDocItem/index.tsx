@@ -33,10 +33,10 @@ const CustomDocItem = props => {
         let page = props.location.pathname;
         page = page.slice(0, -1);
         page = page.slice(1);
-        page = page.replace(/\//g, '_');
+        page = page.replace('docs/3.0/', 'docs_v3_').replace(/\//g, '_');
 
         const href = linkElement.getAttribute('href');
-        const newHref = href.replace(/pg=docs_v3_[a-z_-]+/, `pg=docs_v3_${page}`);
+        const newHref = href.replace(/pg=docs_v3_([^&]+)/, `pg=${page}`);
         linkElement.setAttribute('href', newHref);
       }
     }
