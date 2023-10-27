@@ -215,7 +215,7 @@ const config = {
             className: 'nav-link_login',
           },
           {
-            to: 'https://console.hasura.io/?pg=products&plcmt=header&cta=try-hasura&tech=default',
+            to: 'https://console.hasura.io/?pg=docs_v3_page&plcmt=header&cta=get_started&tech=default',
             label: 'Get Started',
             position: 'right',
             className: 'nav-link_getting-started',
