@@ -1,0 +1,78 @@
+name: Docs Redirects
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-approval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Check for renamed or deleted files
+        id: check-renamed
+        run: |
+          if git diff --name-status ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- docs/ | grep -E 'R|D'; then
+          # output variable to pass to the next step that sets the diff-status to true
+          echo "diff-status=true" >> "$GITHUB_OUTPUT"
+
+          # diff work and parsing the paths to get them in the right shape
+          diff_files=$(git diff --name-status ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- docs/ | grep -E 'R|D')
+          diff_files=$(echo "$diff_files" | sed 's|.mdx|/|g')
+          diff_files=$(echo "$diff_files" | sed 's|docs/||g')
+          # print the diff so each line is a new line in diff_files.txt
+          echo "$diff_files" | tr " " "\n" > diff_files.txt
+
+          # grab the filenames and plug them into our nginx template
+          set +e
+          while IFS= read -r line; do
+          OLD=$(echo "$line" | awk '{print $2}')
+          NEW=$(echo "$line" | awk '{print $3}')
+          if [ -z "$NEW" ]; then
+            NEW="OG-FILE-WAS-DELETED-REPLACE-ME-WITH-NEW-LOCATION"
+          fi
+          read -r -d '' TEMPLATE << EOM
+          \`\`\`
+          # TEST ME: https://stage.hasura.io/docs/3.0/$OLD
+          location = /docs/3.0/$OLD {
+              return 301 https://\$host/docs/3.0/$NEW;
+          }
+          \`\`\`
+          EOM
+          echo "$TEMPLATE" >> nginx.txt
+          echo "This is a redirect:\n\n $TEMPLATE"
+          done < diff_files.txt
+          set -e
+          echo "NGINX<<EOF" >> "$GITHUB_ENV"
+          cat nginx.txt >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+          else
+          echo "diff-status=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Delete comment if no redirects needed
+        if: steps.check-renamed.outputs.diff-status == 'false'
+        uses: hasura/comment-progress@v2.3.0
+        with:
+          github-token: ${{secrets.HASURA_BOT_GH_TOKEN}}
+          repository: 'hasura/graphql-engine-mono'
+          number: ${{ github.event.number }}
+          id: redirects-summary
+          delete: true
+
+      - name: Add comment
+        if: steps.check-renamed.outputs.diff-status == 'true'
+        uses: hasura/comment-progress@v2.3.0
+        with:
+          github-token: ${{secrets.HASURA_BOT_GH_TOKEN}}
+          repository: 'hasura/graphql-engine-mono'
+          number: ${{ github.event.number }}
+          id: redirects-summary
+          message:
+            "# Redirects 🔀\n\nHey, @robertjdominguez & @seanparkross — the following redirects will be needed for
+            deployment:\n\n${{ env.NGINX }}"
