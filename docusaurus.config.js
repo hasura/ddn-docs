@@ -7,6 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
+  noIndex: true,
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
   url: 'https://hasura.io',
@@ -123,19 +124,18 @@ const config = {
         darkTheme: darkCodeTheme,
         additionalLanguages: ['rest', 'http', 'haskell', 'plsql', 'docker', 'nginx', 'markdown', 'yaml'],
       },
-      algolia: {
-        // If Algolia did not provide you any appId, use 'BH4D9OD16A'
-        appId: 'NS6GBGYACO',
-        // Public API key: it is safe to commit it
-        apiKey: '8f0f11e3241b59574c5dd32af09acdc8',
-        indexName: 'hasura-graphql',
-        // Optional: see doc section below
-        // contextualSearch: true,
-        // Optional: Specify domains where the navigation should occur through window.location instead on history.push. Useful when our Algolia config crawls multiple documentation sites and we want to navigate with window.location.href to them.
-        // externalUrlRegex: 'external\\.com|domain\\.com',
-        // Optional: Algolia search parameters
-        // searchParameters: {},
-      },
+      // algolia: {
+      //   appId: '7M3BTIV34B',
+      //   // Public API key: it is safe to commit it
+      //   apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
+      //   indexName: 'hasura',
+      //   // Optional: see doc section below
+      //   // contextualSearch: true,
+      //   // Optional: Specify domains where the navigation should occur through window.location instead on history.push. Useful when our Algolia config crawls multiple documentation sites and we want to navigate with window.location.href to them.
+      //   // externalUrlRegex: 'external\\.com|domain\\.com',
+      //   // Optional: Algolia search parameters
+      //   // searchParameters: {},
+      // },
       // announcementBar: {
       //   id: 'announcementBar-3', // Increment on change
       //   content: `⭐️ If you like Docusaurus, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/facebook/docusaurus">GitHub</a> and follow us on <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/docusaurus" >Twitter</a> ${TwitterSvg}`,
@@ -215,7 +215,7 @@ const config = {
             className: 'nav-link_login',
           },
           {
-            to: 'https://console.hasura.io/?pg=products&plcmt=header&cta=try-hasura&tech=default',
+            to: 'https://console.hasura.io/?pg=docs_v3_page&plcmt=header&cta=get_started&tech=default',
             label: 'Get Started',
             position: 'right',
             className: 'nav-link_getting-started',

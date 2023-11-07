@@ -15,8 +15,8 @@ export default function NotFound() {
   const [loading, setLoading] = useState(true);
 
   // Algolia search initialization
-  const client = algoliasearch('NS6GBGYACO', '8f0f11e3241b59574c5dd32af09acdc8');
-  const index = client.initIndex('hasura-graphql');
+  const client = algoliasearch('7M3BTIV34B', '10f3d9d2cd836eec903fcabbd6d50139');
+  const index = client.initIndex('hasura');
 
   // Get the current location
   const location = useLocation();
@@ -27,7 +27,7 @@ export default function NotFound() {
     const query = location.pathname;
 
     // No-no words
-    const removeList = ['docs', 'latest', 'index'];
+    const removeList = ['docs', '3.0', 'index'];
 
     // Remove the no-no words from the query
     const parsedQuery = query
