@@ -1,0 +1,79 @@
+name: Merge main into PR and test build
+
+on:
+  pull_request_review:
+    types:
+      - submitted
+
+jobs:
+  merge_and_build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get PR branch name
+        id: pr_branch
+        run: echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
+
+      - name: Check if PR is approved
+        id: approved
+        run: echo "::set-output name=approved::${{ github.event.review.state == 'approved' }}"
+
+      - name: Fail if PR is not approved
+        if: steps.approved.outputs.approved == 'false'
+        run: exit 1
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js and Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Merge and check build
+        run: |
+          git config user.email "accounts@hasura.io"
+          git config user.name "hasura-bot"
+
+          # Get the PR branch's name from the event payload
+          BRANCH_NAME=${{ steps.pr_branch.outputs.branch }}
+          echo "🤔 Attempting to merge 'main' into '$BRANCH_NAME'..."
+
+          # Check out and pull the 'main' branch
+          git fetch > /dev/null 2>&1
+          git checkout main > /dev/null 2>&1
+          git pull > /dev/null 2>&1
+          echo "⬇️ Checked out and pulled 'main' branch."
+
+          # Check out and pull the PR's branch
+          git checkout $BRANCH_NAME > /dev/null 2>&1
+          git pull > /dev/null 2>&1
+          echo "⬇️ Checked out and pulled $BRANCH_NAME branch."
+
+          # Merge 'main' into the PR's branch
+          git merge --no-edit main > /dev/null 2>&1
+          echo "🔀 Merged 'main' into '$BRANCH_NAME'."
+
+          # Check if there are merge conflicts
+          if [ $? -eq 0 ]; then
+            # No merge conflicts, so we can proceed with the build
+            echo "🚧 Installing dependencies..."
+            yarn install > /dev/null 2>&1
+            echo "🧰 Building..."
+            yarn build > /dev/null 2>&1
+
+            # Check if the build was successful
+            if [ $? -eq 0 ]; then
+              # Build succeeded
+              echo "🚀 Merge and build succeeded, okay to merge PR 🎉."
+            else
+              echo "❌ Build failed. Please fix any issues before committing."
+              exit 1 
+            fi
+          else
+            echo "🔥 Merge conflicts encountered. Resolve conflicts before committing."
+            exit 1
+          fi
