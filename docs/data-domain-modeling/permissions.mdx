@@ -22,14 +22,14 @@ seoFrontMatterUpdated: true
 ## Introduction
 
 The OpenDD Spec lets you define permissions, (also known as access control or authorization rules) on
-[output types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx) in your data domain.
+[object types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx) in your data domain.
 
 The following types of permissions can be defined in the [OpenDD spec](/data-domain-modeling/overview.mdx):
 
 - `TypePermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
-  is useful, as multiple models can return the same output type.
+  is useful, as certain fields may be sensitive and should only be accessible to particular roles.
 - `ModelPermissions` define which objects or rows within a model are allowed to be accessed by a role.
-- `CommandPermissions` defines which commands are allowed to be executed by a role.
+- `CommandPermissions` defines whether the command is executable by a role.
 
 ## Type permissions {#type-permissions}
 
@@ -102,7 +102,7 @@ definition:
 
 :::info Types are inaccessible when undefined for a role
 
-If a role doesn't define any permissions for this type, then it won't be accessible to that role.
+If a role doesn't define any permissions for this type, then none of its fields would be accessible to that role.
 
 :::
 
@@ -147,9 +147,9 @@ select:
   filter: <ModelPredicate>
 ```
 
-| Field  | Type             | Required | Description                                                                                                                                                                                                                                                                                                                    |
-| ------ | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| filter | `ModelPredicate` | false    | Optional predicate to satisfy. This predicate can use operators supported by the model’s data connector. If the filter is missing then all rows are returned. If the filter is present, then only the rows satisfying this filter expression are returned. (Reference of [ModelPredicate](./common-syntax.mdx#modelpredicate)) |
+| Field  | Type             | Required | Description                                                                                                                                                                                                                                                                                                                        |
+| ------ | ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| filter | `ModelPredicate` | false    | Optional predicate to satisfy. This predicate can use operators supported by the model’s data connector. If the filter is missing then all rows are accessible. If the filter is present, then only the rows satisfying this filter expression are accessible. (Reference of [ModelPredicate](./common-syntax.mdx#modelpredicate)) |
 
 ### Examples
 
@@ -190,6 +190,11 @@ definition:
             value:
               literal: "%Functional%"
 ```
+
+:::info Models are inaccessible when undefined for a role
+
+If a role doesn't define any permissions for this model, then the model won't be selectable for that role.
+:::
 
 ## Command permissions {#command-permissions}
 
@@ -239,4 +244,7 @@ definition:
     allowExecution: false
 ```
 
-If a role doesn't define any permissions for this type, then it won't be accessible to that role.
+:::info Commands are inaccessible when undefined for a role
+
+If a role doesn't define any permissions for this command, then it won't be executable by that role.
+:::
