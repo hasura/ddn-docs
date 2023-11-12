@@ -87,16 +87,18 @@ relationshipType: Object | Array
 
 #### RelationshipMapping
 
+Defines how the source type maps to the target model in this relationship. The mapping can have multiple links.
+
 ```yaml
 mapping:
   - source: <RelationshipMappingSource>
     target: <RelationshipMappingTarget>
 ```
 
-| Field    | Type                                                      | Required | Description                             |
-| -------- | --------------------------------------------------------- | -------- | --------------------------------------- |
-| `source` | [`RelationshipMappingSource`](#relationshipmappingsource) | true     | Defines how to access the source field. |
-| `target` | [`RelationshipMappingTarget`](#relationshipmappingtarget) | true     | Defines how to access the target field. |
+| Field    | Type                                                      | Required | Description                      |
+| -------- | --------------------------------------------------------- | -------- | -------------------------------- |
+| `source` | `RelationshipMappingSource`(#relationshipmappingsource)   | true     | The source link of this mapping. |
+| `target` | `RelationshipMappingTarget`(#relationshipmappingtarget)   | true     | The target link of this mapping. |
 
 #### RelationshipMappingSource
 
@@ -108,7 +110,7 @@ source:
 
 | Field       | Type                            | Required | Description                             |
 | ----------- | ------------------------------- | -------- | --------------------------------------- |
-| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | true     | Defines how to access the source field. |
+| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | true     | The field path of the source link.      |
 
 #### RelationshipMappingTarget
 
@@ -118,19 +120,21 @@ target:
     - <FieldAccess>
 ```
 
-| Field        | Type                            | Required | Description                             |
-| ------------ | ------------------------------- | -------- | --------------------------------------- |
-| `modelField` | [`[FieldAccess]`](#fieldaccess) | true     | Defines how to access the target field. |
+| Field        | Type                            | Required | Description                                                |
+| ------------ | ------------------------------- | -------- | ---------------------------------------------------------- |
+| `modelField` | [`[FieldAccess]`](#fieldaccess) | true     | The field path of the target model the source link maps to. |
 
 #### FieldAccess
+
+Defines a single element of a field path.
 
 ```yaml
 fieldName: <FieldName>
 ```
 
-| Field       | Type     | Required | Description                             |
-| ----------- | -------- | -------- | --------------------------------------- |
-| `fieldName` | `String` | true     | Defines how to access the source field. |
+| Field       | Type     | Required | Description                                 |
+| ----------- | -------- | -------- | ------------------------------------------- |
+| `fieldName` | `String` | true     | The name of the field for this path element. |
 
 ## Example
 
@@ -143,7 +147,7 @@ kind: Relationship
 version:
 definition:
   source: author
-  name: Articles
+  name: articles
   target:
     model:
       name: Articles
@@ -164,7 +168,7 @@ kind: Relationship
 version: v1
 definition:
   source: article
-  name: Author
+  name: author
   target:
     model:
       name: Authors
@@ -182,17 +186,17 @@ The resulting GraphQL schema will appear as:
 
 ```graphql
 type Authors {
-  author_id Int!
-  first_name String!
-  last_name String!
-  articles: [Articles!]!
+  author_id: Int!
+  first_name: String!
+  last_name: String!
+  articles: [Article!]!
 }
 
 type Articles {
-  id Int!
-  author_id Int!
-  title String!
-  author: Authors
+  id: Int!
+  author_id: Int!
+  title: String!
+  author: Author
 }
 ```
 

@@ -129,6 +129,7 @@ definition:
 #### ScalarTypeGraphQLConfig
 
 `ScalarTypeGraphQLConfig` is an object that defines the configuration for using this scalar type in the GraphQL API.
+All scalar types are represented as custom [GraphQL scalars](https://graphql.org/learn/schema/#scalar-types) in the resulting GraphQL API.
 This object has a field `typeName` that corresponds to the GraphQL type name to use for this scalar type.
 
 ```yaml
@@ -182,12 +183,12 @@ definition:
   graphql: <ObjectTypeGraphQLConfig>
 ```
 
-| Field            | Type                                                  | Required | Description                                                                      |
-|------------------|-------------------------------------------------------|----------|--------------------------------------------------------------------------------- |
-| `name`           | `String`                                              | true     | Name of the type.                                                                |
-| `fields`         | [`[Field]`](#field)                                   | true     | List of fields.                                                                  |
-| `globalIdFields` | `[String]`                                            | false    | Name of the fields that will form the Global ID associated with the object type. |
-| `graphql`        | [`ObjectTypeGraphQLConfig`](#objecttypegraphqlconfig) | false    | Configuration for using this object type in the GraphQL API.                     |
+| Field            | Type                                                  | Required | Description                                                                       |
+|------------------|-------------------------------------------------------|----------|---------------------------------------------------------------------------------- |
+| `name`           | `String`                                              | true     | Name of the type.                                                                 |
+| `fields`         | [`[Field]`](#field)                                   | true     | List of fields.                                                                   |
+| `globalIdFields` | `[String]`                                            | false    | Names of the fields that will form the Global ID associated with the object type. |
+| `graphql`        | [`ObjectTypeGraphQLConfig`](#objecttypegraphqlconfig) | false    | Configuration for using this object type in the GraphQL API.                      |
 
 #### Field
 
@@ -198,8 +199,11 @@ definition:
 
 #### ObjectTypeGraphQLConfig
 
-`ObjectTypeGraphQLConfig` is an object that defines the configuration for using this object type in the GraphQL API.
-This object has a field `typeName` that corresponds to the GraphQL type name to use for this object type.
+`ObjectTypeGraphQLConfig` is config that defines the configuration for using this object type in the GraphQL API.
+When used in an output context, a [GraphQL object type](https://graphql.org/learn/schema/#object-types-and-fields) is generated for each OpenDD object.
+`ObjectTypeGraphQLConfig` has a field `typeName` that corresponds to the GraphQL type name to use for this OpenDD object type.
+The fields of this generated GraphQL object type will have the same names as the OpenDD field names. The generated GraphQL field types
+will also pick the nullability and repeated characteristics based on the OpenDD type reference for the field.
 
 ```yaml
 graphql:
@@ -208,10 +212,11 @@ graphql:
 
 [//]: # "TODO link above"
 
-### Examples
+### Examples {#object-type-examples}
 
 1. Below, we define an `author` type that has three fields: `author_id`, `first_name`, and `last_name`. Each field is
-represented as a primitive `Int` or `String` type:
+represented as a primitive `Int` or `String` type. The `author_id` field is non-nullable whereas `first_name` and `last_name` fields are nullable.
+When used in the GraphQL API in an output context, this will result in a GraphQL object type called `Author`.
 
 ```yaml
 kind: ObjectType
@@ -225,6 +230,8 @@ definition:
       type: String
     - name: last_name
       type: String
+  graphql:
+    typeName: Author
 ```
 
 2. Extending the `author` type to also have a Global ID field
@@ -241,13 +248,16 @@ definition:
       type: String
     - name: last_name
       type: String
+  graphql:
+    typeName: Author
   globalIdFields:
     - author_id
 ```
 
-Now, the model whose type is `author` and also has `globalIdSource: true` will have an auto-generated `id` field
-which will be based on the `author_id` field, which can be then introduced with the `node` field to uniquely retrieve
-the `author` object corresponding to the global ID.
+Now, the `Author` GraphQL type will have an auto-generated `id` field that is a globally
+unique ID across your data domain, which will be based on the `author_id` field of `artist`.
+The `node` query root field of the Relay API can then be used to retrieve this global ID,
+given there is a model whose `objectType` is `artist` and it is set as the `globalIdSource`.
 
 
 ## Scalar type representation for data connectors {#scalar-type-representation}
@@ -256,7 +266,12 @@ A scalar type from a data connector can be represented as an OpenDD type by defi
 `kind: DataConnectorScalarRepresentation` and `version: v1`. To define a scalar type representation, you need to
 have a data connector name, a data connector scalar type, a type representation and an optional graphql field.
 
-It is necessary to map all available scalars from a data connector to OpenDD types.
+:::info Map scalars for user in your GraphQL API
+
+It is necessary to map **any** available scalar from a data connector that is used in the GraphQL API.
+
+
+:::
 
 ### Metadata structure
 
@@ -280,7 +295,8 @@ definition:
 #### DCScalarGraphQLConfig
 `DCScalarGraphQLConfig` is an object that defines the configuration for using this data connector scalar type in the
 GraphQL API. This object has a field `comparisonExpressionTypeName` that corresponds to the GraphQL type name to use for
-the comparison expression type for this data connector scalar type.
+the comparison expression input type that is generated for this data connector scalar type. This comparison expression type
+will contain the comparison operators for this scalar as defined by the data connector.
 
 ```yaml
 graphql:
@@ -289,7 +305,7 @@ graphql:
 
 ### Examples
 
-1. Mapping a `text` scalar type from the `my_source` connector to a primitive `String` type.
+1. Mapping a `text` scalar type from the `my_source` connector to a primitive `String` type and giving its GraphQL comparison expression a type name.
 
 ```yaml
 kind: DataConnectorScalarRepresentation
@@ -298,6 +314,8 @@ definition:
   dataConnectorName: my_source
   dataConnectorScalarType: text
   representation: String
+  graphql:
+    comparisonExpressionTypeName: text_comparison_exp
 ```
 
 2. Mapping a PostgreSQL scalar `geography` to a custom object type.
