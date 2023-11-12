@@ -26,15 +26,15 @@ The OpenDD Spec lets you define permissions, (also known as access control or au
 
 The following types of permissions can be defined in the [OpenDD spec](/data-domain-modeling/overview.mdx):
 
-- `TypePermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types
-  is useful, as certain fields may be sensitive and should only be accessible to particular roles.
+- `TypePermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types is
+  useful, as certain fields may be sensitive and should only be accessible to particular roles.
 - `ModelPermissions` define which objects or rows within a model are allowed to be accessed by a role.
 - `CommandPermissions` defines whether the command is executable by a role.
 
 ## Type permissions {#type-permissions}
 
-A type permission will need the type and the role(s) for which the permission should be defined. For each role,
-you will need to define the fields accessible for that role.
+A type permission will need the type and the role(s) for which the permission should be defined. For each role, you will
+need to define the fields accessible for that role.
 
 ### Metadata Structure
 
@@ -59,18 +59,18 @@ permissions:
     output: <OutputPermission>
 ```
 
-| Field      | Type                                            | Required | Description                                                   |
-| ---------- | ----------------------------------------------- | -------- | ------------------------------------------------------------- |
-| `role`     | `String`                                        | true     | The name of the role for which permissions are to be defined. |
-| `output`   | [`OutputPermission`](#outputpermission)         | true     | The type output permission for the role.                      |
+| Field    | Type                                    | Required | Description                                                   |
+| -------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
+| `role`   | `String`                                | true     | The name of the role for which permissions are to be defined. |
+| `output` | [`OutputPermission`](#outputpermission) | true     | The type output permission for the role.                      |
 
 #### OutputPermission
 
 ```yaml
 output:
   allowedFields:
-  - <field1>
-  - <field2>
+    - <field1>
+    - <field2>
 ```
 
 | Field           | Type       | Required | Description                                     |
@@ -87,17 +87,17 @@ version: v1
 definition:
   typeName: article
   permissions:
-  - role: admin
-    output:
-      allowedFields:
-      - id
-      - title
-      - author_id
-  - role: user
-    output:
-      allowedFields:
-      - id
-      - title
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - title
+          - author_id
+    - role: user
+      output:
+        allowedFields:
+          - id
+          - title
 ```
 
 :::info Types are inaccessible when undefined for a role
@@ -108,9 +108,9 @@ If a role doesn't define any permissions for this type, then none of its fields 
 
 ## Model Permissions {#model-permissions}
 
-A model permission will need the model name and the role(s) for which the permission should be defined. For each
-role, you will need to define an optional filter expression. Objects (or rows/documents) that satisfy this filter
-predicate will be returned for that role.
+A model permission will need the model name and the role(s) for which the permission should be defined. For each role,
+you will need to define an optional filter expression. Objects (or rows/documents) that satisfy this filter predicate
+will be returned for that role.
 
 ### Metadata Structure
 
@@ -135,10 +135,10 @@ permissions:
     select: <SelectPermission>
 ```
 
-| Field      | Type                                    | Required | Description                                                   |
-| ---------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
-| `role`     | `String`                                | true     | The name of the role for which permissions are to be defined. |
-| `select`   | [`SelectPermission`](#selectpermission) | true     | The model select permission for the role.                     |
+| Field    | Type                                    | Required | Description                                                   |
+| -------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
+| `role`   | `String`                                | true     | The name of the role for which permissions are to be defined. |
+| `select` | [`SelectPermission`](#selectpermission) | true     | The model select permission for the role.                     |
 
 #### SelectPermission
 
@@ -169,31 +169,32 @@ version: v1
 definition:
   modelName: Articles
   permissions:
-  - role: admin
-    select:
-      filter:
-  - role: user_1
-    select:
-      filter:
-        fieldComparison:
-          field: author_id
-          operator: _eq
-          value:
-            sessionVariable: x-hasura-user-id
-  - role: user_2
-    select:
-      filter:
-        and:
-        - fieldComparison:
-            field: title
-            operator: _like
+    - role: admin
+      select:
+        filter:
+    - role: user_1
+      select:
+        filter:
+          fieldComparison:
+            field: author_id
+            operator: _eq
             value:
-              literal: "%Functional%"
+              sessionVariable: x-hasura-user-id
+    - role: user_2
+      select:
+        filter:
+          and:
+            - fieldComparison:
+                field: title
+                operator: _like
+                value:
+                  literal: "%Functional%"
 ```
 
 :::info Models are inaccessible when undefined for a role
 
 If a role doesn't define any permissions for this model, then the model won't be selectable for that role.
+
 :::
 
 ## Command permissions {#command-permissions}
@@ -238,13 +239,14 @@ version: v1
 definition:
   commandName: get_article_by_id
   permissions:
-  - role: admin
-    allowExecution: true
-  - role: user
-    allowExecution: false
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: false
 ```
 
 :::info Commands are inaccessible when undefined for a role
 
 If a role doesn't define any permissions for this command, then it won't be executable by that role.
+
 :::
