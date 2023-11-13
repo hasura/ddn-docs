@@ -1,0 +1,34 @@
+name: Merge Release Stage to Release Prod
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Merge Release Stage to Release Prod
+        run: |
+          git config user.name "hasura-bot"
+          git config user.email "accounts@hasura.io"
+
+          # we'll pull the latest changes from release-stage
+          git pull origin release-stage
+
+          # we'll checkout release-prod
+          git checkout release-prod
+
+          # then, we'll merge main into release-prod
+          git merge release-stage -m "Merge release-stage into release-prod"
+
+          # and push the changes
+          git push origin release-prod
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
