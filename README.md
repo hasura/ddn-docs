@@ -42,8 +42,9 @@ Assuming you have the correct permissions, you can monitor builds on GCP
 
 ### Staging
 
-Upon a successful merge to `main`, a merge is automatically triggered by this GitHub Action to `release-stage`. GCP
-listens for pushes to this branch and, when one comes through, it builds and deploys the site to
+Upon a successful merge to `main`, a merge is automatically triggered by
+[this GitHub Action](https://github.com/hasura/v3-docs/actions/workflows/merge-main-to-staging.yml) to `release-stage`.
+GCP listens for pushes to this branch and, when one comes through, it builds and deploys the site to
 [https://stage.hasura.io/docs/3.0](https://stage.hasura.io/docs/3.0).
 
 ### Production
