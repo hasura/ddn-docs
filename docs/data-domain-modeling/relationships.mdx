@@ -138,6 +138,8 @@ fieldName: <FieldName>
 
 ## Example
 
+### Basic Relationship
+
 Let's add the following relationships to the above types.
 
 1. `Array` relationship where `author` has many `Articles`:
@@ -200,10 +202,67 @@ type Articles {
 }
 ```
 
+:::info Local and Remote Relationships
+
+Syntactically there is no difference between local (Eg. a relationship between two columns in the same datasource, or an
+existing foreign key relatioship) and remote (a relationship across two different data sources) relationships. Hasura
+DDN will automatically detect the type of relationship and make the optimal query plan accordingly.
+
+:::
+
+### Relationship across Namespaces
+
+Now Imagine if the Article model is defined in a differnt namespace called subgraph_articles and the Author and the
+following Array relationship is part of the default namespace, we will now need to specify the target namespace in the
+target section of the relationship definition as `namespace: subgraph_articles` as shown below:
+
+```yaml
+kind: Relationship
+version:
+definition:
+  source: author
+  name: articles
+  target:
+    model:
+      name: Articles
+      relationshipType: Array
+      namespace: subgraph_articles
+  mappings:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: author_id
+```
+
+Now Imagine you want to query author from the Article model which is specified in the subgraph_articles namespace, you
+will need to specify where the Authors can be queries from by specifying the namespace in the target section of the
+relationship: in this case specifying the namespace as `namespace: default` as shown below:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  source: article
+  name: author
+  target:
+    model:
+      name: Authors
+      relationshipType: Object
+      namespace: default
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: author_id
+      target:
+        modelField:
+          - fieldName: id
+```
+
 :::info Current limitations
 
-1. Only relationships for models within the same data source are supported.
-2. Only types to top-level model types relationships are supported.
-3. Simple top-level type field to top-level model field mapping are supported.
+1. Only types to top-level model types relationships are supported.
+2. Simple top-level type field to top-level model field mapping are supported.
 
 :::
