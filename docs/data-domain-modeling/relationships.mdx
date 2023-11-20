@@ -55,9 +55,10 @@ definition:
 target:
   model: <TargetModel>
 ```
-| Field              | Type                           | Required | Description                                             |
-| ------------------ | ------------------------------ | -------- | ------------------------------------------------------- |
-| `model`            | [`TargetModel`](#targetmodel)  | true     | The target [model](./models.mdx) for the relationship.  |
+
+| Field   | Type                          | Required | Description                                            |
+| ------- | ----------------------------- | -------- | ------------------------------------------------------ |
+| `model` | [`TargetModel`](#targetmodel) | true     | The target [model](./models.mdx) for the relationship. |
 
 #### TargetModel
 
@@ -95,10 +96,10 @@ mapping:
     target: <RelationshipMappingTarget>
 ```
 
-| Field    | Type                                                      | Required | Description                      |
-| -------- | --------------------------------------------------------- | -------- | -------------------------------- |
-| `source` | `RelationshipMappingSource`(#relationshipmappingsource)   | true     | The source link of this mapping. |
-| `target` | `RelationshipMappingTarget`(#relationshipmappingtarget)   | true     | The target link of this mapping. |
+| Field    | Type                                                    | Required | Description                      |
+| -------- | ------------------------------------------------------- | -------- | -------------------------------- |
+| `source` | `RelationshipMappingSource`(#relationshipmappingsource) | true     | The source link of this mapping. |
+| `target` | `RelationshipMappingTarget`(#relationshipmappingtarget) | true     | The target link of this mapping. |
 
 #### RelationshipMappingSource
 
@@ -108,9 +109,9 @@ source:
     - <FieldAccess>
 ```
 
-| Field       | Type                            | Required | Description                             |
-| ----------- | ------------------------------- | -------- | --------------------------------------- |
-| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | true     | The field path of the source link.      |
+| Field       | Type                            | Required | Description                        |
+| ----------- | ------------------------------- | -------- | ---------------------------------- |
+| `fieldPath` | [`[FieldAccess]`](#fieldaccess) | true     | The field path of the source link. |
 
 #### RelationshipMappingTarget
 
@@ -120,8 +121,8 @@ target:
     - <FieldAccess>
 ```
 
-| Field        | Type                            | Required | Description                                                |
-| ------------ | ------------------------------- | -------- | ---------------------------------------------------------- |
+| Field        | Type                            | Required | Description                                                 |
+| ------------ | ------------------------------- | -------- | ----------------------------------------------------------- |
 | `modelField` | [`[FieldAccess]`](#fieldaccess) | true     | The field path of the target model the source link maps to. |
 
 #### FieldAccess
@@ -132,11 +133,13 @@ Defines a single element of a field path.
 fieldName: <FieldName>
 ```
 
-| Field       | Type     | Required | Description                                 |
-| ----------- | -------- | -------- | ------------------------------------------- |
+| Field       | Type     | Required | Description                                  |
+| ----------- | -------- | -------- | -------------------------------------------- |
 | `fieldName` | `String` | true     | The name of the field for this path element. |
 
 ## Example
+
+### Basic relationship
 
 Let's add the following relationships to the above types.
 
@@ -200,10 +203,71 @@ type Articles {
 }
 ```
 
+:::info Local and Remote Relationships
+
+Syntactically, there are no differences between local (e.g., a relationship between two columns in the same datasource,
+or an existing foreign-key relationship) or remote (a relationship across two different data sources) relationships.
+Hasura DDN will automatically detect the type of relationship and make the optimal query plan accordingly.
+
+:::
+
+### Relationship across Namespaces
+
+Now, imagine if the `Article` model is defined in a **different namespace** called `subgraph_articles` and the `Author`
+and the following array relationship is part of the `default` namespace.
+
+We will now need to specify the **target** namespace in the `target` section of the relationship definition as
+`namespace: subgraph_articles` as shown below:
+
+```yaml
+kind: Relationship
+version:
+definition:
+  source: author
+  name: articles
+  target:
+    model:
+      name: Articles
+      relationshipType: Array
+      namespace: subgraph_articles
+  mappings:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: author_id
+```
+
+Next, imagine you want to query the author from the `Article` model, which is specified in the `subgraph_articles`
+namespace. You will need to specify where the `Authors` can be queried from by specifying the **namespace** in the
+`target` section of the relationship.
+
+In this case, by specifying the namespace as `namespace: default` as shown below:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  source: article
+  name: author
+  target:
+    model:
+      name: Authors
+      relationshipType: Object
+      namespace: default
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: author_id
+      target:
+        modelField:
+          - fieldName: id
+```
+
 :::info Current limitations
 
-1. Only relationships for models within the same data source are supported.
-2. Only types to top-level model types relationships are supported.
-3. Simple top-level type field to top-level model field mapping are supported.
+1. Only types to top-level model types relationships are supported.
+2. Simple top-level type field to top-level model field mapping are supported.
 
 :::
