@@ -17,7 +17,7 @@ echo -e '{
 ' > "$MDX_DIR/_category_.json"
 
 # List of CLI commands
-COMMANDS=("" "build" "build apply" "build create" "build delete" "build describe" "build list" "completion" "completion bash" "completion fish" "completion powershell" "completion zsh" "daemon" "daemon start" "environment" "environment create" "environment delete" "environment describe" "environment list" "help" "init" "login" "logout" "plugins" "plugins install" "plugins list" "plugins uninstall" "plugins upgrade" "project" "project create" "project delete" "project describe" "project list" "secret" "secret delete" "secret get" "secret list" "secret set" "subgraph" "subgraph create" "subgraph delete" "subgraph describe" "subgraph list" "tunnel" "tunnel activate" "tunnel create" "tunnel delete" "tunnel list" "tunnel pause" "update-cli" "version")
+COMMANDS=("" "build" "build apply" "build create" "build delete" "build describe" "build list" "build watch" "completion" "completion bash" "completion fish" "completion powershell" "completion zsh" "daemon" "daemon start" "environment" "environment create" "environment delete" "environment describe" "environment list" "help" "init" "login" "logout" "plugins" "plugins install" "plugins list" "plugins uninstall" "plugins upgrade" "project" "project create" "project delete" "project describe" "project list" "secret" "secret delete" "secret get" "secret list" "secret set" "subgraph" "subgraph create" "subgraph delete" "subgraph describe" "subgraph list" "tunnel" "tunnel activate" "tunnel create" "tunnel delete" "tunnel list" "tunnel pause" "update-cli" "version")
 
 # Position counter
 position=1
