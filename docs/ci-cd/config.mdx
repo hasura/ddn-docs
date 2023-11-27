@@ -33,13 +33,53 @@ on three types of files:
 
 ### hasura.yaml
 
-This is the entry point to a Hasura project. This specifies the project name and lists the build profile files
-as well as a default build profile to use if one is not specified when running a CLI command.
+This is the entry point to a Hasura project.
+
+```yaml
+version: 1
+project: <PROJECT_NAME>
+buildProfiles:
+  - build-profile.yaml
+defaultBuildProfile: build-profile.yaml
+```
+
+The `version` section is used to specify the version of the configuration file. The `project` field is used to
+specify the project name.
+
+The `hasura.yaml` file also contains a `buildProfiles` section. This section is used to specify the build profile files
+associated with the project. As you can see from this example, we only have one build profile, `build-profile.yaml`
+which is also identified as the default to use when creating a new build. **The `default` profile is required for a
+project.**
 
 ### Build profiles
 
-Build profile files define a build `environment` and where to obtain the `subgraph` and `supergraph` metadata for it.
-The `build-profile.yaml` file is created by the CLI to get you started.
+By default, the included `build-profile.yaml` file is populated with the following content:
+
+```yaml
+version: 2
+spec:
+  environment: default
+  mode: replace
+  supergraph:
+    resources:
+      - supergraph/*
+  subgraphs:
+    - name: default
+      resources:
+        - "subgraphs/default/**/*.hml"
+```
+
+Here, you can see that the `build-profile.yaml` file contains `version` and `spec` sections. The `version` section is
+used to specify the version of the configuration file.
+
+The `spec` section contains the following fields:
+
+| Field         | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| `environment` | The environment to use for the build.                      |
+| `mode`        | The mode to use for the build. `Replace` by default.       |
+| `supergraph`  | The supergraph resources to use for the build.             |
+| `subgraph`    | List of subgraphs and their resources to use for the build |
 
 You can create additional build profile files for different environments you may need eg: `staging`, `production`,
 etc. By combining build profiles which specify environments with version control, you can easily set up an effective
@@ -47,24 +87,80 @@ CI/CD pipeline for your project.
 
 Each build profile file must be referenced by the `hasura.yaml` file in order to be used.
 
-### Supergraphs
+### Supergraph
 
-The supergraph defines the `auth` and `compatibility` configurations for the project and is referenced by a build
-profile.
+Your `supergraph` directory will contain two configuration files by default: the `auth-config.hml` and
+`compatibility-config.hml` files.
 
-### Subgraphs of hml metadata files
+The `auth-config.hml` file defines the authorization configuration for your supergraph i.e. the configuration for
+how the queries to your Hasura DDN project should be authorized. The `compatibility-config.hml` file defines the
+compatibility date of your supergraph metadata. You'd likely not want to change the compatibility config unless
+you're sure about it.
 
-You will divide your project into one or more separate subgraphs which are referenced by a build profile.
+#### AuthConfig
+
+```yaml
+kind: AuthConfig
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  mode:
+    webhook:
+      method: Post
+      url: https://auth.pro.hasura.io/webhook/ddn?role=admin
+```
+
+The `AuthConfig` object is used to configure authorization for your data supergraph. You can learn more about
+authentication in the [Auth section](/auth/overview.mdx).
+
+#### CompatibilityConfig
+
+```yaml
+kind: CompatibilityConfig
+date: 2023-10-19
+```
+
+The `CompatibilityConfig` object is used to configure compatibility for your data supergraph.
+
+### Subgraphs
+
+Inside the `subgraphs` directory, each subgraph is identified by a directory with the name of the subgraph. Within
+that, we have included three directories to get you started:
+
+```bash
+└── <SUBGRAPH_NAME>
+│       ├── commands
+│       ├── dataconnectors
+│       └── models
+```
+
+A project is divided into one or more separate subgraphs which are referenced by a build profile.
 
 The `default` subgraph is required and cannot be deleted.
 
 Subgraphs can be used to group together objects in your metadata in a way that makes sense for you and your
-team. Multiple `hml` files can belong to a subgraph, and you can have multiple subgraphs in a project.
-
-All `hml` files will conform to the [OpenDD Spec](/data-domain-modeling/overview.mdx).
+team. Multiple `hml` files can belong to a subgraph, and you can have multiple subgraphs in a project. Objects in
+each hml file must conform to the [OpenDD Spec](/data-domain-modeling/overview.mdx) and
+[subgraph rules](./subgraphs.mdx).
 
 The CLI populates the `default` subgraph with `command`, `dataconnectors`, and `model` directories, but the
 organization of these is completely customizable by you and your team.
+
+:::info What is HML?
+
+These are both `hml` files, which is a new file format for Hasura metadata. It is a superset of the existing `yaml`
+format, and is designed to provide a more flexible and extensible way to define metadata. You can leverage the power of
+the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) to quickly and
+easily author `hml` files.
+
+:::
+
+Your `hml` files contain metadata objects according to the OpenDD spec. In the example above, we could add a
+`HasuraHubDataConnector` object to connect to a data source. Then, import our tables as models and create a build on
+Hasura DDN.
+
+However, in the next section, we'll look at how to use subgraphs to organize metadata and break up our `hml` file into
+smaller, more governable pieces.
 
 ## Basic configuration
 
@@ -95,124 +191,6 @@ This will generate a new project directory in the current folder with the follow
 You will find empty .gitkeep files in some directories which are used to preserve empty directories in Git.
 
 :::
-
-
-### build-profile.yaml
-
-By default, the included `build-profile.yaml` file is populated with the following content:
-
-```yaml
-version: 2
-spec:
-  environment: default
-  mode: replace
-  supergraph:
-    resources:
-      - supergraph/*
-  subgraphs:
-    - name: default
-      resources:
-        - "subgraphs/default/**/*.hml"
-```
-
-Here, you can see that the `build-profile.yaml` file contains `version` and `spec` sections. The `version` section is
-used to specify the version of the configuration file.
-
-The `spec` section contains the following fields:
-
-| Field         | Description                                                |
-| ------------- | ---------------------------------------------------------- |
-| `environment` | The environment to use for the build.                      |
-| `mode`        | The mode to use for the build. `Replace` by default.       |
-| `supergraph`  | The supergraph resources to use for the build.             |
-| `subgraph`    | List of subgraphs and their resources to use for the build |
-
-This tells the Hasura CLI to assign metadata from `subgraphs/default` directory to the `default` subgraph` when creating
-a new build on the Hasura DDN project.
-
-### hasura.yaml
-
-By default, your `hasura.yaml` is populated with the following content:
-
-```yaml
-version: 1
-project: <PROJECT_NAME>
-buildProfiles:
-  - build-profile.yaml
-defaultBuildProfile: build-profile.yaml
-```
-
-You can see that this file contains a `version` and a `project` section. The `version` section is used to
-specify the version of the configuration file. The `project` section is used to specify the project name.
-
-The `hasura.yaml` file also contains a `buildProfiles` section. This section is used to specify the build profile files
-associated with the project. As you can see from this example, we only have one build profile, `build-profile.yaml`
-which is also identified as the default to use when creating a new build. **The `default` profile is required for a
-project.**
-
-### Subgraphs directory
-
-Inside the `subgraphs` directory, each subgraph is identified by a directory with the name of the subgraph. Within
-that, we have included three directories to get you started:
-
-```bash
-└── <SUBGRAPH_NAME>
-│       ├── commands
-│       ├── dataconnectors
-│       └── models
-```
-
-Each subdirectory contains `hml` files for the corresponding metadata object. We'll take a look at a more advanced
-example after we cover the basics of the directory structure.
-
-### Supergraph directory
-
-Your `supergraph` directory will contain two configuration files by default: the `auth-config.hml` and
-`compatibility-config.hml` files. The `auth-config.hml` file defines the authorization configuration for your supergraph
-i.e. the configuration for how the queries to your Hasura DDN project should be authorized. The
-`compatibility-config.hml` file defines the compatibility date of your supergraph metadata. You'd likely not want to
-change the compatibility config unless you're sure about it.
-
-#### AuthConfig
-
-```yaml
-kind: AuthConfig
-version: v1
-definition:
-  allowRoleEmulationBy: admin
-  mode:
-    webhook:
-      method: Post
-      url: https://auth.pro.hasura.io/webhook/ddn?role=admin
-```
-
-The `AuthConfig` object is used to configure authorization for your data supergraph. You can learn more about
-authentication in the [Auth section](/auth/overview.mdx).
-
-#### CompatibilityConfig
-
-```yaml
-kind: CompatibilityConfig
-date: 2023-10-19
-```
-
-The `CompatibilityConfig` object is used to configure compatibility for your data supergraph.
-
-:::info What is HML?
-
-These are both `hml` files, which is a new file format for Hasura metadata. It is a superset of the existing `yaml`
-format, and is designed to provide a more flexible and extensible way to define metadata. You can leverage the power of
-the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) to quickly and
-easily author `hml` files.
-
-:::
-
-Your `hml` files contain metadata objects according to the OpenDD spec. In the example above, we could add a
-`HasuraHubDataConnector` object to connect to a data source. Then, import our tables as models and create a build on
-Hasura DDN.
-
-However, in the next section, we'll look at how to use subgraphs to organize metadata and break up our `hml` file into
-smaller, more governable pieces.
 
 ## Advanced configuration
 
