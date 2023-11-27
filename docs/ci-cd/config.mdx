@@ -73,19 +73,20 @@ spec:
         - "subgraphs/default/**/*.hml"
 ```
 
-Here, you can see that the `build-profile.yaml` file contains `version` and `spec` sections. The `version`
-section is used to specify the version of the configuration file.
+Here, you can see that the `build-profile.yaml` file contains `version` and `spec` sections. The `version` section is
+used to specify the version of the configuration file.
 
 The `spec` section contains the following fields:
 
-| Field         | Description                                          |
-| ------------- | ---------------------------------------------------- |
-| `environment` | The environment to use for the build.                |
-| `mode`        | The mode to use for the build. `Replace` by default.         |
-| `supergraph`  | The supergraph resources to use for the build.              |
-| `subgraph`  | List of subgraphs and their resources to use for the build |
+| Field         | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| `environment` | The environment to use for the build.                      |
+| `mode`        | The mode to use for the build. `Replace` by default.       |
+| `supergraph`  | The supergraph resources to use for the build.             |
+| `subgraph`    | List of subgraphs and their resources to use for the build |
 
-This tells the Hasura CLI to assign metadata from `subgraphs/default` directory to the `default` subgraph` when creating a new build on the Hasura DDN project.
+This tells the Hasura CLI to assign metadata from `subgraphs/default` directory to the `default` subgraph` when creating
+a new build on the Hasura DDN project.
 
 ### hasura.yaml
 
@@ -125,7 +126,10 @@ example after we cover the basics of the directory structure.
 ### Supergraph directory
 
 Your `supergraph` directory will contain two configuration files by default: the `auth-config.hml` and
-`compatibility-config.hml` files. The `auth-config.hml` file defines the authorization configuration for your supergraph i.e. the configuration for how the queries to your Hasura DDN project should be authorizated. The `compatibility-config.hml` file defines the compatiblity date of your supergraph metadata. You'd likely not want to change the compatiblity config unless you're sure about it.
+`compatibility-config.hml` files. The `auth-config.hml` file defines the authorization configuration for your supergraph
+i.e. the configuration for how the queries to your Hasura DDN project should be authorizated. The
+`compatibility-config.hml` file defines the compatiblity date of your supergraph metadata. You'd likely not want to
+change the compatiblity config unless you're sure about it.
 
 #### AuthConfig
 
@@ -170,16 +174,17 @@ smaller, more governable pieces.
 
 ## Advanced configuration
 
-Let's consider a data supergraph which has multiple teams collaborating on it. Each team has their own set of data
-sources. We can use subgraphs to organize our metadata and break up our `hml` file into smaller, more governable pieces.
-We can also utilize build profiles to create different builds for different environments.
+Let's consider a data supergraph wherein you'd like to test your API across multiple
+[environments](/ci-cd/environments.mdx). We can use subgraphs to organize our metadata and break up our `hml` file into
+smaller, more governable pieces. We can also utilize build profiles to create different builds for different
+environments.
 
 Imagine this file structure:
 
 ```bash
 <PROJECT_NAME>
 ├── build-profile.yaml
-├── build-profile_staging_billing.yaml
+├── build-profile-staging.yaml
 ├── hasura.yaml
 ├── subgraphs
 │   └── app
@@ -197,14 +202,6 @@ Imagine this file structure:
 │           ├── products.hml
 │           ├── reviews.hml
 │           └── users.hml
-│   └── billing
-│       ├── commands
-│       ├── dataconnectors
-│           └── billing.hml
-│       └── models
-│           ├── invoices.hml
-│           ├── payments.hml
-│           ├── refunds.hml
 └── supergraph
     ├── auth-config.hml
     └── compatibility-config.hml
@@ -212,48 +209,50 @@ Imagine this file structure:
 
 ### Build profiles
 
-In this example, we have two build profiles: `build-profile.yaml` and `build-profile_staging_billing.yaml`. The
+In this example, we have two build profiles: `build-profile.yaml` and `build-profile-staging.yaml`. The
 `build-profile.yaml` file contains the following content:
 
 ```yaml
 version: 2
 spec:
+  # highlight-start
   environment: default
+  # highlight-end
   mode: replace
   supergraph:
     resources:
       - supergraph/*
   subgraphs:
-    - name: default
+    - name: app
       resources:
         - "subgraphs/**/*.hml"
 ```
 
-Whereas the `build-profile_staging_billing.yaml` file contains the following content:
+Whereas the `build-profile-staging.yaml` file contains the following content:
 
 ```yaml
 version: 2
 spec:
+  # highlight-start
   environment: staging
+  # highlight-end
   mode: replace
   supergraph:
     resources:
       - supergraph/*
   subgraphs:
-    - name: default
+    - name: app
       resources:
-        - "subgraphs/billing/**/*.hml"
+        - "subgraphs/**/*.hml"
 ```
 
-The two build profiles, `build-profile.yaml` and `build-profile_staging_billing.yaml`, are designed to cater to
-different environments and teams. The `build-profile.yaml` is configured for the default environment and is set to
-include all subgraphs in the subgraphs directory. This configuration is suitable for a general development team working
-on various parts of the project.
+The two build profiles, `build-profile.yaml` and `build-profile-staging.yaml`, are designed to cater to different
+environments. The `build-profile.yaml` is configured for the default environment and is set to include all subgraphs in
+the subgraphs directory. This configuration is suitable for a general development team working on various parts of the
+project.
 
-On the other hand, `build-profile_staging_billing.yaml` is specifically configured for the staging environment and is
-set to include only the billing subgraphs. This allows a team working specifically on the billing feature to iterate and
-test their changes in a separate staging environment without affecting the rest of the project. This separation of
-concerns enhances the development workflow by allowing teams to work independently on their respective features.
+On the other hand, `build-profile-staging.yaml` is specifically configured for the staging environment and is intended
+for testing with other staging services.
 
 ### hasura.yaml
 
@@ -264,7 +263,7 @@ version: 1
 project: <PROJECT_NAME>
 buildProfiles:
   - ./build-profile.yaml
-  - ./build-profile_staging_billing.yaml
+  - ./build-profile-staging.yaml
 defaultBuildProfile: build-profile.yaml
 ```
 
@@ -273,10 +272,13 @@ creating a new build.
 
 ### Custom Directory Structure
 
-While it's not recommended, you could choose to deviate from the default directory structure that the Hasura project initializes for you. For example, you could have a single file with all the metadata objects, including your `HasuraHubDataConnector` objects, models, and commands, as long as you specify that file to be in your subgraph resources in the build profile However, this would be difficult to
-manage and maintain.
+While it's not recommended, you could choose to deviate from the default directory structure that the Hasura project
+initializes for you. For example, you could have a single file with all the metadata objects, including your
+`HasuraHubDataConnector` objects, models, and commands, as long as you specify that file to be in your subgraph
+resources in the build profile However, this would be difficult to manage and maintain.
 
-With a more advanced configuration we can leverage subgraphs and break apart our supergraph into modular compentents where we have multiple `hml` files stored in their respective subgraph directories.
+With a more advanced configuration we can leverage subgraphs and break apart our supergraph into modular components
+where we have multiple `hml` files stored in their respective subgraph directories.
 
 The contents of the `hml` files can be that of any valid OpenDD metadata object.
 
