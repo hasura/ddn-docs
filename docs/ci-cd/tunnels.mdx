@@ -1,0 +1,103 @@
+---
+sidebar_position: 8
+sidebar_label: Tunnels
+description:
+  Secure Connect Tunnels allow you to securely connect a local database to your Hasura-hosted DDN project. This allows
+  you to use a local database with your Hasura project, while still being able to use the Hasura Console and other
+  Hasura services.
+keywords:
+  - hasura ddn
+  - hasura tunnels
+  - secure connection
+  - sensitive data
+  - hasura cli commands
+  - local development
+---
+
+# Secure Connect Tunnels
+
+## Introduction
+
+Secure Connect Tunnels allow you to securely connect a local database to your Hasura-hosted DDN project. This allows you
+to use a local database with your Hasura project, while still being able to use the Hasura Console and other Hasura
+services.
+
+Typically, tunnels are used for local development to iterate quickly on your project. We recommend using a service such
+as Docker to manage your local database and other local resources.
+
+:::info Using Docker
+
+If you're not familiar with running a database via Docker, we recommend checking out the
+[PostgreSQL docker getting started](https://hub.docker.com/_/postgres) as an example.
+
+:::
+
+## Tunnel lifecycle
+
+### Create
+
+Tunnels rely on the Hasura CLI to create and manage the tunnel. The CLI utilizes a daemon that runs in the background
+and manages the tunnel. To create a tunnel, first start the daemon using the `daemon` command:
+
+```bash
+hasura3 daemon start
+```
+
+The daemon will block the window / tab while it runs. Once the daemon is running, you can create a tunnel using the
+`tunnel create` command in a new window / tab:
+
+```bash
+# e.g., hasura3 tunnel create localhost:5432
+hasura3 tunnel create <SOCKET>
+```
+
+:::info What's a socket?
+
+This argument is the socket that the daemon will use to communicate with the tunnel. This socket is used to send
+commands to the tunnel, and to receive responses from the tunnel.
+
+The socket must include the IP address or hostname of the machine running the daemon, and a port number. For example,
+`localhost:5432` or `localhost:3306`.
+
+This socket becomes the identifier for the tunnel. You can use the `tunnel list` command to see a list of all tunnels
+that are currently running.
+
+:::
+
+### Use
+
+After creating a tunnel, the CLI will return a URL that you can use to connect to your database. **You should use this
+URL to form a connection string for your database, like this example using PostgreSQL:**
+
+```text
+postgresql://<USERNAME>:<PASSWORD>@<URL_RETURNED_BY_THE_CLI>/<DATABASE_NAME>
+```
+
+This connection string can now be used in your metadata to scaffold our your API and service requests in the Hasura
+Console or from your projects endpoints.
+
+#### Pause
+
+To pause a tunnel, use the `tunnel pause` command:
+
+```bash
+hasura3 tunnel pause <SOCKET>
+```
+
+#### Activate
+
+To activate a tunnel, use the `tunnel activate` command:
+
+```bash
+hasura3 tunnel activate <SOCKET>
+```
+
+### Delete
+
+To delete a tunnel, use the `tunnel delete` command:
+
+```bash
+hasura3 tunnel delete <SOCKET>
+```
+
+To stop the daemon at any point, simply kill the process in your terminal using `Ctrl + C`.
