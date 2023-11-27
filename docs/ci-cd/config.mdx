@@ -73,7 +73,7 @@ spec:
         - "subgraphs/default/**/*.hml"
 ```
 
-Here, you can see that the `build-profile.yaml` file contains `version`, `spec`, and `subgraphs` sections. The `version`
+Here, you can see that the `build-profile.yaml` file contains `version` and `spec` sections. The `version`
 section is used to specify the version of the configuration file.
 
 The `spec` section contains the following fields:
@@ -81,11 +81,11 @@ The `spec` section contains the following fields:
 | Field         | Description                                          |
 | ------------- | ---------------------------------------------------- |
 | `environment` | The environment to use for the build.                |
-| `mode`        | The mode to use for the build. `Replace` by default. |
-| `supergraph`  | The supergraph resources to use for the build.       |
+| `mode`        | The mode to use for the build. `Replace` by default.         |
+| `supergraph`  | The supergraph resources to use for the build.              |
+| `subgraph`  | List of subgraphs and their resources to use for the build |
 
-This tells Hasura DDN to use the `default` namespace and any `hml` files in the `subgraphs/default` directory when
-creating a new build.
+This tells the Hasura CLI to assign metadata from `subgraphs/default` directory to the `default` subgraph` when creating a new build on the Hasura DDN project.
 
 ### hasura.yaml
 
@@ -125,8 +125,7 @@ example after we cover the basics of the directory structure.
 ### Supergraph directory
 
 Your `supergraph` directory will contain two configuration files by default: the `auth-config.hml` and
-`compatibility-config.hml` files. These files are used to configure authentication and compatibility for your data
-supergraph.
+`compatibility-config.hml` files. The `auth-config.hml` file defines the authorization configuration for your supergraph i.e. the configuration for how the queries to your Hasura DDN project should be authorizated. The `compatibility-config.hml` file defines the compatiblity date of your supergraph metadata. You'd likely not want to change the compatiblity config unless you're sure about it.
 
 #### AuthConfig
 
@@ -141,7 +140,7 @@ definition:
       url: https://auth.pro.hasura.io/webhook/ddn?role=admin
 ```
 
-The `AuthConfig` object is used to configure authentication for your data supergraph. You can learn more about
+The `AuthConfig` object is used to configure authorization for your data supergraph. You can learn more about
 authentication in the [Auth section](/auth/overview.mdx).
 
 #### CompatibilityConfig
@@ -272,14 +271,12 @@ defaultBuildProfile: build-profile.yaml
 This lets Hasura DDN know that we have two build profiles, and that the `build-profile.yaml` is the default to use when
 creating a new build.
 
-### metadata.hml
+### Custom Directory Structure
 
-While it's not recommended, you could deploy a project with only one `hml` file that contains all of your metadata
-objects, including your `HasuraHubDataConnector` objects, models, and commands. However, this would be difficult to
+While it's not recommended, you could choose to deviate from the default directory structure that the Hasura project initializes for you. For example, you could have a single file with all the metadata objects, including your `HasuraHubDataConnector` objects, models, and commands, as long as you specify that file to be in your subgraph resources in the build profile However, this would be difficult to
 manage and maintain.
 
-With a more advanced configuration we can leverage subgraphs and break apart our supergraph into team-ownable components
-where we have multiple `hml` files stored in their respective subgraph directories.
+With a more advanced configuration we can leverage subgraphs and break apart our supergraph into modular compentents where we have multiple `hml` files stored in their respective subgraph directories.
 
 The contents of the `hml` files can be that of any valid OpenDD metadata object.
 
