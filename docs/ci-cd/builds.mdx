@@ -20,11 +20,9 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-A build is a fully-functional, immutable supergraph which is built based on your `metadata.hml` file.
+A build is a fully-functional, immutable supergraph which is built based on your project configuration.
 
-A build takes the `metadata.hml` file, as it exists when you create the build, and constructs your supergraph from it.
-Builds are created for a specific [**project**](/ci-cd/projects.mdx) and can be used to incrementally test your API as
-you make changes to your `metadata.hml` file.
+Builds are created for a specific [**project**](/ci-cd/projects.mdx) and can be used to incrementally test your API.
 
 While there can be many builds for a project, only one can be **applied** at a time. The applied build is the one that
 is currently serving your API from your project's endpoint.
@@ -33,22 +31,37 @@ is currently serving your API from your project's endpoint.
 
 ### Create
 
-To create a build, you'll first need a [**project**](/ci-cd/projects.mdx) with a valid `metadata.hml` configured. After
-which, you can create a build using the following command:
+To create a build, you'll first need a [**project**](/ci-cd/projects.mdx). After which, you can create a build using
+the following command:
+
+[//]: # (```bash)
+[//]: # (hasura3 build create --mode replace --project --metadata-from-file <PATH_TO_METADATA_JSON_FILE> --environment <ENVIRONMENT_NAME> --description <DESCRIPTION>)
+[//]: # (```)
 
 ```bash
-hasura3 build create --mode replace --project --metadata-from-file <PATH_TO_METADATA_JSON_FILE> --environment <ENVIRONMENT_NAME> --description <DESCRIPTION>
+hasura3 build create
 ```
 
 The CLI will return information about your build:
 
 ```text
- Creating build... ok
- Project ID            <PROJECT_ID>
- Build ID              <BUILD_ID>
- Build Version         <BUILD_VERSION>
- GraphQL API Endpoint  <GRAPHQL_ENDPOINT_FOR_BUILD>
- Console URL           <CONSOLE_LINK_FOR_BUILD>
++---------------+---------------------------------------------------------------+
+| Build ID      | baa7f15d-5364-4cfd-b94c-8d2a8a51e6e2                          |
++---------------+---------------------------------------------------------------+
+| Build Version | b6370d7d56                                                    |
++---------------+---------------------------------------------------------------+
+| Build URL     | https://secure-mudfish-9299-b6370d7d56.ddn.hasura.app/graphql |
++---------------+---------------------------------------------------------------+
+| Project Id    | fc2d7717-e1f8-4213-9132-6a70f78b6026                          |
++---------------+---------------------------------------------------------------+
+| Console Url   | https://console.hasura.io/project/secure-mudfish-9299/graphql |
++---------------+---------------------------------------------------------------+
+| FQDN          | secure-mudfish-9299-b6370d7d56.ddn.hasura.app                 |
++---------------+---------------------------------------------------------------+
+| Environment   | default                                                       |
++---------------+---------------------------------------------------------------+
+| Description   |                                                               |
++---------------+---------------------------------------------------------------+
 ```
 
 At this point, you can interact with and test your API using the GraphQL API Endpoint and Console URL returned by the
@@ -60,7 +73,15 @@ When you are happy with your build, you can apply it to your project — **meani
 via the project's endpoint** — using the following command:
 
 ```bash
-hasura3 build apply --project-id <PROJECT_ID> --build-id <BUILD_ID>
+hasura3 build apply --version <BUILD_VERSION>
+```
+
+The CLI will return the API endpoint for your supergraph:
+
+```text
++---------+----------------------------------------------------+
+| API URL | https://secure-mudfish-9299.ddn.hasura.app/graphql |
++---------+----------------------------------------------------+
 ```
 
 ### Delete
@@ -68,7 +89,7 @@ hasura3 build apply --project-id <PROJECT_ID> --build-id <BUILD_ID>
 Builds can be individually deleted using the following command:
 
 ```bash
-hasura3 build delete --project <PROJECT_NAME> --version <BUILD_VERSION>
+hasura3 build delete --version <BUILD_VERSION>
 ```
 
 All builds for a project are deleted when a [project is deleted](/ci-cd/projects.mdx/#delete).
