@@ -67,14 +67,27 @@ Let's assume the webhook response is as follows:
 
 ```json
 {
-  "x-hasura-role": "user",
-  "x-hasura-user-id": 1
+  "x-hasura-role": "admin"
 }
 ```
 
 Then, the GraphQL request will be executed as the `user` role, instead of the `admin` role and the session variables
 from the HTTP request headers will be considered. So, in this case, the value of the session variable `x-hasura-user-id`
-will be 2, instead of 1.
+will be 2 as specified in the request headers.
+
+If webhook response is as follows:
+
+```json
+{
+  "x-hasura-role": "admin",
+  "x-hasura-user-id": 1
+}
+```
+
+Even in this case, the GraphQL request will be executed as the `user` role, instead of the `admin` role and the session
+variables from the HTTP request headers will be considered. So, even in this case, the value of the session variable
+`x-hasura-user-id` will be 2 as specified in the request headers, instead of 1 which is returned by the authentication
+webhook response.
 
 ### Unsuccessful role emulation
 
@@ -82,10 +95,11 @@ If the webhook response were the following:
 
 ```json
 {
-  "x-hasura-role": "author",
+  "x-hasura-role": "user",
   "x-hasura-user-id": 1
 }
 ```
 
-Then, the GraphQL query will be executed as the `author` role and **only** the session variables from the authentication
-webhook response will be considered. So, in this case, the value of the session variable `x-hasura-user-id` will be 1.
+Then, the GraphQL query will be executed as the `user` role and **only** the session variables from the authentication
+webhook response will be considered. So, in this case, the value of the session variable `x-hasura-user-id` will be 1 as
+returned by the authentication webhook response and not 2 as specified in the request headers.
