@@ -28,8 +28,9 @@ import TabItem from "@theme/TabItem";
 ## Introduction
 
 In this guide, we'll walk you through the steps to create a new Hasura project, connect a database, execute your first
-query, and create lightning-fast production builds — all using VS Code and the **new Hasura CLI**. Throughout this
-guide, you'll be introduced to new Hasura concepts, like builds, our new metadata structure, and more.
+query, create lightning-fast production builds, and incorporate business logic using TypeScript — all with VS Code and
+the **new Hasura CLI**. Throughout this guide, you'll be introduced to new Hasura concepts, like builds, our new
+metadata structure, and more.
 
 :::tip Prerequisites
 
@@ -398,6 +399,349 @@ currently selected preview build. Toggle to your project's applied build:
 <Thumbnail src="/img/get-started/0.1.1_console-view-project-graphiql.png" alt="Toggle production" width="1000px" />
 
 You can now execute a query against this endpoint.
+
+At this point, you have a fully-fledged GraphQL API that you can use to build your application. But, you also probably
+need to include some business logic. With Hasura, you can incorporate _any_ TypeScript function into your API.
+
+## Step 9: Incorporate custom business logic
+
+We'll begin by creating a `/functions` directory in the root of our project. Then, we'll create a new file called
+`index.ts` in this directory. This file will contain a simple hello world function including a JSDoc comment:
+
+```typescript
+// functions/index.ts
+
+/**
+ * Tells you Hello World!
+ *
+ * @returns {string} Hello World!
+ * @pure This function should only query data without making modifications
+ */
+export function helloWorld() {
+  return "Hello World!";
+}
+```
+
+We'll use the [TypeScript connector](https://github.com/hasura/ndc-typescript-deno) to serve this function. For testing,
+we can run this locally using the Hasura CLI, or deploy it to Hasura DDN so it's available to all of our users.
+
+<Tabs groupId="deployment-type" className="api-tabs">
+<TabItem value="local" label="Local Development">
+
+Choosing this route will allow you to test your function locally before deploying it to Hasura DDN. This is great for
+development and testing, but shouldn't be used in production.
+
+:::info Install Deno
+
+Before proceeding, ensure you have [Deno installed](https://docs.deno.com/runtime/manual/getting_started/installation).
+
+:::
+
+#### Step 1: Create a `config.json` in the root of your project
+
+Create a `config.json` file in the root of your project. This file will contain the configuration for your function:
+
+```json
+{
+  "functions": "./functions/index.ts",
+  "vendor": "./vendor",
+  "preVendor": true,
+  "schemaMode": "INFER"
+}
+```
+
+#### Step 2: Run the function locally
+
+Run the following command to start the TypeScript connector:
+
+```bash
+deno run -A --watch --check https://deno.land/x/hasura_typescript_connector/mod.ts serve --configuration ./config.json
+```
+
+#### Step 3: Use the local server to scaffold your metadata
+
+Create a new `hml` file in your `/subgraphs/default/commands` directory. We'll call this file `commands.hml`. You can
+run `DataConnector` with the auto-complete using the VS Code extension to create the template for you:
+
+```yaml
+kind: DataConnector
+version: v1
+definition:
+  name: commandconnector
+  url:
+    singleUrl: "http://0.0.0.0:<PORT>"
+```
+
+Then, from the `commands.hml` file, refresh your `commandconnector` data source using the VS Code extension:
+
+```bash
+Hasura Refresh data connector
+```
+
+You should see the schema appear in your metadata:
+
+```yaml
+kind: DataConnector
+version: v1
+definition:
+  name: commandconnector
+  url:
+    singleUrl: "http://0.0.0.0:<PORT>"
+  # highlight-start
+  schema:
+    scalar_types:
+      String:
+        aggregate_functions: {}
+        comparison_operators: {}
+        update_operators: {}
+    object_types: {}
+    collections: []
+    functions:
+      - name: helloWorld
+        description: Tells you Hello World!
+        arguments: {}
+        result_type:
+          type: named
+          name: String
+    procedures: []
+  # highlight-end
+```
+
+You can now import the command and permissions by running the following command via the VS Code extension:
+
+```bash
+Hasura Track all collections...
+```
+
+Which will add the following to your metadata:
+
+```yaml
+---
+kind: Command
+version: v1
+definition:
+  name: helloWorld
+  outputType: String!
+  arguments: []
+  source:
+    dataConnectorName: commandconnector
+    dataConnectorCommand:
+      function: helloWorld
+  graphql:
+    rootFieldKind: Query
+    rootFieldName: helloWorld
+
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: helloWorld
+  permissions:
+    - role: admin
+      allowExecution: true
+```
+
+:::info Why are we using the local server?
+
+In the next step, we'll create a Secure Connect tunnel that is only accessible via Hasura DDN. However, we need to
+scaffold our metadata using a local server. This is because the VS Code extension needs to introspect your function's
+schema to populate your metadata.
+
+Improvements for this workflow are on our roadmap.
+
+:::
+
+#### Step 4: Start the daemon
+
+Start the Hasura daemon with the `daemon start` command:
+
+```bash
+hasura3 daemon start
+```
+
+#### Step 5: Create a Secure Connect tunnel
+
+Open a new tab or window for your terminal and run the `create` command:
+
+```bash
+hasura3 tunnel create <SOCKET>
+```
+
+:::info Which socket should I use?
+
+The `<SOCKET>` argument is the address on which your local function is running. From **Deno**, you should see an output,
+for example, of `Server listening at http://0.0.0.0:8100`.
+
+:::
+
+The CLI will return an endpoint that you can use to connect to your function:
+
+```bash
+Creating tunnel... ok
+Tunnel active on URL <TUNNEL_ENDPOINT>
+```
+
+In the next step, you'll use this endpoint to form a connection string for your function, like this:
+
+```text
+http://<TUNNEL_ENDPOINT>
+```
+
+#### Step 6: Create a new build
+
+From the root of the project, create a build using the following command:
+
+```bash
+hasura3 build create -d "Add custom business logic"
+```
+
+If you navigate to your Console, you should see your `helloWorld` function appear in the GraphiQL Explorer as part of
+your API 🎉
+
+<Thumbnail src="/img/get-started/0.1.1_console_ts-hello-world.png" alt="Use a TS function in your api" width="1000px" />
+
+This function will continue to work so long as the TypeScript connector is running and your tunnel is active. If you
+want to deploy this function to Hasura DDN, check out the other tab in this modal.
+
+</TabItem>
+<TabItem value="deployed" label="Deployed to Hasura DDN">
+
+Choosing this route will allow you to deploy your function to Hasura DDN so it's available to all of your users. We take
+care of the infrastructure for you, so you can focus on building your application.
+
+#### Step 1: Install the `connector` plugin
+
+We'll install the `connector` plugin for the Hasura CLI using this command:
+
+```bash
+hasura3 plugins install connector
+```
+
+#### Step 2: Deploy the connector
+
+```bash
+hasura3 connector create <NAME_FOR_CONNECTOR> \
+  --github-repo-url https://github.com/hasura/ndc-typescript-deno/tree/main \
+  --config-file <(echo '{}') \
+  --volume ./functions:/functions \
+  --env SERVICE_TOKEN_SECRET=MY-SERVICE-TOKEN # (optional)
+```
+
+You can monitor the deployment status of the connector using the following command:
+
+```bash
+hasura3 connector status <NAME_FOR_CONNECTOR>
+```
+
+When it's ready, you can run the following command to get the URL for your function:
+
+```bash
+hasura3 connector list
+```
+
+#### Step 3: Add the connector as a data source
+
+Create a new `hml` file in your `/subgraphs/default/commands` directory. We'll call this file `commands.hml`. You can
+run `DataConnector` with the auto-complete using the VS Code extension to create the template for you:
+
+```yaml
+kind: DataConnector
+version: v1
+definition:
+  name: commandconnector
+  url:
+    singleUrl: "<TUNNEL_URL>"
+```
+
+Then, from the `commands.hml` file, refresh your `commandconnector` data source using the VS Code extension:
+
+```bash
+Hasura Refresh data connector
+```
+
+You should see the schema appear in your metadata:
+
+```yaml
+kind: DataConnector
+version: v1
+definition:
+  name: commandconnector
+  url:
+    singleUrl: "<TUNNEL_URL>"
+  # highlight-start
+  schema:
+    scalar_types:
+      String:
+        aggregate_functions: {}
+        comparison_operators: {}
+        update_operators: {}
+    object_types: {}
+    collections: []
+    functions:
+      - name: helloWorld
+        description: Tells you Hello World!
+        arguments: {}
+        result_type:
+          type: named
+          name: String
+    procedures: []
+  # highlight-end
+```
+
+You can now import the command and permissions by running the following command via the VS Code extension:
+
+```bash
+Hasura Track all collections...
+```
+
+Which will add the following to your metadata:
+
+```yaml
+---
+kind: Command
+version: v1
+definition:
+  name: helloWorld
+  outputType: String!
+  arguments: []
+  source:
+    dataConnectorName: commandconnector
+    dataConnectorCommand:
+      function: helloWorld
+  graphql:
+    rootFieldKind: Query
+    rootFieldName: helloWorld
+
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: helloWorld
+  permissions:
+    - role: admin
+      allowExecution: true
+```
+
+#### Step 4: Create a new build
+
+From the root of the project, create a build using the following command:
+
+```bash
+hasura3 build create -d "Add custom business logic"
+```
+
+If you navigate to your Console, you should see your `helloWorld` function appear in the GraphiQL Explorer as part of
+your API 🎉
+
+<Thumbnail src="/img/get-started/0.1.1_console_ts-hello-world.png" alt="Use a TS function in your api" width="1000px" />
+
+</TabItem>
+</Tabs>
+
+### What can you do with this?
+
+Well, these TypeScript functions can be used to incorporate any business logic you need or bring existing microservices
+into your API. If your backend needs to do it, or you need to connect to a third-party API, you can do it with Hasura.
 
 ## What's next?
 
