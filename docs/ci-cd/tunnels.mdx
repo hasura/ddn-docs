@@ -20,11 +20,14 @@ seoFrontMatterUpdated: true
 ## Introduction
 
 Secure Connect Tunnels allow you to securely connect a local database to your Hasura-hosted DDN project. This allows you
-to interact with a local database via your Hasura project and use the Hasura Console and other Hasura
-services.
+to interact with a local database via your Hasura project and use the Hasura Console and other Hasura services.
 
 Typically, tunnels are used for local development to iterate quickly on your project. We recommend using a service such
 as Docker to manage your local database and other local resources.
+
+Additionally, you can use tunnels to test local data connectors, such as the
+[TypeScript connector](https://github.com/hasura/ndc-typescript-deno), before
+[deploying](/connectors/deployment/index.mdx) them to Hasura DDN.
 
 :::info Using Docker
 
@@ -37,8 +40,9 @@ If you're not familiar with running a database via Docker, we recommend checking
 
 ### Create
 
-The Hasura CLI creates and manages tunnels. The CLI utilizes a [daemon](https://en.wikipedia.org/wiki/Daemon_(computing)) that runs in the background
-and manages the tunnel. To create a tunnel, first start the daemon using the `daemon` command:
+The Hasura CLI creates and manages tunnels. The CLI utilizes a [daemon](https://en.wikipedia.org/wiki/Daemon_computing)
+that runs in the background and manages the tunnel. To create a tunnel, first start the daemon using the `daemon`
+command:
 
 ```bash
 hasura3 daemon start
@@ -54,7 +58,7 @@ hasura3 tunnel create <SOCKET>
 
 :::info What's a socket?
 
-This argument is the socket address that the daemon will use to communicate with the tunnel. 
+This argument is the socket address that the daemon will use to communicate with the tunnel.
 
 It must include the IP address or hostname of the machine running the daemon, and a port number. For example,
 `localhost:5432` or `localhost:3306`.
@@ -75,6 +79,16 @@ postgresql://<USERNAME>:<PASSWORD>@<URL_RETURNED_BY_THE_CLI>/<DATABASE_NAME>
 
 This connection string can now be used in your metadata to scaffold our your API and service requests in the Hasura
 Console or from your projects endpoints.
+
+:::info Testing a data connector?
+
+Simply pass the connection string using your local host and the port that the connector is running on. For example:
+
+```text
+http://localhost:8100
+```
+
+:::
 
 #### Pause
 
