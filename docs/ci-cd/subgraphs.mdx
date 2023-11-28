@@ -1,7 +1,9 @@
 ---
 sidebar_position: 5
 sidebar_label: Subgraphs
-description: "Learn about Hasura's subgraphs feature for multi-team projects, including ownership rules, metadata object management, and subgraph-specific guidelines to efficiently organize and control access to project metadata."
+description:
+  "Learn about Hasura's subgraphs feature for multi-team projects, including ownership rules, metadata object
+  management, and subgraph-specific guidelines to efficiently organize and control access to project metadata."
 keywords:
   - hasura subgraphs
   - metadata management
@@ -21,8 +23,8 @@ seoFrontMatterUpdated: true
 For a multi-team organization working on a Hasura project, it can make sense for any one team to not have access to all
 metadata objects. Subgraphs introduces the notion of a module system for your Hasura metadata.
 
-A project can have a collection of subgraphs and the project becomes the 'union' of metadata objects across
-all subgraphs of the project. Each subgraph can then be accessed and updated independently.
+A project can have a collection of subgraphs and the project becomes the 'union' of metadata objects across all
+subgraphs of the project. Each subgraph can then be accessed and updated independently.
 
 A build profile file with subgraphs looks something like the following:
 
@@ -30,9 +32,9 @@ A build profile file with subgraphs looks something like the following:
 
 The metadata objects in subgraphs must follow the ownership rules for metadata objects as outlined below.
 
-### DataSource/ HasuraHubDataSource
+### DataConnector/ HasuraHubDataConnector
 
-The data source metadata object (`DataSource`/ `HasuraHubDataSource`) doesn't depend on (or reference) any other
+The data source metadata object (`DataConnector`/ `HasuraHubDataConnector`) doesn't depend on (or reference) any other
 metadata object. Hence, any subgraph can define a data source.
 
 :::info Subgraph ownership
@@ -41,8 +43,7 @@ The subgraph that defines a data source then owns it. This means that no other s
 in their type representations, model, etc.
 
 Violating this rule will result in the metadata build failing with the error,
-`unable to build schema: subgraph is not consistent: the following data source is defined more than once: <data source
-name>`.
+`unable to build schema: subgraph is not consistent: the following data source is defined more than once: <data source name>`.
 
 :::
 
@@ -53,8 +54,8 @@ The `ObjectType` metadata object also doesn't reference any other metadata objec
 
 ### DataConnectorScalarRepresentation
 
-The `DataConnectorScalarRepresentation` metadata object references the data source metadata object. Thus, the data
-source in a `DataConnectorScalarRepresentation` should be owned by the **same** subgraph.
+The `DataConnectorScalarRepresentation` metadata object references the data connector metadata object and the scalar
+type object. Thus, the data source in a `DataConnectorScalarRepresentation` should be owned by the **same** subgraph.
 
 ### ScalarType
 
@@ -78,21 +79,21 @@ The `Relationship` metadata object references a source type and a target model. 
 
 :::info Target model ownership
 
-The target model can be from any subgraph. This allows us to define relationships across subgraphs. To use a model
-from another subgraph as the target, you will need to reference the subgraph in the target model definition. Please
-refer to the [`TargetModel`](/data-domain-modeling/relationships.mdx#targetmodel) for syntax.
+The target model can be from any subgraph. This allows us to define relationships across subgraphs. To use a model from
+another subgraph as the target, you will need to reference the subgraph in the target model definition. Please refer to
+the [`TargetModel`](/data-domain-modeling/relationships.mdx#targetmodel) for syntax.
 
 :::
 
 ### TypePermissions
 
-The `TypePermissions` metadata object references a type (for which the permission is being defined). Thus, the
-subgraph defining the `TypePermissions` should own the type referenced.
+The `TypePermissions` metadata object references a type (for which the permission is being defined). Thus, the subgraph
+defining the `TypePermissions` should own the type referenced.
 
 ### ModelPermissions
 
-Similar to `TypePermissions`, the subgraph should also own the model referenced in the `ModelPermissions`
-metadata object.
+Similar to `TypePermissions`, the subgraph should also own the model referenced in the `ModelPermissions` metadata
+object.
 
 ### CommandPermissions
 
@@ -100,13 +101,12 @@ The `CommandPermissions` metadata object references a command, which should be d
 
 ### AuthConfig
 
-Any subgraph can define this.
+This is defined in the supergraph.
 
 :::info Only one auth config allowed per project
 
-There can be only one `AuthConfig` in the project's metadata. i.e. only one subgraph can define one `AuthConfig`, if
-there are more than one `AuthConfig`, then the metadata build will fail with the error
-`Found duplicate authentication config`.
+There can be only one `AuthConfig` in the project's metadata. If there is more than one `AuthConfig`, then the metadata
+build will fail with the error `Found duplicate authentication config`.
 
 :::
 
@@ -114,12 +114,12 @@ there are more than one `AuthConfig`, then the metadata build will fail with the
 
 Apart from ownership rules, metadata with subgraphs should also follow the following rules:
 
-### Duplicate Namespaces
+### Duplicate Subgraphs
 
 Metadata should not define two subgraphs with same name.
 
 ### Duplicate Metadata Objects
 
-Metadata should also not define the same subgraph object twice (either in the same subgraph or in different
-subgraphs). If you violate this rule, then the metadata build will fail with the error
+Metadata should also not define the same subgraph object twice (either in the same subgraph or in different subgraphs).
+If you violate this rule, then the metadata build will fail with the error
 `subgraph constraints violated - found multiple subgraphs with the same name`.
