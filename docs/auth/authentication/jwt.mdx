@@ -84,7 +84,7 @@ claimsConfig:
       path:
         path: required-json-pointer-to-the-claim
         default: optional-default
-tokenLocation: "<optional-object-to-indicate-cookie-or-authorization-header-or-custom->"
+tokenLocation: required-object-to-indicate-cookie-or-authorization-header-or-custom-header
 audience: "<optional-string-or-list-of-strings-to-verify-audience>"
 issuer: "<optional-string-to-verify-issuer>"
 allowedSkew: "<optional-number-of-seconds-in-integer>"
@@ -165,13 +165,16 @@ Any number of Custom claims can be added to the claims map.
 | `literal` | `<T>`                                                      | false    | Literal value of the Hasura claim.                                                                                                       |
 | `path`    | [JSON claims map path object](#jwt-claims-map-path-object) | false    | Get claim value using a JSON pointer to the Hasura claim with a fallback default value, if the value is not present at the JSON pointer. |
 
-###### JWT claims map object `<T>` {#jwt-claims-map-object}
+###### JWT claims map path object `<T>` {#jwt-claims-map-path-object}
 
-| Field     | Type                                                       | Required | Description                                                                   |
-|-----------|------------------------------------------------------------|----------|-------------------------------------------------------------------------------|
-| `path`    | [JSON claims map path object](#jwt-claims-map-path-object) | false    | JSON pointer to the Hasura claim.                                              |
-| `default` | T                                                          | false    | Default value of the Hasura claim, if there is no value present at the `path`. |
+| Field     | Type                                                       | Required | Description                                                                    |
+|-----------|------------------------------------------------------------|----------|--------------------------------------------------------------------------------|
+| `path`    | [`JSON Pointer`](https://www.rfc-editor.org/rfc/rfc6901)   | false    | JSON pointer to the Hasura claim.                                              |
+| `default` | `<T>`                                                      | false    | Default value of the Hasura claim, if there is no value present at the `path`. |
 
+:::info Note
+For `x-hasura-allowed-roles`, `<T>` will be `[String]` and for `x-hasura-default-role` or any other custom claims, `<T>` will be a `String`.
+:::
 
 #### JWT token location values {#jwt-token-location-values}
 
@@ -282,9 +285,6 @@ The JWT will normally also contain standard (`sub`, `iat` etc.) and custom (`nam
 - Hasura GraphQL Engine only has access to JWT claims in the `https://hasura.io/jwt/claims` or
   [custom defined](#claims-namespace-path) namespace.
 - All `x-hasura-*` values should be of type `String`, they will be converted to the right type automatically.
-- In JWT mode on a secured endpoint JWT authentication is **enforced**
-  when **both** the `X-Hasura-Admin-Secret` header **and** the `Authorization: Bearer <JWT>` header are found in the
-  request allowing _posing_ as a user with the specific role defined in the JWT.
 
 [//]: # (  [See more here]&#40;/auth/authentication/auth/admin-secret-access.mdx&#41;)
 
@@ -833,7 +833,7 @@ set up authenticated requests to Hasura with Clerk.
 
 ## Generate a JWT Config for Auth0 or Firebase {#generating-jwt-config}
 
-The JWT Config to be used in env `HASURA_GRAPHQL_JWT_SECRET` or `--jwt-secret` flag can be generated using:
+The JWT Config to be used in the metadata can be generated using:
 [https://hasura.io/jwt-config](https://hasura.io/jwt-config).
 
 **Currently, the UI supports generating config for Auth0 and Firebase**.
