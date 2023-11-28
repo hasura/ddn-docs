@@ -1,21 +1,20 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 sidebar_label: Projects
 description:
-  "Dive into the essence of Hasura DDN projects, from their creation to management. Understand the role of the
-  `metadata.hml` file in shaping your data supergraph and how it integrates with builds to serve as the project's active
-  configuration."
+  "Explore how to create, configure, and manage data supergraphs with Hasura DDN. Learn about project initialization,
+  build profiles, supergraphs, subgraphs, and the Hasura CLI for efficient project management."
 keywords:
+  - hasura project
+  - data supergraph
   - hasura ddn
-  - hasura projects
-  - supergraph
-  - metadata.hml
-  - hasura cli commands
-  - hasura cloud
-  - data management
-  - hasura console
-  - graphiql
-  - hasura api
+  - hasura cli
+  - project configuration
+  - subgraph management
+  - supergraph setup
+  - hasura builds
+  - hasura yaml
+  - hasura vscode extension
 seoFrontMatterUpdated: true
 ---
 
@@ -23,72 +22,123 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-Broadly, a project is a data supergraph that is managed by Hasura DDN.
+Broadly, a project is the configuration of your data supergraph.
 
-This supergraph acts as the API and underlying configuration that serves [**builds**](/ci-cd/builds.mdx), which are
-snapshots of your `metadata.hml` file. A project can contain many builds, but only one build will serve as the project's
-**active** build.
-
-Locally, any directory that contains a `metadata.hml` file is considered a project. This file describes your supergraph
-and is used to generate the API and configuration for your project. You can use the Hasura CLI to generate this file and
-create builds for a particular project.
+A project specifies build profiles, each of which specify supergraph and subgraph configurations that are used create
+[builds](/ci-cd/builds.mdx) which are snapshots of the project config and are used to serve your API.
 
 ## Project lifecycle
 
-### Create
+### Initialize a Project
 
-#### Locally
+We can create a new project and link it to its twin on Hasura DDN by using the Hasura CLI to create a new project.
 
-Running the following command will create an empty `metadata.hml` file in the current directory:
+#### Get a Personal Access Token (PAT)
+
+In order to link local and Hasura DDN projects we will need a Personal Access Token (PAT) and use it to login to Hasura
+DDN with the Hasura CLI.
+
+You can create a PAT by navigating to the [Access Tokens page](https://cloud.hasura.io/account-settings/access-tokens)
+in your account settings. Where you can create a new token and copy the value.
+
+Back in the Hasura CLI, run:
 
 ```bash
-hasura3 init --dir  .
+hasura3 login --pat <PAT>
 ```
 
-This will create three files in your directory that will be used to manage your project:
+You should see a confirmation that you're now successfully logged in, and can now create a new project and
+simultaneously link it to its twin on Hasura DDN.
 
-| File name            | Description                                                                                                                                                                                                                                                             |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `hasura.yaml`        | This is the entrypoint to a local Hasura project. This will tell Hasura DDN which build profiles to utilize and to which project the `metadata.hml` corresponds.                                                                                                        |
-| `metadata.hml`       | This is a Hasura metadata file that follows the new metadata format of the [Open Data Domain Specification (OpenDD Spec)](/data-domain-modeling/overview.mdx). It declaratively defines your API.                                                                       |
-| `build-profile.yaml` | This file specifies how the metadata in your local Hasura project must be built. It contains the `environment` of the Hasura DDN project that you wish to create builds on and it specifies the [namespaces](ci-cd/namespaces.mdx) of the `.hml` files in this project. |
+### Create a new project
 
-You can then use the
+```bash
+hasura3 init --dir .
+```
+
+You will be presented with the following options:
+
+```
+Create a new project
+From an existing project
+Empty project
+```
+
+Choose `Create a new project`.
+
+### Configure a project
+
+The previous command will create a project on Hasura DDN and local files in a directory structure which will be used to
+manage your project.
+
+For more information on the project configuration files, see the [configuration section](/ci-cd/config.mdx).
+
+:::info Running CLI commands without specifying a project name each time
+
+By logging into Hasura DDN via the CLI and specifying the project name in the hasura.yaml file, the CLI will know which
+project to use when running commands in the directory.
+
+:::
+
+#### VS Code Extension
+
+The
 [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura&ssr=false#review-details)
-to scaffold out and populate your `metadata.hml` file.
+is there to help you author and edit `hml` files in your subgraphs. It provides syntax highlighting, validation, and
+autocompletion.
 
-#### DDN
+#### Create builds
 
-Your local configuration files, when properly configured, can be used to generate a build for your project on Hasura
-DDN. However, you'll first need a new project on DDN to associate your build with. You can achieve this by running:
+In order to see configurations in your metadata take effect you need to create a build. Head over to the
+[Builds](/ci-cd/builds.mdx) section to learn about how to create and manage builds.
+
+#### Describe a project
+
+You can get the relevant information of your project by using the CLI and running:
 
 ```bash
-hasura3 project create
+hasura3 project describe
 ```
 
-The CLI wil return information about your new project:
+You will see an output similar to the following:
 
 ```text
- Creating project... ok
- Name         <PROJECT_NAME>
- ID           <PROJECT_ID>
- Console URL  https://console.hasura.io/project/<PROJECT_ID>/graphql
++-------------+--------------------------------------------------------------+
+| Name        | master-shrimp-9462                                           |
++-------------+--------------------------------------------------------------+
+| ID          | fa2f39db-247d-4820-83c4-96cec5e6bd38                         |
++-------------+--------------------------------------------------------------+
+| Console URL | https://console.hasura.io/project/master-shrimp-9462/graphql |
++-------------+--------------------------------------------------------------+
+| Build Count | 1                                                            |
++-------------+--------------------------------------------------------------+
+| Domain      | master-shrimp-9462.ddn.hasura.app                            |
++-------------+--------------------------------------------------------------+
 ```
 
-### Manage
+#### List all projects
 
-You can manage your project from the Console endpoint returned by the CLI when creating a new project:
+You can list all the projects you have access to by running:
+
+```bash
+hasura3 project list
+```
+
+You will see an output similar to the following:
 
 ```text
-https://console.hasura.io/project/<PROJECT_ID>/graphql
++-------------+-----------------------+--------------------------------------+-----------------------------------------------------------------+
+| CREATED AT  |         NAME          |                  ID                  |                           CONSOLE URL                           |
++-------------+-----------------------+--------------------------------------+-----------------------------------------------------------------+
+| 27 Nov 2023 | master-shrimp-9462    | fa2f39db-247d-4820-83c4-96cec5e6bd38 | https://console.hasura.io/project/master-shrimp-9462/graphql    |
++-------------+-----------------------+--------------------------------------+-----------------------------------------------------------------+
+
 ```
 
-From the Console, you can view your project's builds, analyze metrics, test your API using GraphiQL, and more.
-
-### Delete
+### Delete a project
 
 You can delete a project using the CLI by running:
 
 ```bash
-Usage: hasura3 project remove --project-id <PROJECT_ID>
+hasura3 project delete
 ```
