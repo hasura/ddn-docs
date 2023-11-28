@@ -30,14 +30,14 @@ which is returned in the webhook or JWT response to be equal to the value set in
 values are equal, then role emulation will be enabled for that request. When role emulation is enabled for a request,
 the session variables, including the role, will be considered from the HTTP request headers instead.
 
-In the example below, we set up role emulation for the `admin` role, allowing an `admin` to emulate the other roles:
+In the example below, we set up role emulation for the `user` role, allowing a `user` to emulate the other roles:
 
 ```yaml
 ---
 kind: AuthConfig
 version: v1
 definition:
-  allowRoleEmulationBy: admin
+  allowRoleEmulationBy: user
   webhook:
     webhookUrl: https://myauth.service.com/validate-request
 
@@ -48,18 +48,18 @@ Then, the following GraphQL request is made:
 ```http
 POST /graphql HTTP/2.0
 Content-Type: application/json
-x-hasura-role: user
-x-hasura-user-id: 2
+x-hasura-role: author
+x-hasura-author-id: 2
 
 {
-  "query": "query GetUser { user { id name } }",
+  "query": "query GetAuthor { author { id name } }",
   "variables": null,
-  "operationName": "GetUser"
+  "operationName": "GetAuthor"
 }
 ```
 
-This request will be executed as the `user` role with access-control rules applied for the `user` role to the request,
-returning only the `id` and `name` fields of the user with `id` 2.
+This request will be executed as the `author` role with access-control rules applied for the `author` role to the
+request, returning only the `id` and `name` fields of the author with `id` 2.
 
 ### Successful role emulation
 
@@ -67,27 +67,26 @@ Let's assume the webhook response is as follows:
 
 ```json
 {
-  "x-hasura-role": "admin"
+  "x-hasura-role": "user"
 }
 ```
 
-Then, the GraphQL request will be executed as the `user` role, instead of the `admin` role and the session variables
-from the HTTP request headers will be considered. So, in this case, the value of the session variable `x-hasura-user-id`
-will be 2 as specified in the request headers.
+Then, the GraphQL request will be executed as the `author` role, instead of the `user` role and role emulation is
+enabled for this request. Hence the session variables from the HTTP request headers will be considered and the value of
+ the session variable `x-hasura-author-id` will be 2 as specified in the request headers.
 
 If webhook response is as follows:
 
 ```json
 {
-  "x-hasura-role": "admin",
-  "x-hasura-user-id": 1
+  "x-hasura-role": "user",
+  "x-hasura-author-id": 1
 }
 ```
 
-Even in this case, the GraphQL request will be executed as the `user` role, instead of the `admin` role and the session
-variables from the HTTP request headers will be considered. So, even in this case, the value of the session variable
-`x-hasura-user-id` will be 2 as specified in the request headers, instead of 1 which is returned by the authentication
-webhook response.
+Even in this case, the GraphQL request will be executed as the `author` role, instead of the `user` role and role
+emulation is enabled for this request. Hence the session variables will be considered from the HTTP request headers and
+not the authentication webhook response. So, the value of the session variable `x-hasura-author-id` will be 2 and not 1.
 
 ### Unsuccessful role emulation
 
@@ -95,11 +94,11 @@ If the webhook response were the following:
 
 ```json
 {
-  "x-hasura-role": "user",
-  "x-hasura-user-id": 1
+  "x-hasura-role": "author",
+  "x-hasura-author-id": 1
 }
 ```
 
-Then, the GraphQL query will be executed as the `user` role and **only** the session variables from the authentication
-webhook response will be considered. So, in this case, the value of the session variable `x-hasura-user-id` will be 1 as
-returned by the authentication webhook response and not 2 as specified in the request headers.
+Then, the GraphQL query will be executed as the `author` role and **only** the session variables from the authentication
+webhook response will be considered. So, in this case, the value of the session variable `x-hasura-author-id` will be 1
+as returned by the authentication webhook response and not 2 as specified in the request headers.
