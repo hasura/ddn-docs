@@ -1,7 +1,9 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 sidebar_label: Auth Config
-description: Get detailed guidance on setting up Hasura authentication for incoming requests. Uncover the structure of the AuthConfig metadata object supporting JWT and webhook methods.
+description:
+Get detailed guidance on setting up Hasura authentication for incoming requests. Uncover the structure of the
+AuthConfig metadata object supporting JWT and webhook methods.
 keywords:
   - hasura authconfig
   - hasura authentication setup
@@ -42,11 +44,11 @@ This document details the `AuthConfig` metadata object used to set up authentica
 
 Only a single `AuthConfig` object can be defined in the metadata. It has the following structure:
 
-| Field                   | Type   | Required | Description                                                                                                              |
-| ----------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `allowRoleEmulationFor` | String | false    | Name of the role which allows role emulation. Read more about role emulation [here](./role-emulation.mdx). |
-| `webhook`               | Object | false    | Configuration of the authentication webhook.                                                                             |
-| `jwt`                   | Object | false    | Configuration of the JWT secret.                                                                                         |
+| Field                  | Type   | Required | Description                                                                                                              |
+|------------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------|
+| `allowRoleEmulationBy` | String | false    | Name of the role which allows role emulation. Read more about role emulation [here](./role-emulation.mdx).               |
+| `webhook`              | Object | false    | Configuration of the authentication webhook.                                                                             |
+| `jwt`                  | Object | false    | Configuration of the JWT secret.                                                                                         |
 
 :::info You must select one of the supported authentication modes
 
@@ -58,14 +60,22 @@ In the object, only one of the supported authentication modes (`jwt` or `webhook
 
 ### Example
 
-```json
-{
-  "kind": "AuthConfig",
-  "jwt": {
-    "type": "HS256",
-    "key": "<JWT Decoding key>"
-  }
-}
+```yaml
+kind: AuthConfig
+version: v1
+definition:
+  jwt:
+    key:
+      fixed:
+        algorithm: HS256
+        key:
+          value: token
+    tokenLocation:
+      type: BearerAuthorization
+    claimsConfig:
+      namespace:
+        claimsFormat: Json
+        location: "/https:~1~1hasura.io~1jwt~1claims"
 ```
 
 For a full description of JWT mode [see here](./jwt.mdx).
@@ -74,19 +84,20 @@ For a full description of JWT mode [see here](./jwt.mdx).
 
 ### Example
 
-```json
-{
-  "kind": "AuthConfig",
-  "allowRoleEmulationFor": "admin",
-  "webhook": {
-    "webhookUrl": "http://auth.yourservice.com/validate-request"
-  }
-}
+```yaml
+---
+kind: AuthConfig
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  webhook:
+    url: http://auth.yourservice.com/validate-request
+    method: Get
 ```
 
-| Field        | Type   | Required | Description                                                                                                                              |
-| ------------ | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `webhookUrl` | URL    | true     | URL of the authentication webhook.                                                                                                       |
-| `mode`       | String | false    | HTTP method to use while making the request to the authentication webhook. Only `GET` and `POST` methods are supported (default: `GET`). |
+| Field    | Type   | Required | Description                                                                                                             |
+|----------|--------|----------|-------------------------------------------------------------------------------------------------------------------------|
+| `url`    | URL    | true     | URL of the authentication webhook.                                                                                      |
+| `method` | String | false    | HTTP method to use while making the request to the authentication webhook. Only `Get` and `Post` methods are supported. |
 
 For a full description of webhook mode [see here](./webhook.mdx).
