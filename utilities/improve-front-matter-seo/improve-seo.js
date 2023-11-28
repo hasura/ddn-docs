@@ -87,8 +87,8 @@ async function processFile(filePath) {
   if (frontMatter) {
 
     if (frontMatter.includes("seoFrontMatterUpdated: true")) {
-      console.log(`Skipping ${filePath} as it's already updated.`);
-      return;
+      console.log(`Skipping ${filePath} as it's already updated.\n`);
+      return "SKIPPED";
     }
 
     const improvedSEO = await improveSEO(trimmedContent);
@@ -102,28 +102,29 @@ async function processFile(filePath) {
 async function processPath(inputPath) {
   const stats = fs.statSync(inputPath);
 
-  if (stats.isDirectory()) {
+  if (stats.isFile() && shouldProcessFile(inputPath)) {
+    await processFileWithDelay(inputPath);
+  } else if (stats.isDirectory()) {
     const files = fs.readdirSync(inputPath);
-
     for (const file of files) {
-      const filePath = path.join(inputPath, file);
-
-      if (fs.statSync(filePath).isDirectory()) {
-        await processPath(filePath);
-      } else if (path.extname(filePath) === '.mdx' && !file.startsWith('_')) {
-        await processFile(filePath);
-        console.log(`Processed ${filePath}. Waiting 2s \n`);
-        await delay(2000);  // Waiting for 2 seconds after each API call
-        console.log(`Finished waiting. Proceeding \n`);
-      }
+      await processPath(path.join(inputPath, file));
     }
-  } else if (stats.isFile() && path.extname(inputPath) === '.mdx' && !path.basename(inputPath).startsWith('_')) {
-    await processFile(inputPath);
-    console.log(`Processed ${inputPath}. Waiting 2s \n`);
-    await delay(2000);  // Waiting for 2 seconds after each API call
+  }
+}
+
+function shouldProcessFile(filePath) {
+  return path.extname(filePath) === '.mdx' && !path.basename(filePath).startsWith('_');
+}
+
+async function processFileWithDelay(filePath) {
+  const processResult = await processFile(filePath);
+  if (processResult !== "SKIPPED") {
+    console.log(`Waiting 2s - API rate limiting... \n`);
+    await delay(2000);
     console.log(`Finished waiting. Proceeding \n`);
   }
 }
 
+
 // Do it
-processPath("../docs" + targetPath);
+processPath("../../docs" + (targetPath ?? ''));
