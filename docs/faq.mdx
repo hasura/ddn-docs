@@ -18,102 +18,75 @@ seoFrontMatterUpdated: true
 
 # Hasura FAQ
 
-## What is Hasura DDN?
-
-Hasura DDN represents a fundamental shift in how we think about data domains and is a bold response to the evolved
-requirements of our users. With Hasura DDN, we are introducing a new approach to API management that is designed to
-provide, both in developer workflow and final product: a faster, more powerful, agile, and scalable solution for
-building modern applications.
-
-Based around the new Open Data Domain Specification, (OpenDD spec), Hasura DDN allows an entire API layer, connecting to
-almost any conceivable data source, to be declaratively scaffolded and then deployed almost instantaneously to Hasura
-Cloud to deliver ultra-performant production-grade APIs at the edge. It's a concept we call, The **data supergraph**.
-
-## Will Hasura DDN be compatible with Hasura v1/v2?
-
-The default generated GraphQL schema of Hasura DDN is compatible with v2 schemas. However, Hasura DDN is a complete
-re-architecture of the Hasura platform and we will provide migration tools to move v2 metadata to DDN.
-
-## Will Hasura v2 be supported after Hasura DDN is released?
-
-We will still support, maintain and improve Hasura v2 for the near future and will be providing migration tools to move
-Hasura v2 deployments to DDN. At some point, when Hasura DDN has achieved feature parity with v2, we will begin the v2
-deprecation process and keep the community notified and informed. To be clear, Hasura DDN is the future of Hasura and we
-will be investing heavily in it going forward.
-
 ## What is the general architecture of Hasura DDN?
 
-**Open Data Domain Specification (OpenDD Spec):** At the heart of Hasura API development is the OpenDD
-spec. It is a specification that defines the structure of metadata used by the Hasura runtime engine. Think of the
-specification as an API contract generator helping you to reason about your data domains and model your applications
-and APIs. [Learn more](/data-domain-modeling/overview.mdx).
-
-**Native Data Connector (NDC) Specification:** The NDC specification focuses on enabling the community to build data
-connector agents. It supports building high-quality integrations for almost any conceivable data source, offering
-features like native queries, push-down capabilities, and connection pooling. NDCs help streamline the integration of
-diverse data sources into APIs. [Learn more](/connectors/overview.mdx).
+Hasura DDN is built on the major advancements in Hasura Version 3 such as the following - 
 
 **Hasura Runtime Engine:** The Hasura Engine is responsible for processing and serving APIs based on the provided
-metadata. It has been restructured to work declaratively with metadata, utilizing the OpenDD spec. This engine can serve
+metadata. In DDN it is serverless by default and there is a clear separation of build time and runtime analogous to compiler based programming languages.
+Metadata can now be authored and edited declaratively without causing any downtime to the runtime. The new engine can serve
 production-grade APIs from the edge with extremely high performance, as it fetches metadata on a per-request basis and
-benefits from vastly improved startup times. And it's built from the ground up with Rust.
+benefits from vastly improved startup times. Essentially the cold start problem has been removed in DDN leading to zero downtime rollouts.
+
+**Open Data Domain Specification (OpenDD Spec):** At the heart of Hasura API development is the OpenDD
+specification. It is a specification that defines the structure of metadata used by the Hasura runtime engine. Think of the
+specification as an API contract generator helping you to reason about your data domains and model your applications
+and APIs. It is a signficanat update to the existing Hasura metadata structure with fixed types such as 'models' and 'commands' and making the metadata API protocol agnostic that is 
+less GraphQL centric so as to easily extend to other API technologies such as gRPC and REST. [Learn more](/data-domain-modeling/overview.mdx).
+
+**Native Data Connector (NDC) Specification:** The NDC specification describes how the API request will be exectued and how the engine will interact with the underlying data source and is a new data connectivity specification that Hasura has come up with.
+In DDN, there is no concept of native databases and all data sources including PostgreSQL will be native data connector specification based. This helps in providing rich feature sets for all data sources as compared to just a few select ones.
+Moreover, the focus is now highly on enabling the community to build dataconnector agents. The specification supports building high-quality integrations for almost any conceivable data source (both databases and APIs), offering
+features like native queries, push-down capabilities, and connection pooling. [Learn more](/connectors/overview.mdx).
 
 **Hasura Cloud:** The cloud layer in Hasura DDN, Hasura Cloud, introduces the Data Delivery Network (DDN) for global API
 performance and availability. This layer also facilitates secure tunnels for local development using Hasura Secure
-Connect and also offers tools for managing projects.
+Connect and also offers tools for managing projects, builds, environments, secrets and subgraph namespaces. This essentially represents the control plane for DDN.
 
-**Hasura CLI:** The new Hasura CLI (Command-Line Interface), rebuilt in Rust, serves as a powerful tool for developers
+**Hasura CLI:** The new Hasura CLI (Command-Line Interface), serves as a powerful tool for developers
 to interact with the Hasura platform. It allows users to create projects, manage metadata, create builds, and deploy
 production APIs both locally and in the cloud, easily. [Learn More](/cli/overview.mdx)
 
-**Hasura Console:** The Hasura Console offers a graphical interface for viewing metadata. Users can also run queries on
-their API with GraphiQL.
+**Hasura Console:** The Hasura Console has been revamped to enable rapid onboarding, testing and troubleshooting. The console now provides rich visualizations, deep dive metrics into models, enhanced traces, new GraphiQL, new operational health dashboard and a refurbished data manager that scales on heavy loads.
+[Learn More](https://console.hasura.io/)
 
-**Namespaces:** Namespaces introduce a module system for metadata. They allow multi-team organizations working on a
+**Builds:** Each metadata change in Hasura now results in an atomic build which is represented by an immutable artifact that is loaded onto Hasura cloud instantly. Which means there is inherent version control and the ability to push metadata changes instantly and without errors.
+[Learn more](/ci-cd/builds.mdx)
+
+**Environments:** Environments introduce the concept of infrastructure sharing and management in Hasura. Each build is environment specific and provides a unique API to test with.
+Users will need to create build profiles for each environment. The idea is to give the developement team as much flexbility to iterate using dedicated resources without affecting production workloads.
+[Learn more](/ci-cd/environments.mdx)
+
+**Subgraphs:** Subgraphs introduce a module system for metadata. They allow multi-team organizations working on a
 Hasura project to segment access to different metadata objects. A project's metadata is the amalgamation of metadata
-objects from all its namespaces, and each namespace can be accessed and updated independently. It also helps in
+objects from all its subgraphs or namespaces, and each subgraph can be accessed and updated independently. It also helps in
 avoiding conflicts when there are, for example, tables with the same names in different data sources.
 [Learn more](/ci-cd/subgraphs.mdx)
 
-## What is the difference between Hasura v2 and DDN metadata
+## What will be the benefit for me, the developer? (Why would I want to use or switch to DDN?) 
 
-In practical terms, the Hasura v2 metadata system was designed to draw extra information directly from the data source,
-specifically details such as columns and fields.
-
-This meant that whenever the Hasura GraphQL Engine was initialized, it had to probe or "introspect" the data source's
-schema to create a GraphQL schema. This introduced delays at start-up especially if the data source was large or if
-there were network issues.
-
-OpenDD metadata operates differently as it is inherently self-contained and exists independent of any data source. This
-leads to sub-second startup and deploy times and ensures consistency as the system is no longer polling an underlying
-data source for schema information which may have changed.
-
-The OpenDD metadata has full coverage and details like fields and their respective types are predefined and embedded
-within metadata. This design choice removes the need for the system to check the data source schema every time during
-startup to shape a GraphQL schema. Instead, this introspection or probing of the data source's structure is now carried
-out during the metadata creation, or build phase. This leads to massively improved startup times and ensures that the
-metadata is consistent and self-contained.
-
-## Is a Hasura DDN API faster than a Hasura v2 API?
-
-Yes. Hasura DDN includes significant performance improvements compared to its predecessors. The optimizations
-implemented in Hasura DDN aim to provide faster response times and improved scalability, ensuring a smooth and efficient
-experience for your applications and users.
-
-## What will be the benefit for me, the developer?
-
-- A single spec to define your whole API.
+- Signficant improvements to metadata authoring and management.
+  - No cold start problem and instant changes to metadata. Deploy multiple times in an hour. 
+  Deploy with lightning speed and sub-second CI/CD.
+  - No dependency on upstream services which means zero downtime deployments.
+  - Code driven workflow with advanced code generation tooling.
+  - A single spec to define your whole API across diverse data sources.
+  - Declarative metadata authoring with full control on API schema generation. 
+  - No metadata database - one less thing to manage in production.
+- Fully managed Hasura for to create graphs for all your data and compose them into a supergraph
 - Connect to any data with Native Data Connectors (NDCs).
-- Deploy with lightning speed and sub-second CI/CD.
 - Work better with your team with improved version control and collaboration features.
 - Unparalleled performance at any scale with optimized query execution and caching mechanisms.
 - Serverless runtime system for improved efficiency and reduced latency.
-- Benefit from Rust's performance and ecosystem in the refactored Hasura runtime engine.
 - Access a global edge network for low-latency, high-performance APIs with the Data Delivery Network (DDN).
+- Bring a programming language of your choice such as Typescript to compose business logic 
+  - Ability to do advanced mutations and workflows within the request response lifecyle.
 
 ## What CI/CD features does Hasura DDN offer?
 
-**Sub-Second CI/CD:** Hasura brings sub-second CI/CD capabilities, enabling developers to test and validate changes
+Hasura offers the following CI/CD features: 
+
+**Instant CI/CD:** Hasura brings instant CI/CD capabilities, enabling developers to test and validate changes
 rapidly.
 
 **CLI-Controlled Deployments:** The Hasura Command-Line Interface (CLI) plays a central role in controlling and managing
@@ -122,10 +95,9 @@ the deployment process. [Learn more](/cli/overview.mdx)
 
 **Builds and Project Shares:** With Hasura, metadata states are represented as builds. Once a build is thoroughly tested
 and validated, it can be applied to a project and made available to API consumers globally. This separation of build and
-production steps ensures a smoother transition from development to production.
+production steps ensure a smoother transition from development to production.
 
-**Extremely Fast Builds:** Hasura also introduces cloud innovations that allow metadata builds to be created in under
-one second, regardless of the number of models. This means that deploying even a large number of models is a swift and
+**Extremely Fast Builds:** Hasura also introduces cloud innovations that allow metadata builds to be created instantly, regardless of the number of models. This means that deploying even a large number of models is a swift and
 seamless process and developers can rapidly test multiple deployments within a day.
 
 **Zero Downtime Rollouts:** With Hasura, going to production is facilitated without restarts and with zero downtime.
@@ -135,55 +107,171 @@ This ensures that your API remains available to users while updates are being ap
 unique build ID, making it easier to track and manage different versions of your metadata. This enhances transparency
 and auditability during the deployment process.
 
+**Environments:** With environments now you can design workflows that best mimic your software development lifecycle. Using environments plan and manage infrastructure within your teams effectively.
+
+### What can be automated?
+
+Since the metadata authoring is mostly code driven using the new LSP and the CLI, a lot of metadata related changes can be automated using a version management and CI/CD tool of your choice.
+
 ## How does Hasura DDN connect to data sources?
 
 Native Data Connectors (NDC) are a framework introduced in Hasura DDN that enables developers to build custom data
 connector agents. These agents facilitate the integration between Hasura and external data sources, allowing Hasura to
 seamlessly interact with a wide range of databases, services, and APIs. NDCs can be built for almost any conceivable
-source of data and are the only way to connect to data sources in Hasura DDN. [Learn more](/connectors/overview.mdx)
+source of data and are the only way to connect to data sources in Hasura DDN. 
+
+These connectors can either be hosted by Hasura or self hosted by the users.
+[Learn more](/connectors/overview.mdx)
 
 ## Is Hasura DDN open source?
 
-Some elements of Hasura DDN will be open-sourced and some will not.
+All Hasura connectors are open-source. In addition the core Hasura v3 GraphQL engine will be made open-source in the coming months.
+Stay tuned for details!
 
-## Will pricing be different with Hasura DDN?
+## What is the pricing structure for DDN?
 
-Yes. The pricing for Hasura DDN is determined by the number of models in your metadata which reflects the value you gain
-from the product.
+DDN is completely free for 90 days for all Alpha users. Stay tuned for additional pricing information.
 
-Unlike other vendors in this field, our pricing model separates pricing from the usage of underlying infrastructure.
-This approach ensures that you can focus on your applications without concerns about traffic scale, computing resources,
-or networking requirements, as Hasura DDN Pricing is designed to free you from those concerns.
+## What is the timeline for Hasura DDN? (When is v3 coming out?)
 
-The Hasura DDN pricing structure empowers you to easily measure and manage your expenses, all without the need to
-monitor factors such as vCPU, RAM, API requests, peak traffic, cache size, concurrent subscriptions, and more.
-
-## Will Hasura continue supporting existing plans, specifically, the Free and Professional plans?
-
-Yes. We are committed to maintaining & supporting the Free and Professional plans to ensure there is no disruption
-for our users.
-
-
-## Why Rust over Haskell?
-
-We have a lot of love for Haskell. It's a beautiful language that we have been using for the Hasura engine since the
-beginning, and will still be using it on Hasura v2. Without going into the weeds in a FAQ, we wanted to benefit from
-Rust's performance, ecosystem and community for DDN. Rust is a modern, high-performance, and memory-safe language. It is
-also gaining a lot of traction in the cloud-native space, and we are excited to be using it for the majority of the
-Hasura DDN codebase.
-
-## What is the timeline for Hasura DDN?
-
-The timeline for Hasura DDN may vary depending on the specific features and enhancements being developed. We are
-committed to delivering a stable and reliable release, and the team is working diligently to ensure a timely rollout.
+Hasura DDN Alpha is now publically available and we will continue to add features and listen to feedback from our community.
+We are expecting the Beta release in few months time followed by General Availability within the first half of 2024.
 For the most up-to-date information on the timeline, we recommend referring to our
 [official announcements and releases](https://hasura.io/community/).
+
+## What does Alpha release mean? 
+
+This is the first public version of Hasura Data Delivery Network with a limited functionality set and some known issues. The idea is to engage with the community at the earliest while making the platform stable and complete with functionality.
+There could be some breaking changes introduced in the Alpha version. Customers can use the platform in production but with caution and at their own risk. Also customer support will be limited during this phase and most of the communication wil happen via direct conversation with the Hasura team via discord channels, user groups and community calls.
+
+## What is the recommended approach to metadata authoring?
+
+The recommended approach is to start via the CLI and the CLI init command. This will create a scaffolding  for you on your machine after which you can author metadata using our VSCode extension. The console is meant to be a quick getting started tool and for visualization and monitoring. We expect most of the metadata management will happen via the code driven tools that we have in DDN.
+We are investing in extensive code generation capabilities via the LSP and users will still get to enjoy the quick authoring experience such as that of permission building outside the console. 
 
 ## Authoring metadata looks hard, how can I get started?
 
 The Hasura LSP (Language Server Protocol)
 [plugin for VSCode](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) and other editors will help you
-get started with authoring if you want to do it by hand. It includes autocomplete and validation for the metadata file.
+get started with authoring. It includes autocomplete, validations, code actions and go to definition commmands.
+
+## Will DDN be self hosted?
+
+DDN Alpha and Beta will not be available as self hosted options. We are evaluating plans to meet the deployment needs of our users as we move towards general availability.
+
+### Why don’t you have a container I can download?
+
+Hasura DDN leverages a range of Cloud services to offer its comprehensive features and innovations. 
+Therefore, we are committed to delivering optimal value to our users by operating it in the Cloud. 
+
+### But don’t I need a container to develop locally? 
+
+Check our enhanced metadata authoring capabilities that allow you to iterate via the Hasura LSP and CLI as well as test and visualize your API endpoints via deployments in the Hasura DDN console. 
+We firmly believe this is a much more enhanced experience that building locally and then migrating it over to your production endpoints.
+
+## I’m operating in a given cloud provider region. How can I have Hasura run in the same region? 
+
+Hasura DDN is strategically deployed in 10 regions worldwide. (We plan to increase coverage drastically as we move closer to Beta and beyond) Depending on the origin of a request, we automatically activate an instance of Hasura in the nearest region. 
+This process is completed in under 10 milliseconds, ensuring consistently optimal performance.
+
+---
+
+** For existing Hasura Users** 
+
+## Will Hasura DDN be compatible with Hasura v1/v2?
+
+The default generated GraphQL schema of Hasura DDN is compatible with v2 schemas that is the API for your consumers will not change. 
+However, Hasura DDN uses a new metadata structureand hence will require migration tools to move over from v1/v2 metadata.
+
+## Will Hasura v2 be supported after Hasura DDN is released?
+
+We will still support, maintain and improve Hasura v2 as per our [version support policy](https://hasura.io/docs/latest/policies/versioning/) and will be providing migration tools to move
+Hasura v2 deployments to DDN in the near future.
+
+## What is the difference between how Hasura v2 and DDN metadata is handled?
+
+In practical terms, the Hasura v2 metadata system was designed to draw extra information directly from the data source,
+specifically details such as columns and fields.
+
+This meant that whenever the Hasura GraphQL Engine was initialized, it had to probe or "introspect" the data source's
+schema to create a GraphQL schema. This introduced delays at start-up especially if the data source was large or if
+there were network issues.
+
+OpenDD metadata operates differently as it is inherently self-contained and exists independent of any data source. This
+leads to instant startup and deploy times and ensures consistency as the system is no longer polling an underlying
+data source for schema information which may have changed.
+
+The OpenDD metadata has full coverage and details like fields and their respective types are predefined and embedded
+within metadata. This design choice removes the need for the system to check the data source schema every time during
+startup to shape a GraphQL schema. Instead, this introspection or probing of the data source's structure is now carried
+out during the metadata creation, or build phase. This leads to massively improved startup times and ensures that the
+metadata is consistent and self-contained.
+
+## Will Hasura continue supporting existing plans, specifically, the Cloud Free and Professional plans?
+
+Yes. We are committed to maintaining & supporting the Free and Professional plans to ensure there is no disruption
+to our users.
+
+## I heard DDN is built in Rust. Why Rust over Haskell?
+
+We have a lot of love for Haskell. It's a beautiful language that we have been using for the Hasura engine since the
+beginning, and will still be using it on Hasura v2. Without going into the weeds in a FAQ, we wanted to benefit from
+Rust's performance, ecosystem and community for DDN. Rust is a modern, high-performance, and memory-safe language. It is
+also gaining a lot of traction in the cloud-native space, and we are excited to be using it for the significant parts of the
+Hasura DDN codebase. If you are a Rust developer and want to do cool stuff, please check out our careers page.
+
+## How do I migrate from v1/v2 to DDN? (What would be the experience of bringing graphQL APIs in V3?)
+
+We will provide a low-code migration tool for you to quickly port over to DDN in the coming months.
+
+### If currently running a v2.x will it be moved automatically to v3?
+
+No, it will not. The V2 cloud projects will remain untouched and there will be no change of business. Moving to DDN will be an opt-in process. Having said that we highly encourage to upgrade to DDN at the earliest if all the features you need are supported. 
+Our teams are here to make the migration process as smooth as possible.
+
+### Can we request to pin ourselves to 2.x?
+
+As mentioned, the migration is an opt-in process so you do not need to request to get yourselves pinned to a particular version. If however, you see no upgrade path even in the next two years, please give us a heads up and we will work out options with you.
+
+### What is the migration path given there is no remote schema GraphQL feature in V3?
+
+Yes, the way to import remote schemas in DDN has changed. However, we will make sure that the developer experience is same or even better than it is in V2 and will provide migration guidance for this use-case in the coming months.
+
+### How will the current V2 state look like in V3?
+
+Once you migrate, the metadata will change. Even though your GraphQL API will remain the same, you will need to spend some time in understanding and navigating the new metadata structure with its new types such as 'models' and 'commands'.
+
+## Feature Comparison Matrix of V2 and V3
+
+### Will Event and Scheduled Triggers be supported in Hasura DDN?"
+Yes they will be but the developer experience can change. We are still in the design phase for this and will provide more details in the coming months. 
+
+### Will Actions be supported in Hasura DDN?"
+If you mean business logic and API integration then yes but there is no concept of 'Actions' in Hasura DDN. In Alpha you can use Typescript directly for 'Action-like' functionality. What is better is that now you can host your Action  webhooks/functions on Hasura itself. Moreover, we will be scaling the support of programming languages to all the popular ones such as Java, GoLang and so on.
+
+### Will Remote Schemas (GraphQL) be supported in Hasura DDN?"
+Yes, but there will not be a tab or metadata object of remote schenas anymore. All remote scehmas will be imported via connectors. We will provide generic connectors or code generation tools for connectors so that you can bring in the remote schemas in the low code manner you are used to in V2.
+
+### Will Mutations be supported in Hasura DDN?"
+Yes, but the developer experience of configuring mutations will change.
+
+### What are the main changes to the Hasura Console?"
+Complete redesign with new panels for visualization and operational health. Totally refurbished GraphiQL and Data Manager tab. All new settings panel for environments, secrets, subgraphs and collaborators. Moreover, there is no concept of admin secret in Hasura DDN. In fact, we will auto generate a cloud authentication token for the previous admin secret functionality.
+
+### Will V3 have data manager on the console?
+
+Yes and infact a better version that can scale with heavy loads and can be used for different kinds of databases and not only PostgreSQL.
+
+### What about database migrations?
+
+Database migrations are deprecated. We will provide a generated SQL that you can use in an ORM tool of your choice. We are open to any feedback on this product strategy. Do let us know about your pain point and we can recommend a solution that works best for you.
+
+## Is a Hasura DDN API faster than a Hasura v2 API?
+
+Yes. Hasura DDN includes significant performance improvements compared to its predecessors. The optimizations
+implemented in Hasura DDN aim to provide faster response times and improved scalability, ensuring a smooth and efficient
+experience for your applications and users. We will be coming out with detailed performance benchmarks in the coming months.
+
 
 [//]: # "## Will Event and Scheduled Triggers be supported in Hasura DDN?"
 [//]: # "Will Actions be supported in Hasura DDN?"
