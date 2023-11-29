@@ -60,17 +60,16 @@ Go to the [Hasura Console](https://console.hasura.io) and sign into your account
 
 ## Step 2: Create a new project
 
-Click on the `Create ->` button to create a new project:
+Click the `+ New Project` button to create a new project:
 
 <Thumbnail src="/img/get-started/0.0.1_console-create-project.png" alt="Create new project" width="1000px" />
 
-Upon your project's successful creation, you'll be brought to the metadata Explorer.
-
 ## Step 3: Connect a data source
 
-You'll see the steps available, starting with connecting a data source. Click this button:
+Enter `default` for the name of the connection and enter the connection string for your database. Then, click
+`Connect data source`.
 
-<Thumbnail src="/img/get-started/0.0.1_console_empty_explorer.png" alt="Empty explorer" width="1000px" />
+<Thumbnail src="/img/get-started/0.0.1_console-add-connection-string.png" alt="Empty explorer" width="1000px" />
 
 <Tabs groupId="db-location" className="api-tabs">
 <TabItem value="hosted" label="Hosted Database">
@@ -127,68 +126,39 @@ postgresql://<USERNAME>:<PASSWORD>@<URL_RETURNED_BY_THE_CLI>/<DATABASE_NAME>
 </TabItem>
 </Tabs>
 
-Enter a name for your data source and, at the bottom of the modal, enter your connection string and then click
-`Connect`:
+When you click `Connect data source`, Hasura will automatically create your GraphQL API and build your metadata:
 
-<Thumbnail src="/img/get-started/0.0.1_console-add-connection-string.png" alt="Add connection details" width="1000px" />
+<Thumbnail src="/img/get-started/0.0.1_console-auto-build.png" alt="Add connection details" width="1000px" />
 
-## Step 4: Scaffold your metadata
+:::info What's happening under the hood?
 
-Now that we've connected to a data source, we can import **models** from it to our metadata. After clicking the `import`
-button, we'll then choose our data source, check the box for all of the tables we want to import, and click `Import`:
+Hasura first introspects your data source and identifies **models** that can be created according to the
+[OpenDD Spec](/data-domain-modeling/overview.mdx).
 
-<Thumbnail src="/img/get-started/0.0.1_console-check-all-import.png" alt="Add models" width="1000px" />
+Models are a new way to represent your data in Hasura and refer to a collection of objects (such as rows in a relational
+database, or documents in a NoSQL database) of a given OpenDD Spec type. Models are backed by a data source and can
+support CRUD operations. You can learn more about models [here](/data-domain-modeling/models.mdx).
 
-:::info What are models?
+Next, Hasura will determine which **relationships** can be created between your models. Relationships allow for nested
+queries, and are based on foreign-key constraints in your database. You can learn more about relationships
+[here](/data-domain-modeling/relationships.mdx).
 
-This is the first new concept we've introduced in this guide. Models are a new way to represent your data in Hasura.
-
-Models in the [OpenDD Spec](/data-domain-modeling/overview.mdx) refer to a collection of objects (such as rows in a
-relational database, or documents in a NoSQL database) of a given OpenDD Spec type. Models are backed by a data source
-and can support CRUD operations. You can learn more about models [here](/data-domain-modeling/models.mdx).
-
-:::
-
-The onboarding guide will suggest next to create a build. However, let's import some relationships by clicking
-`+ Import` in the top-left corner and then selecting `Import Relationships`.
-
-<Thumbnail
-  src="/img/get-started/0.0.1_console-show-relationships.png"
-  alt="Show relationships in metadata view"
-  width="1000px"
-/>
-
-Hasura automatically detected the relationships between your tables. You can add them by clicking the `+ Import` button:
-
-<Thumbnail
-  src="/img/get-started/0.0.1_console-add-relationships.png"
-  alt="Show relationships in metadata view"
-  width="1000px"
-/>
-
-## Step 5: Create a new build
-
-Now that we've connected to a data source and imported our models, we're ready to create a new **build**. Click on the
-`+ Create New Build` button in the top-right corner of the Console:
-
-<Thumbnail src="/img/get-started/0.0.1_create-new-build.png" alt="Create a new build" width="1000px" />
-
-You can even add a short description so you and your teammates know what this build modifies.
-
-:::info What's a build?
-
-Builds are a new concept in Hasura that allow you to quickly iterate and prototype on your project's metadata. A build
-is an immutable, fully-functioning GraphQL API that represents a milestone in your development cycle.
+Finally, a **build** is created and applied to your project's default environment. Builds are a new concept in Hasura
+that allow you to quickly iterate and prototype on your project's metadata. A build is an immutable, fully-functioning
+GraphQL API that represents a milestone in your development cycle. See the [builds lifecycle](/ci-cd/builds.mdx) section
+for more information.
 
 It may be helpful to think of builds as git commits. Since each is deployed on Hasura Cloud, it can be shared with other
 users.
 
-Each build is completely independent. One project can have multiple builds, out of which, one is applied to production.
-This workflow allows for easier rollbacks on production, and greater collaboration during development.
+Each build is completely independent. One project can have multiple builds, out of which, one is applied to your
+project's GraphQL endpoint. This workflow allows for easier rollbacks on production, and greater collaboration during
+development. Further, when working with your applied build, you can quickly deploy — and, if needed, roll back — your
+project's metadata to all of your users, worldwide.
 
 :::
 
-## Step 6: Run your first query
+## Step 4: Run your first query
 
 Assuming you have some tables and data in your database, you can now run your first query! Click on the `GraphiQL`
 button in the left-hand sidenav of the Console.
@@ -222,21 +192,7 @@ query OrdersQuery {
 
 </details>
 
-## Step 7: Apply your build
-
-After you're satisfied your API is behaving as expected, click the `build_id` in the top navigation bar. This will bring
-up all your project's builds and allow you to choose one to apply. Click the `Apply` button to apply your build:
-
-<Thumbnail src="/img/get-started/0.0.1_console-apply-build.png" alt="Apply a build" width="1000px" />
-
-:::info What does it mean to apply a build?
-
-Applying a build means that it's being promoted to your project's endpoint. **This is a new concept in Hasura which
-allows you to quickly iterate — and, if needed, roll back — your project's metadata to all of your users, worldwide.**
-
-:::
-
-## Step 8: Query your production endpoint
+## Step 5: Query your production endpoint
 
 At the top of the Console, you'll see a toggle that allows you to switch between your project's API and your project's
 currently selected preview build. Toggle to your project's applied build:
@@ -245,13 +201,23 @@ currently selected preview build. Toggle to your project's applied build:
 
 You can now execute a query against this endpoint.
 
+## Step 6: Explore your API
+
+Now that you've got a project up and running, you can explore your API using the Explorer on the left-hand sidenav.
+Below, we see a visualization of our data source as a **subgraph**. This can be combined with other subgraphs to create
+a **supergraph**.
+
+<Thumbnail src="/img/get-started/0.1.1_console-explore-api.png" alt="Explore your API" width="1000px" />
+
 ## What's next?
 
 ### Iterate on your metadata
 
-We've just demonstrated how to quickly get set up and running with Hasura. Now that you've got a project up and running,
-you can iterate on your metadata and build out your API. Head back to the Metadata tab, make some modifications, create
-a new build, and see what happens 🎉
+We've just demonstrated how to quickly get set up and running with Hasura. Now that you've got a project, you can
+iterate on your metadata and build out your API.
+
+We encourage you to check out the [local development workflow](/getting-started/local-dev.mdx) which allows you to work
+on your project's metadata locally and deploy it to Hasura Cloud when you're ready.
 
 Learn more about structuring your data supergraph by checking out our
 [Data Domain Modeling](/data-domain-modeling/overview.mdx) section.
