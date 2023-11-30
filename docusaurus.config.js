@@ -10,7 +10,7 @@ const config = {
   noIndex: true,
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
-  url: 'https://hasura.io',
+  url: 'https://hasura.io/docs/3.0/',
   baseUrl: '/',
   trailingSlash: true,
   onBrokenLinks: 'throw',
