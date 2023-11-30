@@ -65,14 +65,14 @@ target:
 ```yaml
 model:
   name: <String>
-  namespace: <String>
+  subgraph: <String>
   relationshipType: <RelationshipType>
 ```
 
 | Field              | Type                                    | Required | Description                                                                                       |
 | ------------------ | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------- |
 | `name`             | `String`                                | true     | The name of the target model.                                                                     |
-| `namespace`        | `String`                                | false    | The namespace of the target model. Defaults to the namespace of the relationship metadata object. |
+| `subgraph`         | `String`                                | false    | The subgraph of the target model. Defaults to the subgraph of the relationship metadata object.   |
 | `relationshipType` | [`RelationshipType`](#relationshiptype) | true     | The type of the relationship: either `Object` or `Array`.                                         |
 
 #### RelationshipType
@@ -211,13 +211,13 @@ Hasura DDN will automatically detect the type of relationship and make the optim
 
 :::
 
-### Relationship across Namespaces
+### Relationship across subgraphs
 
-Now, imagine if the `Article` model is defined in a **different namespace** called `subgraph_articles` and the `Author`
-and the following array relationship is part of the `default` namespace.
+Now, imagine if the `Article` model is defined in a **different subgraph** called `subgraph_articles` and the `Author` type
+and the following array relationship are part of the `default` subgraph.
 
-We will now need to specify the **target** namespace in the `target` section of the relationship definition as
-`namespace: subgraph_articles` as shown below:
+We will now need to specify the **target** subgraph in the `target` section of the relationship definition as
+`subgraph: subgraph_articles` as shown below:
 
 ```yaml
 kind: Relationship
@@ -229,7 +229,7 @@ definition:
     model:
       name: Articles
       relationshipType: Array
-      namespace: subgraph_articles
+      subgraph: subgraph_articles
   mappings:
     - source:
         fieldPath:
@@ -240,10 +240,10 @@ definition:
 ```
 
 Next, imagine you want to query the author from the `Article` model, which is specified in the `subgraph_articles`
-namespace. You will need to specify where the `Authors` can be queried from by specifying the **namespace** in the
+subgraph. You will need to specify where the `Authors` can be queried from by specifying the **subgraph** in the
 `target` section of the relationship.
 
-In this case, by specifying the namespace as `namespace: default` as shown below:
+In this case, by specifying the subgraph as `subgraph: default` as shown below:
 
 ```yaml
 kind: Relationship
@@ -255,7 +255,7 @@ definition:
     model:
       name: Authors
       relationshipType: Object
-      namespace: default
+      subgraph: default
   mapping:
     - source:
         fieldPath:
