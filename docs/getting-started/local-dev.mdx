@@ -57,14 +57,14 @@ postgresql://read_only:kd4555jkfjfkdj39f8f8d9d@35.236.11.122:5432/v3-docs-sample
 
 ## Step 1: Log into Hasura
 
-Most of the workflow involved talking to Hasura Cloud, so the first step is to login to Hasura Cloud on the CLI.
+The first step is to log into Hasura Cloud with the CLI
 
 ```bash
 hasura3 login
 ```
 
 This will open up a browser window and initiate an OAuth2 login flow. If the browser window doesn't open automatically,
-use the link shown in the terminal to launch the flow. 
+use the link shown in the terminal output to launch the flow.
 
 :::info New CLI?!
 
@@ -81,11 +81,11 @@ hasura3 --help
 
 To create a new project, use the following command, passing the directory where you want to create the project as an
 argument. This command will create the configuration files and directory structure by default. It will also prompt you
-to create a new Hasura DDN project on the Cloud as well.
+to create a new Hasura DDN project in the cloud too.
 
 ```bash
-hasura3 init --dir hasura-ddn-project
-cd hasura-ddn-project
+hasura3 init --dir <PROJECT_DIRECTORY>
+cd <PROJECT_DIRECTORY>
 ```
 
 The CLI will prompt you with the following:
@@ -135,18 +135,74 @@ new project structure, see our page on [project configuration](/ci-cd/config.mdx
 
 ## Step 3: Connect a data source
 
-The next step is to add a data source to the project so that we can build APIs on that source. With Hasura DDN, 
+The next step is to add a data source to the project so that we can build APIs on that source. With
+Hasura DDN,
 a source is added through a Data Connector. We will use the [Postgres Data Connector](https://hasura.io/connectors/postgres).
+
+<Tabs groupId="db-location" className="api-tabs">
+<TabItem value="hosted" label="Hosted Database">
+
+If your database is hosted on a cloud provider, you can connect to it by copying your connection string which should
+look like this:
+
+```text
+postgresql://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DATABASE_NAME>
+```
+
+</TabItem>
+<TabItem value="local" label="Local Database">
+
+### Step 3.1: Start your database
+
+If you want to connect a local database for development, you can use the new [Hasura CLI](/cli/overview.mdx) to create a
+local daemon and securely connect to your database.
+
+Start your local database. For example, if you are using Docker, you can run the following command:
+
+```bash
+docker run -d --name <DATABASE_NAME> -e POSTGRES_PASSWORD=<YOUR_PASSWORD> -p 5432:5432 <DATABASE_IMAGE>
+```
+
+### Step 3.2: Start the daemon
+
+Start the Hasura daemon with the `daemon start` command:
+
+```bash
+hasura3 daemon start
+```
+
+The daemon will block this window while it runs.
+
+### Step 3.3: Create a Secure Connect tunnel
+
+Open a new tab or window for your terminal and run the `create` command:
+
+```bash
+hasura3 tunnel create <SOCKET>
+```
+
+The `<SOCKET>` argument is the address of your local database. For example, if you are running a local PostgreSQL
+database on the default port, you would use `localhost:5432`.
+
+The CLI will return a URL that you can use to connect to your database. You should use this URL to form a connection
+string for your database, like this:
+
+```text
+postgresql://<USERNAME>:<PASSWORD>@<URL_RETURNED_BY_THE_CLI>/<DATABASE_NAME>
+```
+
+</TabItem>
+</Tabs>
 
 ```bash
 hasura3 metadata add-hub-connector pg_db \
-  --id hasura/postgres \
-  --url 'postgresql://read_only:kd4555jkfjfkdj39f8f8d9d@35.236.11.122:5432/v3-docs-sample-app'
+--id hasura/postgres \
+--url 'postgresql://read_only:kd4555jkfjfkdj39f8f8d9d@35.236.11.122:5432/v3-docs-sample-app'
 ```
 
 If you don't want to use the Hasura hosted Postgres database or you have a local database you want to try out with
 Hasura, replace the url. For example, you can use `postgres://username:password@localhost:5432/dbname` and it will still work
-becuase Hasura can create tunnels to connect to local databases.
+because Hasura can create tunnels to connect to local databases.
 
 ## Step 4: Start dev mode
 
