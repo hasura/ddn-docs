@@ -37,7 +37,7 @@ The object `definition` should include four fields: `name`, `url`, `headers` and
 
 ```yaml
 kind: DataConnector
-version: v1
+version: v2
 definition:
   name: <DataConnectorName>
   url: <DataConnectorURL>
@@ -59,28 +59,38 @@ for the data connector. For example, it can take either of the following
 
 ```yaml
 url:
-  singleUrl: <URL for the data connector>
+  singleUrl: <URL as Secret>
 ```
 
 ```yaml
 url:
-  read: <Read URL for the data connector>
-  write: <Write URL for the data connector>
+  read: <URL as Secret>
+  write: <URL as Secret>
 ```
 
+The [secret syntax](./common-syntax.mdx#secret) should be used for URLs.
+
 Read/Write URLs are used to access the appropriate data connector based on the GraphQL operation type. For example, if
-the operation type is `Query` or `Subscription`, then the `read` URL will be used to access the data connector
-connector. Similarly, for a `Mutation` operation, the `write` URL will be used.
+the operation type is `Query` or `Subscription`, then the `read` URL will be used to access the data connector.
+Similarly, for a `Mutation` operation, the `write` URL will be used.
 
 ### DataConnectorHeaders
 
 `DataConnectorHeaders` is an object that defines the headers to be forwarded to the data connector when making requests.
-The keys of this object are header names and the values are the header values. E.g., if a bearer authorization token
-needs to be forwarded, the headers field would be:
+The keys of this object are header names and the values are the header values in the [secret syntax](./common-syntax.mdx#secret).
+E.g., if a bearer authorization token needs to be forwarded, the headers field would be:
 
 ```yaml
 headers:
-  Authorization: Bearer <token>
+  Authorization:
+    value: Bearer <token>
+```
+
+or if the header is coming from a secret:
+```
+headers:
+  Authorization:
+    stringValueFromSecret: <secret name>
 ```
 
 ### SchemaResponse
@@ -108,11 +118,12 @@ is present in the complete example below:
 
 ```yaml
 kind: DataConnector
-version: v1
+version: v2
 definition:
   name: my_data_connector
   url:
-    singleUrl: http://localhost:8080
+    singleUrl:
+      value: http://localhost:8080
   schema:
     scalar_types:
       String:
@@ -263,3 +274,65 @@ definition:
     functions: []
     procedures: []
 ```
+
+## HasuraHubDataConnector {#hasura-hub-data-connector}
+
+Instead of deploying your own data connector, Hasura metadata also allows you to directly configure and use one of the standard data connectors from the [Connector Hub](https://hasura.io/connectors/).
+
+### Metadata Object
+
+To configure a HasuraHubDataConnector, you will need to add the following metadata object:
+```yaml
+kind: HasuraHubDataConnector
+version: v1
+definition:
+  name: <DataConnectorName>
+  connectorId: <HasuraHubConnectorId>
+  connectorConfiguration: <ConnectorConfigurations>
+```
+
+| Field                    | Type                                                  | Required | Description                                                                                                                            |
+| ------------------------ | ----------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                   | `String`                                              | true     | Name of the Data Connector.                                                                                                            |
+| `connectorId`            | `String`                                              | true     | The Connector Hub ID of the connector to configure. Currently, only `hasura/postgres` is supported.                                    |
+| `connectorConfiguration` | [[`ConnectorConfiguration`](#connectorConfiguration)] | true     | The configurations to deploy the connector, one for every region that the connector should be deployed in.                             |
+
+#### ConnectorConfiguration {#connectorConfiguration}
+
+ConnectorConfiguration defines the configuration to deploy a connector in a particular region.
+Typically, you want to deploy the connector in a region that's closest to your database. The NDC schemas for deployments across all regions must be identical.
+
+The structure of ConnectorConfiguration is as follows:
+```yaml
+region: <String>
+mode: <ReadOnly / ReadWrite / WriteOnly>
+configuration: <Connector specific configuration>
+```
+
+| Field                    | Type                                                  | Required | Description                                                                                                                            |
+| ------------------------ | ----------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `region`                 | `String`                                              | true     | Name of the cloud region. Eg: gcp-asia-south1                                                                                          |
+| `mode`                   | `String`                                              | true     | Whether this connector should support reads only, writes only, or both.                                                                |
+| `connectorConfiguration` | `Any`                                                 | true     | The configuration specific to the connector ID you chose from the Hub.                                                                 |
+
+### Example
+
+In this example we are configuring a postgres data connector using a postgres database URL in a single region.
+```yaml
+kind: HasuraHubDataConnector
+version: v1
+definition:
+  name: foo
+  connectorId: hasura/postgres
+  connectorConfiguration:
+    - region: gcp-asia-south1
+      mode: ReadWrite
+      configuration:
+        version: 1
+        connectionUri:
+          uri:
+            value: postgres://username:password@database-host/database_name
+        metadata: <...>
+```
+
+After populating the URL, typically, the rest of configuration will be automatically authored through tooling (eg: Hasura VSCode extension).
