@@ -20,6 +20,8 @@ seoFrontMatterUpdated: true
 
 # Subgraphs
 
+## Introduction
+
 For a multi-team organization working on a Hasura project, it can make sense for any one team to not have access to all
 metadata objects. Subgraphs introduces the notion of a module system for your Hasura metadata.
 
@@ -27,6 +29,28 @@ A project can have a collection of subgraphs and the project becomes the 'union'
 subgraphs of the project. Each subgraph can then be accessed and updated independently.
 
 A build profile file with subgraphs looks something like the following:
+
+```yaml
+version: 2
+spec:
+  environment: staging
+  mode: replace
+  supergraph:
+    resources:
+      - supergraph/*
+  # highlight-start
+  subgraphs:
+    - name: default
+      resources:
+        - subgraphs/default/**/*.hml
+    - name: billing
+      resources:
+        - subgraphs/fulfillment/**/*.hml
+    - name: stripe
+      resources:
+        - subgraphs/stripe/**/*.hml
+  # highlight-end
+```
 
 ## Ownership Rules
 
