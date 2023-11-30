@@ -4,6 +4,7 @@ import './styles.css';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { CloseIcon, RespondingIconGray, SparklesIcon } from '@site/src/components/AiChatBot/icons';
 import useLocalStorage from "@site/src/components/AiChatBot/useLocalStorage";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 interface Message {
   userMessage: string;
@@ -37,7 +38,7 @@ const initialMessages: Message[] = [
 ];
 
 
-function AiChatBot() {
+export function AiChatBot() {
   // Get the docsBotEndpointURL and hasuraVersion from the siteConfig
   const {
     siteConfig: { customFields },
@@ -267,5 +268,3 @@ function AiChatBot() {
     </div>
   );
 }
-
-export default AiChatBot;
