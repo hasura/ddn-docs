@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 7
 sidebar_label: Environments
 description:
   Explore Hasura's environments feature for better collaboration and improved organization in a multi-team project.
@@ -18,34 +18,55 @@ keywords:
 
 ## Introduction
 
-Environments allow you to organize your [project](/ci-cd/projects.mdx) metadata by development or prouction lifecycle or any other criteria that makes sense
-for your organization. Environments are also used to manage [builds](/ci-cd/builds.mdx) for a project.
+Environments allow you to organize your [project](/ci-cd/projects.mdx) metadata by `development` or `production` for
+your organization. Environments are also used to manage [builds](/ci-cd/builds.mdx) for a project.
+
+Once you've created an environment you can then use it to create different builds by configuring a build profile file
+for it. You'll then be able to access this environment's applied build via a different API endpoint.
 
 ## Environment lifecycle
 
 ### Create
 
-You can create a new environment using the CLI by running:
+You can create a new environment on Hasura DDN using the CLI by running:
 
 ```bash
-hasura3 cloud environment create --project <PATH_TO_hasura.yaml> --name <ENVIRONMENT_NAME>
+hasura3 environment create --name <ENVIRONMENT_NAME>
 ```
+
+The CLI will return a response specifying the fully-qualified domain name of the environment, such as:
+
+```text
++------+--------------------------------------------+
+| Name | testing                                    |
++------+--------------------------------------------+
+| Fqdn | secure-catfish-9299-testing.ddn.hasura.app |
++------+--------------------------------------------+
+```
+
+In the Console, you'll now see the environment listed as an option in the Project and you can select it to view the
+builds for that environment.
 
 ### Manage
 
-Once you've created an environment, you can then use it to create different builds by configuring your `build-profile.yaml` to
-reference the environment name under the `environments` key:
+Once you've created an environment, you can then use it to create different builds by configuring a build profile file
+to reference the environment name under the `environments` key:
 
 ```yaml
-version: 1
+# build-profile-staging.yaml
+version: 2
 spec:
   # highlight-start
   environment: staging
   # highlight-end
-  namespaces:
+  mode: replace
+  supergraph:
+    resources:
+      - supergraph-staging/*
+  subgraphs:
     - name: default
       resources:
-        - ./metadata.hml
+        - "subgraphs/staging/**/*.hml"
 ```
 
 In the example above, the `staging` environment, which would have been created in the previous step, is used for the
@@ -56,14 +77,11 @@ array of `buildProfiles`:
 
 ```yaml
 version: 1
-project: <PROJECT_ID>
+project: secure-catfish-9299
 
 buildProfiles:
   - build-profile.yaml
-  # highlight-start
   - build-profile-staging.yaml
-  # highlight-end
-  - build-profile-staging-patch.yaml
 
 defaultBuildProfile: build-profile.yaml
 ```
@@ -73,5 +91,5 @@ defaultBuildProfile: build-profile.yaml
 You can delete an environment using the CLI by running:
 
 ```bash
-hasura3 cloud environment remove --project <PATH_TO_hasura.yaml> --name <ENVIRONMENT_NAME>
+hasura3 environment delete --name <ENVIRONMENT_NAME>
 ```
