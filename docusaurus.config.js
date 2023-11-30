@@ -73,7 +73,7 @@ const config = {
         id: 'wiki',
         path: 'wiki',
         routeBasePath: 'wiki',
-        editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
+        // editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
         editCurrentVersion: true,
         docItemComponent: require.resolve('./src/components/CustomDocItem/CustomDocItemWiki.tsx'),
         // disableVersioning: true,
@@ -198,12 +198,6 @@ const config = {
           {
             type: 'search',
             position: 'right',
-          },
-          {
-            href: 'https://github.com/hasura/ndc-hub',
-            position: 'right',
-            className: 'header-github-link',
-            'aria-label': 'GitHub repository',
           },
           {
             to: 'https://hasura.io/pricing/',
