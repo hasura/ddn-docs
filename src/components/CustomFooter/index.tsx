@@ -24,11 +24,11 @@ const CustomFooter = () => {
       </div>
       <div className={styles['copyright']}>{`© ${new Date().getFullYear()} Hasura Inc. All rights reserved`}</div>
       <div className={styles['footerSocialIconsWrapper']}>
-        <div className={styles['socialBrands']}>
-          <Link href={'https://github.com/hasura/ndc-hub'} rel="noopener noreferrer" aria-label={'Github'}>
-            <GithubIcon />
-          </Link>
-        </div>
+        {/*<div className={styles['socialBrands']}>*/}
+        {/*  <Link href={'https://github.com/hasura/ndc-hub'} rel="noopener noreferrer" aria-label={'Github'}>*/}
+        {/*    <GithubIcon />*/}
+        {/*  </Link>*/}
+        {/*</div>*/}
         <div className={styles['socialBrands']}>
           <Link href={'https://twitter.com/hasurahq'} rel="noopener noreferrer" aria-label={'Twitter'}>
             <TwitterIcon />
