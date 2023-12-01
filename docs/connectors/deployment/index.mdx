@@ -47,11 +47,18 @@ Once you have the Hasura v3 CLI you can install the plugin as follows:
 hasura3 plugin install connector
 ```
 
-### Limit access to your connector
+:::info Limit access to your connector
 
-You can set the `SERVICE_TOKEN_SECRET` environment variable to only allow use from authorized Hasura projects.
+You can set the `SERVICE_TOKEN_SECRET` environment variable to only allow requests from authorized clients. Set the
+token while deploying the connector and then create a secret on Hasura Cloud with the same value:
 
-Set the environment variable on creation:
+```bash
+hasura3 secret set -k SERVICE_TOKEN_SECRET -v <secret-value>
+```
+
+:::
+
+Deploy the connector to Hasura Cloud:
 
 ```
 hasura3 connector create my-connector:v1 \
@@ -60,33 +67,25 @@ hasura3 connector create my-connector:v1 \
   --env SERVICE_TOKEN_SECRET='MY-SECRET-TOKEN-XXX123'
 ```
 
-Configure your Hasura project metadata with a matching bearer token:
+### Add connecotr to Metadata
+
+Get the URL for the deployed connector and add a `kind: DataConnector` object to your metadata:
 
 ```yaml
-kind: DataSource
-name: sendgrid
-dataConnectorUrl:
-  url: "https://my-connector-9XXX7-hyc5v23h6a-ue.a.run.app"
-auth:
-  type: Bearer
-  token: "SUPER_SECRET_TOKEN_XXX123"
+kind: DataConnector
+version: v2
+definition:
+  name: my_connector
+  url:
+    singleUrl:
+      value: https://my-connector-9XXX7-hyc5v23h6a-ue.a.run.app
+  headers:
+    Authorization:
+      stringValueFromSecret: SERVICE_TOKEN_SECRET
 ```
 
-Or via the Hasura secrets functionality:
+Build the new metadata:
 
-```yaml
-kind: DataSource
-name: sendgrid
-dataConnectorUrl:
-  url: "https://my-connector-9XXX7-hyc5v23h6a-ue.a.run.app"
-auth:
-  type: Bearer
-  token:
-    valueFromSecret: CONNECTOR_TOKEN
-```
-
-You can set a secret with the CLI for your cloud projects:
-
-```
-hasura3 secret set --project-id $project-id CONNECTOR_TOKEN=SUPER_SECRET_TOKEN_XXX123
+```bash
+hasura3 build create -d "add new connector"
 ```
