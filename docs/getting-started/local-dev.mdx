@@ -164,8 +164,8 @@ create a [Secure Connect tunnel](/ci-cd/tunnels.mdx).
 
 ## Step 4: Start watch mode
 
-Now that we have added a data source, let's start Hasura's watch mode so that when we make changes, our GraphQL API will
-update automatically:
+Now that we have added a data source and scaffolded our metadata, let's start Hasura's watch mode so that when we make
+changes, our GraphQL API will update automatically:
 
 ```bash
 hasura3 watch --dir .
@@ -221,14 +221,16 @@ code <PROJECT_DIRECTORY>
 Open the new `hml` file that was created at `subgraphs/default/dataconnectors/pg_db/pg_db.hml`. You'll see that Hasura
 automatically introspected your data source and created your schema for you.
 
-From here, you can immediately track tables, views, relationships, and quickly scaffold out your metadata by using the
-Hasura VS Code extension. For ease, we'll create all of our **models'** metadata in a single file called
-`allModels.hml.` Create this file in the `/subgraphs/default/models` directory.
-
-Bring up the command palette, type `hasura track all` and choose the option from the dropdown. Then, select your data
-source's name and, viola — your metadata file will be populated with models and everything you need to get started! 🎉
+From here, you can immediately track all tables, views, relationships, and quickly scaffold out your metadata by using
+the Hasura VS Code extension. **From this file**, bring up the command palette by typing `hasura track all` and choose
+the option from the dropdown. Then, select your data source's name (e.g., `pg_db`) from the dropdown.
 
 <Thumbnail src="/img/get-started/0.0.1_vscode-track-table.png" alt="VSCode data connector" width="1000px" />
+
+Your metadata files will be populated with everything you need to get started! 🎉
+
+We've organized your types in the `pg_db` directory and your models in the `models` directory. Each model has its own
+file and is named after the table it represents.
 
 :::info What are models?
 
@@ -266,6 +268,13 @@ you can visit this using the link in the terminal output.
 | Environment   | default                                                    |
 +---------------+------------------------------------------------------------+
 ```
+
+:::tip See a failed build error?
+
+If this is the case, head to any of the `hml` files in your project and save it without making any changes. This will
+trigger a new build and the error should go away.
+
+:::
 
 We're using the docs sample app's schema for this guide's visuals, but you can use the GraphiQL Explorer to create your
 query or write it manually:
@@ -319,59 +328,48 @@ required to run the TypeScript connector locally, so you'll need to install it i
 # install deno
 curl -fsSL https://deno.land/x/install/install.sh | sh
 
-# start hasura dev
+# start hasura watch
 hasura3 watch
 ```
 
 This command will now start the connector locally using `deno` and then creates a tunnel from Hasura Cloud to your local
 machine so that it is reachable.
 
-There will be a new file called `index.ts` in this directory. This file will contain a simple hello world function
-including a JSDoc comment:
+There will be a new file called `index.ts` in this directory. This file will contain a simple hello world function:
 
 ```typescript
 // subgraphs/default/dataconnectors/ts_logic/index.ts
-
-/**
- * Tells you Hello World!
- *
- * @returns {string} Hello World!
- * @pure This function should only query data without making modifications
- */
-export function helloWorld() {
-  return "Hello World!";
+export function hello(): string {
+  return "hello world";
 }
 ```
 
-**It's important to include the JSDoc comment**. This aids the TypeScript connector in understanding the function's
-schema and allows the VS Code extension to scaffold your metadata appropriately. You can read more in the connector's
-[README](https://github.com/hasura/ndc-typescript-deno#typescript-functions-format).
+## Step 8: Track the function as a procedure
 
-## Step 8: Track the function
+Switch to VS Code and open `subgraphs/default/dataconnectors/ts_logic/ts_logic.hml`. The procedure `helloWorld` will be
+underlined with a code action to track the function as a command in the subgraph. This will create a command metadata
+object which will expose this function as a mutation. Just like before, your types will be generated for you.
 
-Switch to VS Code and open `subgraphs/default/dataconnectors/ts_logic/ts_logic.hml`. The function `helloWorld` will be
-underlined with a code action to track the function as a command in the subgraph. This will create a Command metadata
-object which will expose this function as a query.
-
-<Thumbnail src="/img/get-started/0.0.1_track-ts.png" alt="Track a function in VSCode" width="1000px" />
-
-:::info If the code action doesn't show up
+:::tip Code action not showing up?
 
 Delete the last character from `name: hello` and retype it. This typically triggers the code action to show up.
 
 :::
 
-## Step 9: Execute the function through GraphQL query
+<Thumbnail src="/img/get-started/0.0.1_track-ts.png" alt="Track a function in VSCode" width="1000px" />
 
-You can run the following query in the GraphiQL Explorer to execute the function:
+## Step 9: Execute the function using GraphiQL
+
+A new build has been generated for you. You can run the following mutation in the GraphiQL Explorer to execute the
+function:
 
 ```graphql
-query tsFunctionQuery {
+mutation tsFunctionQuery {
   hello
 }
 ```
 
-<Thumbnail src="/img/get-started/0.0.1_ts-query.png" alt="Track a function in VSCode" width="1000px" />
+<Thumbnail src="/img/get-started/0.0.1_ts-mutation.png" alt="Track a function in VSCode" width="1000px" />
 
 Since Deno and Hasura are watching for changes, you can modify the function and it will automatically update the API and
 be available on DDN 🎉
