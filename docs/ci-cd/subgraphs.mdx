@@ -20,6 +20,8 @@ seoFrontMatterUpdated: true
 
 # Subgraphs
 
+## Introduction
+
 For a multi-team organization working on a Hasura project, it can make sense for any one team to not have access to all
 metadata objects. Subgraphs introduces the notion of a module system for your Hasura metadata.
 
@@ -27,6 +29,61 @@ A project can have a collection of subgraphs and the project becomes the 'union'
 subgraphs of the project. Each subgraph can then be accessed and updated independently.
 
 A build profile file with subgraphs looks something like the following:
+
+```yaml
+version: 2
+spec:
+  environment: staging
+  mode: replace
+  supergraph:
+    resources:
+      - supergraph/*
+  # highlight-start
+  subgraphs:
+    - name: default
+      resources:
+        - subgraphs/default/**/*.hml
+    - name: billing
+      resources:
+        - subgraphs/fulfillment/**/*.hml
+    - name: stripe
+      resources:
+        - subgraphs/stripe/**/*.hml
+  # highlight-end
+```
+
+## Subgraph Lifecycle
+
+### Create
+
+You can create a subgraph for a project on Hasura DDN using the CLI:
+
+```bash
+hasura3 subgraph create -n <SUBGRAPH_NAME>
+```
+
+Within the `subgraphs` directory of your local project, create a directory with the name of the subgraph. For example,
+if you created a subgraph named `billing`, then create a directory named `billing` within the `subgraphs` directory. You
+can use the `default` subgraph as a template for your subgraph.
+
+### Manage
+
+You can easily list all the available subgraphs for a project using the CLI:
+
+```bash
+hasura3 subgraph list
+```
+
+You can connect new data sources, add new types, etc. to a subgraph. Any files you add to the subgraph directory will be
+picked up by the metadata build and associated with the subgraph.
+
+### Delete
+
+Delete a subgraph by running:
+
+```bash
+hasura3 subgraph delete -n <SUBGRAPH_NAME>
+```
 
 ## Ownership Rules
 
