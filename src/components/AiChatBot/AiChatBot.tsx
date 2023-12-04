@@ -207,7 +207,10 @@ export function AiChatBot() {
               <div className="bot-name">HasuraAI</div>
               <img src={"/img/hasura-ai-profile-pic.png"} height={30} width={30} className="bot-pic"/>
             </div>
-            <button className="clear-button" onClick={() => setMessages(initialMessages)}>Clear</button>
+            <button className="clear-button" onClick={() => {
+              setMessages(initialMessages)
+              setCurrentMessage({ userMessage: '', botResponse: '' });
+            }}>Clear</button>
           </div>
           <div className="messages-container" onScroll={handleScroll} ref={scrollDiv}>
             {messages.map((msg, index) => (
