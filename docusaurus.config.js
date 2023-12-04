@@ -7,7 +7,6 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  noIndex: true,
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
   url: 'https://hasura.io',
@@ -77,7 +76,7 @@ const config = {
         id: 'wiki',
         path: 'wiki',
         routeBasePath: 'wiki',
-        editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
+        // editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
         editCurrentVersion: true,
         docItemComponent: require.resolve('./src/components/CustomDocItem/CustomDocItemWiki.tsx'),
         // disableVersioning: true,
@@ -133,8 +132,8 @@ const config = {
         // Public API key: it is safe to commit it
         apiKey: 'ac2af7451fbd1bef4788506144b922ee',
         indexName: 'hasura',
-        insights: true,
-        debug: false
+        // insights: true,
+        // debug: false
         // Optional: see doc section below
         // contextualSearch: true,
         // Optional: Specify domains where the navigation should occur through window.location instead on history.push. Useful when our Algolia config crawls multiple documentation sites and we want to navigate with window.location.href to them.
@@ -202,12 +201,6 @@ const config = {
           {
             type: 'search',
             position: 'right',
-          },
-          {
-            href: 'https://github.com/hasura/ndc-hub',
-            position: 'right',
-            className: 'header-github-link',
-            'aria-label': 'GitHub repository',
           },
           {
             to: 'https://hasura.io/pricing/',
