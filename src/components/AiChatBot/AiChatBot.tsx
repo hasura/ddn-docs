@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Markdown from 'markdown-to-jsx';
+import Markdown from 'markdown-to-jsx'
 import './styles.css';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { CloseIcon, RespondingIconGray, SparklesIcon } from '@site/src/components/AiChatBot/icons';
-import useLocalStorage from "@site/src/components/AiChatBot/useLocalStorage";
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import { useLocalStorage } from 'usehooks-ts'
 
 interface Message {
   userMessage: string;
@@ -85,7 +84,6 @@ export function AiChatBot() {
     const atBottom = Math.abs(scrollDiv.current?.scrollHeight - Math.floor(e.target.scrollTop + e.target.clientHeight)) < 2;
     setIsAutoScroll(atBottom);
   };
-
 
   // Update the ref when the currentMessage changes ie: when the endpoint is responding
   useEffect(() => {
