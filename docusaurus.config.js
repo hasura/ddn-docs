@@ -130,7 +130,7 @@ const config = {
       algolia: {
         appId: '7M3BTIV34B',
         // Public API key: it is safe to commit it
-        apiKey: 'ac2af7451fbd1bef4788506144b922ee',
+        apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
         indexName: 'hasura',
         // insights: true,
         // debug: false
