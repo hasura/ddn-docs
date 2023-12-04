@@ -18,6 +18,10 @@ const config = {
   organizationName: 'hasura',
   projectName: 'graphql-engine',
   staticDirectories: ['static', 'public'],
+  customFields: {
+    docsBotEndpointURL: process.env.NODE_ENV === "development" ? "ws://localhost:8000/hasura-docs-ai" : "wss://website-api.hasura.io/chat-bot/hasura-docs-ai",
+    hasuraVersion: 3,
+  },
   webpack: {
     jsLoader: isServer => ({
       loader: require.resolve('swc-loader'),
