@@ -18,6 +18,10 @@ const config = {
   organizationName: 'hasura',
   projectName: 'graphql-engine',
   staticDirectories: ['static', 'public'],
+  customFields: {
+    docsBotEndpointURL: process.env.NODE_ENV === "development" ? "ws://localhost:8000/hasura-docs-ai" : "wss://website-api.hasura.io/chat-bot/hasura-docs-ai",
+    hasuraVersion: 3,
+  },
   webpack: {
     jsLoader: isServer => ({
       loader: require.resolve('swc-loader'),
@@ -126,7 +130,7 @@ const config = {
       algolia: {
         appId: '7M3BTIV34B',
         // Public API key: it is safe to commit it
-        apiKey: 'ac2af7451fbd1bef4788506144b922ee',
+        apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
         indexName: 'hasura',
         // insights: true,
         // debug: false
