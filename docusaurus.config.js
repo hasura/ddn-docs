@@ -23,7 +23,6 @@ const config = {
   customFields: {
     docsBotEndpointURL: process.env.NODE_ENV === "development" ? "ws://localhost:8000/hasura-docs-ai" : "wss://website-api.hasura.io/chat-bot/hasura-docs-ai",
     hasuraVersion: 3,
-    devToken: process.env.DEV_TOKEN,
     DEV_TOKEN: process.env.DEV_TOKEN,
   },
   webpack: {
