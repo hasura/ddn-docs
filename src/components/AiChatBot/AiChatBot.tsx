@@ -208,7 +208,7 @@ export function AiChatBot() {
           <div className="info-bar">
             <div className={"bot-name-pic-container"}>
               <div className="bot-name">HasuraAI</div>
-              <img src={"/img/hasura-ai-profile-pic.png"} height={30} width={30} className="bot-pic"/>
+              <img src={process.env.NODE_ENV === 'development' ? "/img/hasura-ai-profile-pic.png" : "/docs/3.0/img/hasura-ai-profile-pic.png"} height={30} width={30} className="bot-pic"/>
             </div>
             <button className="clear-button" onClick={() => {
               setMessages(initialMessages)
