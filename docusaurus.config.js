@@ -5,7 +5,7 @@ const path = require('path');
 const lightCodeTheme = require('prism-react-renderer/themes/vsLight');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
-require('dotenv').config()
+require('dotenv').config();
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -21,7 +21,10 @@ const config = {
   projectName: 'graphql-engine',
   staticDirectories: ['static', 'public'],
   customFields: {
-    docsBotEndpointURL: process.env.NODE_ENV === "development" ? "ws://localhost:8000/hasura-docs-ai" : "wss://website-api.hasura.io/chat-bot/hasura-docs-ai",
+    docsBotEndpointURL:
+      process.env.NODE_ENV === 'development'
+        ? 'ws://localhost:8000/hasura-docs-ai'
+        : 'wss://website-api.hasura.io/chat-bot/hasura-docs-ai',
     hasuraVersion: 3,
     DEV_TOKEN: process.env.DEV_TOKEN,
   },
@@ -211,13 +214,7 @@ const config = {
             position: 'right',
           },
           {
-            to: 'https://console.hasura.io/?pg=docs',
-            label: 'Login',
-            position: 'right',
-            className: 'nav-link_login',
-          },
-          {
-            to: 'https://console.hasura.io/?pg=docs_v3_page&plcmt=header&cta=get_started&tech=default',
+            to: '/getting-started/overview/',
             label: 'Get Started',
             position: 'right',
             className: 'nav-link_getting-started',
