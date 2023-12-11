@@ -5,9 +5,10 @@ const path = require('path');
 const lightCodeTheme = require('prism-react-renderer/themes/vsLight');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
+require('dotenv').config();
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  noIndex: true,
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
   url: 'https://hasura.io',
@@ -19,6 +20,14 @@ const config = {
   organizationName: 'hasura',
   projectName: 'graphql-engine',
   staticDirectories: ['static', 'public'],
+  customFields: {
+    docsBotEndpointURL:
+      process.env.NODE_ENV === 'development'
+        ? 'ws://localhost:8000/hasura-docs-ai'
+        : 'wss://website-api.hasura.io/chat-bot/hasura-docs-ai',
+    hasuraVersion: 3,
+    DEV_TOKEN: process.env.DEV_TOKEN,
+  },
   webpack: {
     jsLoader: isServer => ({
       loader: require.resolve('swc-loader'),
@@ -73,7 +82,7 @@ const config = {
         id: 'wiki',
         path: 'wiki',
         routeBasePath: 'wiki',
-        editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
+        // editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
         editCurrentVersion: true,
         docItemComponent: require.resolve('./src/components/CustomDocItem/CustomDocItemWiki.tsx'),
         // disableVersioning: true,
@@ -124,18 +133,20 @@ const config = {
         darkTheme: darkCodeTheme,
         additionalLanguages: ['rest', 'http', 'haskell', 'plsql', 'docker', 'nginx', 'markdown', 'yaml'],
       },
-      // algolia: {
-      //   appId: '7M3BTIV34B',
-      //   // Public API key: it is safe to commit it
-      //   apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
-      //   indexName: 'hasura',
-      //   // Optional: see doc section below
-      //   // contextualSearch: true,
-      //   // Optional: Specify domains where the navigation should occur through window.location instead on history.push. Useful when our Algolia config crawls multiple documentation sites and we want to navigate with window.location.href to them.
-      //   // externalUrlRegex: 'external\\.com|domain\\.com',
-      //   // Optional: Algolia search parameters
-      //   // searchParameters: {},
-      // },
+      algolia: {
+        appId: '7M3BTIV34B',
+        // Public API key: it is safe to commit it
+        apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
+        indexName: 'hasura',
+        // insights: true,
+        // debug: false
+        // Optional: see doc section below
+        // contextualSearch: true,
+        // Optional: Specify domains where the navigation should occur through window.location instead on history.push. Useful when our Algolia config crawls multiple documentation sites and we want to navigate with window.location.href to them.
+        // externalUrlRegex: 'external\\.com|domain\\.com',
+        // Optional: Algolia search parameters
+        // searchParameters: {},
+      },
       // announcementBar: {
       //   id: 'announcementBar-3', // Increment on change
       //   content: `⭐️ If you like Docusaurus, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/facebook/docusaurus">GitHub</a> and follow us on <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/docusaurus" >Twitter</a> ${TwitterSvg}`,
@@ -198,24 +209,12 @@ const config = {
             position: 'right',
           },
           {
-            href: 'https://github.com/hasura/ndc-hub',
-            position: 'right',
-            className: 'header-github-link',
-            'aria-label': 'GitHub repository',
-          },
-          {
             to: 'https://hasura.io/pricing/',
             label: 'Pricing',
             position: 'right',
           },
           {
-            to: 'https://console.hasura.io/?pg=docs',
-            label: 'Login',
-            position: 'right',
-            className: 'nav-link_login',
-          },
-          {
-            to: 'https://console.hasura.io/?pg=docs_v3_page&plcmt=header&cta=get_started&tech=default',
+            to: '/getting-started/overview/',
             label: 'Get Started',
             position: 'right',
             className: 'nav-link_getting-started',
