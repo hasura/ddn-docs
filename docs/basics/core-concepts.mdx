@@ -19,59 +19,76 @@ to help you manage this complexity.
 
 ## The state of the data layer
 
-Imagine the following 30,000-foot view of a data layer for a hypothetical e-commerce application:
+Imagine the following sets of teams within a hypothetical company:
 
-- A relational database for storing product information.
-- A document database for storing user information.
-- A search service for searching products.
-- A payment service for processing payments.
-- A shipping service for fulfilling orders.
-- A vector database for storing user recommendations.
+- **Product Management Team**: Responsible for the relational database storing product information. This team focuses on
+  cataloging products, managing inventory, and ensuring product details are accurate and up-to-date by use of a
+  **relational PostgreSQL database**.
 
-This isn't an uncommon scenario. The problem is that each of these data sources has its own API, its own schema, and its
-own way of doing things. This makes it complicated to build applications that span multiple data sources. It slows down
-development and often requires dedicated data architects and engineers to design and maintain.
+- **User Experience Team**: Manages a **document database** and related APIs for storing user information. Their focus
+  is on maintaining user profiles, preferences, and ensuring privacy and security of user data.
+
+- **Search Optimization Team**: Handles the **intergration of a search service** for products and partner stores. They
+  work on optimizing search algorithms, ensuring relevant search results, and improving the overall search experience
+  for users.
+
+- **Finance and Transactions Team**: Oversees the **payment service and underlying relational database** for processing
+  payments. This includes managing transaction security, payment gateway integrations, and ensuring smooth financial
+  transactions.
+
+- **Logistics and Shipping Team**: Responsible for the **shipping service, fulfilling orders, and the underlying
+  relational database that supports this process**. Their primary focus is on logistics, order tracking, and ensuring
+  timely delivery of products.
+
+- **Data Science and Recommendations Team**: Manages the **vector database** for storing user recommendations. They work
+  on personalization algorithms, user behavior analysis, and providing tailored product recommendations to enhance user
+  experience.
+
+The diversity of teams within this hypothetical company, each with their unique focus and specialized databases,
+epitomizes the common challenge in modern data management and API development. These teams all operate with distinct
+APIs, schemas, and methodologies. This fragmentation not only complicates the process of developing applications but
+also necessitates the involvement of skilled data architects and engineers to efficiently integrate and maintain these
+varied data sources.
 
 ## Subgraphs
 
-In our e-commerce application example, each data source represents what we term a **[subgraph](/ci-cd/subgraphs.mdx)**.
+In our e-commerce application example, each service above represents what we term a
+**[subgraph](/ci-cd/subgraphs.mdx)**.
 
-However, a subgraph is much more than just a single data source; it is a comprehensive collection encompassing tables,
-types, APIs, and schemas that define how data is structured and accessed. While a subgraph functions as an independent
-entity with its own unique API, Hasura can seamlessly integrate it with other subgraphs. This integration forms a
-cohesive and larger data supergraph.
+A subgraph is much more than just a single data source; it is a comprehensive collection encompassing tables, types,
+APIs, and schemas that define how data is structured and accessed. Hasura can seamlessly integrate this with other
+subgraphs. This integration forms a cohesive and larger data supergraph.
 
-Each subgraph in our example, whether it is the relational database for product information, the document database for
-user data, or the services for search, payment, and shipping, is a modular component of the data supergraph. These
-components securely work together to overcome the traditional barriers posed by isolated data sources, facilitating a
-more fluid and interconnected data layer. This integrated approach simplifies application development across diverse
-data systems, enabling faster iteration and more efficient maintenance by engineering teams.
+Each subgraph in our example is a modular component of the data supergraph. These components securely work together to
+overcome the traditional barriers posed by isolated data sources, facilitating a more fluid and interconnected data
+layer. This integrated approach simplifies application development across diverse data systems, enabling faster
+iteration and more efficient maintenance by engineering teams.
 
 ### How do I build a subgraph?
 
-Subgraphs are connected to your data layer using a **[data connector](/connectors/overview.mdx)**. Hasura DDN utilizes a
-number of data connectors that work with popular databases, services, and APIs out-of-the-box; you can also build your
-own. This saves you the time and effort of building and maintaining your own APIs to manage data sources and existing
-microservices.
+Subgraphs are composed of related data sources — be that as traditional databases, or as custom business logic — and are
+connected to your data layer using **[data connectors](/connectors/overview.mdx)**. Hasura DDN utilizes a number of data
+connectors that work with popular databases, services, and APIs out-of-the-box; you can also build your own. This saves
+you the time and effort of building and maintaining your own APIs to manage data sources and existing microservices.
 
 With each subgraph you add to your Hasura project, you're adding a piece to your connected and secure data layer. You
-can add as many subgraphs as you need to represent your data layer. **These subgraphs can even be your own custom
+can add as many subgraphs as you need to represent your data layer. **These subgraphs can even include your own custom
 business logic as TypeScript functions that return or mutate data directly via your GraphQL API** which can then be
 consumed as part of a single, secure GraphQL API: your data supergraph.
 
 ## Supergraph
 
-A data supergraph is a the framework that brings together all of your subgraphs into one secure API. This orchestration
+A data supergraph is the framework that brings together all of your subgraphs into one secure API. This orchestration
 allows for the creation of applications that span multiple data sources, services, third-party APIs and business logic
 seamlessly bridging their complexities into a single layer.
 
-For frontend developers, this means accessing a singular API that simplifies application development, enabling them to
-focus on building features rather than navigating the intricacies of each individual data source. For backend
-developers, this means a more efficient and streamlined development process, with the ability to build and maintain
-subgraphs independently of one another.
+For API authors, this means the ability to build out an API — composed of different sources — in a simple, declarative
+way. You can utilize unique access-control rules, authentication mechanisms, and custom business logic within your
+subgraphs to create a secure and robust API.
 
-This empowers individual teams to build and maintain their own subgraphs without having to worry about how those
-subgraphs will be consumed by other teams. This allows you to iterate faster and ship more often.
+For those responsible for maintaining the data layer, this means you now have the ability to build and maintain
+subgraphs with finely-tuned CI/CD pipelines and workflows. You can ensure that production will never break and that
+end-users will always be able to access the data they need.
 
 ### How do I build a supergraph?
 
