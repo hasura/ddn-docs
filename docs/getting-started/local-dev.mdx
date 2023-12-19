@@ -21,8 +21,6 @@ toc_max_heading_level: 2
 ---
 
 import Thumbnail from "@site/src/components/Thumbnail";
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 
 # Get Started with DDN
 
@@ -33,17 +31,23 @@ query, create lightning-fast production builds, and incorporate business logic u
 the **new Hasura CLI**. Throughout this guide, you'll be introduced to new Hasura concepts, like builds, our new
 metadata structure, and more.
 
-:::tip Prerequisites
+:::tip Get an instant API!
 
-1. The [new Hasura CLI](/cli/installation.mdx)
-2. The [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)
-3. A PostgreSQL database
+You can create a project via [the Console](https://console.hasura.io) — our web-based GUI — to spin up an API by just
+providing a database url. However, we recommended you follow the guide on this page to set up your project via the CLI,
+which will allow you to easily iterate on your project.
+
+:::
+
+## Step 1: Prerequisites
+
+1. Install the [new Hasura CLI](/cli/installation.mdx)
+2. Install the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)
+3. Have a PostgreSQL database
 
 You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/cli/overview.mdx). If you don't
 have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
 [Neon](https://neon.tech).
-
-:::
 
 :::info Don't want to set up a database?
 
@@ -56,9 +60,16 @@ postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
 
 :::
 
-## Step 1: Log into Hasura
+:::info I don't use VS Code
 
-The first step is to log into Hasura Cloud with the CLI
+Good news! LSP support is coming soon to other editors. In the meantime, give
+[VS Code](https://code.visualstudio.com/download) a try — it's a great editor!
+
+:::
+
+## Step 2: Log into Hasura
+
+After our prerequisites are taken care of, log into Hasura Cloud with the CLI:
 
 ```bash
 hasura3 login
@@ -78,7 +89,7 @@ hasura3 --help
 
 :::
 
-## Step 2: Create a new project
+## Step 3: Create a new project
 
 To create a new project, use the following command, passing the directory where you want to create the project as an
 argument. This command will create the configuration files and directory structure by default. It will also prompt you
@@ -133,7 +144,7 @@ new project structure, see our page on [project configuration](/ci-cd/config.mdx
 
 :::
 
-## Step 3: Connect a data source
+## Step 4: Connect a data source
 
 The next step is to add a data source to the project so that we can build APIs on that source. With Hasura DDN, a source
 is added through a Data Connector. We will use the [Postgres Data Connector](https://hasura.io/connectors/postgres).
@@ -164,7 +175,7 @@ create a [Secure Connect tunnel](/ci-cd/tunnels.mdx).
 
 :::
 
-## Step 4: Start watch mode
+## Step 5: Start watch mode
 
 Now that we have added a data source and scaffolded our metadata, let's start Hasura's watch mode so that when we make
 changes, our GraphQL API will update automatically:
@@ -209,7 +220,7 @@ This workflow allows for easier rollbacks on production, and greater collaborati
 
 :::
 
-## Step 5: Launch VS Code and track tables
+## Step 6: Launch VS Code and track tables
 
 Make sure the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) is
 installed and that you have logged in.
@@ -256,7 +267,7 @@ all in one file.
 
 :::
 
-## Step 6: Run your first query
+## Step 7: Run your first query
 
 Head to the terminal where `hasura3 watch` is running. A new build was automatically generated when you imported models;
 you can visit this using the link in the terminal output.
@@ -278,13 +289,6 @@ you can visit this using the link in the terminal output.
 | Environment   | default                                                    |
 +---------------+------------------------------------------------------------+
 ```
-
-:::tip See a failed build error?
-
-If this is the case, head to any of the `hml` files in your project and save it without making any changes. This will
-trigger a new build and the error should go away.
-
-:::
 
 We're using the docs sample app's schema for this guide's visuals, but you can use the GraphiQL Explorer to create your
 query or write it manually:
@@ -315,7 +319,7 @@ query OrdersQuery {
 
 </details>
 
-## Step 7: Incorporate custom business logic
+## Step 8: Incorporate custom business logic
 
 With DDN, Hasura introduces a new way of writing custom business logic using the the TypeScript connector. This exposes
 functions or procedures that can be added to Hasura metadata as a [command](/data-domain-modeling/commands.mdx), which
@@ -354,21 +358,15 @@ export function hello(): string {
 }
 ```
 
-## Step 8: Track the function as a procedure
+## Step 9: Track the function as a procedure
 
 Switch to VS Code and open `subgraphs/default/dataconnectors/ts_logic/ts_logic.hml`. The procedure `helloWorld` will be
 underlined with a code action to track the function as a command in the subgraph. This will create a command metadata
 object which will expose this function as a mutation. Just like before, your types will be generated for you.
 
-:::tip Code action not showing up?
-
-Delete the last character from `name: hello` and retype it. This typically triggers the code action to show up.
-
-:::
-
 <Thumbnail src="/img/get-started/0.0.1_track-ts.png" alt="Track a function in VSCode" width="1000px" />
 
-## Step 9: Execute the function using GraphiQL
+## Step 10: Execute the function using GraphiQL
 
 A new build has been generated for you. You can run the following mutation in the GraphiQL Explorer to execute the
 function:
@@ -384,7 +382,7 @@ mutation tsFunctionQuery {
 Since Deno and Hasura are watching for changes, you can modify the function and it will automatically update the API and
 be available on DDN 🎉
 
-## Step 10: Apply a build to production
+## Step 11: Apply a build to production
 
 As we've been developing our API, Hasura generated new builds for us in the background. We can see these builds by
 running the following command:
