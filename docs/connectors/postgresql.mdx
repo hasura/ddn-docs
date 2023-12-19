@@ -175,37 +175,3 @@ The following binary operators are supported when filtering:
 
 The `_not`, `_and`, and `_or` operators all work as usual.
 
-## Mutations
-
-The connector supports mutations via Native Queries.
-
-Native Query mutations can be defined the same way as regular Native Queries,
-with a few important tweaks:
-
-1. The Native Query should include a field `isProcedure: true`.
-2. The SQL should include a `RETURNING` clause, listing the returned columns (use `RETURNING *` to return all columns).
-
-Here's an example which inserts into a table called `"Artist"`:
-
-```yaml
-metadata:
-  tables: {}
-  nativeQueries:
-    insert_artist:
-      isProcedure: true
-      sql: INSERT INTO public."Artist" VALUES ({{id}}, {{name}}) RETURNING *
-      columns:
-        ArtistId:
-          name: ArtistId
-          type: int4
-        Name:
-          name: Name
-          type: varchar
-      arguments:
-        id:
-          name: id
-          type: int4
-        name:
-          name: name
-          type: varchar
-```
