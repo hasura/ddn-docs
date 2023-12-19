@@ -1,19 +1,21 @@
 ---
 sidebar_position: 2
-sidebar_label: Quickstart with CLI
-description: "Learn how to create a new Hasura project using the Hasura CLI with auto-completion in VS Code, connect
-to a data source, and execute your first query."
+sidebar_label: Get Started with DDN
+description:
+  "Kickstart your Hasura project from scratch by using VS Code with our new CLI, connect to a PostgreSQL database, and
+  execute your initial query. This guide unveils new Hasura concepts, such as builds and our novel metadata structure to
+  enrich your GraphQL application development process."
 keywords:
-  - hasura
+  - hasura ddn
   - graphql
+  - setup hasura
   - vs code
-  - quickstart
+  - hasura quickstart
   - postgreSQL
-  - metadata
   - hasura cli
-  - query
   - hasura project
-  - data sources
+  - data connectivity
+  - graphql api creation
 seoFrontMatterUpdated: true
 toc_max_heading_level: 2
 ---
@@ -22,7 +24,7 @@ import Thumbnail from "@site/src/components/Thumbnail";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-# Quickstart with CLI
+# Get Started with DDN
 
 ## Introduction
 
@@ -137,7 +139,7 @@ The next step is to add a data source to the project so that we can build APIs o
 is added through a Data Connector. We will use the [Postgres Data Connector](https://hasura.io/connectors/postgres).
 
 ```bash
-hasura3 metadata add-hub-connector pg_db --dir . --subgraph default --id hasura/postgres --url postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
+hasura3 metadata add-hub-connector pg_db --dir . --subgraph default --id hasura/postgres --url "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
 This will also create a `.env` in the root of your project with the connection string you provided. This allows you to
@@ -210,7 +212,7 @@ This workflow allows for easier rollbacks on production, and greater collaborati
 ## Step 5: Launch VS Code and track tables
 
 Make sure the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) is
-installed.
+installed and that you have logged in.
 
 Launch VS Code in the project directory:
 
@@ -218,19 +220,27 @@ Launch VS Code in the project directory:
 code <PROJECT_DIRECTORY>
 ```
 
+To log in, open the command palette (Ctrl+Shift+P or Cmd+Shift+P) and type `Hasura: Login`. This will open a browser
+window and initiate a login flow. If the browser window doesn't open automatically, use the link shown in the
+notification from VS Code to launch the flow.
+
 Open the new `hml` file that was created at `subgraphs/default/dataconnectors/pg_db/pg_db.hml`. You'll see that Hasura
-automatically introspected your data source and created your schema for you.
+automatically introspected your data source and created your schema for you. From here, you can immediately track all
+tables, views, relationships, and quickly scaffold out your metadata by using the Hasura VS Code extension.
 
-From here, you can immediately track all tables, views, relationships, and quickly scaffold out your metadata by using
-the Hasura VS Code extension. **From this file**, bring up the command palette by typing `hasura track all` and choose
-the option from the dropdown. Then, select your data source's name (e.g., `pg_db`) from the dropdown.
-
-<Thumbnail src="/img/get-started/0.0.1_vscode-track-table.png" alt="VSCode data connector" width="1000px" />
+Bring up the command palette, type `hasura track all`, and choose the option from the dropdown. Then, select your data
+source's name (e.g., `pg_db`) from the dropdown.
 
 Your metadata files will be populated with everything you need to get started! 🎉
 
-We've organized your types in the `pg_db` directory and your models in the `models` directory. Each model has its own
-file and is named after the table it represents.
+<Thumbnail src="/img/get-started/0.0.1_vscode-track-table.png" alt="VSCode data connector" width="1000px" />
+
+A lot happened under the hood. Let's break it down:
+
+- Within the `subgraphs/default/dataconnectors/pg_db` directory, a new `pg_types.hml` file was generated.
+  - This file contains all of the types that were introspected from your data source and that your API will use.
+- Within the `models` subdirectory, new named files for each of your models were created.
+  - These files contain the metadata for each model, including their fields, permissions, relationships, and more.
 
 :::info What are models?
 
