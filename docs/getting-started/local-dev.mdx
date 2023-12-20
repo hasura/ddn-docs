@@ -1,47 +1,53 @@
 ---
 sidebar_position: 2
-sidebar_label: Quickstart from VS Code
+sidebar_label: Get Started with DDN
 description:
-  Learn how to create a new Hasura project using VS Code and new Hasura CLI, connect to a database, and execute your
-  first query to enhance your GraphQL application development process.
+  "Kickstart your Hasura project from scratch by using VS Code with our new CLI, connect to a PostgreSQL database, and
+  execute your initial query. This guide unveils new Hasura concepts, such as builds and our novel metadata structure to
+  enrich your GraphQL application development process."
 keywords:
-  - hasura
+  - hasura ddn
   - graphql
+  - setup hasura
   - vs code
-  - quickstart
+  - hasura quickstart
   - postgreSQL
-  - metadata
   - hasura cli
-  - query
   - hasura project
-  - data sources
+  - data connectivity
+  - graphql api creation
 seoFrontMatterUpdated: true
 toc_max_heading_level: 2
 ---
 
 import Thumbnail from "@site/src/components/Thumbnail";
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 
-# Quickstart from VS Code
+# Get Started with DDN
 
 ## Introduction
 
 In this guide, we'll walk you through the steps to create a new Hasura project, connect a database, execute your first
-query, and create lightning-fast production builds — all using VS Code and the **new Hasura CLI**. Throughout this
-guide, you'll be introduced to new Hasura concepts, like builds, our new metadata structure, and more.
+query, create lightning-fast production builds, and incorporate business logic using TypeScript — all with VS Code and
+the **new Hasura CLI**. Throughout this guide, you'll be introduced to new Hasura concepts, like builds, our new
+metadata structure, and more.
 
-:::tip Prerequisites
+:::tip Get an instant API!
 
-1. The [new Hasura CLI](/cli/overview.mdx)
-2. The [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)
-3. A PostgreSQL database
+You can create a project via [the Console](https://console.hasura.io) — our web-based GUI — to spin up an API by just
+providing a database url. However, we recommended you follow the guide on this page to set up your project via the CLI,
+which will allow you to easily iterate on your project.
+
+:::
+
+## Step 1: Prerequisites
+
+1. Install the [new Hasura CLI](/cli/installation.mdx)
+2. Install the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)
+3. Have a PostgreSQL database
 
 You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/cli/overview.mdx). If you don't
 have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
 [Neon](https://neon.tech).
-
-:::
 
 :::info Don't want to set up a database?
 
@@ -49,21 +55,28 @@ We've provisioned a read-only database for you to use for this guide if you'd li
 string in Step 3:
 
 ```text
-postgresql://read_only:kd4555jkfjfkdj39f8f8d9d@35.236.11.122:5432/v3-docs-sample-app
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
 ```
 
 :::
 
-## Step 1: Log into Hasura
+:::info I don't use VS Code
 
-To make a secure connection, you'll need a personal access token (PAT) from Hasura Cloud:
+Good news! LSP support is coming soon to other editors. In the meantime, give
+[VS Code](https://code.visualstudio.com/download) a try — it's a great editor!
 
-1. Head [here](https://cloud.hasura.io/account-settings/access-tokens) to generate your PAT.
-2. Use the following command to add the token to the CLI, thereby logging you in:
+:::
+
+## Step 2: Log into Hasura
+
+After our prerequisites are taken care of, log into Hasura Cloud with the CLI:
 
 ```bash
-hasura3 cloud login --pat <YOUR_PAT>
+hasura3 login
 ```
+
+This will open up a browser window and initiate an OAuth2 login flow. If the browser window doesn't open automatically,
+use the link shown in the terminal output to launch the flow.
 
 :::info New CLI?!
 
@@ -76,275 +89,128 @@ hasura3 --help
 
 :::
 
-## Step 2: Create a new project
+## Step 3: Create a new project
 
-To create a new local project, use the following command, passing the directory where you want to create the metadata
-file as an argument. This command will create a `metadata.hml` file by default:
-
-```bash
-hasura3 local init --dir <PROJECT_DIRECTORY>
-```
-
-You can then create the corresponding project on Hasura using the following command:
+To create a new project, use the following command, passing the directory where you want to create the project as an
+argument. This command will create the configuration files and directory structure by default. It will also prompt you
+to create a new Hasura DDN project in the cloud too.
 
 ```bash
-hasura3 cloud project create
+hasura3 init --dir <PROJECT_DIRECTORY>
+cd <PROJECT_DIRECTORY>
 ```
 
-The CLI will return information about your project:
+The CLI will prompt you with the following:
 
-```text
- Creating project... ok
- Name         <PROJECT_NAME>
- ID           <PROJECT_ID>
- Console URL  https://console.hasura.io/project/<PROJECT_ID>/graphql
+```bash
+Use the arrow keys to navigate: ↓ ↑ → ←
+Please choose how you would like to initialise Hasura DDN?
+# highlight-start
+  Create a new project        |        (Start building on a new DDN project)
+# highlight-end
+    Empty project
 ```
 
-:::info What's a local project?
+Choose `Create a new project` and the CLI will respond with the following:
+
+```bash
+Creating a new project
+Creating hasura.yaml ...
+Creating build-profile ...
+Creating metadata.hml ...
+Project <PROJECT_NAME> is created at <DIR>
+```
+
+:::info What's a project?
 
 Each project on Hasura DDN can have a corresponding local project that can be used for development. This local project
-contains:
-
-1. `hasura.yaml`: This is the entrypoint to a local Hasura project. Replace the `project` field with the **ID** of the
-   project that you just created
-
-```yaml
-version: 1
-project: # add your PROJECT_ID here
-
-# A build profile specifies your project's environment
-# and the association of namespaces to HML files
-# You can create different build profiles for different environments,
-# like production and staging, which may reference environment-specific auth configs.
-# We have created one for you to get you started
-buildProfiles:
-  - build-profile.yaml
-
-# This refers to the default build profile
-# that is used when you create a build and
-# don't specify which build profile to use.
-defaultBuildProfile: build-profile.yaml
-```
-
-2. `build-profile.yaml`: This file specifies how the metadata in your local Hasura project must be built. It contains
-   the `environment` of the Hasura DDN project that you wish to create builds on and it specifies the namespaces of the
-   `.hml` files in this project.
-
-   You can have different build profiles for different environments of your project. You can create different
-   environments like `stage`, `preproduction` and `production`, and have a different build profile for each of them for
-   creating builds on different environments in your CI.
-
-```yaml
-version: 1
-spec:
-  environment: default
-
-  # Namespaces can be used to group certain objects of your metadata
-  # in a way that makes sense for you and your team.
-  # You can have multiple HML files belong to a namespace
-  # and you can have multiple namespaces in a project.
-  # We have created a `default` namespace for you, and added an HML file to it to get you started
-  # Please note that `default` is a special namespace that is created for every project
-  # and it CANNOT be deleted.
-  namespaces:
-    - name: default
-      resources:
-        - ./metadata.hml
-```
-
-3. `metadata.hml`: This is a Hasura metadata file that follows the new metadata format of the
-   [Open Data Domain Specification (OpenDD Spec)](/data-domain-modeling/overview.mdx), and is an `.hml` file. This file
-   can be checked into version control along with other files (if any) in your project and can be shared.
-
-We've created a new flavor of yaml called `Hasura Metadata Language` (`hml`) that allows you to accelerate your
-workflows by using the Hasura VS Code extension.
-
-:::
-
-## Step 3: Connect a data source
-
-Open your `metadata.hml`, head to the bottom of the file file, add `---` and start typing `HasuraHubDataConnector` on a
-new line. Hit `Enter` and the extension will automatically populate the rest of the template for you:
-
-```yaml
-kind: HasuraHubDataConnector
-version: v1
-definition:
-  name:
-  connectorId:
-  connectorConfiguration:
-    - region:
-      mode:
-      configuration:
-        version:
-```
-
-| Field                    | Description                                                                                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                   | The name of your data source. Put `default` for now.                                                                                                     |
-| `connectorId`            | The ID of the connector you want to use. In this example, we'll use `hasura/postgres`.                                                                   |
-| `connectorConfiguration` | List of regional configurations or your data connector. You can specify different configurations for different regions.                                  |
-| `region`                 | Hit `Ctrl + Space` and choose the region that your database is closest to. If you're not sure, just use `gcp-us-east4`.                                  |
-| `mode`                   | This can be `ReadOnly`, `ReadWrite` and `WriteOnly`. In this example, we'll use `ReadWrite`.                                                             |
-| `configuration`          | The configuration for your data source. Contains `version`, `connectionUri`, and other fields.                                                           |
-| `version`                | Version of the data source configuration. We'll use `1`.                                                                                                 |
-| `connectionUri`          | Connection string for your Postgres database which can be a value or a [secret](/ci-cd/secrets.mdx). For this guide, enter your database URL as a value. |
-
-<Tabs groupId="db-location" className="api-tabs">
-<TabItem value="hosted" label="Hosted Database">
-
-If your database is hosted on a cloud provider, you can connect to it by copying your connection string which should
-look like this:
+contains the following structure by default:
 
 ```text
-postgresql://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DATABASE_NAME>
+├── build-profile.yaml
+├── hasura.yaml
+├── subgraphs
+│   └── default
+│       ├── commands
+│       ├── dataconnectors
+│       └── models
+└── supergraph
+    ├── auth-config.hml
+    └── compatibility-config.hml
 ```
 
-</TabItem>
-<TabItem value="local" label="Local Database">
+We'll dive into how to use these files as we continue through this guide. However, if you'd like more information on the
+new project structure, see our page on [project configuration](/ci-cd/config.mdx).
 
-### Step 3.1: Start your database
+:::
 
-If you want to connect a local database for development, you can use the new [Hasura CLI](/cli/overview.mdx) to create a
-local daemon and securely connect to your database.
+## Step 4: Connect a data source
 
-Start your local database. For example, if you are using Docker, you can run the following command:
+The next step is to add a data source to the project so that we can build APIs on that source. With Hasura DDN, a source
+is added through a Data Connector. We will use the [Postgres Data Connector](https://hasura.io/connectors/postgres).
 
 ```bash
-docker run -d --name <DATABASE_NAME> -e POSTGRES_PASSWORD=<YOUR_PASSWORD> -p 5432:5432 <DATABASE_IMAGE>
+hasura3 metadata add-hub-connector pg_db --dir . --subgraph default --id hasura/postgres --url "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
-### Step 3.2: Start the daemon
+This will also create a `.env` in the root of your project with the connection string you provided. This allows you to
+use `.gitignore` to ignore the `.env` file and keep your connection string safe when committing your project to version
+control.
 
-Start the Hasura daemon with the `daemon start` command:
+We're passing a few flags to this command:
+
+- `--dir .` tells the CLI to use the current directory as the project directory.
+- `--subgraph default` tells the CLI to add the data source to the default [subgraph](/ci-cd/subgraphs.mdx).
+- `--id hasura/postgres` tells the CLI to use the `hasura/postgres` connector from the
+  [connector hub](https://hasura.io/connectors).
+
+:::info Don't want to use our DB?
+
+If you don't want to use our demo Postgres database, or you have a local database you want to try out with Hasura,
+replace the url with your connection string.
+
+For example, you can use a generic postgres connection string:
+`postgresql://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DATABASE_NAME>`. This works with local databases, too — you can
+create a [Secure Connect tunnel](/ci-cd/tunnels.mdx).
+
+:::
+
+## Step 5: Start watch mode
+
+Now that we have added a data source and scaffolded our metadata, let's start Hasura's watch mode so that when we make
+changes, our GraphQL API will update automatically:
 
 ```bash
-hasura3 local daemon start
+hasura3 watch --dir .
 ```
 
-The daemon will block this window while it runs.
-
-### Step 3.3: Create a Secure Connect tunnel
-
-Open a new tab or window for your terminal and run the `create` command:
-
-```bash
-hasura3 cloud tunnel create <SOCKET>
-```
-
-The `<SOCKET>` argument is the address of your local database. For example, if you are running a local PostgreSQL
-database on the default port, you would use `localhost:5432`.
-
-The CLI will return a URL that you can use to connect to your database. You should use this URL to form a connection
-string for your database, like this:
+The CLI will respond with the following warning to ensure you don't accidentally apply a build to your production
+environment:
 
 ```text
-postgresql://<USERNAME>:<PASSWORD>@<URL_RETURNED_BY_THE_CLI>/<DATABASE_NAME>
+This command will create new builds in the selected environment "default" and change the current applied build.
+We recommend using a test environment so that there is no disruption to existing work.
+Do you want to continue?
 ```
 
-</TabItem>
-</Tabs>
+This command will take over the current terminal tab and watch for changes to the folder. This will keep creating and
+applying new **builds** — that represent a new version of the GraphQL API — as you make changes. If you'd like to learn
+more about watch mode and what flags you can pass, check out the [CLI docs on watch mode](/cli/commands/watch.mdx).
 
-After you add the `connectionUri` information in `HasuraHubDataConnector`, your metadata field should look something
-like this:
+If you are using a local Postgres database, this command also creates a tunnel to your local machine to make the
+database available to Hasura DDN.
 
-```yaml
-kind: HasuraHubDataConnector
-version: v1
-definition:
-  name: default
-  connectorId: hasura/postgres
-  connectorConfiguration:
-    - region: gcp-us-east4
-      mode: ReadWrite
-      configuration:
-        version: 1
-        # highlight-start
-        connectionUri:
-          uri:
-            value: postgres://<YOUR_POSTGRESQL_USERNAME>:<YOUR_POSTGRESQL_PASSWORD>@<HOST_ADDRESS>:<PORT_NUMBER>/<DATABASE_NAME>
-        # highlight-end
-```
+:::warning Watch mode is for development only
 
-:::tip Autocomplete your metadata
-
-You can always hit `Ctrl + Space` in VSCode while editing HML files to get autocompletion 🚀
+You should not use watch mode in production. This leads to security vulnerabilities and performance issues.
 
 :::
-
-## Step 4: Scaffold your metadata
-
-In VS Code, press `Command + Shift + P` (Mac) or `Ctrl + Shift + P` (Windows) to open the Command Palette. Type
-`hasura refresh data source` and choose the option that appears.
-
-<Thumbnail src="/img/get-started/0.0.1_vs-code-refresh-data-source.png" alt="Execute a query" width="1000px" />
-
-You should now see the name you provided in the previous step. Clicking this will introspect your data source and add
-information to your metadata about the tables and views in your database. The VS Code extension will fetch your data
-source's schema from the wherever it's hosted; this will take a few seconds. Don't worry if appears that nothing is
-happening — just wait a few seconds and you'll see your data source's schema added to the metadata file.
-
-From here, you can immediately track tables, views, relationships, and quickly scaffold out your metadata by using the
-Hasura VS Code extension. Bring up the command palette again, type `hasura track all` and choose the option from the
-dropdown. Then, select your data source's name and, viola — your metadata file will be populated with **models** and
-everything you need to get started! 🎉
-
-<Thumbnail src="/img/get-started/0.0.1_vs-code-track-everything.png" alt="Execute a query" width="1000px" />
-
-:::info What are models?
-
-This is the first new concept we've introduced in this guide. models are a new way to represent your data in Hasura.
-
-Models in the [OpenDD Spec](/data-domain-modeling/overview.mdx) refer to a collection of objects (such as rows in a
-relational database, or documents in a NoSQL database) of a given OpenDD Spec [type](/data-domain-modeling/types.mdx).
-Models are backed by a data source and can support CRUD operations. You can learn more about models
-[here](/data-domain-modeling/models.mdx).
-
-:::
-
-We also need to add an [`AuthConfig`](/auth/authentication/auth-config.mdx). Hasura requires this to keep your API
-secure; you can use JWTs or webhooks.
-
-For testing, your `metadata.hml` we've added an `AuthConfig` with Hasura DDN as your webhook provider:
-
-```yaml
-kind: AuthConfig
-version: v1
-definition:
-  allowRoleEmulationBy: admin
-  mode:
-    webhook:
-      method: Post
-      url: https://auth.pro.hasura.io/webhook/ddn?role=admin
-```
-
-## Step 5: Create a new build
-
-Create a build using the following command:
-
-```bash
-hasura3 cloud build create --project ./hasura.yaml --description "Connect Datasource and track entities"
-```
-
-The CLI will return:
-
-```
- Build ID              <BUILD_ID>
- Build Version         <BUILD_VERSION>
- Project ID            <PROJECT_ID>
- GraphQL API Endpoint  https://<PROJECT_NAME>-<BUILD_VERSION>.ddn.hasura.me/graphql
- Console URL           https://console.hasura.com/project/<PROJECT_ID>/graphql
- FQDN                  <PROJECT_NAME>-<BUILD_VERSION>.ddn.hasura.me
- Environment           default
- Description           Connect Datasource and track entities
-```
-
-We'll use this information in the next step to test our API!
 
 :::info What's a build?
 
-Builds are a new concept in Hasura that allow you to quickly iterate and prototype on your project's metadata. A build
-is an immutable, fully-functioning GraphQL API that represents a milestone in your development cycle.
+This is the first concept we've introduced in this guide. Builds are a new concept in Hasura that allow you to quickly
+iterate and prototype on your project's metadata. A build is an immutable, fully-functioning GraphQL API that represents
+a milestone in your development cycle.
 
 It may be helpful to think of builds as git commits. Since each is deployed on Hasura DDN, it can be shared with other
 users.
@@ -354,11 +220,75 @@ This workflow allows for easier rollbacks on production, and greater collaborati
 
 :::
 
-## Step 6: Run your first query
+## Step 6: Launch VS Code and track tables
 
-Assuming you have some tables and data in your database, you can now run your first query! Head to the
-[Console](https://console.hasura.io) URL returned by the CLI in the previous step. You'll be prompted to log in. Once
-you're logged in, you'll be taken to the GraphiQL Explorer, where you can execute queries against your API.
+Make sure the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) is
+installed and that you have logged in.
+
+Launch VS Code in the project directory:
+
+```bash
+code <PROJECT_DIRECTORY>
+```
+
+To log in, open the command palette (Ctrl+Shift+P or Cmd+Shift+P) and type `Hasura: Login`. This will open a browser
+window and initiate a login flow. If the browser window doesn't open automatically, use the link shown in the
+notification from VS Code to launch the flow.
+
+Open the new `hml` file that was created at `subgraphs/default/dataconnectors/pg_db/pg_db.hml`. You'll see that Hasura
+automatically introspected your data source and created your schema for you. From here, you can immediately track all
+tables, views, relationships, and quickly scaffold out your metadata by using the Hasura VS Code extension.
+
+Bring up the command palette, type `hasura track all`, and choose the option from the dropdown. Then, select your data
+source's name (e.g., `pg_db`) from the dropdown.
+
+Your metadata files will be populated with everything you need to get started! 🎉
+
+<Thumbnail src="/img/get-started/0.0.1_vscode-track-table.png" alt="VSCode data connector" width="1000px" />
+
+A lot happened under the hood. Let's break it down:
+
+- Within the `subgraphs/default/dataconnectors/pg_db` directory, a new `pg_types.hml` file was generated.
+  - This file contains all of the types that were introspected from your data source and that your API will use.
+- Within the `models` subdirectory, new named files for each of your models were created.
+  - These files contain the metadata for each model, including their fields, permissions, relationships, and more.
+
+:::info What are models?
+
+Models are a new way to represent your data in Hasura.
+
+Models in the [OpenDD Spec](/data-domain-modeling/overview.mdx) refer to a collection of objects (such as rows in a
+relational database, or documents in a NoSQL database) of a given OpenDD Spec [type](/data-domain-modeling/types.mdx).
+Models are backed by a data source and can support CRUD operations. You can learn more about models
+[here](/data-domain-modeling/models.mdx).
+
+Ideally, you'll want to separate out each model into its own file. However, for the sake of this guide, we've kept them
+all in one file.
+
+:::
+
+## Step 7: Run your first query
+
+Head to the terminal where `hasura3 watch` is running. A new build was automatically generated when you imported models;
+you can visit this using the link in the terminal output.
+
+```
++---------------+------------------------------------------------------------+
+| Build ID      | <BUILD_ID>                                                 |
++---------------+------------------------------------------------------------+
+| Build Version | <BUILD_VERSION>                                            |
++---------------+------------------------------------------------------------+
+| Build URL     | https://<PROJECT_NAME_AND_BUILD_ID>.ddn.hasura.app/graphql |
++---------------+------------------------------------------------------------+
+| Project Id    | <PROJECT_ID>                                               |
++---------------+------------------------------------------------------------+
+| Console Url   | https://console.hasura.io/project/<PROJECT_NAME>/graphql   |
++---------------+------------------------------------------------------------+
+| FQDN          | <PROJECT_NAME_AND_BUILD_ID_STUB>.ddn.hasura.app            |
++---------------+------------------------------------------------------------+
+| Environment   | default                                                    |
++---------------+------------------------------------------------------------+
+```
 
 We're using the docs sample app's schema for this guide's visuals, but you can use the GraphiQL Explorer to create your
 query or write it manually:
@@ -389,45 +319,96 @@ query OrdersQuery {
 
 </details>
 
-## Step 7: Apply your build
+## Step 8: Incorporate custom business logic
 
-To apply a build using the CLI, run the following command:
+With DDN, Hasura introduces a new way of writing custom business logic using the the TypeScript connector. This exposes
+functions or procedures that can be added to Hasura metadata as a [command](/data-domain-modeling/commands.mdx), which
+can be made available over the GraphQL API as a query or a mutation.
 
-```bash
-hasura3 cloud build apply --project-id <PROJECT_ID> --build-id <BUILD_ID>
-```
-
-:::tip Quickly find IDs for Projects and builds!
-
-You can use the following command to list your projects:
+First, we'll kill the `hasura watch` session by pressing `Ctrl + C` in the terminal. Then, we can create a new
+TypeScript connector using the following command in the project's root:
 
 ```bash
-hasura3 cloud project list
+hasura3 metadata add-hub-connector ts_logic --dir . --subgraph default --id hasura/ts-deno --url http://localhost:8100
 ```
 
-You can use the following command to list your builds:
+This command will create all necessary files required by the `ts-deno` connector, including the DataConnector metadata
+and TypeScript functions.
+
+Now that we added a new connector, head to the tab where `hasura3 watch` was running and restart the command. Deno's
+required to run the TypeScript connector locally, so you'll need to install it if you haven't already:
 
 ```bash
-hasura3 cloud build list --project-id <PROJECT_ID>
+# install deno
+curl -fsSL https://deno.land/x/install/install.sh | sh
+
+# start hasura watch
+hasura3 watch
 ```
 
-:::
+This command will now start the connector locally using `deno` and then creates a tunnel from Hasura Cloud to your local
+machine so that it is reachable.
 
-:::info What does it mean to apply a build?
+There will be a new file called `index.ts` in this directory. This file will contain a simple hello world function:
 
-Applying a build means that it's being promoted to your project's endpoint. **This is a new concept in Hasura which
-allows you to quickly iterate — and, if needed, roll back — your project's metadata to all of your users, worldwide.**
+```typescript
+// subgraphs/default/dataconnectors/ts_logic/index.ts
+export function hello(): string {
+  return "hello world";
+}
+```
 
-:::
+## Step 9: Track the function as a procedure
 
-## Step 8: Query your production endpoint
+Switch to VS Code and open `subgraphs/default/dataconnectors/ts_logic/ts_logic.hml`. The procedure `helloWorld` will be
+underlined with a code action to track the function as a command in the subgraph. This will create a command metadata
+object which will expose this function as a mutation. Just like before, your types will be generated for you.
 
-At the top of the Console, you'll see a toggle that allows you to switch between your project's API and your project's
-currently selected preview build. Toggle to your project's applied build:
+<Thumbnail src="/img/get-started/0.0.1_track-ts.png" alt="Track a function in VSCode" width="1000px" />
 
-<Thumbnail src="/img/get-started/0.1.1_console-view-project-graphiql.png" alt="Toggle production" width="1000px" />
+## Step 10: Execute the function using GraphiQL
 
-You can now execute a query against this endpoint.
+A new build has been generated for you. You can run the following mutation in the GraphiQL Explorer to execute the
+function:
+
+```graphql
+mutation tsFunctionQuery {
+  hello
+}
+```
+
+<Thumbnail src="/img/get-started/0.0.1_ts-mutation.png" alt="Track a function in VSCode" width="1000px" />
+
+Since Deno and Hasura are watching for changes, you can modify the function and it will automatically update the API and
+be available on DDN 🎉
+
+## Step 11: Apply a build to production
+
+As we've been developing our API, Hasura generated new builds for us in the background. We can see these builds by
+running the following command:
+
+```bash
+hasura3 build list
+```
+
+```
++---------------+-------------+------------+--------------------------------------------+--------------------------------+--------------------------------+
+| BUILD VERSION | ENVIRONMENT | IS APPLIED |                 BUILD URL                  |          DESCRIPTION           |           CREATED AT           |
++---------------+-------------+------------+--------------------------------------------+--------------------------------+--------------------------------+
+| dea725b352    | default     | true       | native-calf-5513-dea725b352.ddn.hasura.app | Watch build Thu, 30 Nov 2023   | Thu, 30 Nov 2023 15:35:00      |
+|               |             |            |                                            | 09:34:58 CST                   | +0000                          |
++---------------+-------------+------------+--------------------------------------------+--------------------------------+--------------------------------+
+```
+
+Watch mode also **automatically** applies the newest build to the environment it's watching. This is one reason why
+watch mode is incredibly powerful during development.
+
+If you're not using watch mode, you can apply a build — which means it will serve as the API for the current
+environment's build — using the following command:
+
+```bash
+hasura3 build apply --version <BUILD_VERSION>
+```
 
 ## What's next?
 

@@ -1,75 +1,81 @@
 ---
 sidebar_position: 1.5
 sidebar_label: OpenDD Introduction
-description:
-  Dive into the OpenDD spec, a versatile tool akin to Hasura v2 metadata, offering extra capabilities such as automatic
-  metadata generation and enhanced data source management. Understand the OpenDD spec structure, data connectors, types,
-  models, commands, relationships, and permissions.
+description: "Explore the enhanced capabilities of the Open Data Domain Specification (OpenDD spec). Understand how it provides an efficient tool for metadata generation, data source management, and lays the foundation for building API data domains. Learn the mechanism of data connectors and the corresponding specifications, models, commands, relationships, and permissions."
 keywords:
-  - opendd spec
-  - hasura metadata
-  - data domain management
-  - automatic metadata generation
-  - data source introspection
-  - metadata build process
-  - hasura ddn tooling
+  - opendd specification
+  - hasura ddn
+  - data connectivity
+  - data management
+  - api development
+  - metadata generation
   - data connectors
-  - models
-  - relationships
-  - permissions
+  - graphql api
+  - data modeling
+  - api permissions
 seoFrontMatterUpdated: true
 ---
 
 # Introduction
 
-If you've used Hasura before, you'll notice that the Open Data Domain Specification (OpenDD spec) is similar to Hasura
-v2 metadata, but with many extra capabilities.
+Hasura v3 introduces the OpenDD specification for constructing a supergraph. The metadata for Hasura v3 is an extension of the OpenDD spec, and adds some Hasura-specific configuration on top of OpenDD.
 
-The OpenDD metadata defines a space of what data types and features are available, where it resides, how it's related,
-how to access it, and who has authority to access it. Metadata is combined with Native Data Connector agents, which are
-services to communicate with data sources in order to deliver your API.
+The OpenDD metadata defines the data model for each subgraph, including the types of the data objects, models and commands used to interact with the data, and access control rules on this data.
+This data model is then combined with Native Data Connector agents, which are services to communicate with the raw data sources (like a database) in order to server your API.
 
 ## How is this different from Hasura v2 metadata?
 
-- Hasura V2 metadata was specifically designed for Hasura, whereas OpenDD is a specification that can also be used
-  outside Hasura by anyone as a source of truth for any data domain.
-- Functionally, the V2 metadata relied directly on the data source for information like columns and fields, whereas
-  OpenDD metadata is independent of the data source. In OpenDD, all fields and types are defined within the
-  specification itself which eliminates the necessity for data source schema introspection at startup to generate a
-  GraphQL schema. Instead, data source introspection occurs as part of the metadata authoring process.
+- Hasura V2 metadata was specifically designed for Hasura, whereas OpenDD is a general specification for modeling a data supergraph usable by anyone.
+  The bits of configuration in Hasura v3 metadata that are specific to Hasura reside outside of the OpenDD spec.
+- Functionally, the V2 metadata relied directly on the raw data source for information like columns and fields, whereas
+  OpenDD metadata is independent of the data source. In OpenDD, all fields and types are explicitly defined within the
+  metadata itself which eliminates the necessity for data source schema introspection at startup to generate a
+  GraphQL schema. Also, the v3 metadata is still semantically consistent even if the underlying data source has changed.
+- Compared to the v2 metadata, there is a lot more flexibility offered by OpenDD when configuring your GraphQL API.
 
 ## The OpenDD spec
 
-You can specify and combine data connectors, data types, models, relationships, permissions, and more in your OpenDD
-metadata in order to define your data domain.
+The OpenDD spec lets you define the following to configure your data graph:
+- Data Connectors - that will be used to access the raw sources of data.
+- Data types - using the OpenDD type system to give strong types to your data.
+- Models - collections of data objects that can be queried. These server as the interface for querying your data.
+- Commands - opaque functions or procedures that can be used to query or mutate data.
+- Relationships - creating edges in your graph from a data type to a model or a command.
+- Permissions - access control rules on your types / models / commands.
 
-In this way, your data domain specification is decoupled from any underlying database, data source or other physical
-layer of storage.
-
-This is powerful as it enables you to consistently deliver data with the same structure and authorization protocols.
+In this way, your data graph is decoupled from any underlying database, data source or other physical
+layer of storage. This is powerful as it enables you to consistently deliver data with the same structure and authorization rules.
 This consistency remains intact even when you make significant changes, such as transitioning from MySQL to PostgreSQL,
 adopting MongoDB for read operations and MySQL for write operations, altering your transactional email system, or
 switching payment providers.
 
-## Automatic metadata generation
+A metadata object is the fundamental building block of OpenDD and Hasura V3 metadata.
+Hasura v3 metadata is split into one supergraph configuration and any number of subgraph configurations.
 
-The new Hasura DDN tooling of Console and the
-[VS Code LSP](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) have built-in capabilities to
-autogenerate the OpenDD spec metadata from your existing data via the GUI console or CLI terminal commands.
-Alternatively, you can also author metadata manually.
+## Supergraph Configuration
 
-## OpenDD Spec Structure
+The supergraph configuration is an array of one of the following metadata objects:
+```yaml
+objects:
+  - kind: CompatibilityConfig
+    # ... (other properties for CompatibilityConfig)
+  - kind: AuthConfig
+    # ... (other properties for AuthConfig)
+```
 
-The OpenDD spec describes an array of OpenDD objects, consisting of the following kinds:
+More details about these can be found [here](/ci-cd/config.mdx#supergraph).
+
+## Subgraph Configuration
+
+There can be any number of subgraphs in your supergraph. Each subgraph has a name and a configuration consisting of an array of the following metadata objects:
 
 ```yaml
-metadata:
+name: my_subgraph
+objects:
   - kind: HasuraHubDataConnector
     # ... (other properties for HasuraHubDataConnector)
   - kind: DataConnector
     # ... (other properties for DataConnector)
-  - kind: AuthConfig
-    # ... (other properties for AuthConfig)
   - kind: ScalarType
     # ... (other properties for ScalarType)
   - kind: ObjectType
@@ -78,14 +84,14 @@ metadata:
     # ... (other properties for DataConnectorScalarRepresentation)
   - kind: Model
     # ... (other properties for Model)
-  - kind: Relationship
-    # ... (other properties for Relationship)
   - kind: Command
     # ... (other properties for Command)
-  - kind: ModelPermissions
-    # ... (other properties for ModelPermissions)
+  - kind: Relationship
+    # ... (other properties for Relationship)
   - kind: TypePermissions
     # ... (other properties for TypePermissions)
+  - kind: ModelPermissions
+    # ... (other properties for ModelPermissions)
   - kind: CommandPermissions
     # ... (other properties for CommandPermissions)
 ```
@@ -96,32 +102,32 @@ The [data connector](./data-connectors.mdx) will define where the data is coming
 a GraphQL API, etc. The data connector will use the [Native Data Connector](/connectors/overview.mdx) protocol to
 connect to the data source and fetch the data.
 
-### The HasuraHubDataConnector object {#hasura-hub-data-connector}
-
-The [`HasuraHubDataConnector`](./data-connectors.mdx) object allows you to configure a data connector directly from the
-[Connector Hub](https://hasura.io/connectors/).
-
 ### The DataConnector object
 
-The [`DataConnector`](./data-connectors.mdx) object describes a physical data connector.
+The [`DataConnector`](./data-connectors.mdx) object describes a physical data connector that is hosted at a URL that Hasura can talk to for serving queries.
+These data connectors are self-deployed and managed outside of the Hasura metadata.
+
+### The HasuraHubDataConnector object {#hasura-hub-data-connector}
+
+The [`HasuraHubDataConnector`](./data-connectors.mdx#hasura-hub-data-connector) object allows you to atomically configure and deploy a data connector available in the [Connector Hub](https://hasura.io/connectors/) directly from the metadata.
 
 ## Types
 
-[Types](./types.mdx) are a fundamental building block of OpenDD metadata with every bit of data in Open DDS having a
+[Types](./types.mdx) are a fundamental building block of OpenDD metadata with every bit of data in OpenDD having a
 type
 
 ### The ObjectType object
 
-The [`ObjectType`](./types.mdx#object-types) object allows you to create completely new types.
+The [`ObjectType`](./types.mdx#object-types) object allows you to create structured object types with fields.
 
 ### The ScalarType object
 
-The [`ScalarType`](./types.mdx#scalar-types) object allows aliasing other types.
+The [`ScalarType`](./types.mdx#scalar-types) object allows you to create opaque types whose semantics are unknown to OpenDD.
 
 ### The DataConnectorScalarRepresentation object
 
 The [`DataConnectorScalarRepresentation`](./types.mdx#scalar-type-representation) object allows you to define how a
-scalar type from a data source is represented as an OpenDD type.
+scalar type from a data connector (eg: varchar from postgres) is represented in your data graph.
 
 ## Models
 
@@ -131,22 +137,22 @@ database table, an ad-hoc SQL query, a pre-materialized view, a custom REST or G
 ### The Model object
 
 The [`Model`](./models.mdx) object represents a collection of data objects (like rows in a SQL table or documents in
-collection in a NoSQL database) of a certain [type](./types.mdx). A Model type also defines how the model and its types
+collection in a NoSQL database) of a certain [type](./types.mdx). A Model object also defines how the model and its types
 or fields map to entities in the underlying data source. It also defines how it is represented in the GraphQL API.
 
 ## Commands
 
 [Commands](./commands.mdx) are the other way of accessing data within the OpenDD spec. Commands are functions /
-procedures whose implementations are unknown to the spec except for their input arguments and output type.
+procedures whose implementations are unknown to OpenDD except for their input arguments and output type.
 
 ### The Command object
 
 The [Command](./commands.mdx) object defines the name of the command, the arguments to the command and the output type
-of the command.
+of the command. It also defines any mappings of arguments / types from OpenDD to their corresponding NDC versions.
 
 ## Relationships
 
-[Relationships](./relationships.mdx) allow you extend [type](./types.mdx) objects with related [models](./models.mdx)
+[Relationships](./relationships.mdx) allow you extend [object types](./types.mdx) with related [models](./models.mdx)
 which then allows you to query nested or linked information.
 
 ### The Relationship object
@@ -162,7 +168,7 @@ on [types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx).
 ### The TypePermissions object
 
 [`TypePermissions`](./permissions.mdx#type-permissions) define which fields are allowed to be accessed by a
-role. Defining permissions on output types is useful, as multiple models can return the same output type.
+role.
 
 ### The ModelPermissions object
 
@@ -171,5 +177,12 @@ allowed to be accessed by a role.
 
 ### The CommandPermissions object
 
-[`CommandPermissions`](./permissions.mdx#command-permissions) define which commands are allowed to be accessed by a
+[`CommandPermissions`](./permissions.mdx#command-permissions) define which commands are allowed to be executed by a
 role.
+
+## Automatic metadata generation
+
+The new Hasura DDN tooling of Console and the
+[VS Code Extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) have built-in capabilities to
+autogenerate the OpenDD spec metadata from your existing data via the GUI console or CLI terminal commands.
+Alternatively, you can also author metadata manually.
