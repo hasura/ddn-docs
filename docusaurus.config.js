@@ -214,7 +214,7 @@ const config = {
             position: 'right',
           },
           {
-            to: '/getting-started/overview/',
+            to: '/local-dev/',
             label: 'Get Started',
             position: 'right',
             className: 'nav-link_getting-started',
