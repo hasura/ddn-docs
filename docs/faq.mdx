@@ -32,13 +32,6 @@ causing any downtime. The new engine can also serve production-grade APIs from t
 since it accesses metadata on a per-request basis and benefits from vastly improved startup times. Essentially the cold
 start problem has been removed in DDN leading to zero-downtime rollouts.
 
-**Open Data Domain Specification (OpenDD Spec):** At the heart of Hasura API development is the OpenDD specification. It
-is a format which defines the structure of metadata used by the Hasura runtime engine. Think of the specification as an
-API contract generator helping you to reason about your data domains and model your applications and APIs. It is a
-significant update to the existing Hasura metadata structure with fixed types such as `models` and `commands`. And by
-ensuring that it is API protocol agnostic it is easily extended to other API technologies besides GraphQL such as gRPC
-and REST. [Learn more](/supergraph-modeling/overview.mdx).
-
 **Native Data Connector (NDC) Specification:** The NDC specification describes how the API request will be executed and
 how the engine will interact with the underlying data source and is a new data connectivity specification from Hasura.
 In DDN, there is now no concept of "native databases" and access to all data sources including PostgreSQL will be based
@@ -222,12 +215,12 @@ This meant that whenever the Hasura GraphQL Engine was initialized, it had to pr
 schema to create a GraphQL schema. This introduced delays at start-up especially if the data source was large or if
 there were network issues.
 
-OpenDD metadata operates differently as it is inherently self-contained and exists independent of any data source. This
-leads to instant startup and deploy times and ensures consistency as the system is no longer polling an underlying data
-source for schema information which may have changed.
+Hasura v3 Metadata operates differently as it is inherently self-contained and exists independent of any data source.
+This leads to instant startup and deploy times and ensures consistency as the system is no longer polling an underlying
+data source for schema information which may have changed.
 
-The OpenDD metadata has full coverage, and details like fields and their respective types are predefined and embedded
-within metadata. This design choice removes the need for the system to check the data source schema every time during
+This means your metadata has full coverage, and details like fields and their respective types are predefined and
+embedded within it. This design choice removes the need for the system to check the data source schema every time during
 startup to shape a GraphQL schema. Instead, this introspection or probing of the data source's structure is now carried
 out during the metadata creation, or build phase. This leads to massively improved startup times and ensures that the
 metadata is consistent and self-contained.
