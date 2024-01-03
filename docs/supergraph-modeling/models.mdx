@@ -1,7 +1,11 @@
 ---
 sidebar_position: 3
 sidebar_label: Models
-description: "Explore the concept of Models in Hasura Data Domain, your link between the data sources and the generated API. Learn about OpenDD models, their structure, source configuration, and how they appear in the GraphQL API. Understand filterable fields, orderable fields, data connector types, and how to configure them. Gain insights on unique identifiers and their role in retrieving unique data objects from the model."
+description:
+  "Explore the concept of Models in Hasura Data Domain, your link between the data sources and the generated API. Learn
+  about models, their structure, source configuration, and how they appear in the GraphQL API. Understand filterable
+  fields, orderable fields, data connector types, and how to configure them. Gain insights on unique identifiers and
+  their role in retrieving unique data objects from the model."
 toc_max_heading_level: 4
 keywords:
   - hasura models
@@ -17,7 +21,7 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-# OpenDD Models
+# Models
 
 ## Introduction
 
@@ -28,8 +32,8 @@ Once a model is declared it will then often be referenced by `Relationship` and/
 
 ## Description
 
-To create a model, you need to define an OpenDD object with `kind: Model` and `version: v1`. The object `definition`
-has the following fields:
+To create a model, you need to define an object with `kind: Model` and `version: v1`. The object `definition` has the
+following fields:
 
 ### Metadata structure
 
@@ -47,16 +51,16 @@ definition:
   orderableFields: [OrderableFields]
 ```
 
-| Field              | Type                                                                                 | Required | Description                                                                                   |
-| ------------------ | ------------------------------------------------------------------------------------ | -------- | --------------------------------------------------------------------------------------------- |
-| `name`             | `String`                                                                             | true     | Name of the model.                                                                            |
-| `objectType`       | `String`                                                                             | true     | [Type](/data-domain-modeling/types.mdx) of the objects in this model.                         |
-| `globalIDSource`   | `Boolean`                                                                            | true     | If this model should be used as the [Global ID](./global-id.mdx) source for its `objectType`. |
-| `source`           | [`SourceConfiguration`](/data-domain-modeling/models.mdx/#source)                    | false    | Source configuration for the model.                                                           |
-| `graphql`          | [`ModelGraphQLConfiguration`](data-domain-modeling/models.mdx/#graphql)              | false    | GraphQL configuration for the model.                                                          |
-| `arguments`        | [`[ArgumentDefinition]`](data-domain-modeling/common-syntax.mdx/#argumentdefinition) | true     | The argument definitions for the model.                                                       |
-| `filterableFields` | [`[FilterableFieldDefinition]`](#filterablefielddefinition)                          | true     | Filterable fields for the model.                                                              |
-| `orderableFields`  | [`[OrderableFieldDefinition]`](#orderablefielddefinition)                            | true     | Orderable fields for the model.                                                               |
+| Field              | Type                                                                                | Required | Description                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `name`             | `String`                                                                            | true     | Name of the model.                                                                            |
+| `objectType`       | `String`                                                                            | true     | [Type](/supergraph-modeling/types.mdx) of the objects in this model.                          |
+| `globalIDSource`   | `Boolean`                                                                           | true     | If this model should be used as the [Global ID](./global-id.mdx) source for its `objectType`. |
+| `source`           | [`SourceConfiguration`](/supergraph-modeling/models.mdx/#source)                    | false    | Source configuration for the model.                                                           |
+| `graphql`          | [`ModelGraphQLConfiguration`](supergraph-modeling/models.mdx/#graphql)              | false    | GraphQL configuration for the model.                                                          |
+| `arguments`        | [`[ArgumentDefinition]`](supergraph-modeling/common-syntax.mdx/#argumentdefinition) | true     | The argument definitions for the model.                                                       |
+| `filterableFields` | [`[FilterableFieldDefinition]`](#filterablefielddefinition)                         | true     | Filterable fields for the model.                                                              |
+| `orderableFields`  | [`[OrderableFieldDefinition]`](#orderablefielddefinition)                           | true     | Orderable fields for the model.                                                               |
 
 :::note Filterable/Orderable Fields support
 
@@ -76,15 +80,16 @@ source:
   typeMapping: <TypeMapping>
 ```
 
-| `source` Field  | Type                                             | Required | Description                                                                                             |
-| --------------- | ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------- |
-| `dataConnector` | `String`                                         | true     | Name of the source data connector backing this model.                                                   |
-| `collection`    | `String`                                         | true     | Name of the collection in the source data connector backing this model.                                 |
-| `typeMapping`   | [`TypeMapping`](./common-syntax.mdx#typemapping) | true     | Type mappings from OpenDD object types used within the model to the corresponding data connector types. |
+| `source` Field  | Type                                             | Required | Description                                                                                      |
+| --------------- | ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------ |
+| `dataConnector` | `String`                                         | true     | Name of the source data connector backing this model.                                            |
+| `collection`    | `String`                                         | true     | Name of the collection in the source data connector backing this model.                          |
+| `typeMapping`   | [`TypeMapping`](./common-syntax.mdx#typemapping) | true     | Type mappings from object types used within the model to the corresponding data connector types. |
 
 #### ModelGraphQLConfiguration {#graphql}
 
-ModelGraphQLConfiguration is an object that defines how the model should be surfaced in the GraphQL API. It has the following fields:
+ModelGraphQLConfiguration is an object that defines how the model should be surfaced in the GraphQL API. It has the
+following fields:
 
 ```yaml
 graphql:
@@ -96,7 +101,7 @@ graphql:
 ```
 
 | `graphql` Field         | Type                                | Required | Description                                             |
-| ----------------------- | ----------------------------------- | -------- | --------------------------------------------------------|
+| ----------------------- | ----------------------------------- | -------- | ------------------------------------------------------- |
 | `selectUniques`         | [`[SelectUniques]`](#selectuniques) | true     | Select uniques configuration for the model.             |
 | `selectMany`            | [`SelectMany`](#selectmany)         | false    | Select many configuration for the model.                |
 | `filterExpressionType`  | `String`                            | false    | GraphQL type name to use for the filter input.          |
@@ -105,9 +110,9 @@ graphql:
 
 ##### SelectUniques
 
-Select uniques is an array of objects that defines the unique identifiers for the model. For each select unique defined here,
-a query root field is added to the GraphQL API. For each field defined in the `uniqueIdentifier`, an input argument is added
-to the query root field which can be supplied to retrieve the unique identified object from the model.
+Select uniques is an array of objects that defines the unique identifiers for the model. For each select unique defined
+here, a query root field is added to the GraphQL API. For each field defined in the `uniqueIdentifier`, an input
+argument is added to the query root field which can be supplied to retrieve the unique identified object from the model.
 
 ```yaml
 selectUniques:
@@ -122,11 +127,16 @@ selectUniques:
 
 ##### SelectMany
 
-Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model.
-This field can accept the following arguments:
-- `args`, used for supplying the values for the model's arguments. This argument is generated only if the model has arguments and `argumentsInputType` is set in the ModelGraphQlConfiguration.
-- `where`, used for filtering the objects to retrieve. This argument is generated only if `filterExpressionType` is set in the ModelGraphQlConfiguration. The filter expression contains all the filterable fields and the `_and` / `_or` / `_not` logical operators.
-- `order_by`, used for sorting the retrieved objects. This argument is generated only if `orderByExpressionType` is set in the ModelGraphQlConfiguration. The order by expression contains all the orderable fields.
+Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple
+objects from the model. This field can accept the following arguments:
+
+- `args`, used for supplying the values for the model's arguments. This argument is generated only if the model has
+  arguments and `argumentsInputType` is set in the ModelGraphQlConfiguration.
+- `where`, used for filtering the objects to retrieve. This argument is generated only if `filterExpressionType` is set
+  in the ModelGraphQlConfiguration. The filter expression contains all the filterable fields and the `_and` / `_or` /
+  `_not` logical operators.
+- `order_by`, used for sorting the retrieved objects. This argument is generated only if `orderByExpressionType` is set
+  in the ModelGraphQlConfiguration. The order by expression contains all the orderable fields.
 - `limit`, used for limiting the number of retrieved objects.
 - `offset`, used for skipping the first `offset` objects when retrieving.
 
@@ -149,10 +159,11 @@ filterableFields:
     operators:
       enableAll: true
 ```
-| Field            | Type     | Required | Description                                                          |
-| ---------------- | -------- | -------- | -------------------------------------------------------------------- |
-| `fieldName`      | `String` | true     | Name of the field.                                                   |
-| `operators`      | `Object` | true     | Allowed operators (at the moment, we only support `enableAll: true`) |
+
+| Field       | Type     | Required | Description                                                          |
+| ----------- | -------- | -------- | -------------------------------------------------------------------- |
+| `fieldName` | `String` | true     | Name of the field.                                                   |
+| `operators` | `Object` | true     | Allowed operators (at the moment, we only support `enableAll: true`) |
 
 #### OrderableFieldDefinition
 
@@ -226,8 +237,8 @@ definition:
         enableAll: true
 ```
 
-Assuming the ObjectType was defined like [this](/data-domain-modeling/types.mdx/#object-type-examples), and the scalar types corresponding to the fields had
-appropriate comparison expressions defined, the resulting GraphQl API will be:
+Assuming the ObjectType was defined like [this](/supergraph-modeling/types.mdx/#object-type-examples), and the scalar
+types corresponding to the fields had appropriate comparison expressions defined, the resulting GraphQl API will be:
 
 ```graphql
 type Query {

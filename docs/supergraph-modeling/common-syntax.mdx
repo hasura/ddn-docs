@@ -1,10 +1,13 @@
 ---
 sidebar_position: 10
-sidebar_label: Common OpenDD Spec Syntax
-description: "In-depth guide to common OpenDD Spec Syntax in Hasura including ModelPredicate, FieldComparison, and RelationshipPredicate. Learn how to effectively define filtering and permissions, compare fields, and create relationship predicates."
+sidebar_label: Supergraph Modeling Syntax
+description:
+  "In-depth guide to Supergraph Modeling Syntax in Hasura including ModelPredicate, FieldComparison, and
+  RelationshipPredicate. Learn how to effectively define filtering and permissions, compare fields, and create
+  relationship predicates."
 keywords:
   - hasura ddn
-  - opendd syntax
+  - supergraph syntax
   - hasura metadata
   - graphql api design
   - api development
@@ -17,11 +20,12 @@ seoFrontMatterUpdated: true
 toc_max_heading_level: 4
 ---
 
-# Common OpenDD Syntax
+# Supergraph Modeling Syntax
 
 ## ModelPredicate {#modelpredicate}
 
-A `ModelPredicate` is used to define the boolean expression for filtering the objects within a model, and is typically used when defining permissions.
+A `ModelPredicate` is used to define the boolean expression for filtering the objects within a model, and is typically
+used when defining permissions.
 
 <div>
   <pre>
@@ -41,7 +45,8 @@ A `ModelPredicate` is used to define the boolean expression for filtering the ob
 
 ### FieldComparison
 
-This predicate filters objects where the particular `field` of the object returns true when the specified comparison operator `operator` is applied with the `value` as input.
+This predicate filters objects where the particular `field` of the object returns true when the specified comparison
+operator `operator` is applied with the `value` as input.
 
 ```yaml
 fieldComparison:
@@ -58,7 +63,9 @@ fieldComparison:
 
 ### RelationshipPredicate
 
-This predicate evaluates to true if any of the corresponding target objects of the relationship of the source model's object type with `name` meet the nested `predicate`.
+This predicate evaluates to true if any of the corresponding target objects of the relationship of the source model's
+object type with `name` meet the nested `predicate`.
+
 ```yaml
 relationship:
   name: <RelationshipName>
@@ -73,6 +80,7 @@ relationship:
 ### AndExp
 
 This predicates evaluates to true if all sub-predicates of `and` evaluate to true.
+
 <div>
   <pre>
     <code>
@@ -119,8 +127,8 @@ This predicates evaluates to true if the sub-predicates of `not` evaluates to fa
 
 ## ValueExpression
 
-An expression which evaluates to a value that can be used in comparison expressions, etc.
-This expression can either be a literal value or a reference to a session variable.
+An expression which evaluates to a value that can be used in comparison expressions, etc. This expression can either be
+a literal value or a reference to a session variable.
 
 <div>
   <pre>
@@ -160,37 +168,35 @@ sessionVariable: x-hasura-user-id
 
 ## TypeMapping {#typemapping}
 
-The `typemapping` is used by [models](/data-domain-modeling/models.mdx) and
-[commands](/data-domain-modeling/commands.mdx) to define the mapping between the fields of the OpenDD types used in the model/command and
-the fields of the corresponding types in the data connector. It has the following fields:
+The `typemapping` is used by [models](/supergraph-modeling/models.mdx) and [commands](/supergraph-modeling/commands.mdx)
+to define the mapping between the fields of the types used in the model/command and the fields of the corresponding
+types in the data connector. It has the following fields:
 
 ```yaml
-<OpenDDTypeName>:
+<TypeName>:
   fieldMapping: <FieldMapping>
-
 ```
 
-| Field             | Type                            | Required | Description                                                                            |
-| ----------------- | ------------------------------- | -------- | -------------------------------------------------------------------------------------- |
-| `OpenDDTypeName`  | `String`                        | true     | Name of the OpenDD object type which is being mapped.                                   |
-| `fieldMapping`    | [`FieldMapping`](#fieldmapping) | true     | The field mapping between the OpenDD object type and the corresponding NDC object type. |
+| Field          | Type                            | Required | Description                                                                      |
+| -------------- | ------------------------------- | -------- | -------------------------------------------------------------------------------- |
+| `TypeName`     | `String`                        | true     | Name of the object type which is being mapped.                                   |
+| `fieldMapping` | [`FieldMapping`](#fieldmapping) | true     | The field mapping between the object type and the corresponding NDC object type. |
 
 ## FieldMapping {#fieldmapping}
 
-The `fieldMapping` is used by [`typemapping`](#typemapping) to define mapping for the fields of the `OpenDDTypeName`.
+The `fieldMapping` is used by [`typemapping`](#typemapping) to define mapping for the fields of the `TypeName`.
 
 It has the following fields:
 
 ```yaml
-<OpenDDFieldName>:
+<FieldName>:
   column: <String>
-
 ```
 
-| Field              | Type     | Required | Description                                                                                                     |
-| ------------------ | -------- | -------- | --------------------------------------------------------------------------------------------------------------- |
-| `OpenDDFieldName`  | `String` | true     | Name of the field in the OpenDD object type.                                                                     |
-| `column`           | `String` | true     | The name of the field in the NDC object type.                                                                    |
+| Field       | Type     | Required | Description                                   |
+| ----------- | -------- | -------- | --------------------------------------------- |
+| `FieldName` | `String` | true     | Name of the field in the object type.         |
+| `column`    | `String` | true     | The name of the field in the NDC object type. |
 
 ## ArgumentDefinition {#argumentdefinition}
 
@@ -209,13 +215,17 @@ type: <TypeReference>
 
 ## Secret references {#secret}
 
-Instead of embedding sensitive values in the metadata, certain fields can be set using [secrets](/ci-cd/secrets.mdx) stored in DDN.
+Instead of embedding sensitive values in the metadata, certain fields can be set using [secrets](/ci-cd/secrets.mdx)
+stored in DDN.
 
 To embed a value directly without using a secret:
+
 ```
 value: <your value>
 ```
+
 To use a value via a secret:
+
 ```
 stringValueFromSecret: <secret name>
 ```
