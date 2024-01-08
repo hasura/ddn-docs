@@ -153,7 +153,10 @@ select:
 
 ### Examples
 
-Below, we're creating a set of `ModelPermissions` on the `Articles` model for the roles `admin`, `user_1`, and `user_2`.
+Below, we're creating a set of `ModelPermissions` on the `Author` model for the
+roles `admin`, `user_1`, and `user_2`. The `Author` model has a object
+relationship with `Article` model named as `Article`. The `Article` model has a `ModelPermission`
+defined for `user_3` role which allows access to all `Article` rows.
 
 As the `select` object for `admin` role is empty, it will return all rows.
 
@@ -162,6 +165,10 @@ the `x-hasura-user-id` session variable.
 
 The `user_2` role's `select` object has a filter predicate that will return rows where the `title` field is like the
 string `Functional`.
+
+The `user_3` role's `select` object has a filter predicate that will return rows
+where the `article_id` field from the `Article` relations  is equal to the
+`x-hasura-article-id` session variable.
 
 ```yaml
 kind: ModelPermissions
@@ -189,6 +196,17 @@ definition:
                 operator: _like
                 value:
                   literal: "%Functional%"
+    - role: user_3
+      select:
+        filter:
+          relationship:
+            name: Article
+            predicate:
+              fieldComparison:
+                field: article_id
+                operator: _eq
+                value:
+                  sessionVariable: x-hasura-article-id
 ```
 
 :::info Models are inaccessible when undefined for a role
