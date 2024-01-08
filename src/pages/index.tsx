@@ -20,15 +20,13 @@ function HomepageHeader() {
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
         </div>
-        <div className={styles.links} className="flex justify-center flex-wrap">
+        <div className='flex justify-center flex-w'>
           <Link className="button button--primary button--lg m-2" to="/index">
             Hasura Docs
           </Link>
-          <div className={styles.links}>
-            <Link className="button button--secondary button--lg m-2" to="/wiki/">
-              Docs Wiki
-            </Link>
-          </div>
+          <Link className="button button--secondary button--lg m-2" to="/wiki/">
+            Docs Wiki
+          </Link>
         </div>
         <img src={"/img/hasuras.png"} alt="Hasuras Image" />
       </div>
