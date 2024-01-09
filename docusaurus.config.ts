@@ -1,7 +1,6 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-import path from "path";
 
 const config: Config = {
   title: 'Hasura GraphQL Docs',
@@ -96,68 +95,56 @@ const config: Config = {
   ],
   themeConfig: {
     // Replace with your project's social card
-    // image: 'img/docusaurus-social-card.jpg',
-    // navbar: {
-    //   title: '',
-    //   logo: {
-    //     alt: 'My Site Logo',
-    //     src: 'img/logo.svg',
-    //   },
-    //   items: [
-    //     // {
-    //     //   type: 'docSidebar',
-    //     //   sidebarId: 'tutorialSidebar',
-    //     //   position: 'left',
-    //     //   label: 'Tutorial',
-    //     // },
-    //     // {
-    //     //   href: 'https://github.com/facebook/docusaurus',
-    //     //   label: 'GitHub',
-    //     //   position: 'right',
-    //     // },
-    //   ],
-    // },
-    // footer: {
-    //   style: 'dark',
-    //   links: [
-    //     {
-    //       title: 'Docs',
-    //       items: [
-    //         {
-    //           label: 'Tutorial',
-    //           to: '/docs/intro',
-    //         },
-    //       ],
-    //     },
-    //     {
-    //       title: 'Community',
-    //       items: [
-    //         {
-    //           label: 'Stack Overflow',
-    //           href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-    //         },
-    //         {
-    //           label: 'Discord',
-    //           href: 'https://discordapp.com/invite/docusaurus',
-    //         },
-    //         {
-    //           label: 'Twitter',
-    //           href: 'https://twitter.com/docusaurus',
-    //         },
-    //       ],
-    //     },
-    //     {
-    //       title: 'More',
-    //       items: [
-    //         {
-    //           label: 'GitHub',
-    //           href: 'https://github.com/facebook/docusaurus',
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
-    // },
+    image: 'img/docusaurus-social-card.jpg',
+    algolia: {
+      appId: '7M3BTIV34B',
+      // Public API key: it is safe to commit it
+      apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
+      indexName: 'hasura',
+    },
+    announcementBar: {
+      id: 'announcementBar-3', // Increment on change
+      content: `⭐️ If you like Docusaurus, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/facebook/docusaurus">GitHub</a> and follow us on <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/docusaurus" >Twitter</a>`,
+    },
+    navbar: {
+      title: '',
+      logo: {
+        alt: 'My Site Logo',
+        src: 'img/logo.svg',
+      },
+      items: [
+        {
+          type: 'docsVersionDropdown',
+          position: 'left',
+          dropdownActiveClassDisabled: true,
+          dropdownItemsAfter: [
+            {
+              href: 'https://hasura.io/docs/1.0/graphql/core/index.html',
+              label: 'v1.x',
+            },
+          ],
+        },
+        {
+          type: 'search',
+          position: 'left',
+        },
+        {
+          to: 'https://hasura.io/',
+          label: 'Hasura.io',
+          position: 'right',
+        },
+        {
+          to: 'https://hasura.io/learn/',
+          label: 'Tutorials',
+          position: 'right',
+        },
+        {
+          to: 'https://cloud.hasura.io/login',
+          label: 'Log In',
+          position: 'right',
+        },
+      ],
+    },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
