@@ -22,20 +22,27 @@ seoFrontMatterUpdated: true
 
 Hasura v3 introduces the concept of the data supergraph.
 
-Your supergraph metadata defines the data models for each subgraph, including the types of the data objects, models and
+The Hasura metadata defines the data models for each subgraph, including the types of the data objects, models and
 commands used to interact with the data, and access control rules on this data. This data model is then combined with
 Native Data Connector agents, which are services to communicate with the raw data sources (like a database) in order to
-server your API.
+serve your API.
 
 ## How is this different from Hasura v2 metadata?
 
-- Hasura V2 metadata was specifically designed for Hasura, whereas Hasura v3 utilizes a general specification for
-  modeling a data supergraph usable by anyone.
-- Functionally, the V2 metadata relied directly on the raw data source for information like columns and fields, whereas
+- Hasura v2 metadata was specifically designed for GraphQL and included database-level modeling constructs such as
+  Postgres tables, whereas Hasura v3 utilizes a general specification that is not coupled to GraphQL and introduces new
+  abstract constructs such as models and commands that are common across different data sources.
+- Functionally, the v2 metadata relied directly on the raw data source for information like columns and fields, whereas
   supergraph metadata is independent of the data source. All fields and types are explicitly defined within the metadata
   itself which eliminates the necessity for data source schema introspection at startup to generate a GraphQL schema.
   Also, the v3 metadata is still semantically consistent even if the underlying data source has changed.
 - Compared to the v2 metadata, there is a lot more flexibility offered when configuring your GraphQL API.
+
+In this way, your data supergraph is decoupled from any underlying database, data source, or other physical layer of
+storage. This is powerful as it enables you to consistently deliver data with the same structure and authorization
+rules. This consistency remains intact even when you make significant changes, such as transitioning from MySQL to
+PostgreSQL, adopting MongoDB for read operations and MySQL for write operations, altering your transactional email
+system, or switching payment providers.
 
 ## Supergraph Configuration
 
