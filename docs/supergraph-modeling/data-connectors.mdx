@@ -1,7 +1,10 @@
 ---
 sidebar_position: 3
 sidebar_label: Data Connectors
-description: "Docs for the configuration of OpenDD Data Connectors in Hasura. Learn how to connect to SQL & NoSQL databases, REST APIs, GraphQL API and more by specifying a connector URL and schema. Increase flexibility and efficiency by defining schema types, leveraging atomic builds, and implementing structured data model configuration."
+description:
+  "Docs for the configuration of data connectors in Hasura. Learn how to connect to SQL & NoSQL databases, REST APIs,
+  GraphQL API and more by specifying a connector URL and schema. Increase flexibility and efficiency by defining schema
+  types, leveraging atomic builds, and implementing structured data model configuration."
 keywords:
   - hasura opendd
   - data connector url
@@ -12,28 +15,25 @@ keywords:
   - database connectivity
   - nosql databases
   - sql databases
-  - opendd data connectors
 toc_max_heading_level: 4
 seoFrontMatterUpdated: true
 ---
 
-# OpenDD Data Connectors
+# Data Connectors
 
 ## Introduction
 
 A data connector is a way to specify where your data comes from and how it can be used. It can connect to various types
 of data sources, like SQL databases, NoSQL databases, REST APIs, GraphQL APIs, files, and more.
 
-You can declare a data connector and use it in your [model's](/data-domain-modeling/models.mdx) configuration
-by [referencing it with the `source`](/data-domain-modeling/models.mdx/#source) property, which connects that model to
-the respective data connector.
-
-In the Open Data Domain Specification (OpenDD spec), you can connect to data sources through a `DataConnector` or a `HasuraHubDataConnector`.
+You can declare a data connector and use it in your [model's](/supergraph-modeling/models.mdx) configuration by
+[referencing it with the `source`](/supergraph-modeling/models.mdx/#source) property, which connects that model to the
+respective data connector.
 
 ## DataConnector
 
-To create a data connector object, you will need to define an object with `kind: DataConnector` and `version: v1`.
-The object `definition` should include four fields: `name`, `url`, `headers` and `schema`.
+To create a data connector object, you will need to define an object with `kind: DataConnector` and `version: v1`. The
+object `definition` should include four fields: `name`, `url`, `headers` and `schema`.
 
 ```yaml
 kind: DataConnector
@@ -54,8 +54,8 @@ definition:
 
 ### DataConnectorURL
 
-`DataConnectorURL` is an object that either defines a single URL for the data connector or separate read/write URLs
-for the data connector. For example, it can take either of the following
+`DataConnectorURL` is an object that either defines a single URL for the data connector or separate read/write URLs for
+the data connector. For example, it can take either of the following
 
 ```yaml
 url:
@@ -77,8 +77,9 @@ Similarly, for a `Mutation` operation, the `write` URL will be used.
 ### DataConnectorHeaders
 
 `DataConnectorHeaders` is an object that defines the headers to be forwarded to the data connector when making requests.
-The keys of this object are header names and the values are the header values in the [secret syntax](./common-syntax.mdx#secret).
-E.g., if a bearer authorization token needs to be forwarded, the headers field would be:
+The keys of this object are header names and the values are the header values in the
+[secret syntax](./common-syntax.mdx#secret). E.g., if a bearer authorization token needs to be forwarded, the headers
+field would be:
 
 ```yaml
 headers:
@@ -87,6 +88,7 @@ headers:
 ```
 
 or if the header is coming from a secret:
+
 ```
 headers:
   Authorization:
@@ -277,11 +279,13 @@ definition:
 
 ## HasuraHubDataConnector {#hasura-hub-data-connector}
 
-Instead of deploying your own data connector, Hasura metadata also allows you to directly configure and use one of the standard data connectors from the [Connector Hub](https://hasura.io/connectors/).
+Instead of deploying your own data connector, Hasura metadata also allows you to directly configure and use one of the
+standard data connectors from the [Connector Hub](https://hasura.io/connectors/).
 
 ### Metadata Object
 
 To configure a HasuraHubDataConnector, you will need to add the following metadata object:
+
 ```yaml
 kind: HasuraHubDataConnector
 version: v1
@@ -291,33 +295,36 @@ definition:
   connectorConfiguration: <ConnectorConfigurations>
 ```
 
-| Field                    | Type                                                  | Required | Description                                                                                                                            |
-| ------------------------ | ----------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                   | `String`                                              | true     | Name of the Data Connector.                                                                                                            |
-| `connectorId`            | `String`                                              | true     | The Connector Hub ID of the connector to configure. Currently, only `hasura/postgres` is supported.                                    |
-| `connectorConfiguration` | [[`ConnectorConfiguration`](#connectorConfiguration)] | true     | The configurations to deploy the connector, one for every region that the connector should be deployed in.                             |
+| Field                    | Type                                                  | Required | Description                                                                                                |
+| ------------------------ | ----------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `name`                   | `String`                                              | true     | Name of the Data Connector.                                                                                |
+| `connectorId`            | `String`                                              | true     | The Connector Hub ID of the connector to configure. Currently, only `hasura/postgres` is supported.        |
+| `connectorConfiguration` | [[`ConnectorConfiguration`](#connectorConfiguration)] | true     | The configurations to deploy the connector, one for every region that the connector should be deployed in. |
 
 #### ConnectorConfiguration {#connectorConfiguration}
 
-ConnectorConfiguration defines the configuration to deploy a connector in a particular region.
-Typically, you want to deploy the connector in a region that's closest to your database. The NDC schemas for deployments across all regions must be identical.
+ConnectorConfiguration defines the configuration to deploy a connector in a particular region. Typically, you want to
+deploy the connector in a region that's closest to your database. The NDC schemas for deployments across all regions
+must be identical.
 
 The structure of ConnectorConfiguration is as follows:
+
 ```yaml
 region: <String>
 mode: <ReadOnly / ReadWrite / WriteOnly>
 configuration: <Connector specific configuration>
 ```
 
-| Field                    | Type                                                  | Required | Description                                                                                                                            |
-| ------------------------ | ----------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `region`                 | `String`                                              | true     | Name of the cloud region. Eg: gcp-asia-south1                                                                                          |
-| `mode`                   | `String`                                              | true     | Whether this connector should support reads only, writes only, or both.                                                                |
-| `connectorConfiguration` | `Any`                                                 | true     | The configuration specific to the connector ID you chose from the Hub.                                                                 |
+| Field                    | Type     | Required | Description                                                             |
+| ------------------------ | -------- | -------- | ----------------------------------------------------------------------- |
+| `region`                 | `String` | true     | Name of the cloud region. Eg: gcp-asia-south1                           |
+| `mode`                   | `String` | true     | Whether this connector should support reads only, writes only, or both. |
+| `connectorConfiguration` | `Any`    | true     | The configuration specific to the connector ID you chose from the Hub.  |
 
 ### Example
 
 In this example we are configuring a postgres data connector using a postgres database URL in a single region.
+
 ```yaml
 kind: HasuraHubDataConnector
 version: v1
@@ -335,4 +342,5 @@ definition:
         metadata: <...>
 ```
 
-After populating the URL, typically, the rest of configuration will be automatically authored through tooling (eg: Hasura VSCode extension).
+After populating the URL, typically, the rest of configuration will be automatically authored through tooling (eg:
+Hasura VSCode extension).
