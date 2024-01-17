@@ -24,7 +24,8 @@ seoFrontMatterUpdated: true
 ## Introduction
 
 A relationship allows you to query nested or linked information, for example from `Manufacturers` to `Products`. A
-relationship allows you extend [type](./types.mdx) objects with related [models](./models.mdx).
+relationship allows you extend [type](./types.mdx) objects with related
+[models](./models.mdx) or related [commands](./commands.mdx).
 
 To create a relationship, you will need to define an object with `kind: Relationship` and `version: v1`. The object
 `definition` has a `name`, the `source` type, a `target` model and the `mapping` between the two.
@@ -37,18 +38,18 @@ version: v1
 definition:
   source: <String>
   name: <String>
-  target: <TargetConfiguration>
+  target: <TargetModelConfiguration> | <TargetCommandConfiguration>
   mapping: <RelationshipMapping>
 ```
 
-| Field     | Type                                            | Required | Description                                                                                      |
-| --------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `source`  | `String`                                        | true     | The source [type](./types.mdx) of the relationship.                                              |
-| `name`    | `String`                                        | true     | The name of the relationship.                                                                    |
-| `target`  | [`TargetConfiguration`](#targetconfiguration)   | true     | The target of the relationship.                                                                  |
-| `mapping` | [`[RelationshipMapping]`](#relationshipmapping) | true     | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
+| Field     | Type                                                                                                                   | Required | Description                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `source`  | `String`                                                                                                               | true     | The source [type](./types.mdx) of the relationship.                                              |
+| `name`    | `String`                                                                                                               | true     | The name of the relationship.                                                                    |
+| `target`  | [`TargetModelConfiguration`](#targetmodelconfiguration) \| [`TargetCommandConfiguration`](#targetcommandconfiguration) | true     | The target of the relationship: either `Model` or `Command`.                                     |
+| `mapping` | [`[RelationshipMapping]`](#relationshipmapping)                                                                        | true     | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
 
-#### TargetConfiguration
+#### TargetModelConfiguration
 
 ```yaml
 target:
@@ -58,6 +59,17 @@ target:
 | Field   | Type                          | Required | Description                                            |
 | ------- | ----------------------------- | -------- | ------------------------------------------------------ |
 | `model` | [`TargetModel`](#targetmodel) | true     | The target [model](./models.mdx) for the relationship. |
+
+#### TargetCommandConfiguration
+
+```yaml
+target:
+  command: <TargetCommand>
+```
+
+| Field   | Type                              | Required | Description                                                |
+| ------- | --------------------------------- | -------- | ---------------------------------------------------------- |
+| `model` | [`TargetCommand`](#targetcommand) | true     | The target [command](./commands.mdx) for the relationship. |
 
 #### TargetModel
 
@@ -73,6 +85,19 @@ model:
 | `name`             | `String`                                | true     | The name of the target model.                                                                   |
 | `subgraph`         | `String`                                | false    | The subgraph of the target model. Defaults to the subgraph of the relationship metadata object. |
 | `relationshipType` | [`RelationshipType`](#relationshiptype) | true     | The type of the relationship: either `Object` or `Array`.                                       |
+
+#### TargetCommand
+
+```yaml
+command:
+  name: <String>
+  subgraph: <String>
+```
+
+| Field      | Type     | Required | Description                                                                                       |
+| ---------- | -------- | -------- | ------------------------------------------------------------------------------------------------- |
+| `name`     | `String` | true     | The name of the target command.                                                                   |
+| `subgraph` | `String` | false    | The subgraph of the target command. Defaults to the subgraph of the relationship metadata object. |
 
 #### RelationshipType
 
@@ -92,13 +117,13 @@ Defines how the source type maps to the target model in this relationship. The m
 ```yaml
 mapping:
   - source: <RelationshipMappingSource>
-    target: <RelationshipMappingTarget>
+    target: <RelationshipModelMappingTarget> | <RelationshipCommandMappingTarget>
 ```
 
-| Field    | Type                                                      | Required | Description                      |
-| -------- | --------------------------------------------------------- | -------- | -------------------------------- |
-| `source` | [`RelationshipMappingSource`](#relationshipmappingsource) | true     | The source link of this mapping. |
-| `target` | [`RelationshipMappingTarget`](#relationshipmappingtarget) | true     | The target link of this mapping. |
+| Field    | Type                                                                                                                                           | Required | Description                                                                                          |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `source` | [`RelationshipMappingSource`](#relationshipmappingsource)                                                                                      | true     | The source link of this mapping.                                                                     |
+| `target` | [`RelationshipModelMappingTarget`](#relationshipmodelmappingtarget) \| [`RelationshipCommandMappingTarget`](#relationshipcommandmappingtarget) | true     | The target link of this mapping: either be mapped to fields of a `Model` or arguments of a `Command` |
 
 #### RelationshipMappingSource
 
@@ -112,7 +137,7 @@ source:
 | ----------- | ------------------------------- | -------- | ---------------------------------- |
 | `fieldPath` | [`[FieldAccess]`](#fieldaccess) | true     | The field path of the source link. |
 
-#### RelationshipMappingTarget
+#### RelationshipModelMappingTarget
 
 ```yaml
 target:
@@ -123,6 +148,18 @@ target:
 | Field        | Type                            | Required | Description                                                 |
 | ------------ | ------------------------------- | -------- | ----------------------------------------------------------- |
 | `modelField` | [`[FieldAccess]`](#fieldaccess) | true     | The field path of the target model the source link maps to. |
+
+#### RelationshipCommandMappingTarget
+
+```yaml
+target:
+  argument:
+    - <ArgumentName>
+```
+
+| Field      | Type                            | Required | Description                                                 |
+| ---------- | ------------------------------- | -------- | ----------------------------------------------------------- |
+| `argument` | [`ArgumentName`](#argumentname) | true     | The argument of the target command the source link maps to. |
 
 #### FieldAccess
 
@@ -136,9 +173,21 @@ fieldName: <FieldName>
 | ----------- | -------- | -------- | -------------------------------------------- |
 | `fieldName` | `String` | true     | The name of the field for this path element. |
 
+#### ArgumentName
+
+Defines the name of the argument.
+
+```yaml
+argumentName: <ArgumentName>
+```
+
+| Field          | Type     | Required | Description               |
+| -------------- | -------- | -------- | ------------------------- |
+| `argumentName` | `String` | true     | The name of the argument. |
+
 ## Example
 
-### Basic relationship
+### Basic model relationship
 
 Let's add the following relationships to the above types.
 
@@ -202,13 +251,69 @@ type Articles {
 }
 ```
 
-:::info Local and Remote Relationships
+### Basic command relationship
 
-Syntactically, there are no differences between local (e.g., a relationship between two columns in the same datasource,
-or an existing foreign-key relationship) or remote (a relationship across two different data sources) relationships.
-Hasura DDN will automatically detect the type of relationship and make the optimal query plan accordingly.
+Let's add the following relationships to the above types.
 
-:::
+1. Relationship to retrieve the `Author` of an `Article` (here the command `get_author` takes in the `author_id` of the author
+   and returns the `AuthorFromCommand`):
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  source: article
+  name: author
+  target:
+    command:
+      name: get_author
+  mappings:
+    - source:
+        fieldPath:
+          - fieldName: author_id
+      target:
+        argument:
+          - argumentName: id
+```
+
+2. Relationship to retrieve the `Articles` of an `Author` (here the command `get_articles` takes in the `id` of the
+   author and returns an array of `ArticleFromCommand`):
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  source: author
+  name: articles
+  target:
+    command:
+      name: get_articles
+  mappings:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        argument:
+          - argumentName: id
+```
+
+The resulting GraphQL schema will appear as:
+
+```graphql
+type Authors {
+  author_id: Int!
+  first_name: String!
+  last_name: String!
+  articles: [ArticleFromCommand!]!
+}
+
+type Articles {
+  id: Int!
+  author_id: Int!
+  title: String!
+  author: AuthorFromCommand!
+}
+```
 
 ### Relationship across subgraphs
 
@@ -264,9 +369,17 @@ definition:
           - fieldName: id
 ```
 
+:::info Local and Remote Relationships
+
+Syntactically, there are no differences between local (e.g., a relationship between two columns in the same datasource,
+or an existing foreign-key relationship) or remote (a relationship across two different data sources) relationships.
+Hasura DDN will automatically detect the type of relationship and make the optimal query plan accordingly.
+
+:::
+
 :::info Current limitations
 
-1. Only types to top-level model types relationships are supported.
-2. Simple top-level type field to top-level model field mapping are supported.
-
+1. Only types to top-level model/command types relationships are supported.
+2. Simple top-level type field to top-level model field/command argument mapping are supported.
+3. Only type to function based commands are supported.
 :::
