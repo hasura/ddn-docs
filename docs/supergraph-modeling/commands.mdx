@@ -27,10 +27,26 @@ logic directly from your GraphQL API. You can use them to validate, process, or 
 log a user in. As an example, with commands you can connect to a REST endpoint which can be your own custom server, a
 public API, or a serverless function.
 
+### Functions
+
+Functions are used for **read** operations. They will not modify the data in the database. They can only be used to
+retrieve data.
+
+### Procedures
+
+Procedures are used for **write** operations. They can modify the data in the database. They can be used to create,
+update, or delete data.
+
+:::info Using commands in relationships
+
+As relationships are a querying construct, **only functions** can be used in relationships.
+
+:::
+
+## Metadata structure
+
 To create a command, you need to define an object with `kind: Command` and `version: v1`. The object `definition` has
 the following fields:
-
-### Metadata structure
 
 ```yaml
 kind: Command
@@ -51,7 +67,7 @@ definition:
 | `source`     | [`CommandSourceConfiguration`](#commandsourceconfiguration)                         | true     | Source configuration for the command.                  |
 | `graphql`    | [`GraphQLConfiguration`](#graphqlconfiguration)                                     | true     | GraphQL configuration for the command.                 |
 
-#### CommandSourceConfiguration {#commandsourceconfiguration}
+### CommandSourceConfiguration {#commandsourceconfiguration}
 
 Source is an object that defines the source data connector for the command. It has the following fields:
 
@@ -72,7 +88,7 @@ A command can either be backed by a function or a procedure.
 | `typeMapping`          | [`TypeMapping`](./common-syntax.mdx#typemapping) | false    | [Type](./types.mdx) mappings for the command from the types used in the command inputs/outputs to the corresponding data connector types. |
 | `argumentMapping`      | [`ArgumentMapping`](#argumentmapping)            | false    | Mappings for the argument names of the command to their corresponding data connector names.                                               |
 
-##### DataConnectorCommand {#dataconnectorcommand}
+#### DataConnectorCommand {#dataconnectorcommand}
 
 DataConnectorCommand is an object that defines the NDC `function` or `procedure` to use for executing this command.
 
@@ -86,13 +102,7 @@ dataConnectorCommand:
 | ------------------------ | -------- | -------- | --------------------------------------------------------------- |
 | `function` / `procedure` | `String` | true     | Name of the function or procedure. One of these must be chosen. |
 
-:::info Functions or Procedures?
-
-Functions are used for read operations and procedures are used for write operations.
-
-:::
-
-##### ArgumentMapping {#argumentmapping}
+#### ArgumentMapping {#argumentmapping}
 
 The `argumentMapping` is used to define the mapping between the `arguments` of the command and the arguments of the
 `function` or `procedure` in the data connector. It has the following fields:
@@ -107,7 +117,7 @@ argumentMappings:
 | `ArgumentName`    | `String` | true     | Name of the argument of the command                                                   |
 | `NDCArgumentName` | `String` | true     | The name of the argument in function or procedure to which the `ArgumentName` maps to |
 
-#### GraphQLConfiguration {#graphqlconfiguration}
+### GraphQLConfiguration {#graphqlconfiguration}
 
 GraphQL is an object that defines how the command should be surfaced in the GraphQL API. The command can show up either
 under the query root field or under the mutation root field. This can be configured as follows:
