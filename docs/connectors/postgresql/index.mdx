@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 1
 sidebar_label: PostgreSQL
 description: "Dive into the Hasura's Native Data Connector for PostgreSQL."
 keywords:
@@ -18,7 +18,10 @@ seoFrontMatterUpdated: true
 
 # Native Data Connector for PostgreSQL
 
-The Native Data Connector for PostgreSQL is our flagship connector, with rich support for all kinds of queries.
+## Introduction
+
+The Native Data Connector for PostgreSQL is our flagship connector, with rich support for all kinds of queries. In the
+sections below, we'll cover the supported SQL data types, GraphQL types, and query operations.
 
 :::tip Flavors of PostgreSQL
 
@@ -27,82 +30,6 @@ If you are looking for a connector for a specific flavor of PostgreSQL, you can 
 [Connector Hub](https://hasura.io/connectors) or [build your own](/connectors/build-your-own-connector.mdx).
 
 :::
-
-## Configuration
-
-:::warning Subject to change
-
-During this active development phase, the configuration structure is subject to change.
-
-:::
-
-The connector will create an empty configuration as follows:
-
-```yaml
----
-version: 1
-connectionUri:
-  uri: ""
-metadata:
-  tables: {}
-  nativeQueries: {}
-  aggregateFunctions: {}
-  comparisonOperators: {}
-```
-
-Once you enter your connection string for a PostgreSQL database and refresh your data source using the
-[Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura), the `"tables"` and
-`"aggregate_functions"` sections will be auto-populated based on the current state of the database.
-
-These will always be regenerated from scratch.
-
-### PostgreSQL connection URI
-
-The PostgreSQL database URL should follow the [PostgreSQL connection URI form][libpq: Connection Strings], which looks
-like this:
-
-```
-postgresql://[user[:password]@][host[:port]][/dbname][?param1=value2&param2=value2&...]
-```
-
-Remember to encode any ambiguous characters using standard URI encoding. For example, if you have an `@` in your
-username, it will need to be written as `%40`.
-
-[libpq: Connection Strings]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
-
-### Native Queries
-
-Native queries can be defined by adding them to the `"nativeQueries"` section. Each query is specified as SQL. The
-return structure of the query must be explicitly specified in the `"columns"` field.
-
-Native queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
-type. The arguments are not interpolated, but provided to PostgreSQL as parameters, and therefore must be specific
-values, not arbitrary SQL.
-
-Here's an example which filters a table called `"Artist"`:
-
-```yaml
----
-version: 1
-connectionUri:
-  uri: postgresql://alice@database.host
-metadata:
-  tables: {}
-  nativeQueries:
-    artist_below_id:
-      sql: SELECT * FROM public."Artist" WHERE "ArtistId" < {{id}}
-      columns:
-        ArtistId:
-          name: ArtistId
-          type: int4
-        Name:
-          name: Name
-          type: varchar
-      arguments:
-        id:
-          name: id
-          type: int4
-```
 
 ## Scalar types
 
@@ -176,39 +103,4 @@ The `_not`, `_and`, and `_or` operators all work as usual.
 
 ## Mutations
 
-The connector supports mutations via Native Queries.
-
-:::warning This feature is experimental and subject to change.
-
-Native Query mutations can be defined the same way as regular Native Queries, with a few important tweaks:
-
-1. The Native Query should include a field `isProcedure: true`.
-2. The SQL should include a `RETURNING` clause, listing the returned columns (use `RETURNING *` to return all columns).
-
-Here's an example which inserts into a table called `"Artist"`:
-
-```yaml
-metadata:
-  tables: {}
-  nativeQueries:
-    insert_artist:
-      isProcedure: true
-      sql: INSERT INTO public."Artist" VALUES ({{id}}, {{name}}) RETURNING *
-      columns:
-        ArtistId:
-          name: ArtistId
-          type: int4
-        Name:
-          name: Name
-          type: varchar
-      arguments:
-        id:
-          name: id
-          type: int4
-        name:
-          name: name
-          type: varchar
-```
-
-To expose a Native Query mutation via the GraphQL API, add them as a procedure
-[command](/supergraph-modeling/commands.mdx) to the Hasura metadata.
+The connector supports [mutations via Native Queries](/connectors/postgresql/config.mdx#mutations).
