@@ -110,8 +110,8 @@ const config: Config = {
       title: '',
       logo: {
         alt: 'My Site Logo',
-        src: 'img/logo.svg',
-        srcDark: '/img/logo-light.svg',
+        src: 'img/logo-docs-dark.svg',
+        srcDark: '/img/logo-docs-light.svg',
       },
       items: [
         {
