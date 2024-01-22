@@ -22,7 +22,7 @@ export function addIconsToLabel(label, className) {
   // Conditional rendering for sidebar icons
   let icons;
   switch (className) {
-    case 'enterprise-icon':
+    case 'introduction-icon':
       icons = <Introduction />;
       break;
     case 'cloud-icon':
