@@ -11,6 +11,9 @@ import NavbarMobileSidebarToggle from '@theme/Navbar/MobileSidebar/Toggle';
 import NavbarLogo from '@theme/Navbar/Logo';
 import NavbarSearch from '@theme/Navbar/Search';
 import styles from './styles.module.css';
+// import { useColorMode } from '@docusaurus/theme-common';
+// import DocsLogoDark from '@site/static/img/docs-logo-dark.svg';
+import DocsLogoLight from '@site/static/img/docs-logo-light.svg';
 function useNavbarItems() {
   // TODO temporary casting until ThemeConfig type is improved
   return useThemeConfig().navbar.items;
@@ -35,11 +38,21 @@ ${JSON.stringify(item, null, 2)}`,
     </>
   );
 }
-function NavbarContentLayout({left, right}) {
+function NavbarContentLayout({left, right, searchBarItem}) {
   return (
     <div className="navbar__inner">
       <div className="navbar__items">{left}</div>
-      <div className="navbar__items navbar__items--right">{right}</div>
+      {!searchBarItem && (
+        <NavbarSearch>
+          <SearchBar />
+        </NavbarSearch>
+      )}
+      <div className="navbar__items navbar__items--right">
+        {right}
+        <a href='https://cloud.hasura.io/login' className='navbar__item navbar__link'>
+          Get Started
+        </a>
+      </div>
     </div>
   );
 }
@@ -48,6 +61,13 @@ export default function NavbarContent() {
   const items = useNavbarItems();
   const [leftItems, rightItems] = splitNavbarItems(items);
   const searchBarItem = items.find((item) => item.type === 'search');
+  // const { colorMode } = useColorMode();
+  // const [definedColorMode, setDefinedColorMode] = useState('');
+  // useEffect(() => {
+  //   setDefinedColorMode(colorMode);
+  // }, [colorMode]);
+
+  // const isDarkMode = definedColorMode === 'dark';
   return (
     <NavbarContentLayout
       left={
@@ -55,7 +75,14 @@ export default function NavbarContent() {
         <>
           {!mobileSidebar.disabled && <NavbarMobileSidebarToggle />}
           <NavbarLogo />
+          <div className='pr-6'>
+            <DocsLogoLight />
+          </div>
+          <div className={styles.dividerLine}>|</div>
           <NavbarItems items={leftItems} />
+          <div className=''>
+            <NavbarColorModeToggle className={styles.colorModeToggle} />
+          </div>
         </>
       }
       right={
@@ -63,12 +90,6 @@ export default function NavbarContent() {
         // Ask the user to add the respective navbar items => more flexible
         <>
           <NavbarItems items={rightItems} />
-          <NavbarColorModeToggle className={styles.colorModeToggle} />
-          {!searchBarItem && (
-            <NavbarSearch>
-              <SearchBar />
-            </NavbarSearch>
-          )}
         </>
       }
     />

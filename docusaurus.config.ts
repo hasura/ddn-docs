@@ -110,8 +110,8 @@ const config: Config = {
       title: '',
       logo: {
         alt: 'My Site Logo',
-        src: 'img/logo-docs-dark.svg',
-        srcDark: '/img/logo-docs-light.svg',
+        src: 'img/logo-dark.svg',
+        srcDark: '/img/logo-light.svg',
       },
       items: [
         {
@@ -125,10 +125,10 @@ const config: Config = {
             },
           ],
         },
-        {
-          type: 'search',
-          position: 'left',
-        },
+        // {
+        //   type: 'search',
+        //   position: 'left',
+        // },
         {
           to: 'https://hasura.io/',
           label: 'Hasura.io',
@@ -139,11 +139,11 @@ const config: Config = {
           label: 'Tutorials',
           position: 'right',
         },
-        {
-          to: 'https://cloud.hasura.io/login',
-          label: 'Log In',
-          position: 'right',
-        },
+        // {
+        //   to: 'https://cloud.hasura.io/login',
+        //   label: 'Log In',
+        //   position: 'right',
+        // },
       ],
     },
     prism: {
