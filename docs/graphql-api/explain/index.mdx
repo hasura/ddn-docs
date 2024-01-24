@@ -4,10 +4,18 @@ title: Explain Overview
 sidebar_label: Explain
 keywords:
   - graphql
+  - graphql analysis
   - hasura v3
+  - hasura explain
+  - api debugging
+  - graphql performance
+  - data connector explain
+  - api endpoint analysis
+  - query execution
+  - execution plan
+  - api troubleshooting
   - query optimization
   - dataconnector
-  - execution plan
   - modelselect
   - commandselect
   - hashjoin
@@ -17,16 +25,16 @@ seoFrontMatterUpdated: true
 
 # Explaining Query Execution
 
-The Hasura v3 engine can explain the GraphQL query execution plan.
+The Hasura v3 engine can output the GraphQL execution plan for a given query via the "explain" api.
 
-The execution plan is represented as a tree of type [ExplainStep](#explainstep).
+The execution plan output is represented as a tree of type [ExplainStep](#explainstep).
 
 ## ExplainStep
 
-The `ExplainStep` can be one of the following:
+The `ExplainStep` output can be one of the following:
 
-1. `ModelSelect`: A select on the DataConnector's model
-2. `CommandSelect`: A select on the DataConnector's command
+1. `ModelSelect`: A select on the data connector's model
+2. `CommandSelect`: A select on the data connector's command
 3. `ForEach`: A for-each loop on the data returned by the parent step
 4. `HashJoin`: A hash join of the data returned by the steps to construct valid response
 5. `Sequence`: A sequential execution of steps
@@ -34,8 +42,8 @@ The `ExplainStep` can be one of the following:
 
 ### ModelSelect
 
-A `ModelSelect` step represents fetching data from a Model. This will include fetching from the Model including local
-relationships. For example, the following query's execution plan will be a `ModelSelect` only:
+A `ModelSelect` step represents fetching data from a [Model](/supergraph-modeling/models.mdx). This includes fetching
+across local relationships. For example, the following query's execution plan will be a `ModelSelect` only:
 
 ```graphql
 query FetchAuthorAndArticles {
@@ -55,16 +63,18 @@ query FetchAuthorAndArticles {
 
 ### CommandSelect
 
-Just like the [ModelSelect](#modelselect), a `CommandSelect` represents fetching data from a Command. [Click
-here](./api-reference/#commandselect) for the API reference of `CommandSelect`.
+Just like the [ModelSelect](#modelselect), a `CommandSelect` represents fetching data from a
+[Command](docs/supergraph-modeling/commands.mdx). [Click here](./api-reference/#commandselect) for the API reference of
+`CommandSelect`.
 
 `placeholder for explain visualization`
 
 ### ForEach
 
 A ForEach step represents fetching data from a `DataConnector` for each of the data from the parent node. A `ForEach`
-will always be present if wen need to fetch some additional data (as a remote relationship) for the data returned by
-the parent node. For example, the following query's execution plan will have a `ForEach` step:
+will always be present if we need to fetch some additional data (such as from a remote
+[relationship](/supergraph-modeling/relationships.mdx)) for the data returned by the parent node. For example, the
+following query's execution plan will have a `ForEach` step:
 
 ```graphql
 query FetchAuthorAndArticles {
