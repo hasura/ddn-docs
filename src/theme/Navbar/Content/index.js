@@ -14,6 +14,7 @@ import styles from './styles.module.css';
 // import { useColorMode } from '@docusaurus/theme-common';
 // import DocsLogoDark from '@site/static/img/docs-logo-dark.svg';
 import DocsLogoLight from '@site/static/img/docs-logo-light.svg';
+
 function useNavbarItems() {
   // TODO temporary casting until ThemeConfig type is improved
   return useThemeConfig().navbar.items;
@@ -49,8 +50,11 @@ function NavbarContentLayout({left, right, searchBarItem}) {
       )}
       <div className="navbar__items navbar__items--right">
         {right}
-        <a href='https://cloud.hasura.io/login' className='navbar__item navbar__link'>
-          Get Started
+        <a href='https://cloud.hasura.io/login' className={'navbar__item navbar__link flex items-center ' + styles.navBarBtn}>
+          Log In
+          <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.5 15.5L12.5 10.5L7.5 5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </a>
       </div>
     </div>
