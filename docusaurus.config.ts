@@ -104,7 +104,7 @@ const config: Config = {
     },
     announcementBar: {
       id: 'announcementBar-3', // Increment on change
-      content: `⭐️ If you like Docusaurus, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/facebook/docusaurus">GitHub</a> and follow us on <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/docusaurus" >Twitter</a>`,
+      content: `This is the documentation for Hasura DDN, the future of data delivery. <a target="_blank" rel="noopener noreferrer" href="https://hasura.io/docs/latest/index/">Click here for the Hasura v2.x docs</a>.`,
     },
     navbar: {
       title: '',
