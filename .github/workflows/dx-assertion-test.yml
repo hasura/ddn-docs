@@ -1,0 +1,28 @@
+name: Test DX assertions
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  test-dx-assertions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Docs Assertion Tester
+        id: docs_test
+        uses: hasura/docs-assertion-tester@v1.0.1
+        with:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.DOCS_GITHUB_TOKEN }}
+          GITHUB_ORG: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.number }}
+      - name: Add comment
+        uses: hasura/comment-progress@v2.3.0
+        with:
+          github-token: ${{secrets.DOCS_GITHUB_TOKEN}}
+          repository: ${{ github.repository }}
+          number: ${{ github.event.number }}
+          id: dx_analysis
+          message: ${{ steps.docs_test.outputs.analysis }}

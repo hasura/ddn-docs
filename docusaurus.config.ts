@@ -2,6 +2,8 @@ import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
+require('dotenv').config();
+
 const config: Config = {
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
@@ -30,6 +32,15 @@ const config: Config = {
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
+  },
+
+  customFields: {
+    docsBotEndpointURL:
+      process.env.NODE_ENV === 'development'
+        ? 'ws://localhost:8000/hasura-docs-ai'
+        : 'wss://website-api.hasura.io/chat-bot/hasura-docs-ai',
+    hasuraVersion: 3,
+    DEV_TOKEN: process.env.DEV_TOKEN,
   },
 
   presets: [

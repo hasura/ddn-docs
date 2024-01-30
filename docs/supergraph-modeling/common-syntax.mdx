@@ -1,0 +1,231 @@
+---
+sidebar_position: 10
+sidebar_label: Supergraph Modeling Syntax
+description:
+  "In-depth guide to Supergraph Modeling Syntax in Hasura including ModelPredicate, FieldComparison, and
+  RelationshipPredicate. Learn how to effectively define filtering and permissions, compare fields, and create
+  relationship predicates."
+keywords:
+  - hasura ddn
+  - supergraph syntax
+  - hasura metadata
+  - graphql api design
+  - api development
+  - hasura data modeling
+  - data relationships
+  - field comparison
+  - hasura documentation
+  - data architecture
+seoFrontMatterUpdated: true
+toc_max_heading_level: 4
+---
+
+# Supergraph Modeling Syntax
+
+## ModelPredicate {#modelpredicate}
+
+A `ModelPredicate` is used to define the boolean expression for filtering the objects within a model, and is typically
+used when defining permissions.
+
+<div>
+  <pre>
+    <code>
+      <a href="#fieldcomparison">FieldComparison</a>
+      {` | `}
+      <a href="#relationship">RelationshipPredicate</a>
+      {` | `}
+      <a href="#andexp">AndExp</a>
+      {` | `}
+      <a href="#orexp">OrExp</a>
+      {` | `}
+      <a href="#notexp">NotExp</a>
+    </code>
+  </pre>
+</div>
+
+### FieldComparison
+
+This predicate filters objects where the particular `field` of the object returns true when the specified comparison
+operator `operator` is applied with the `value` as input.
+
+```yaml
+fieldComparison:
+  field: <FieldName>
+  operator: <Operator>
+  value: <ValueExpression>
+```
+
+| Field    | Type                                  | Required | Description                                                                                                                           |
+| -------- | ------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| field    | `String`                              | true     | Name of the field of the model to compare.                                                                                            |
+| operator | `String`                              | true     | Name of the operator. Either the built-in operators `_eq` or `_is_null`, or any of the operators available from the data connector.   |
+| value    | [`ValueExpression`](#valueexpression) | false    | The value to compare. Can be a literal value or a a value from session variables. This can be omitted in case of `_is_null` operator. |
+
+### RelationshipPredicate
+
+This predicate evaluates to true if any of the corresponding target objects of the relationship of the source model's
+object type with `name` meet the nested `predicate`.
+
+```yaml
+relationship:
+  name: <RelationshipName>
+  predicate: <ModelPredicate>
+```
+
+| Field     | Type                                | Required | Description                                   |
+| --------- | ----------------------------------- | -------- | --------------------------------------------- |
+| name      | `String`                            | true     | Name of relationship of the model to compare. |
+| predicate | [`ModelPredicate`](#modelpredicate) | false    | The filter or predicate expression.           |
+
+### AndExp
+
+This predicates evaluates to true if all sub-predicates of `and` evaluate to true.
+
+<div>
+  <pre>
+    <code>
+      {`{
+  "and" : [`}
+      <a href="#modelpredicate">ModelPredicate</a>
+      {`]
+}`}
+    </code>
+  </pre>
+</div>
+
+### OrExp
+
+This predicates evaluates to true if any of the sub-predicates of `or` evaluate to true.
+
+<div>
+  <pre>
+    <code>
+      {`{
+  "or" : [`}
+      <a href="#modelpredicate">ModelPredicate</a>
+      {`]
+}`}
+    </code>
+  </pre>
+</div>
+
+### NotExp
+
+This predicates evaluates to true if the sub-predicates of `not` evaluates to false.
+
+<div>
+  <pre>
+    <code>
+      {`{
+  "not" : `}
+      <a href="#modelpredicate">ModelPredicate</a>
+      {`
+}`}
+    </code>
+  </pre>
+</div>
+
+## ValueExpression
+
+An expression which evaluates to a value that can be used in comparison expressions, etc. This expression can either be
+a literal value or a reference to a session variable.
+
+<div>
+  <pre>
+    <code>
+      <a href="#literal">Literal</a>
+      {` | `}
+      <a href="#sessionvariable">SessionVariable</a>
+    </code>
+  </pre>
+</div>
+
+### Literal
+
+```json
+{
+  "literal": <any JSON value>
+}
+```
+
+#### Examples
+
+```yaml
+literal: some string
+```
+
+### SessionVariable
+
+```yaml
+sessionVariable: String
+```
+
+#### Examples
+
+```yaml
+sessionVariable: x-hasura-user-id
+```
+
+## TypeMapping {#typemapping}
+
+The `typemapping` is used by [models](/supergraph-modeling/models.mdx) and [commands](/supergraph-modeling/commands.mdx)
+to define the mapping between the fields of the types used in the model/command and the fields of the corresponding
+types in the data connector. It has the following fields:
+
+```yaml
+<TypeName>:
+  fieldMapping: <FieldMapping>
+```
+
+| Field          | Type                            | Required | Description                                                                      |
+| -------------- | ------------------------------- | -------- | -------------------------------------------------------------------------------- |
+| `TypeName`     | `String`                        | true     | Name of the object type which is being mapped.                                   |
+| `fieldMapping` | [`FieldMapping`](#fieldmapping) | true     | The field mapping between the object type and the corresponding NDC object type. |
+
+## FieldMapping {#fieldmapping}
+
+The `fieldMapping` is used by [`typemapping`](#typemapping) to define mapping for the fields of the `TypeName`.
+
+It has the following fields:
+
+```yaml
+<FieldName>:
+  column: <String>
+```
+
+| Field       | Type     | Required | Description                                   |
+| ----------- | -------- | -------- | --------------------------------------------- |
+| `FieldName` | `String` | true     | Name of the field in the object type.         |
+| `column`    | `String` | true     | The name of the field in the NDC object type. |
+
+## ArgumentDefinition {#argumentdefinition}
+
+Arguments is a list of objects that defines the arguments for the [model](./models.mdx#metadata-structure) or a
+[command](./commands.mdx#metadata-structure). An argument object has the following fields:
+
+```yaml
+name: <String>,
+type: <TypeReference>
+```
+
+| Field  | Type     | Required | Description                                                                                   |
+| ------ | -------- | -------- | --------------------------------------------------------------------------------------------- |
+| `name` | `String` | true     | Name of the argument.                                                                         |
+| `type` | `Type`   | true     | [TypeReference](./types.mdx#primitive-types-and-type-references) of the argument as a string. |
+
+## Secret references {#secret}
+
+Instead of embedding sensitive values in the metadata, certain fields can be set using [secrets](/ci-cd/secrets.mdx)
+stored in DDN.
+
+To embed a value directly without using a secret:
+
+```
+value: <your value>
+```
+
+To use a value via a secret:
+
+```
+stringValueFromSecret: <secret name>
+```
