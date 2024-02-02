@@ -1,6 +1,7 @@
 import ChevronRight from '@site/static/icons/chevron-right.svg';
 import Link from '@docusaurus/Link';
-export const OverviewPlainCard = (props: { title: string; body: string; link: string; linkText: string }) => {
+import React from 'react';
+export const OverviewPlainCard = (props: { title: string; body: string | React.JSX.Element; link: string; linkText: string }) => {
   return (
     <div className={'card'}>
       <div className={'card-content-items'}>
