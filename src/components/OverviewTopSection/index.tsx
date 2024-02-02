@@ -1,13 +1,10 @@
 import Link from '@docusaurus/Link';
 import React from 'react';
-
-interface Props {
+export const OverviewTopSection = (props: {
   youtubeVideoId: string;
   links: { title: string; href: string }[];
   intro: React.JSX.Element;
-}
-
-export const OverviewTopSection = (props: Props) => {
+}) => {
   return (
     <div className={'front-matter'}>
       <div>

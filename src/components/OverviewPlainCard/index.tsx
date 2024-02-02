@@ -1,6 +1,6 @@
 import ChevronRight from '@site/static/icons/chevron-right.svg';
 import Link from '@docusaurus/Link';
-export const OverviewPlainCard = (props: { title: string; body: string; link: string }) => {
+export const OverviewPlainCard = (props: { title: string; body: string; link: string; linkText: string }) => {
   return (
     <div className={'card'}>
       <div className={'card-content-items'}>
@@ -11,7 +11,7 @@ export const OverviewPlainCard = (props: { title: string; body: string; link: st
           <p>{props.body}</p>
         </div>
       </div>
-      <Link href={props.link}>Connectors <ChevronRight /></Link>
+      <Link href={props.link}>{props.linkText}<ChevronRight /></Link>
     </div>
   )
 }
