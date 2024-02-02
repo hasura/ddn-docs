@@ -14,6 +14,10 @@ import CiCd from '@site/static/icons/upload-cloud-02.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
 import Glossary from '@site/static/icons/box.svg';
+import Quickstart from '@site/static/icons/speedometer-04.svg';
+import SupergraphModeling from '@site/static/icons/cpu-chip-01.svg';
+import Faq from '@site/static/icons/help-square.svg';
+import Community from '@site/static/icons/announcement-02.svg';
 
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
@@ -66,8 +70,20 @@ export function addIconsToLabel(label, className) {
     case 'glossary-icon':
       icons = <Glossary />;
       break;
+    case 'quickstart-icon':
+      icons = <Quickstart />;
+      break;
+    case 'supergraph-modeling-icon':
+      icons = <SupergraphModeling />;
+      break;
+    case 'faq-icon':
+      icons = <Faq />;
+      break;
+    case 'community-icon':
+      icons = <Community />;
+      break;
   }
-
+  
   return (
     <div className={styles['sidebar_link_wrapper']}>
       {icons} {label} 
