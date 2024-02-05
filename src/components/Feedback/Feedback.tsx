@@ -90,10 +90,10 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
     }
     setErrorText(null);
     setRating(scoreItem);
-    // feedback scroll
-    if (typeof window !== "undefined") {
-      window.location.hash = 'feedback';
-    }
+    // // feedback scroll
+    // if (typeof window !== "undefined") {
+    //   window.location.hash = 'feedback';
+    // }
     if (scoreItem < 4) {
       setTextAreaLabel(
         <>
