@@ -11,7 +11,7 @@ export const OverviewTopSection = (props: {
         <div>
           {props.intro}
         </div>
-        <h4>Quick Links</h4>
+        {props.links.length === 0 ? null : <h4>Quick Links</h4>}
         <ul>
           {props.links.map((link, index) => (
             <li key={index}>
