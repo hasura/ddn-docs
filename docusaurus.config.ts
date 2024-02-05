@@ -131,6 +131,10 @@ const config: Config = {
           dropdownActiveClassDisabled: true,
           dropdownItemsAfter: [
             {
+              href: 'https://hasura.io/docs/',
+              label: 'v2.x',
+            },
+            {
               href: 'https://hasura.io/docs/1.0/graphql/core/index.html',
               label: 'v1.x',
             },
