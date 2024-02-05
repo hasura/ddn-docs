@@ -40,14 +40,16 @@ definition:
   name: <String>
   target: <TargetModelConfiguration> | <TargetCommandConfiguration>
   mapping: <RelationshipMapping>
+  description: <String>
 ```
 
-| Field     | Type                                                                                                                   | Required | Description                                                                                      |
-| --------- | ---------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `source`  | `String`                                                                                                               | true     | The source [type](./types.mdx) of the relationship.                                              |
-| `name`    | `String`                                                                                                               | true     | The name of the relationship.                                                                    |
-| `target`  | [`TargetModelConfiguration`](#targetmodelconfiguration) \| [`TargetCommandConfiguration`](#targetcommandconfiguration) | true     | The target of the relationship: either `Model` or `Command`.                                     |
-| `mapping` | [`[RelationshipMapping]`](#relationshipmapping)                                                                        | true     | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
+| Field         | Type                                                                                                                   | Required | Description                                                                                      |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `source`      | `String`                                                                                                               | true     | The source [type](./types.mdx) of the relationship.                                              |
+| `name`        | `String`                                                                                                               | true     | The name of the relationship.                                                                    |
+| `target`      | [`TargetModelConfiguration`](#targetmodelconfiguration) \| [`TargetCommandConfiguration`](#targetcommandconfiguration) | true     | The target of the relationship: either `Model` or `Command`.                                     |
+| `mapping`     | [`[RelationshipMapping]`](#relationshipmapping)                                                                        | true     | Defines how the `Source` and `Target` should be connected. This field expects a list of objects. |
+| `description` | `String`                                                                                                               | false    | The description of the relationship.                                                             |
 
 #### TargetModelConfiguration
 
@@ -67,9 +69,9 @@ target:
   command: <TargetCommand>
 ```
 
-| Field   | Type                              | Required | Description                                                |
-| ------- | --------------------------------- | -------- | ---------------------------------------------------------- |
-| `model` | [`TargetCommand`](#targetcommand) | true     | The target [command](./commands.mdx) for the relationship. |
+| Field     | Type                              | Required | Description                                                |
+| --------- | --------------------------------- | -------- | ---------------------------------------------------------- |
+| `command` | [`TargetCommand`](#targetcommand) | true     | The target [command](./commands.mdx) for the relationship. |
 
 #### TargetModel
 
@@ -206,6 +208,7 @@ version:
 definition:
   source: author
   name: articles
+  description: articles written by author
   target:
     model:
       name: Articles
@@ -227,6 +230,7 @@ version: v1
 definition:
   source: article
   name: author
+  description: author of the article
   target:
     model:
       name: Authors
@@ -243,6 +247,7 @@ definition:
 The resulting GraphQL schema will appear as:
 
 ```graphql
+# author of the article
 type Authors {
   author_id: Int!
   first_name: String!
@@ -250,6 +255,7 @@ type Authors {
   articles: [Article!]!
 }
 
+# articles written by author
 type Articles {
   id: Int!
   author_id: Int!

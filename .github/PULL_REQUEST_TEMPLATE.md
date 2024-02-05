@@ -6,6 +6,7 @@
 ## Description
 
 <!-- 1. Give us a tl;dr of what this docs contribution is / does -->
+<!-- 2. If you're submitting docs that are part of the beta release, please add the `hold-for-beta` label -->
 
 ## Quick Links 🚀
 
