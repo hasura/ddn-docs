@@ -61,5 +61,42 @@ To use this Action:
 3. Choose `release-stage`
 4. Click `Run workflow`
 
+In the event we need to cherry-pick (such as during the lead-up to Beta), follow these steps:
+
+1. Pull `release-stage` on your machine:
+
+```bash
+git checkout release-stage
+```
+
+2. Run a git log to find the commit hash you want to cherry-pick:
+
+```bash
+git log
+```
+
+3. Copy the commit hash and run the following command:
+
+```bash
+git checkout release-prod
+```
+
+4. Cherry-pick the commit:
+
+```bash
+git cherry-pick <commit-hash>
+```
+
+5. Push the changes:
+
+```bash
+git push release-prod
+```
+
+This will trigger a build and deployment to production.
+
+You can quickly see what's come through (open and closed) for Beta using
+[this filter](https://github.com/hasura/v3-docs/issues?q=label%3Ahold-for-beta).
+
 You can use the link above to check the build status. Then, monitor deployments to our clusters
 [here](https://console.cloud.google.com/kubernetes/deployment/us-west2/prod-website-cloud-us-we2-gke-01/hasura/v3-docs-hasura/overview?project=websitecloud-352908).

@@ -41,6 +41,7 @@ kind: Model
 version: v1
 definition:
   name: <ModelName>
+  description: <String>
   objectType: <TypeName>
   globalIDSource: true | false
   source: <SourceConfiguration>
@@ -53,6 +54,7 @@ definition:
 | Field              | Type                                                                                | Required | Description                                                                                   |
 | ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
 | `name`             | `String`                                                                            | true     | Name of the model.                                                                            |
+| `description`      | `String`                                                                            | false    | Description of the model.                                                                     |
 | `objectType`       | `String`                                                                            | true     | [Type](/supergraph-modeling/types.mdx) of the objects in this model.                          |
 | `globalIDSource`   | `Boolean`                                                                           | true     | If this model should be used as the [Global ID](./global-id.mdx) source for its `objectType`. |
 | `source`           | [`SourceConfiguration`](/supergraph-modeling/models.mdx#source)                     | false    | Source configuration for the model.                                                           |
@@ -123,6 +125,7 @@ selectUniques:
 | ------------------ | -------- | -------- | -------------------------------------------------------------------- |
 | `queryRootField`   | `String` | true     | Name of the query root field to use in the GraphQL API.              |
 | `uniqueIdentifier` | `Array`  | true     | Set of fields which can uniquely identify a row/object in the model. |
+| `description`      | `String` | false    | Description of the select uniques configuration of the model.        |
 
 ##### SelectMany
 
@@ -144,9 +147,24 @@ selectMany:
   queryRootField: <QueryRootField>
 ```
 
-| Field            | Type     | Required | Description                                             |
-| ---------------- | -------- | -------- | ------------------------------------------------------- |
-| `queryRootField` | `String` | true     | Name of the query root field to use in the GraphQL API. |
+| Field            | Type     | Required | Description                                                |
+| ---------------- | -------- | -------- | ---------------------------------------------------------- |
+| `queryRootField` | `String` | true     | Name of the query root field to use in the GraphQL API.    |
+| `description`    | `String` | false    | Description of the select many configuration of the model. |
+
+:::note Description of select uniques and select many configuration of the models
+
+If the description for select uniques/many configuration of the model is not present and model description is present,
+then the model description will be used for the respective configuration.
+
+E.g., if the model description is `description of the model`, then the description for the configurations will be as
+follows:
+
+1. select uniques: `Selects a single object from the model. Model description: description of the model`
+2. select many: `Selects multiple objects from the model. Model description: description of the model`
+
+
+:::
 
 #### FilterableFieldDefinition
 
@@ -190,6 +208,7 @@ kind: Model
 version: v1
 definition:
   name: Authors
+  description: Author of an article
   objectType: author
   globalIdSource: true
   source:
@@ -209,8 +228,10 @@ definition:
       - queryRootField: AuthorByID
         uniqueIdentifier:
           - author_id
+        description: get authors by ID
     selectMany:
       queryRootField: AuthorMany
+      description: get authors
     filterExpressionType: Author_Where_Exp
     orderByExpressionType: Author_Order_By
   arguments: []
@@ -242,13 +263,19 @@ types corresponding to the fields had appropriate comparison expressions defined
 ```graphql
 type Query {
   node(id: ID!): Node
+  # get authors by ID
   AuthorByID(author_id: Int!): Author
+  # get authors
   AuthorMany(where: Author_Where_Exp, order_by Author_Order_By, limit: Int, offset: Int): Author
 }
 
+# author of an article
 type Author {
+  # author of an article
   id: ID!
+  # id of the author
   author_id: Int!
+  # first name of the author
   first_name: String
   last_name: String
 }

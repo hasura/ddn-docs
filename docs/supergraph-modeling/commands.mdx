@@ -57,15 +57,17 @@ definition:
   outputType: <String>
   source: <CommandSourceConfiguration>
   graphql: <GraphQLConfiguration>
+  description: <String>
 ```
 
-| Field        | Type                                                                                | Required | Description                                            |
-| ------------ | ----------------------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
-| `name`       | `String`                                                                            | true     | Name of the command.                                   |
-| `arguments`  | [`[ArgumentDefinition]`](supergraph-modeling/common-syntax.mdx#argumentdefinition)  | false    | The argument definitions for the command.              |
-| `outputType` | `String`                                                                            | true     | The name of the return [type](./types.mdx) of command. |
-| `source`     | [`CommandSourceConfiguration`](#commandsourceconfiguration)                         | true     | Source configuration for the command.                  |
-| `graphql`    | [`GraphQLConfiguration`](#graphqlconfiguration)                                     | true     | GraphQL configuration for the command.                 |
+| Field         | Type                                                                                | Required | Description                                            |
+| ------------- | ----------------------------------------------------------------------------------- | -------- | ------------------------------------------------------ |
+| `name`        | `String`                                                                            | true     | Name of the command.                                   |
+| `arguments`   | [`[ArgumentDefinition]`](supergraph-modeling/common-syntax.mdx/#argumentdefinition) | false    | The argument definitions for the command.              |
+| `outputType`  | `String`                                                                            | true     | The name of the return [type](./types.mdx) of command. |
+| `source`      | [`CommandSourceConfiguration`](#commandsourceconfiguration)                         | true     | Source configuration for the command.                  |
+| `graphql`     | [`GraphQLConfiguration`](#graphqlconfiguration)                                     | true     | GraphQL configuration for the command.                 |
+| `description` | `String`                                                                            | false    | Description of the command.                            |
 
 ### CommandSourceConfiguration {#commandsourceconfiguration}
 
@@ -137,8 +139,8 @@ graphql:
 
 Below, we're creating a `Command` called `get_article_by_id` which takes an argument `article_id` of type `Int!`
 (non-nullable `Int`) and returns an object of type `article` (similar to one defined
-[here](/supergraph-modeling/types.mdx#object-type-examples)).
-[The command is backed by a function](/supergraph-modeling/common-syntax.mdx#typemapping) called `get_article_by_id`
+[here](/supergraph-modeling/types.mdx/#object-type-examples)).
+[The command is backed by a function](/supergraph-modeling/common-syntax.mdx/#typemappings) called `get_article_by_id`
 in the `db` data connector. The function returns an object with fields `id`, `title`, and `author_id`. The `id` field is
 mapped to the `article_id` argument and the `title` and `author_id` fields are mapped to the `title` and `author_id`
 columns respectively.
@@ -148,9 +150,11 @@ kind: Command
 version: v1
 definition:
   name: get_article_by_id
+  description: get article by id
   arguments:
     - name: article_id
       type: Int!
+      description: id of the article
   outputType: article
   source:
     dataConnectorName: db
@@ -175,6 +179,7 @@ definition:
 This resulting GraphQL API will be:
 
 ```graphql
+# get article by id
 type Query {
   getArticleById(article_id: Int!): Article
 }
