@@ -1,12 +1,13 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-import path from "path";
+
+require('dotenv').config();
 
 const config: Config = {
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
 
   // Set the production url of your site here
   url: 'https://hasura.io',
@@ -31,6 +32,15 @@ const config: Config = {
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
+  },
+
+  customFields: {
+    docsBotEndpointURL:
+      process.env.NODE_ENV === 'development'
+        ? 'ws://localhost:8000/hasura-docs-ai'
+        : 'wss://website-api.hasura.io/chat-bot/hasura-docs-ai',
+    hasuraVersion: 3,
+    DEV_TOKEN: process.env.DEV_TOKEN,
   },
 
   presets: [
@@ -96,68 +106,61 @@ const config: Config = {
   ],
   themeConfig: {
     // Replace with your project's social card
-    // image: 'img/docusaurus-social-card.jpg',
-    // navbar: {
-    //   title: '',
-    //   logo: {
-    //     alt: 'My Site Logo',
-    //     src: 'img/logo.svg',
-    //   },
-    //   items: [
-    //     // {
-    //     //   type: 'docSidebar',
-    //     //   sidebarId: 'tutorialSidebar',
-    //     //   position: 'left',
-    //     //   label: 'Tutorial',
-    //     // },
-    //     // {
-    //     //   href: 'https://github.com/facebook/docusaurus',
-    //     //   label: 'GitHub',
-    //     //   position: 'right',
-    //     // },
-    //   ],
-    // },
-    // footer: {
-    //   style: 'dark',
-    //   links: [
-    //     {
-    //       title: 'Docs',
-    //       items: [
-    //         {
-    //           label: 'Tutorial',
-    //           to: '/docs/intro',
-    //         },
-    //       ],
-    //     },
-    //     {
-    //       title: 'Community',
-    //       items: [
-    //         {
-    //           label: 'Stack Overflow',
-    //           href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-    //         },
-    //         {
-    //           label: 'Discord',
-    //           href: 'https://discordapp.com/invite/docusaurus',
-    //         },
-    //         {
-    //           label: 'Twitter',
-    //           href: 'https://twitter.com/docusaurus',
-    //         },
-    //       ],
-    //     },
-    //     {
-    //       title: 'More',
-    //       items: [
-    //         {
-    //           label: 'GitHub',
-    //           href: 'https://github.com/facebook/docusaurus',
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
-    // },
+    image: 'img/docusaurus-social-card.jpg',
+    algolia: {
+      appId: '7M3BTIV34B',
+      // Public API key: it is safe to commit it
+      apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
+      indexName: 'hasura',
+    },
+    announcementBar: {
+      id: 'announcementBar-3', // Increment on change
+      content: `This is the documentation for Hasura DDN, the future of data delivery. <a target="_blank" rel="noopener noreferrer" href="https://hasura.io/docs/latest/index/">Click here for the Hasura v2.x docs</a>.`,
+    },
+    navbar: {
+      title: '',
+      logo: {
+        alt: 'My Site Logo',
+        src: 'img/logo-dark.svg',
+        srcDark: '/img/logo-light.svg',
+      },
+      items: [
+        {
+          type: 'docsVersionDropdown',
+          position: 'left',
+          dropdownActiveClassDisabled: true,
+          dropdownItemsAfter: [
+            {
+              href: 'https://hasura.io/docs/',
+              label: 'v2.x',
+            },
+            {
+              href: 'https://hasura.io/docs/1.0/graphql/core/index.html',
+              label: 'v1.x',
+            },
+          ],
+        },
+        // {
+        //   type: 'search',
+        //   position: 'left',
+        // },
+        {
+          to: 'https://hasura.io/',
+          label: 'Hasura.io',
+          position: 'right',
+        },
+        {
+          to: 'https://hasura.io/learn/',
+          label: 'Tutorials',
+          position: 'right',
+        },
+        // {
+        //   to: 'https://cloud.hasura.io/login',
+        //   label: 'Log In',
+        //   position: 'right',
+        // },
+      ],
+    },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,

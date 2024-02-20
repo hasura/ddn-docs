@@ -6,7 +6,15 @@
 ## Description
 
 <!-- 1. Give us a tl;dr of what this docs contribution is / does -->
+<!-- 2. If you're submitting docs that are part of the beta release, please add the `hold-for-beta` label -->
 
 ## Quick Links 🚀
 
  <!-- Add links to the affected pages / sections here for quick review. We'll generate a comment for you after you open the PR with a link to your preview site, which will need to build. -->
+
+## 🤖 DX: Assertion Tests
+
+<!-- Between the comments below, you can add assertions to test your docs contribution! E.g., A user should be able to easily add a comment to their PR's description.  -->
+<!-- For more info, see the Action's docs in the marketplace: https://github.com/marketplace/actions/docs-assertion-tester#usage -->
+<!-- DX:Assertion-start -->
+<!-- DX:Assertion-end -->

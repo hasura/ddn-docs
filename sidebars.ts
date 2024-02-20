@@ -18,6 +18,7 @@ const sidebars: SidebarsConfig = {
       type: 'link',
       label: 'Community',
       href: 'https://hasura.io/community/',
+      className: 'community-icon'
     }
   ],
 
