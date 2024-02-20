@@ -1,0 +1,106 @@
+---
+sidebar_position: 1
+sidebar_label: PostgreSQL
+description: "Dive into the Hasura's Native Data Connector for PostgreSQL."
+keywords:
+  - hasura
+  - postgresql
+  - data connector
+  - graphql
+  - queries
+  - sql data types
+  - graphql types
+  - configuration
+  - api
+  - database
+seoFrontMatterUpdated: true
+---
+
+# Native Data Connector for PostgreSQL
+
+## Introduction
+
+The Native Data Connector for PostgreSQL is our flagship connector, with rich support for all kinds of queries. In the
+sections below, we'll cover the supported SQL data types, GraphQL types, and query operations.
+
+:::tip Flavors of PostgreSQL
+
+This connector works with most flavors of PostgreSQL — such as Yugabyte and Aurora — but has not been tested with all.
+If you are looking for a connector for a specific flavor of PostgreSQL, you can search the
+[Connector Hub](https://hasura.io/connectors) or [build your own](/connectors/build-your-own-connector.mdx).
+
+:::
+
+## Scalar types
+
+SQL data types are mapped to GraphQL types. The current mappings are as follows:
+
+| SQL data type | GraphQL type |
+| ------------- | ------------ |
+| `bool`        | `Boolean`    |
+| `int2`        | `Int`        |
+| `int4`        | `Int`        |
+| `int8`        | `Int`        |
+| `float4`      | `Float`      |
+| `float8`      | `Float`      |
+| `numeric`     | `Float`      |
+| `char`        | `String`     |
+| `varchar`     | `String`     |
+| `text`        | `String`     |
+| `uuid`        | `String`     |
+| `date`        | `String`     |
+| `time`        | `String`     |
+| `timestamp`   | `String`     |
+| `timestamptz` | `String`     |
+| `timetz`      | `String`     |
+
+Other SQL scalar types are unsupported, but may still work in certain situations.
+
+:::info Data type aliases
+
+Note that many of these SQL data types have aliases in PostgreSQL, which can be found in the [PostgreSQL documentation
+on data types][PostgreSQL: data types].
+
+[PostgreSQL: data types]: https://www.postgresql.org/docs/current/datatype.html
+
+:::
+
+## Nested types
+
+The connector does not currently support nested data structures, such as `array`, `hstore`, `json`, or `jsonb`, though
+they may still work in certain situations.
+
+## Queries
+
+The connector supports all query operations; see the [query documentation](/graphql-api/queries/index.mdx) for details.
+
+### Predicates
+
+The `_is_null` operator checks whether a value is `NULL`.
+
+The following binary operators are supported when filtering:
+
+| Name                       | GraphQL operator | PostgreSQL operator | GraphQL types |
+| -------------------------- | ---------------- | ------------------- | ------------- |
+| equals                     | `_eq`            | `=`                 | all           |
+| not equals                 | `_neq`           | `<>`                | all           |
+| less than                  | `_lt`            | `<`                 | all           |
+| less than or equal to      | `_lte`           | `<=`                | all           |
+| greater than               | `_gt`            | `>`                 | all           |
+| greater than or equal to   | `_gte`           | `>=`                | all           |
+| like                       | `_like`          | `LIKE`              | `String`      |
+| not like                   | `_nlike`         | `NOT LIKE`          | `String`      |
+| case-insensitive like      | `_ilike`         | `ILIKE`             | `String`      |
+| not case-insensitive like  | `_nilike`        | `NOT ILIKE`         | `String`      |
+| similar                    | `_similar`       | `SIMILAR TO`        | `String`      |
+| not similar                | `_nsimilar`      | `NOT SIMILAR TO`    | `String`      |
+| regex                      | `_regex`         | `~`                 | `String`      |
+| not regex                  | `_nregex`        | `!~`                | `String`      |
+| case-insensitive regex     | `_iregex`        | `~`                 | `String`      |
+| not case-insensitive regex | `_niregex`       | `!~`                | `String`      |
+
+The `_not`, `_and`, and `_or` operators all work as usual.
+
+## Mutations
+
+The connector supports [mutations via Native Queries](/connectors/postgresql/config.mdx#mutations).
