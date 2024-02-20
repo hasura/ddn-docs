@@ -3,9 +3,7 @@ import clsx from 'clsx';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import hasuras from '@site/static/img/hasuras.png';
-import VersionedLink from '@site/src/components/VersionedLink';
-import styles from './index.module.scss';
+import styles from './index.module.css';
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
@@ -22,17 +20,15 @@ function HomepageHeader() {
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
         </div>
-        <div className={styles.links}>
-          <VersionedLink className="button button--primary button--lg" to="/index">
+        <div className='flex justify-center flex-w'>
+          <Link className="button button--primary button--lg m-2" to="/index">
             Hasura Docs
-          </VersionedLink>
-          <div className={styles.links}>
-            <Link className="button button--secondary button--lg" to="/wiki/">
-              Docs Wiki
-            </Link>
-          </div>
+          </Link>
+          <Link className="button button--secondary button--lg m-2" to="/wiki/">
+            Docs Wiki
+          </Link>
         </div>
-        <img src={hasuras} alt="Hasuras Image" />
+        <img src={"/img/hasuras.png"} alt="Hasuras Image" />
       </div>
     </header>
   );
