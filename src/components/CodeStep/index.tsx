@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import styles from './styles.module.scss';
+import styles from './styles.css';
 import CodeBlock from '@theme/CodeBlock';
 import { MDXProvider } from '@mdx-js/react';
 
@@ -23,16 +23,16 @@ const CodeStep = props => {
   }, [startIndex]);
 
   return (
-    <div className={styles.step_container}>
-      <div className={styles.item}>
-        <div className={styles.code_heading}>
+    <div className={"step_container"}>
+      <div className={"item"}>
+        <div className={"code_heading"}>
           <MDXProvider children={directive} />
         </div>
-        <div className={styles.description}>
+        <div className={"description"}>
           <MDXProvider children={description} />
         </div>
       </div>
-      <div className={styles.item}>
+      <div className={"item"}>
         <CodeBlock className={`language-${props.language}`}>{props.code}</CodeBlock>
         {props.output && (
           <details>
