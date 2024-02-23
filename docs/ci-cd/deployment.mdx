@@ -51,24 +51,24 @@ hasura3 create environment --name production
 
 #### Step 2: Create build profiles
 
-You'll also need to create build profiles for each environment by creating new named files in the root of your
-directory:
+You'll also need to create [build profiles](/ci-cd/config.mdx#build-profiles) for each environment by creating new named
+files in the root of your directory:
 
 ```bash
 # highlight-start
-├── build-profile-prod.yaml
-├── build-profile-staging.yaml
+├── build-profile-prod.yml
+├── build-profile-staging.yml
 # highlight-end
-├── build-profile.yaml
-├── hasura.yaml
+├── build-profile.yml
+├── hasura.yml
 ├── subgraphs
 └── supergraph
 ```
 
 The content for each can follow this format wherein you can specify the environment and the resources to be used for:
 
-```yaml
-# build-profile-prod.yaml
+```yml
+# build-profile-prod.yml
 version: 2
 spec:
   # highlight-start
@@ -88,16 +88,16 @@ spec:
           connectorConfigFile: pg_db.hml
 ```
 
-#### Step 3: Reference build profiles in `hasura.yaml`
+#### Step 3: Reference build profiles in `hasura.yml`
 
-Then, inside of your `hasura.yaml`, you can reference these build profiles:
+Then, inside of your `hasura.yml`, you can reference these build profiles:
 
-```yaml
+```yml
 buildProfiles:
-  - build-profile.yaml
+  - build-profile.yml
   # highlight-start
-  - build-profile-staging.yaml
-  - build-profile-prod.yaml
+  - build-profile-staging.yml
+  - build-profile-prod.yml
   # highlight-end
 ```
 
@@ -123,12 +123,12 @@ are merged to the trunk of their repository.
 ### Staging
 
 With the changes present in the trunk of the repository, a [new build](/ci-cd/builds.mdx) in the team's staging
-environment can be created using the Hasura CLI, and passing `build-profile-staging.yaml` to the `--profile` flag. Then,
+environment can be created using the Hasura CLI, and passing `build-profile-staging.yml` to the `--profile` flag. Then,
 they can apply the build using the `build version` returned by the CLI:
 
 ```bash
 # create a new build which will return a build version
-hasura3 build create --profile build-profile-staging.yaml
+hasura3 build create --profile build-profile-staging.yml
 ```
 
 ```bash
@@ -140,7 +140,7 @@ The team can run any of their tests against this new build before heading to pro
 
 ### Production
 
-The same process as `staging` is followed, except `build-profile-prod.yaml` is used as the argument passed to the
+The same process as `staging` is followed, except `build-profile-prod.yml` is used as the argument passed to the
 `--profile` flag.
 
 ## Automate deployments
@@ -151,7 +151,3 @@ the process of running the Hasura CLI.
 
 You can drop this [GitHub Action](https://github.com/marketplace/actions/ddn-deployment) into your repository and
 configure it to run on merges to specific branches to automate the deployment process 🎉
-
-```
-
-```
