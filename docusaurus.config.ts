@@ -120,7 +120,7 @@ const config: Config = {
     navbar: {
       title: '',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'Hasura Logo',
         src: 'img/logo-dark.svg',
         href: '/index',
         srcDark: '/img/logo-light.svg',
