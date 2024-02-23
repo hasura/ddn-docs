@@ -106,7 +106,7 @@ const config: Config = {
   ],
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/og-social-card.jpg',
     algolia: {
       appId: '7M3BTIV34B',
       // Public API key: it is safe to commit it
