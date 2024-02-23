@@ -122,6 +122,7 @@ const config: Config = {
       logo: {
         alt: 'My Site Logo',
         src: 'img/logo-dark.svg',
+        href: '/index',
         srcDark: '/img/logo-light.svg',
       },
       items: [
