@@ -9,34 +9,115 @@ description:
 keywords:
   - hasura
   - ddn
-  - datadeliverynetwork
-  - serverlessruntime
-  - metadataauthoring
-  - datadomains
-  - nativedataconnectors
-  - ndcspec
-  - hasuraterms
+  - data delivery network
+  - serverless runtime
+  - metadata authoring
+  - data domains
+  - native data connectors
+  - ndc spec
+  - hasura terms
 seoFrontMatterUpdated: true
 ---
 
 # Hasura DDN Glossary
 
-## Data Delivery Network (DDN)
 
-Hasura DDN is a globally distributed and always-available cloud for APIs and data connectivity which enables
-blazingly-fast and secure delivery of real-time data over GraphQL or REST APIs. It is powered by innovations in Hasura
-version 3 including a serverless runtime.
+## Hasura v3
+
+Hasura v3 represents a major version change for the main underlying component of Hasura Cloud.
+
+There are significant enhancements to the engine, including:
+1) A new architecture
+2) A switch to the Rust programming language
+3) A new specification to work with the engine.
+
+Because of the new specification, the engine is now decoupled from the API protocol, such as GraphQL, and as a
+result in the coming years the `graphql-engine` will evolve to become the `graphql-api-engine` and finally
+the `api-engine`.
+
+Apart from the enhancements to the `graphql-engine`, Hasura v3 also introduced the rollout of the new Native Data
+Connector Specification and the associated connectors.
+
+## Hasura Data Delivery Network (DDN)
+
+Hasura DDN is a brand-new offering that is powered by the innovations in Hasura v3. While Hasura v3 data plane is open
+source, DDN represents a managed service for that data plane with the promise of operationally excellent APIs and
+replaces the application/API server infrastructure requirement for organizations.
+
+On top of that, Hasura DDN is a globally distributed and always available cloud for APIs and data connectivity, which
+enables blazing-fast and secure delivery of real-time data. The new runtime engine in Hasura DDN accesses metadata on a
+per-request basis, enabling improved isolation and scalability. The serverless runtime also eliminates shared state and
+cold start issues for enhanced performance. Learn more.
+
+Apart from the managed data plane, DDN also includes a brand new control plane which comprises metadata authoring,
+CI/CD, cloud infrastructure components, and collaboration features. In v2, we bundled the control plane and data plane
+together. In v3, we have separated the control plane and data plane. The control plane is closed source and commercial
+only. More information on the control plane is below: Control plane The control plane manages the configuration,
+orchestration, and coordination of the data plane elements along with providing tools to author metadata. It is
+responsible for setting up and managing the behavior, policies, and rules that govern how data is processed and
+forwarded in the data plane. It also oversees the overall behavior of the system, manages the API endpoints, maintains
+the API configurations, handles authentication and access control mechanisms, and gathers analytics or metrics related
+to API usage.
+
+
+## Supergraph
+A supergraph is an architecture and operating model to build and scale multiple data domains (or subgraphs) as a single
+graph of composable entities and operations.
+
+Supergraphs help us to benefit from a centralized monolithic approach (high cohesion and easy governance) on a
+federated microservices execution model (loose coupling and scaling ownership). Today, supergraphs are more critical
+than ever because accelerating data and microservice sprawl are making the complexity of data and API consumption
+untenable – showing up in slower time-to-market, harder to address tech-debt and complex team communication.
+[Learn more](https://hasura.io/supergraph).
+
+## Subgraphs
+
+A subgraph enables a team to bring the data domain they own into the supergraph. Subgraphs have a permission model, and
+an independent software development life cycle, and can be developed, tested, and deployed independently. The supergraph
+guarantees the integrity of subgraph composition. A subgraph is analogous to a microservice owned by a particular team.
+
+## Hasura Metadata
+
+Hasura metadata models a supergraph and specifies the API for the supergraph. It is the configuration that is provided
+declaratively to help connect to the data source and provide a working API. It introduces key supergraph modeling
+constructs such as `Types`, `Models`, `Commands`, `Permissions`, and `Relationships`, which help in understanding and
+implementing systems that align closely with the real-world domain they are meant to represent. Apart from modeling
+constructs, the metadata also defines key configuration around API security, caching, deployment, and CI/CD, that helps
+explain the entire API system for the organization. [Learn more](/supergraph-modeling/overview.mdx).
+
+## .hml (Hasura Metadata Language)
+
+The file extension for the files that conform to the Hasura metadata specification for the supergraph. It is a
+derivative of `.yaml` extension (and shares the same syntax) and provides the same benefits such as 1) readability, 2)
+data structures, 3) comments, and 4) portability, to author, reason, and share metadata.
+
+## Supergraph modeling
+
+The act of writing information to conform to the Hasura metadata specification and the process of identifying,
+defining, and structuring the distinct sets of the supergraph elements or attributes.
+
+Typical Usage of the terms above: ‘Models’ and ‘Commands’ in ‘Hasura metadata’ are used for ‘Supergraph Modeling’ via
+`.hml files`.
+
+## Data Plane
+The data plane manages the actual handling of API requests and responses. It deals with the execution of API
+operations, the transmission of data between clients and the API endpoints, and the processing of data payloads. The
+following are the main components of a data plane:
+
+Hasura v3 GraphQL Engine: The engine takes in an API request (a GraphQL query for example), converts it into an
+intermediate representation that the connectors can handle, and creates a plan for the query execution across
+various data sources.
+
+Hasura connectors: These handle the actual API execution. They accept the intermediate
+representation from the engine and use the most efficient mechanism to execute the query and fetch/mutate data from
+the underlying data source.
+
+Both the components mentioned above are open sourced.
 
 ## Serverless Runtime System
 
 The new runtime engine in Hasura DDN which accesses metadata on a per-request basis, enabling improved isolation and
 scalability. The serverless runtime also eliminates shared state and cold start issues for enhanced performance.
-
-## Metadata Authoring
-
-The process of defining and creating metadata files using the CLI, LSP, and Native Data Connector specifications in
-Hasura DDN. It involves specifying data types, models, commands, data source and API configurations. Learn
-[more](/supergraph-modeling/overview.mdx).
 
 ## Data Sources
 
@@ -46,9 +127,10 @@ data source must have connector URL and schema. [Learn more](/supergraph-modelin
 ## Native Data Connector Specification (NDC Spec)
 
 A standardized specification that allows you to extend the functionality of the Hasura server by providing web services
-which can resolve new sources of data that defines the metadata structure for APIs in Hasura DDN. All data backends in
-Hasura DDN conform to this backend and use types defined by this specification such as collections, functions and
-procedures. Learn [more](https://hasura.github.io/ndc-spec/).
+that resolve new sources of data and help define the metadata structure for APIs in Hasura DDN. The specification
+defines types such as `collections`, `functions`, and `procedures` that help in describing the behavior of agents or
+connectors that connect to the underlying data source. It provides a framework and guidelines on the types of web
+service endpoints that a connector needs to implement. [Learn more](/supergraph-modeling/data-connectors.mdx).
 
 ## Native Data Connector Agents
 
@@ -104,18 +186,21 @@ you get the node root field in the GraphQL API schema to use with a Relay client
 
 ## Collection
 
-A collection is a native data connector spec object that maps one-to-one with the underlying data source object.
-Tracking a collection results in the creation of a model object in Hasura metadata.
+A collection is a Native Data Connector Spec object, which encapsulates part of a data source, providing standard
+querying capabilities.
 
-It can be queried or mutated and contains name, arguments and object types.
+Each collection is defined by its name, any collection arguments (need to parametrize the collections), the object type
+(a collection of fields) of its rows, and some additional metadata related to constraints.
+
+Tracking a collection results in the creation of a ‘model’ object in Hasura metadata.
 [Learn more](https://hasura.github.io/ndc-spec/specification/schema/collections.html).
 
 ## Function
 
-A function is a native data connector specification object and is a special type of collection. It only returns a single
-row and a single column, can contain arguments and cannot be mutated.
+A function is a Native Data Connector Specification object that can be invoked with arguments to get a result, and which
+doesn't have side-effects. Unlike collections, functions do not describe constraints and do not have object types.
 
-Tracking a function results in the creation of a `Command` object in Hasura metadata.
+Tracking a function results in the creation of a `Command` Supergraph object in Hasura metadata.
 [Learn more](https://hasura.github.io/ndc-spec/specification/schema/functions.html).
 
 ## Procedure
@@ -131,15 +216,6 @@ Tracking a procedure results in the creation of a `Command` object in Hasura met
 Each metadata change in Hasura DDN represents an immutable build. Every build has a unique GraphQL Endpoint that can be
 tested independently. Builds are tied to projects and there is a one-to-many mapping between projects and builds.
 [Learn more](/ci-cd/overview.mdx).
-
-## Subgraphs
-
-In Hasura DDN, Subgraphs provide autonomy, separation and security to teams for working with project metadata and allow
-them to organize and structure metadata as per team and business requirements. There can be multiple subgraphs in a
-project.
-
-All subgraphs contribute to one build at any given time, ie: one subgraph can be used create a build only when it does
-not introduce a breaking change at the project level. [Learn more](/supergraph-modeling/overview.mdx).
 
 [//]: # "## Build profiles TODO"
 [//]: # "## Environments TODO"
@@ -158,6 +234,17 @@ It supports `.hml` files which are a Hasura variant of `.yaml` files. We have us
 [VSCode extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) which you can download to help
 you write metadata. We have plans to provide extensions such as these for other text editors.
 
+## Metadata build service
+
+Creates builds from the metadata and makes it available to Hasura v3 GraphQL Engine at the edge for it to serve the API
+request. Provides essential error handling for fast debugging and troubleshooting.
+
+## Control plane Cloud API
+
+This component is the underlying cloud service, which enables creating builds, applying builds, managing environments,
+and creating and managing tunnels. We consider this the brain of DDN Console and CLI – the component that drives most of
+the DX functionalities.
+
 ## Hasura Secure Connect
 
 A feature in Hasura DDN that creates secure tunnels to connect with local resources, aiding local development while
@@ -165,9 +252,8 @@ ensuring data security. It requires a local daemon to be run via the CLI.
 
 ## Hasura Console
 
-An interface in Hasura DDN that provides tools for metadata visualizing, API testing and deployment, and team
-collaboration. It offers tools to validate metadata before creating builds and metrics and traces to determine the usage
-and health of the API.
+An interface in Hasura DDN that provides tools for metadata visualizing, API testing and deployment, team
+collaboration, documentation, traces, and analytics.
 
 ## Secrets
 
