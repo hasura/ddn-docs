@@ -1,463 +1,1004 @@
 ---
 sidebar_position: 100
-toc_max_heading_level: 2
+toc_max_heading_level: 4
 ---
 # Hasura DDN Metadata Reference
 
 Below, you can find information for the different definitions used in the Hasura DDN schema.
 
+## SupergraphOrSubgraphObject
+<div><pre><code><a href="#supergraphobject">SupergraphObject</a> | <a href="#subgraphobject">SubgraphObject</a></code></pre></div>
 ## SupergraphObject
 
+<div><pre><code><a href="#hasurasupergraphobject">HasuraSupergraphObject</a> | <a href="#openddsupergraphobject">OpenDdSupergraphObject</a></code></pre></div>
 ## HasuraSupergraphObject
 
+
+
+Can be achieved using one of the following:
+
+- The compatibility configuration of the Hasura metadata.
+
+
+**Example:**
+
+```yaml```- Definition of the authentication configuration used by the API server.
+
+
+**Example:**
+
+```yaml```
 ## CompatibilityDate
 
-## AuthConfigV1
-**Description:** Definition of the authentication configuration used by the API server.
+**Type**: `string`
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **allowRoleEmulationBy** | N/A | N/A |
-| **mode** | [AuthModeConfig](#authmodeconfig) | N/A |
+
+## AuthConfigV1
+
+Definition of the authentication configuration used by the API server.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `allowRoleEmulationBy` | N/A | N/A |
+| `mode` | N/A | N/A |
+
 
 **Example:**
-```yaml
-allowRoleEmulationBy: admin
-mode:
-  webhook:
-    url: http://auth_hook:3050/validate-request
-    method: Post
 
+```yaml- allowRoleEmulationBy: admin
+  mode:
+    webhook:
+      url: http://auth_hook:3050/validate-request
+      method: Post
 ```
-
 ## Role
 
+**Type**: `string`
+
+
 ## AuthModeConfig
-**Description:** The configuration for the authentication mode to use - webhook or JWT.
+
+The configuration for the authentication mode to use - webhook or JWT.
 
 
-## AuthHookConfig
-**Description:** The configuration of the authentication webhook.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **url** | string | The URL of the authentication webhook. |
-| **method** | N/A | The HTTP method to be used to make the request to the auth hook. |
+Can be achieved using one of the following:
+
+- undefined
+
 
 **Example:**
-```yaml
-url: http://auth_hook:3050/validate-request
-method: Post
 
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
+## AuthHookConfig
+
+The configuration of the authentication webhook.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `url` | string | The URL of the authentication webhook. |
+| `method` | N/A | The HTTP method to be used to make the request to the auth hook. |
+
+
+**Example:**
+
+```yaml- url: http://auth_hook:3050/validate-request
+  method: Post
 ```
-
 ## AuthHookMethod
 
-## JWTConfig
-**Description:** JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
+**Type**: `string`
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **audience** | array,null | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
-| **issuer** | string,null | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error. |
-| **allowedSkew** | integer,null | Allowed leeway (in seconds) to the `exp` validation to account for clock skew. |
-| **claimsConfig** | N/A | Claims config. Either specified via `claims_mappings` or `claims_namespace_path` |
-| **tokenLocation** | N/A | Source of the JWT authentication token. |
-| **key** | N/A | Mode according to which the JWT auth is configured. |
+**Enums**
+
+| Value |
+|-------|
+| Get |
+| Post |
+
+## JWTConfig
+
+JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `audience` | array, null | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer` | string, null | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error. |
+| `allowedSkew` | integer, null | Allowed leeway (in seconds) to the `exp` validation to account for clock skew. |
+| `claimsConfig` | N/A | Claims config. Either specified via `claims_mappings` or `claims_namespace_path` |
+| `tokenLocation` | N/A | Source of the JWT authentication token. |
+| `key` | N/A | Mode according to which the JWT auth is configured. |
+
 
 **Example:**
-```yaml
-audience: null
-issuer: null
-allowedSkew: null
-claimsConfig:
-  namespace:
-    claimsFormat: Json
-    location: /https:~1~1hasura.io~1jwt~1claims
-tokenLocation:
-  type: BearerAuthorization
-key:
-  fixed:
-    algorithm: HS256
-    key:
-      value: token
 
+```yaml- audience: null
+  issuer: null
+  allowedSkew: null
+  claimsConfig:
+    namespace:
+      claimsFormat: Json
+      location: /https:~1~1hasura.io~1jwt~1claims
+  tokenLocation:
+    type: BearerAuthorization
+  key:
+    fixed:
+      algorithm: HS256
+      key:
+        value: token
 ```
-
 ## JWTClaimsConfig
-**Description:** Config to describe how/where the engine should look for the claims within the decoded token.
+
+Config to describe how/where the engine should look for the claims within the decoded token.
 
 
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
 ## JWTClaimsMap
-**Description:** Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **x-hasura-default-role** | N/A | JSON pointer to lookup the default role within the decoded JWT. |
-| **x-hasura-allowed-roles** | N/A | JSON pointer to lookup the allowed roles within the decoded JWT. |
+Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `x-hasura-default-role` | N/A | JSON pointer to lookup the default role within the decoded JWT. |
+| `x-hasura-allowed-roles` | N/A | JSON pointer to lookup the allowed roles within the decoded JWT. |
 
 ## JWTClaimsMappingEntry_for_Role
 
+
+
+Can be achieved using one of the following:
+
+- Literal value of the claims mapping
+
+
+**Example:**
+
+```yaml```- Look up the Hasura claims at the specified JSON Pointer and provide a default value if the lookup fails.
+
+
+**Example:**
+
+```yaml```
 ## JWTClaimsMappingPathEntry_for_Role
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **path** | string | JSON pointer to find the particular claim in the decoded JWT token. |
-| **default** | N/A | Default value to be used when no value is found when looking up the value using the `path`. |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `path` | string | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` | N/A | Default value to be used when no value is found when looking up the value using the `path`. |
 
 ## JWTClaimsMappingEntry_for_Array_of_Role
 
+
+
+Can be achieved using one of the following:
+
+- Literal value of the claims mapping
+
+
+**Example:**
+
+```yaml```- Look up the Hasura claims at the specified JSON Pointer and provide a default value if the lookup fails.
+
+
+**Example:**
+
+```yaml```
 ## JWTClaimsMappingPathEntry_for_Array_of_Role
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **path** | string | JSON pointer to find the particular claim in the decoded JWT token. |
-| **default** | array,null | Default value to be used when no value is found when looking up the value using the `path`. |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `path` | string | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` | array, null | Default value to be used when no value is found when looking up the value using the `path`. |
 
 ## JWTClaimsMappingEntry_for_SessionVariableValue
 
+
+
+Can be achieved using one of the following:
+
+- Literal value of the claims mapping
+
+
+**Example:**
+
+```yaml```- Look up the Hasura claims at the specified JSON Pointer and provide a default value if the lookup fails.
+
+
+**Example:**
+
+```yaml```
 ## SessionVariableValue
 
+**Type**: `string`
+
+
 ## JWTClaimsMappingPathEntry_for_SessionVariableValue
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **path** | string | JSON pointer to find the particular claim in the decoded JWT token. |
-| **default** | N/A | Default value to be used when no value is found when looking up the value using the `path`. |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `path` | string | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` | N/A | Default value to be used when no value is found when looking up the value using the `path`. |
 
 ## JWTClaimsNamespace
-**Description:** Used when all of the Hasura claims are present in a single object within the decoded JWT.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **claimsFormat** | N/A | Format in which the Hasura claims will be present. |
-| **location** | string | Pointer to lookup the Hasura claims within the decoded claims. |
+Used when all of the Hasura claims are present in a single object within the decoded JWT.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `claimsFormat` | N/A | Format in which the Hasura claims will be present. |
+| `location` | string | Pointer to lookup the Hasura claims within the decoded claims. |
 
 ## JWTClaimsFormat
 
+
+
+Can be achieved using one of the following:
+
+- Claims will be in the JSON format.
+
+
+**Example:**
+
+```yaml```- Claims will be in the Stringified JSON format.
+
+
+**Example:**
+
+```yaml```
 ## JWTTokenLocation
-**Description:** Source of the Authorization token
+
+Source of the Authorization token
 
 
+
+Can be achieved using one of the following:
+
+- Get the bearer token from the `Authorization` header.
+
+
+**Example:**
+
+```yaml```- Get the token from the Cookie header under the specificied cookie name.
+
+
+**Example:**
+
+```yaml```- Custom header from where the header should be parsed from.
+
+
+**Example:**
+
+```yaml```
 ## JWTKey
-**Description:** JWT key configuration according to which the incoming JWT will be decoded.
+
+JWT key configuration according to which the incoming JWT will be decoded.
 
 
+
+Can be achieved using one of the following:
+
+- JWT mode when the algorithm `type` and `key` is known
+
+
+**Example:**
+
+```yaml```- JWT mode where the `type` and `key` parameters are obtained dynamically through JWK.
+
+
+**Example:**
+
+```yaml```
 ## JWTKeyConfig
-**Description:** JWT Secret config according to which the incoming JWT will be decoded.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **algorithm** | N/A | The algorithm used to decode the JWT. |
-| **key** | N/A | The key to use for decoding the JWT. |
+JWT Secret config according to which the incoming JWT will be decoded.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `algorithm` | N/A | The algorithm used to decode the JWT. |
+| `key` | N/A | The key to use for decoding the JWT. |
 
 ## Algorithm
-**Description:** The algorithm used to decode the JWT.
+
+The algorithm used to decode the JWT.
 
 
+
+Can be achieved using one of the following:
+
+- HMAC using SHA-256
+
+
+**Example:**
+
+```yaml```- HMAC using SHA-384
+
+
+**Example:**
+
+```yaml```- HMAC using SHA-512
+
+
+**Example:**
+
+```yaml```- ECDSA using SHA-256
+
+
+**Example:**
+
+```yaml```- ECDSA using SHA-384
+
+
+**Example:**
+
+```yaml```- RSASSA-PKCS1-v1_5 using SHA-256
+
+
+**Example:**
+
+```yaml```- RSASSA-PKCS1-v1_5 using SHA-384
+
+
+**Example:**
+
+```yaml```- RSASSA-PKCS1-v1_5 using SHA-512
+
+
+**Example:**
+
+```yaml```- RSASSA-PSS using SHA-256
+
+
+**Example:**
+
+```yaml```- RSASSA-PSS using SHA-384
+
+
+**Example:**
+
+```yaml```- RSASSA-PSS using SHA-512
+
+
+**Example:**
+
+```yaml```- Edwards-curve Digital Signature Algorithm (EdDSA)
+
+
+**Example:**
+
+```yaml```
 ## EnvironmentValue
-**Description:** Either a literal string or a reference to a Hasura secret
+
+Either a literal string or a reference to a Hasura secret
 
 
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
 ## OpenDdSupergraphObject
 
+
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```
 ## GraphqlConfigV1
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **query** | [QueryGraphqlConfig](#querygraphqlconfig) | N/A |
-| **mutation** | [MutationGraphqlConfig](#mutationgraphqlconfig) | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `query` | N/A | N/A |
+| `mutation` | N/A | N/A |
 
 ## QueryGraphqlConfig
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **rootOperationTypeName** | string | N/A |
-| **argumentsInput** | N/A | N/A |
-| **limitInput** | N/A | N/A |
-| **offsetInput** | N/A | N/A |
-| **filterInput** | N/A | N/A |
-| **orderByInput** | N/A | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `rootOperationTypeName` | string | N/A |
+| `argumentsInput` | N/A | N/A |
+| `limitInput` | N/A | N/A |
+| `offsetInput` | N/A | N/A |
+| `filterInput` | N/A | N/A |
+| `orderByInput` | N/A | N/A |
 
 ## ArgumentsInputGraphqlConfig
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | string | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | string | N/A |
 
 ## LimitInputGraphqlConfig
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | string | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | string | N/A |
 
 ## OffsetInputGraphqlConfig
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | string | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | string | N/A |
 
 ## FilterInputGraphqlConfig
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | string | N/A |
-| **operatorNames** | [FilterInputOperatorNames](#filterinputoperatornames) | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | string | N/A |
+| `operatorNames` | N/A | N/A |
 
 ## FilterInputOperatorNames
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **and** | string | N/A |
-| **or** | string | N/A |
-| **not** | string | N/A |
-| **isNull** | string | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `and` | string | N/A |
+| `or` | string | N/A |
+| `not` | string | N/A |
+| `isNull` | string | N/A |
 
 ## OrderByInputGraphqlConfig
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | string | N/A |
-| **enumDirectionValues** | [OrderByDirectionValues](#orderbydirectionvalues) | N/A |
-| **enumTypeNames** | array | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | string | N/A |
+| `enumDirectionValues` | N/A | N/A |
+| `enumTypeNames` | array | N/A |
 
 ## OrderByDirectionValues
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **asc** | string | N/A |
-| **desc** | string | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `asc` | string | N/A |
+| `desc` | string | N/A |
 
 ## OrderByEnumTypeName
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **directions** | array | N/A |
-| **typeName** | string | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `directions` | array | N/A |
+| `typeName` | string | N/A |
 
 ## OrderByDirection
 
+**Type**: `string`
+
+**Enums**
+
+| Value |
+|-------|
+| Asc |
+| Desc |
+
 ## MutationGraphqlConfig
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **rootOperationTypeName** | string | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `rootOperationTypeName` | string | N/A |
 
 ## SubgraphObject
 
+<div><pre><code><a href="#openddsubgraphobject">OpenDdSubgraphObject</a></code></pre></div>
 ## OpenDdSubgraphObject
 
-## DataConnectorLinkV1
-**Description:** Definition of a data connector - version 1.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the data connector. |
-| **url** | N/A | The url(s) to access the data connector. |
-| **headers** | object | Key value map of HTTP headers to be sent with each request to the data connector. |
-| **schema** | N/A | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
+
+Can be achieved using one of the following:
+
+- Definition of a data connector, used to bring in sources of data and connect them to OpenDD models and commands.
+
 
 **Example:**
-```yaml
-name: data_connector
-url:
-  singleUrl:
-    value: http://data_connector:8100
-headers: {}
-schema:
-  version: v0.1
+
+```yaml```- Definition of a user-defined Open DD object type.
+
+
+**Example:**
+
+```yaml```- Definition of a user-defined scalar type that that has opaque semantics.
+
+
+**Example:**
+
+```yaml```- The representation of a data connector scalar in terms of Open DD types
+
+
+**Example:**
+
+```yaml```- The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+
+
+**Example:**
+
+```yaml```- The definition of a command. A command is a user-defined operation which can take arguments and returns an output. The semantics of a command are opaque to the Open DD specification.
+
+
+**Example:**
+
+```yaml```- Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.
+
+
+**Example:**
+
+```yaml```- Definition of permissions for an OpenDD type.
+
+
+**Example:**
+
+```yaml```- Definition of permissions for an OpenDD model.
+
+
+**Example:**
+
+```yaml```- Definition of permissions for an OpenDD command.
+
+
+**Example:**
+
+```yaml```
+## DataConnectorLinkV1
+
+Definition of a data connector - version 1.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the data connector. |
+| `url` | N/A | The url(s) to access the data connector. |
+| `headers` | object | Key value map of HTTP headers to be sent with each request to the data connector. |
+| `schema` | N/A | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
+
+
+**Example:**
+
+```yaml- name: data_connector
+  url:
+    singleUrl:
+      value: http://data_connector:8100
+  headers: {}
   schema:
-    scalar_types: {}
-    object_types: {}
-    collections: []
-    functions: []
-    procedures: []
-  capabilities:
-    version: 0.1.0
+    version: v0.1
+    schema:
+      scalar_types: {}
+      object_types: {}
+      collections: []
+      functions: []
+      procedures: []
     capabilities:
-      query:
-        variables: {}
-      mutation: {}
-
+      version: 0.1.0
+      capabilities:
+        query:
+          variables: {}
+        mutation: {}
 ```
-
 ## DataConnectorName
-**Description:** The name of a data connector.
+
+The name of a data connector.
+
+**Type**: `string`
 
 
 ## DataConnectorUrlV1
 
+
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
 ## ReadWriteUrls
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **read** | [EnvironmentValue](#environmentvalue) | N/A |
-| **write** | [EnvironmentValue](#environmentvalue) | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `read` | N/A | N/A |
+| `write` | N/A | N/A |
 
 ## VersionedSchemaAndCapabilities
 
-## ObjectTypeV1
-**Description:** Definition of a user-defined Open DD object type.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| **fields** | array | The list of fields defined for this object type. |
-| **globalIdFields** | array,null | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
-| **graphql** | N/A | Configuration for how this object type should appear in the GraphQL schema. |
-| **description** | string,null | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
+
+Can be achieved using one of the following:
+
+- undefined
+
 
 **Example:**
-```yaml
-name: Author
-fields:
-  - name: author_id
-    type: Int!
-    description: The id of the author
-  - name: first_name
-    type: String
-    description: The first name of the author
-  - name: last_name
-    type: String
-    description: The last name of the author
-globalIdFields:
-  - author_id
-graphql:
-  typeName: Author
-  inputTypeName: null
-description: An author of a book
 
+```yaml```
+## ObjectTypeV1
+
+Definition of a user-defined Open DD object type.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `fields` | array | The list of fields defined for this object type. |
+| `globalIdFields` | array, null | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql` | N/A | Configuration for how this object type should appear in the GraphQL schema. |
+| `description` | string, null | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
+
+
+**Example:**
+
+```yaml- name: Author
+  fields:
+    - name: author_id
+      type: Int!
+      description: The id of the author
+    - name: first_name
+      type: String
+      description: The first name of the author
+    - name: last_name
+      type: String
+      description: The last name of the author
+  globalIdFields:
+    - author_id
+  graphql:
+    typeName: Author
+    inputTypeName: null
+  description: An author of a book
 ```
-
 ## CustomTypeName
-**Description:** The name of a user-defined type.
+
+The name of a user-defined type.
+
+**Type**: `string`
 
 
 ## FieldDefinition
-**Description:** The definition of a field in a user-defined object type.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
-| **type** | N/A | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
-| **description** | string,null | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
+The definition of a field in a user-defined object type.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
+| `type` | N/A | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string, null | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
 
 ## FieldName
-**Description:** The name of a field in a user-defined object type.
+
+The name of a field in a user-defined object type.
+
+**Type**: `string`
 
 
 ## TypeReference
-**Description:** A reference to an Open DD type including nullable values and arrays.
+
+A reference to an Open DD type including nullable values and arrays.
 Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.
 Eg: '[String!]!' is a non-nullable array of non-nullable strings.
 
+**Type**: `string`
+
 
 ## ObjectTypeGraphQLConfiguration
-**Description:** GraphQL configuration of an Open DD object type.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **typeName** | N/A | The name to use for the GraphQL type representation of this object type when used in an output context. |
-| **inputTypeName** | N/A | The name to use for the GraphQL type representation of this object type when used in an input context. |
+GraphQL configuration of an Open DD object type.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `typeName` | N/A | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName` | N/A | The name to use for the GraphQL type representation of this object type when used in an input context. |
 
 ## GraphQlTypeName
 
-## ScalarTypeV1
-**Description:** Definition of a user-defined scalar type that that has opaque semantics.
+**Type**: `string`
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| **graphql** | N/A | Configuration for how this scalar type should appear in the GraphQL schema. |
-| **description** | string,null | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
+
+## ScalarTypeV1
+
+Definition of a user-defined scalar type that that has opaque semantics.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `graphql` | N/A | Configuration for how this scalar type should appear in the GraphQL schema. |
+| `description` | string, null | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
+
 
 **Example:**
-```yaml
-name: CustomString
-graphql:
-  typeName: CustomString
-description: A custom string type
 
+```yaml- name: CustomString
+  graphql:
+    typeName: CustomString
+  description: A custom string type
 ```
-
 ## ScalarTypeGraphQLConfiguration
-**Description:** GraphQL configuration of an Open DD scalar type
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **typeName** | N/A | The name of the GraphQl type to use for this scalar. |
+GraphQL configuration of an Open DD scalar type
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `typeName` | N/A | The name of the GraphQl type to use for this scalar. |
 
 ## DataConnectorScalarRepresentationV1
-**Description:** The representation of a data connector scalar in terms of Open DD types
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **dataConnectorName** | N/A | The name of the data connector that this scalar type comes from. |
-| **dataConnectorScalarType** | string | The name of the scalar type coming from the data connector. |
-| **representation** | N/A | The name of the Open DD type that this data connector scalar type should be represented as. |
-| **graphql** | N/A | Configuration for how this scalar's operators should appear in the GraphQL schema. |
+The representation of a data connector scalar in terms of Open DD types
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `dataConnectorName` | N/A | The name of the data connector that this scalar type comes from. |
+| `dataConnectorScalarType` | string | The name of the scalar type coming from the data connector. |
+| `representation` | N/A | The name of the Open DD type that this data connector scalar type should be represented as. |
+| `graphql` | N/A | Configuration for how this scalar's operators should appear in the GraphQL schema. |
+
 
 **Example:**
-```yaml
-dataConnectorName: data_connector
-dataConnectorScalarType: varchar
-representation: String
-graphql:
-  comparisonExpressionTypeName: String_Comparison_Exp
 
+```yaml- dataConnectorName: data_connector
+  dataConnectorScalarType: varchar
+  representation: String
+  graphql:
+    comparisonExpressionTypeName: String_Comparison_Exp
 ```
-
 ## TypeName
 
+<div><pre><code><a href="#inbuilttype">InbuiltType</a> | <a href="#customtypename">CustomTypeName</a></code></pre></div>
 ## InbuiltType
-**Description:** An inbuilt primitive OpenDD type.
 
+An inbuilt primitive OpenDD type.
+
+**Type**: `string`
+
+**Enums**
+
+| Value |
+|-------|
+| ID |
+| Int |
+| Float |
+| Boolean |
+| String |
 
 ## DataConnectorScalarGraphQLConfiguration
-**Description:** GraphQL configuration of a data connector scalar
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **comparisonExpressionTypeName** | N/A | N/A |
+GraphQL configuration of a data connector scalar
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `comparisonExpressionTypeName` | N/A | N/A |
 
 ## ModelV1
-**Description:** The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the data model. |
-| **objectType** | N/A | The type of the objects of which this model is a collection. |
-| **globalIdSource** | boolean | Whether this model should be used as the global ID source for all objects of its type. |
-| **arguments** | array | A list of arguments accepted by this model. Defaults to no arguments. |
-| **source** | N/A | The source configuration for this model. |
-| **filterableFields** | array | A list of fields that can be used to filter the objects in this model. |
-| **orderableFields** | array | A list of fields that can be used to order the objects in this model. |
-| **graphql** | N/A | Configuration for how this model should appear in the GraphQL schema. |
-| **description** | string,null | The description of the model. Gets added to the description of the model in the graphql schema. |
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the data model. |
+| `objectType` | N/A | The type of the objects of which this model is a collection. |
+| `globalIdSource` | boolean | Whether this model should be used as the global ID source for all objects of its type. |
+| `arguments` | array | A list of arguments accepted by this model. Defaults to no arguments. |
+| `source` | N/A | The source configuration for this model. |
+| `filterableFields` | array | A list of fields that can be used to filter the objects in this model. |
+| `orderableFields` | array | A list of fields that can be used to order the objects in this model. |
+| `graphql` | N/A | Configuration for how this model should appear in the GraphQL schema. |
+| `description` | string, null | The description of the model. Gets added to the description of the model in the graphql schema. |
+
 
 **Example:**
-```yaml
-name: Articles
-objectType: article
-globalIdSource: true
-arguments: []
-source:
-  dataConnectorName: data_connector
+
+```yaml- name: Articles
+  objectType: article
+  globalIdSource: true
+  arguments: []
+  source:
+    dataConnectorName: data_connector
+    collection: articles
+    typeMapping:
+      article:
+        fieldMapping:
+          article_id:
+            column: id
+          title:
+            column: title
+          author_id:
+            column: author_id
+    argumentMapping: {}
+  filterableFields:
+    - fieldName: article_id
+      operators:
+        enableAll: true
+    - fieldName: title
+      operators:
+        enableAll: true
+    - fieldName: author_id
+      operators:
+        enableAll: true
+  orderableFields:
+    - fieldName: article_id
+      orderByDirections:
+        enableAll: true
+    - fieldName: title
+      orderByDirections:
+        enableAll: true
+    - fieldName: author_id
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectUniques:
+      - queryRootField: ArticleByID
+        uniqueIdentifier:
+          - article_id
+        description: Description for the select unique ArticleByID
+    selectMany:
+      queryRootField: ArticleMany
+      description: Description for the select many ArticleMany
+    argumentsInputType: null
+    filterExpressionType: Article_Where_Exp
+    orderByExpressionType: Article_Order_By
+  description: Description for the model Articles
+```
+## ModelName
+
+The name of data model.
+
+**Type**: `string`
+
+
+## ArgumentDefinition
+
+The definition of an argument for a field, command, or model.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | N/A |
+| `type` | N/A | N/A |
+| `description` | string, null | N/A |
+
+## ArgumentName
+
+**Type**: `string`
+
+
+## ModelSource
+
+Description of how a model maps to a particular data connector
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `dataConnectorName` | N/A | The name of the data connector backing this model. |
+| `collection` | string | The collection in the data connector that backs this model. |
+| `typeMapping` | object | How the various types used in this model correspond to entities in the data connector. |
+| `argumentMapping` | object | N/A |
+
+
+**Example:**
+
+```yaml- dataConnectorName: data_connector
   collection: articles
   typeMapping:
     article:
@@ -469,28 +1010,114 @@ source:
         author_id:
           column: author_id
   argumentMapping: {}
-filterableFields:
-  - fieldName: article_id
-    operators:
-      enableAll: true
-  - fieldName: title
-    operators:
-      enableAll: true
-  - fieldName: author_id
-    operators:
-      enableAll: true
-orderableFields:
-  - fieldName: article_id
-    orderByDirections:
-      enableAll: true
-  - fieldName: title
-    orderByDirections:
-      enableAll: true
-  - fieldName: author_id
-    orderByDirections:
-      enableAll: true
-graphql:
-  selectUniques:
+```
+## TypeMapping
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldMapping` | object | N/A |
+
+## FieldMapping
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `column` | string | N/A |
+
+## FilterableField
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | N/A | N/A |
+| `operators` | N/A | N/A |
+
+## EnableAllOrSpecific_for_OperatorName
+
+
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
+## OperatorName
+
+**Type**: `string`
+
+
+## OrderableField
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | N/A | N/A |
+| `orderByDirections` | N/A | N/A |
+
+## EnableAllOrSpecific_for_OrderByDirection
+
+
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
+## OrderByDirection2
+
+**Type**: `string`
+
+**Enums**
+
+| Value |
+|-------|
+| Asc |
+| Desc |
+
+## ModelGraphQlDefinition
+
+The definition of how a model appears in the GraphQL API.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `selectUniques` | array | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany` | N/A | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType` | N/A | The type name of the input type used to hold the arguments of the model. |
+| `filterExpressionType` | N/A | The type name of the filter boolean expression input type. |
+| `orderByExpressionType` | N/A | The type name of the order by expression input type. |
+
+
+**Example:**
+
+```yaml- selectUniques:
     - queryRootField: ArticleByID
       uniqueIdentifier:
         - article_id
@@ -501,529 +1128,623 @@ graphql:
   argumentsInputType: null
   filterExpressionType: Article_Where_Exp
   orderByExpressionType: Article_Order_By
-description: Description for the model Articles
-
 ```
-
-## ModelName
-**Description:** The name of data model.
-
-
-## ArgumentDefinition
-**Description:** The definition of an argument for a field, command, or model.
-
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | [ArgumentName](#argumentname) | N/A |
-| **type** | [TypeReference](#typereference) | N/A |
-| **description** | string,null | N/A |
-
-## ArgumentName
-
-## ModelSource
-**Description:** Description of how a model maps to a particular data connector
-
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **dataConnectorName** | N/A | The name of the data connector backing this model. |
-| **collection** | string | The collection in the data connector that backs this model. |
-| **typeMapping** | object | How the various types used in this model correspond to entities in the data connector. |
-| **argumentMapping** | object | N/A |
-
-**Example:**
-```yaml
-dataConnectorName: data_connector
-collection: articles
-typeMapping:
-  article:
-    fieldMapping:
-      article_id:
-        column: id
-      title:
-        column: title
-      author_id:
-        column: author_id
-argumentMapping: {}
-
-```
-
-## TypeMapping
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldMapping** | object | N/A |
-
-## FieldMapping
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **column** | string | N/A |
-
-## FilterableField
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | [FieldName](#fieldname) | N/A |
-| **operators** | [EnableAllOrSpecific_for_OperatorName](#enableallorspecific_for_operatorname) | N/A |
-
-## EnableAllOrSpecific_for_OperatorName
-
-## OperatorName
-
-## OrderableField
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | [FieldName](#fieldname) | N/A |
-| **orderByDirections** | [EnableAllOrSpecific_for_OrderByDirection](#enableallorspecific_for_orderbydirection) | N/A |
-
-## EnableAllOrSpecific_for_OrderByDirection
-
-## OrderByDirection2
-
-## ModelGraphQlDefinition
-**Description:** The definition of how a model appears in the GraphQL API.
-
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **selectUniques** | array | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| **selectMany** | N/A | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| **argumentsInputType** | N/A | The type name of the input type used to hold the arguments of the model. |
-| **filterExpressionType** | N/A | The type name of the filter boolean expression input type. |
-| **orderByExpressionType** | N/A | The type name of the order by expression input type. |
-
-**Example:**
-```yaml
-selectUniques:
-  - queryRootField: ArticleByID
-    uniqueIdentifier:
-      - article_id
-    description: Description for the select unique ArticleByID
-selectMany:
-  queryRootField: ArticleMany
-  description: Description for the select many ArticleMany
-argumentsInputType: null
-filterExpressionType: Article_Where_Exp
-orderByExpressionType: Article_Order_By
-
-```
-
 ## SelectUniqueGraphQlDefinition
-**Description:** The definition of the GraphQL API for selecting a unique row/object from a model.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **queryRootField** | N/A | The name of the query root field for this API. |
-| **uniqueIdentifier** | array | A set of fields which can uniquely identify a row/object in the model. |
-| **description** | string,null | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
+The definition of the GraphQL API for selecting a unique row/object from a model.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `queryRootField` | N/A | The name of the query root field for this API. |
+| `uniqueIdentifier` | array | A set of fields which can uniquely identify a row/object in the model. |
+| `description` | string, null | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
 
 ## GraphQlFieldName
-**Description:** The name of a GraphQL object field.
+
+The name of a GraphQL object field.
+
+**Type**: `string`
 
 
 ## SelectManyGraphQlDefinition
-**Description:** The definition of the GraphQL API for selecting rows from a model.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **queryRootField** | N/A | The name of the query root field for this API. |
-| **description** | string,null | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
+The definition of the GraphQL API for selecting rows from a model.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `queryRootField` | N/A | The name of the query root field for this API. |
+| `description` | string, null | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
 
 ## CommandV1
-**Description:** Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the command. |
-| **outputType** | N/A | The return type of the command. |
-| **arguments** | array | The list of arguments accepted by this command. Defaults to no arguments. |
-| **source** | N/A | The source configuration for this command. |
-| **graphql** | N/A | Configuration for how this command should appear in the GraphQL schema. |
-| **description** | string,null | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
+Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the command. |
+| `outputType` | N/A | The return type of the command. |
+| `arguments` | array | The list of arguments accepted by this command. Defaults to no arguments. |
+| `source` | N/A | The source configuration for this command. |
+| `graphql` | N/A | Configuration for how this command should appear in the GraphQL schema. |
+| `description` | string, null | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
+
 
 **Example:**
-```yaml
-name: get_latest_article
-outputType: commandArticle
-arguments: []
-source:
-  dataConnectorName: data_connector
-  dataConnectorCommand:
-    function: latest_article
-  typeMapping:
-    commandArticle:
-      fieldMapping:
-        article_id:
-          column: id
-  argumentMapping: {}
-graphql:
-  rootFieldName: getLatestArticle
-  rootFieldKind: Query
-description: Get the latest article
 
+```yaml- name: get_latest_article
+  outputType: commandArticle
+  arguments: []
+  source:
+    dataConnectorName: data_connector
+    dataConnectorCommand:
+      function: latest_article
+    typeMapping:
+      commandArticle:
+        fieldMapping:
+          article_id:
+            column: id
+    argumentMapping: {}
+  graphql:
+    rootFieldName: getLatestArticle
+    rootFieldKind: Query
+  description: Get the latest article
 ```
-
 ## CommandName
-**Description:** The name of a command.
+
+The name of a command.
+
+**Type**: `string`
 
 
 ## CommandSource
-**Description:** Description of how a command maps to a particular data connector
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **dataConnectorName** | N/A | The name of the data connector backing this command. |
-| **dataConnectorCommand** | N/A | The function/procedure in the data connector that backs this command. |
-| **typeMapping** | object | How the various types used in this command correspond to entities in the data connector. |
-| **argumentMapping** | object | Mapping from command argument names to data connector table argument names. |
+Description of how a command maps to a particular data connector
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `dataConnectorName` | N/A | The name of the data connector backing this command. |
+| `dataConnectorCommand` | N/A | The function/procedure in the data connector that backs this command. |
+| `typeMapping` | object | How the various types used in this command correspond to entities in the data connector. |
+| `argumentMapping` | object | Mapping from command argument names to data connector table argument names. |
+
 
 **Example:**
-```yaml
-dataConnectorName: data_connector
-dataConnectorCommand:
-  function: latest_article
-typeMapping: {}
-argumentMapping: {}
 
+```yaml- dataConnectorName: data_connector
+  dataConnectorCommand:
+    function: latest_article
+  typeMapping: {}
+  argumentMapping: {}
 ```
-
 ## DataConnectorCommand
 
+
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
 ## FunctionName
-**Description:** The name of a function backing the command.
+
+The name of a function backing the command.
+
+**Type**: `string`
 
 
 ## ProcedureName
-**Description:** The name of a procedure backing the command.
+
+The name of a procedure backing the command.
+
+**Type**: `string`
 
 
 ## CommandGraphQlDefinition
-**Description:** The definition of how a command should appear in the GraphQL API.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **rootFieldName** | N/A | The name of the graphql root field to use for this command. |
-| **rootFieldKind** | N/A | Whether to put this command in the Query or Mutation root of the GraphQL API. |
+The definition of how a command should appear in the GraphQL API.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `rootFieldName` | N/A | The name of the graphql root field to use for this command. |
+| `rootFieldKind` | N/A | Whether to put this command in the Query or Mutation root of the GraphQL API. |
+
 
 **Example:**
-```yaml
-rootFieldName: getLatestArticle
-rootFieldKind: Query
 
+```yaml- rootFieldName: getLatestArticle
+  rootFieldKind: Query
 ```
-
 ## GraphQlRootFieldKind
 
-## RelationshipV1
-**Description:** Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.
+**Type**: `string`
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the relationship. |
-| **source** | N/A | The source type of the relationship. |
-| **target** | N/A | The target of the relationship. |
-| **mapping** | array | The mapping configuration of source to target for the relationship. |
-| **description** | string,null | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
+**Enums**
+
+| Value |
+|-------|
+| Query |
+| Mutation |
+
+## RelationshipV1
+
+Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the relationship. |
+| `source` | N/A | The source type of the relationship. |
+| `target` | N/A | The target of the relationship. |
+| `mapping` | array | The mapping configuration of source to target for the relationship. |
+| `description` | string, null | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
+
 
 **Example:**
-```yaml
-name: Articles
-source: author
-target:
-  model:
+
+```yaml- name: Articles
+  source: author
+  target:
+    model:
+      name: Articles
+      namespace: null
+      subgraph: null
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: author_id
+      target:
+        modelField:
+          - fieldName: author_id
+  description: Articles written by an author
+```
+## RelationshipName
+
+The name of the GraphQL relationship field.
+
+**Type**: `string`
+
+
+## RelationshipTarget
+
+The target for a relationship.
+
+
+
+**Example:**
+
+```yaml- model:
     name: Articles
     namespace: null
     subgraph: null
     relationshipType: Array
-mapping:
-  - source:
-      fieldPath:
-        - fieldName: author_id
-    target:
-      modelField:
-        - fieldName: author_id
-description: Articles written by an author
-
 ```
 
-## RelationshipName
-**Description:** The name of the GraphQL relationship field.
+Can be achieved using one of the following:
 
-
-## RelationshipTarget
-**Description:** The target for a relationship.
+- undefined
 
 
 **Example:**
-```yaml
-model:
-  name: Articles
-  namespace: null
-  subgraph: null
-  relationshipType: Array
 
-```
+```yaml```- undefined
 
+
+**Example:**
+
+```yaml```
 ## ModelRelationshipTarget
-**Description:** The target model for a relationship.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the data model. |
-| **namespace** | string,null | N/A |
-| **subgraph** | string,null | The subgraph of the target model. Defaults to the current subgraph. |
-| **relationshipType** | N/A | Type of the relationship - object or array. |
+The target model for a relationship.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the data model. |
+| `namespace` | string, null | N/A |
+| `subgraph` | string, null | The subgraph of the target model. Defaults to the current subgraph. |
+| `relationshipType` | N/A | Type of the relationship - object or array. |
 
 ## RelationshipType
-**Description:** Type of the relationship.
+
+Type of the relationship.
 
 
-## CommandRelationshipTarget
-**Description:** The target command for a relationship.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the command. |
-| **subgraph** | string,null | The subgraph of the target command. Defaults to the current subgraph. |
+Can be achieved using one of the following:
 
-## RelationshipMapping
-**Description:** Definition of a how a particular field in the source maps to a target field or argument.
+- Select one related object from the target.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **source** | N/A | The source configuration for this relationship mapping. |
-| **target** | N/A | The target configuration for this relationship mapping. |
 
 **Example:**
-```yaml
-source:
-  fieldPath:
-    - fieldName: author_id
-target:
-  modelField:
-    - fieldName: author_id
 
+```yaml```- Select multiple related objects from the target.
+
+
+**Example:**
+
+```yaml```
+## CommandRelationshipTarget
+
+The target command for a relationship.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the command. |
+| `subgraph` | string, null | The subgraph of the target command. Defaults to the current subgraph. |
+
+## RelationshipMapping
+
+Definition of a how a particular field in the source maps to a target field or argument.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `source` | N/A | The source configuration for this relationship mapping. |
+| `target` | N/A | The target configuration for this relationship mapping. |
+
+
+**Example:**
+
+```yaml- source:
+    fieldPath:
+      - fieldName: author_id
+  target:
+    modelField:
+      - fieldName: author_id
 ```
-
 ## RelationshipMappingSource
-**Description:** The source configuration for a relationship mapping.
+
+The source configuration for a relationship mapping.
 
 
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
 ## ValueExpression
-**Description:** An expression which evaluates to a value that can be used in permissions.
+
+An expression which evaluates to a value that can be used in permissions.
 
 
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
 ## OpenDdSessionVariable
-**Description:** Used to represent the name of a session variable, like "x-hasura-role".
+
+Used to represent the name of a session variable, like "x-hasura-role".
+
+**Type**: `string`
 
 
 ## FieldAccess
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **fieldName** | [FieldName](#fieldname) | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `fieldName` | N/A | N/A |
 
 ## RelationshipMappingTarget
-**Description:** The target configuration for a relationship mapping.
+
+The target configuration for a relationship mapping.
 
 
+
+Can be achieved using one of the following:
+
+- undefined
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```
 ## ArgumentMappingTarget
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **argumentName** | [ArgumentName](#argumentname) | N/A |
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `argumentName` | N/A | N/A |
 
 ## TypePermissionsV1
-**Description:** Definition of permissions for an OpenDD type.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **typeName** | N/A | The name of the type for which permissions are being defined. Must be an object type. |
-| **permissions** | array | A list of type permissions, one for each role. |
+Definition of permissions for an OpenDD type.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `typeName` | N/A | The name of the type for which permissions are being defined. Must be an object type. |
+| `permissions` | array | A list of type permissions, one for each role. |
+
 
 **Example:**
-```yaml
-typeName: article
-permissions:
-  - role: admin
-    output:
-      allowedFields:
-        - article_id
-        - author_id
-        - title
-  - role: user
-    output:
-      allowedFields:
-        - article_id
-        - author_id
 
+```yaml- typeName: article
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - article_id
+          - author_id
+          - title
+    - role: user
+      output:
+        allowedFields:
+          - article_id
+          - author_id
 ```
-
 ## TypePermission
-**Description:** Defines permissions for a particular role for a type.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **role** | N/A | The role for which permissions are being defined. |
-| **output** | N/A | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
+Defines permissions for a particular role for a type.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `role` | N/A | The role for which permissions are being defined. |
+| `output` | N/A | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
+
 
 **Example:**
-```yaml
-role: user
-output:
-  allowedFields:
-    - article_id
-    - author_id
 
+```yaml- role: user
+  output:
+    allowedFields:
+      - article_id
+      - author_id
 ```
-
 ## TypeOutputPermission
-**Description:** Permissions for a type for a particular role when used in an output context.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **allowedFields** | array | Fields of the type that are accessible for a role |
+Permissions for a type for a particular role when used in an output context.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `allowedFields` | array | Fields of the type that are accessible for a role |
 
 ## ModelPermissionsV1
-**Description:** Definition of permissions for an OpenDD model.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **modelName** | N/A | The name of the model for which permissions are being defined. |
-| **permissions** | array | A list of model permissions, one for each role. |
+Definition of permissions for an OpenDD model.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `modelName` | N/A | The name of the model for which permissions are being defined. |
+| `permissions` | array | A list of model permissions, one for each role. |
+
 
 **Example:**
-```yaml
-modelName: Articles
-permissions:
-  - role: admin
-    select:
-      filter: null
-  - role: user
-    select:
-      filter:
-        fieldComparison:
-          field: author_id
-          operator: _eq
-          value:
-            sessionVariable: x-hasura-user-id
 
+```yaml- modelName: Articles
+  permissions:
+    - role: admin
+      select:
+        filter: null
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: author_id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
 ```
-
 ## ModelPermission
-**Description:** Defines the permissions for an OpenDD model.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **role** | N/A | The role for which permissions are being defined. |
-| **select** | N/A | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
+Defines the permissions for an OpenDD model.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `role` | N/A | The role for which permissions are being defined. |
+| `select` | N/A | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
+
 
 **Example:**
-```yaml
-role: user
-select:
-  filter:
-    fieldComparison:
-      field: author_id
-      operator: _eq
-      value:
-        sessionVariable: x-hasura-user-id
 
+```yaml- role: user
+  select:
+    filter:
+      fieldComparison:
+        field: author_id
+        operator: _eq
+        value:
+          sessionVariable: x-hasura-user-id
 ```
-
 ## SelectPermission
-**Description:** Defines the permissions for selecting a model for a role.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **filter** | N/A | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
+Defines the permissions for selecting a model for a role.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `filter` | N/A | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
 
 ## NullableModelPredicate
 
+<div><pre><code><a href="#modelpredicate">ModelPredicate</a></code></pre></div>
 ## ModelPredicate
-**Description:** A predicate that can be used to restrict the objects returned when querying a model.
+
+A predicate that can be used to restrict the objects returned when querying a model.
+
 
 
 **Example:**
-```yaml
-fieldComparison:
-  field: author_id
-  operator: _eq
-  value:
-    sessionVariable: x-hasura-user-id
 
+```yaml- fieldComparison:
+    field: author_id
+    operator: _eq
+    value:
+      sessionVariable: x-hasura-user-id
 ```
 
-## FieldComparisonPredicate
-**Description:** Field comparision predicate filters objects based on a field value.
+Can be achieved using one of the following:
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **field** | N/A | The field name of the object type of the model to compare. |
-| **operator** | N/A | The name of the operator to use for comparison. |
-| **value** | N/A | The value expression to compare against. |
+- Filters objects based on a field value.
+
+
+**Example:**
+
+```yaml```- undefined
+
+
+**Example:**
+
+```yaml```- Filters objects based on the relationship of a model.
+
+
+**Example:**
+
+```yaml```- Evaluates to true if all sub-predicates evaluate to true.
+
+
+**Example:**
+
+```yaml```- Evaluates to true if any of the sub-predicates evaluate to true.
+
+
+**Example:**
+
+```yaml```- Evaluates to true if the sub-predicate evaluates to false.
+
+
+**Example:**
+
+```yaml```
+## FieldComparisonPredicate
+
+Field comparision predicate filters objects based on a field value.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `field` | N/A | The field name of the object type of the model to compare. |
+| `operator` | N/A | The name of the operator to use for comparison. |
+| `value` | N/A | The value expression to compare against. |
 
 ## RelationshipPredicate
-**Description:** Relationship predicate filters objects of a source model based on a predicate on the related model.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **name** | N/A | The name of the relationship of the object type of the model to follow. |
-| **predicate** | N/A | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
+Relationship predicate filters objects of a source model based on a predicate on the related model.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `name` | N/A | The name of the relationship of the object type of the model to follow. |
+| `predicate` | N/A | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
 ## CommandPermissionsV1
-**Description:** Definition of permissions for an OpenDD command.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **commandName** | N/A | The name of the command for which permissions are being defined. |
-| **permissions** | array | A list of command permissions, one for each role. |
+Definition of permissions for an OpenDD command.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `commandName` | N/A | The name of the command for which permissions are being defined. |
+| `permissions` | array | A list of command permissions, one for each role. |
+
 
 **Example:**
-```yaml
-commandName: get_article_by_id
-permissions:
-  - role: admin
-    allowExecution: true
-  - role: user
-    allowExecution: true
 
+```yaml- commandName: get_article_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
 ```
-
 ## CommandPermission
-**Description:** Defines the permissions for a role for a command.
 
-**Properties:**
-| Property | Type | Description |
-| --- | --- | --- |
-| **role** | N/A | The role for which permissions are being defined. |
-| **allowExecution** | boolean | Whether the command is executable by the role. |
+Defines the permissions for a role for a command.
+
+**Type**: `object`
+
+
+  | Property | Type | Description |
+  |----------|------|-------------|
+  | `role` | N/A | The role for which permissions are being defined. |
+| `allowExecution` | boolean | Whether the command is executable by the role. |
+
 
 **Example:**
-```yaml
-role: user
-allowExecution: true
 
+```yaml- role: user
+  allowExecution: true
 ```
-
