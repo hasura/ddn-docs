@@ -17,8 +17,7 @@ echo -e '{
 ' > "$MDX_DIR/_category_.json"
 
 # List of CLI commands
-COMMANDS=("" "build" "build apply" "build create" "build delete" "build describe" "build list" "completion" "completion bash" "completion fish" "completion powershell" "completion zsh" "daemon" "daemon start" "environment" "environment create" "environment delete" "environment describe" "environment list" "help" "init" "login" "logout" "metadata" "metadata add-hub-connector" "plugins" "plugins install" "plugins list" "plugins uninstall" "plugins upgrade" "project" "project create" "project delete" "project describe" "project list" "secret" "secret delete" "secret get" "secret list" "secret set" "subgraph" "subgraph create" "subgraph delete" "subgraph describe" "subgraph list" "tunnel" "tunnel activate" "tunnel create" "tunnel delete" "tunnel list" "tunnel pause" "update-cli" "version" "watch")
-
+COMMANDS=("" "add" "add connector-manifest" "apply" "apply supergraph-build" "build" "build connector-manifest" "completion" "completion bash" "completion fish" "completion powershell" "completion zsh" "create" "create cloud-environment-variable" "create environment" "create project" "create subgraph" "create supergraph-build" "delete" "delete cloud-environment-variable" "delete environment" "delete project" "delete subgraph" "delete supergraph-build" "get" "get cloud-environment-variable" "get environment" "get project" "get region" "get subgraph" "get supergraph-build" "help" "login" "logout" "plugins" "plugins install" "plugins list" "plugins uninstall" "plugins upgrade" "tunnel" "tunnel start" "update" "update connector-link" "update connector-manifest" "update-cli" "version") 
 # Position counter
 position=1
 
@@ -28,7 +27,7 @@ for cmd in "${COMMANDS[@]}"; do
   cmd_slug=$(echo "$cmd" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
 
   # Capture the help text for the command
-  help_text=$(hasura3 $cmd --help)
+  help_text=$(ddn $cmd --help)
 
   # parse the first line of the help text
     synopsis=$(echo "$help_text" | head -n 1)
@@ -37,17 +36,17 @@ for cmd in "${COMMANDS[@]}"; do
   mdx_content="---
 title: hasura3 $cmd
 sidebar_position: $position
-sidebar_label: hasura3 $cmd
-description: Using the hasura3 $cmd command with the Hasura CLI
+sidebar_label: ddn $cmd
+description: Using the ddn $cmd command with the Hasura CLI
 ---
 
-# Hasura3 CLI: hasura3 $cmd 
+# Hasura DDN CLI: ddn $cmd 
 
 ## Synopsis
 $synopsis.
 
 \`\`\`bash
-$ hasura3 $cmd --help
+$ ddn $cmd --help
 $help_text
 \`\`\`
 "
