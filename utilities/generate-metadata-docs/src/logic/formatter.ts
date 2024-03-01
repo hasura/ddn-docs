@@ -12,7 +12,21 @@ function resolveRef(schema: JSONSchema7, ref: string): JSONSchema7Definition | u
  * Opposed to recursively creating markdown, we're choosing to generate "expanded" JSON which is generated
  * by traversing the original schema and recursively plugging in refs where appropriate.
  */
-function constructSchemaJson(schema: JSONSchema7, schemaObject: JSONSchema7 | JSONSchema7Definition): any {
+function constructSchemaJson(
+  schema: JSONSchema7,
+  schemaObject: JSONSchema7 | JSONSchema7Definition,
+  visitedRefs = new Set()
+): any {
+  // Check for circular reference
+  if (typeof schemaObject === 'object' && schemaObject['$ref'] && visitedRefs.has(schemaObject['$ref'])) {
+    return { error: 'Circular reference detected' };
+  }
+
+  // Add the current $ref to visitedRefs
+  if (typeof schemaObject === 'object' && schemaObject['$ref']) {
+    visitedRefs.add(schemaObject['$ref']);
+  }
+
   if (typeof schemaObject === 'boolean') {
     return { type: 'boolean' };
   }
@@ -31,7 +45,7 @@ function constructSchemaJson(schema: JSONSchema7, schemaObject: JSONSchema7 | JS
     const resolvedSchema = resolveRef(schema, schemaObject['$ref']);
     if (resolvedSchema && typeof resolvedSchema !== 'boolean') {
       result['$ref'] = schemaObject['$ref'];
-      Object.assign(result, constructSchemaJson(schema, resolvedSchema));
+      Object.assign(result, constructSchemaJson(schema, resolvedSchema, visitedRefs));
     } else {
       result['error'] = `Could not resolve ref: ${schemaObject['$ref']}`;
     }
@@ -43,7 +57,40 @@ function constructSchemaJson(schema: JSONSchema7, schemaObject: JSONSchema7 | JS
     result.properties = {};
     for (const propName in schemaObject.properties) {
       const prop = schemaObject.properties[propName];
-      result.properties[propName] = constructSchemaJson(schema, prop);
+      // Initialize an object to hold the processed property schema
+      let processedProp: any = {};
+
+      // Check if the property is an array with an 'items' schema
+      if (typeof prop === 'object' && prop.items) {
+        // Recursively process the 'items' schema
+        if (Array.isArray(prop.items)) {
+          // If 'items' is an array, process each schema in the array (less common)
+          processedProp.items = prop.items.map(item => constructSchemaJson(schema, item, visitedRefs));
+        } else {
+          // If 'items' is an object, process it directly
+          processedProp.items = constructSchemaJson(schema, prop.items, visitedRefs);
+        }
+      }
+
+      // Process the rest of the property schema
+      processedProp = { ...processedProp, ...constructSchemaJson(schema, prop, visitedRefs) };
+
+      // Assign the processed property schema to the result
+      result.properties[propName] = processedProp;
+    }
+  }
+
+  // Handle 'additionalProperties' if present
+  if ('additionalProperties' in schemaObject) {
+    const additionalProps = schemaObject.additionalProperties;
+
+    // Check if 'additionalProperties' is a schema object or boolean
+    if (typeof additionalProps === 'object') {
+      // Recursively process the schema for 'additionalProperties'
+      result.additionalProperties = constructSchemaJson(schema, additionalProps, visitedRefs);
+    } else {
+      // If 'additionalProperties' is a boolean, directly assign it
+      result.additionalProperties = additionalProps;
     }
   }
 
@@ -52,7 +99,7 @@ function constructSchemaJson(schema: JSONSchema7, schemaObject: JSONSchema7 | JS
   compositeKeywords.forEach(keyword => {
     const compositeArray = schemaObject[keyword];
     if (Array.isArray(compositeArray)) {
-      result[keyword] = compositeArray.map(subSchema => constructSchemaJson(schema, subSchema));
+      result[keyword] = compositeArray.map(subSchema => constructSchemaJson(schema, subSchema, visitedRefs));
     }
   });
 

@@ -157,6 +157,9 @@
                                   ],
                                   "properties": {
                                     "audience": {
+                                      "items": {
+                                        "type": "string"
+                                      },
                                       "description": "Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error.",
                                       "type": ["array", "null"]
                                     },
@@ -202,8 +205,7 @@
                                                               "required": ["literal"],
                                                               "properties": {
                                                                 "literal": {
-                                                                  "$ref": "#/definitions/Role",
-                                                                  "type": "string"
+                                                                  "error": "Circular reference detected"
                                                                 }
                                                               }
                                                             },
@@ -228,8 +230,7 @@
                                                                       "description": "Default value to be used when no value is found when looking up the value using the `path`.",
                                                                       "anyOf": [
                                                                         {
-                                                                          "$ref": "#/definitions/Role",
-                                                                          "type": "string"
+                                                                          "error": "Circular reference detected"
                                                                         },
                                                                         {
                                                                           "type": "null"
@@ -258,6 +259,9 @@
                                                               "required": ["literal"],
                                                               "properties": {
                                                                 "literal": {
+                                                                  "items": {
+                                                                    "error": "Circular reference detected"
+                                                                  },
                                                                   "type": "array"
                                                                 }
                                                               }
@@ -280,6 +284,9 @@
                                                                       "type": "string"
                                                                     },
                                                                     "default": {
+                                                                      "items": {
+                                                                        "error": "Circular reference detected"
+                                                                      },
                                                                       "description": "Default value to be used when no value is found when looking up the value using the `path`.",
                                                                       "type": ["array", "null"]
                                                                     }
@@ -717,6 +724,27 @@
                                       }
                                     },
                                     "enumTypeNames": {
+                                      "items": {
+                                        "$ref": "#/definitions/OrderByEnumTypeName",
+                                        "title": "OrderByEnumTypeName",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": ["directions", "typeName"],
+                                        "properties": {
+                                          "directions": {
+                                            "items": {
+                                              "$ref": "#/definitions/OrderByDirection",
+                                              "title": "OrderByDirection",
+                                              "type": "string",
+                                              "enum": ["Asc", "Desc"]
+                                            },
+                                            "type": "array"
+                                          },
+                                          "typeName": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
                                       "type": "array"
                                     }
                                   }
@@ -834,31 +862,7 @@
                                   "required": ["singleUrl"],
                                   "properties": {
                                     "singleUrl": {
-                                      "$ref": "#/definitions/EnvironmentValue",
-                                      "title": "EnvironmentValue",
-                                      "description": "Either a literal string or a reference to a Hasura secret",
-                                      "oneOf": [
-                                        {
-                                          "type": "object",
-                                          "additionalProperties": false,
-                                          "required": ["value"],
-                                          "properties": {
-                                            "value": {
-                                              "type": "string"
-                                            }
-                                          }
-                                        },
-                                        {
-                                          "type": "object",
-                                          "additionalProperties": false,
-                                          "required": ["valueFromEnv"],
-                                          "properties": {
-                                            "valueFromEnv": {
-                                              "type": "string"
-                                            }
-                                          }
-                                        }
-                                      ]
+                                      "error": "Circular reference detected"
                                     }
                                   }
                                 },
@@ -875,58 +879,10 @@
                                       "required": ["read", "write"],
                                       "properties": {
                                         "read": {
-                                          "$ref": "#/definitions/EnvironmentValue",
-                                          "title": "EnvironmentValue",
-                                          "description": "Either a literal string or a reference to a Hasura secret",
-                                          "oneOf": [
-                                            {
-                                              "type": "object",
-                                              "additionalProperties": false,
-                                              "required": ["value"],
-                                              "properties": {
-                                                "value": {
-                                                  "type": "string"
-                                                }
-                                              }
-                                            },
-                                            {
-                                              "type": "object",
-                                              "additionalProperties": false,
-                                              "required": ["valueFromEnv"],
-                                              "properties": {
-                                                "valueFromEnv": {
-                                                  "type": "string"
-                                                }
-                                              }
-                                            }
-                                          ]
+                                          "error": "Circular reference detected"
                                         },
                                         "write": {
-                                          "$ref": "#/definitions/EnvironmentValue",
-                                          "title": "EnvironmentValue",
-                                          "description": "Either a literal string or a reference to a Hasura secret",
-                                          "oneOf": [
-                                            {
-                                              "type": "object",
-                                              "additionalProperties": false,
-                                              "required": ["value"],
-                                              "properties": {
-                                                "value": {
-                                                  "type": "string"
-                                                }
-                                              }
-                                            },
-                                            {
-                                              "type": "object",
-                                              "additionalProperties": false,
-                                              "required": ["valueFromEnv"],
-                                              "properties": {
-                                                "valueFromEnv": {
-                                                  "type": "string"
-                                                }
-                                              }
-                                            }
-                                          ]
+                                          "error": "Circular reference detected"
                                         }
                                       }
                                     }
@@ -940,7 +896,7 @@
                           "description": "Key value map of HTTP headers to be sent with each request to the data connector.",
                           "type": "object",
                           "additionalProperties": {
-                            "$ref": "#/definitions/EnvironmentValue"
+                            "error": "Circular reference detected"
                           }
                         },
                         "schema": {
@@ -1042,10 +998,48 @@
                           ]
                         },
                         "fields": {
+                          "items": {
+                            "$ref": "#/definitions/FieldDefinition",
+                            "title": "ObjectFieldDefinition",
+                            "description": "The definition of a field in a user-defined object type.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["name", "type"],
+                            "properties": {
+                              "name": {
+                                "description": "The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.",
+                                "allOf": [
+                                  {
+                                    "$ref": "#/definitions/FieldName",
+                                    "description": "The name of a field in a user-defined object type.",
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "type": {
+                                "description": "The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type.",
+                                "allOf": [
+                                  {
+                                    "$ref": "#/definitions/TypeReference",
+                                    "title": "TypeReference",
+                                    "description": "A reference to an Open DD type including nullable values and arrays.\nSuffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.\nEg: '[String!]!' is a non-nullable array of non-nullable strings.",
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              "description": {
+                                "description": "The description of this field. Gets added to the description of the field's definition in the graphql schema.",
+                                "type": ["string", "null"]
+                              }
+                            }
+                          },
                           "description": "The list of fields defined for this object type.",
                           "type": "array"
                         },
                         "globalIdFields": {
+                          "items": {
+                            "error": "Circular reference detected"
+                          },
                           "description": "The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present.",
                           "type": ["array", "null"]
                         },
@@ -1075,8 +1069,7 @@
                                   "description": "The name to use for the GraphQL type representation of this object type when used in an input context.",
                                   "anyOf": [
                                     {
-                                      "$ref": "#/definitions/GraphQlTypeName",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     },
                                     {
                                       "type": "null"
@@ -1138,9 +1131,7 @@
                           "description": "The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/CustomTypeName",
-                              "description": "The name of a user-defined type.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
@@ -1159,8 +1150,7 @@
                                   "description": "The name of the GraphQl type to use for this scalar.",
                                   "allOf": [
                                     {
-                                      "$ref": "#/definitions/GraphQlTypeName",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     }
                                   ]
                                 }
@@ -1220,9 +1210,7 @@
                           "description": "The name of the data connector that this scalar type comes from.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/DataConnectorName",
-                              "description": "The name of a data connector.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
@@ -1244,9 +1232,7 @@
                                   "enum": ["ID", "Int", "Float", "Boolean", "String"]
                                 },
                                 {
-                                  "$ref": "#/definitions/CustomTypeName",
-                                  "description": "The name of a user-defined type.",
-                                  "type": "string"
+                                  "error": "Circular reference detected"
                                 }
                               ]
                             }
@@ -1265,8 +1251,7 @@
                                 "comparisonExpressionTypeName": {
                                   "anyOf": [
                                     {
-                                      "$ref": "#/definitions/GraphQlTypeName",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     },
                                     {
                                       "type": "null"
@@ -1410,9 +1395,7 @@
                           "description": "The type of the objects of which this model is a collection.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/CustomTypeName",
-                              "description": "The name of a user-defined type.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
@@ -1421,6 +1404,26 @@
                           "type": "boolean"
                         },
                         "arguments": {
+                          "items": {
+                            "$ref": "#/definitions/ArgumentDefinition",
+                            "title": "ArgumentDefinition",
+                            "description": "The definition of an argument for a field, command, or model.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["name", "type"],
+                            "properties": {
+                              "name": {
+                                "$ref": "#/definitions/ArgumentName",
+                                "type": "string"
+                              },
+                              "type": {
+                                "error": "Circular reference detected"
+                              },
+                              "description": {
+                                "type": ["string", "null"]
+                              }
+                            }
+                          },
                           "description": "A list of arguments accepted by this model. Defaults to no arguments.",
                           "type": "array"
                         },
@@ -1461,9 +1464,7 @@
                                   "description": "The name of the data connector backing this model.",
                                   "allOf": [
                                     {
-                                      "$ref": "#/definitions/DataConnectorName",
-                                      "description": "The name of a data connector.",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     }
                                   ]
                                 },
@@ -1475,7 +1476,28 @@
                                   "description": "How the various types used in this model correspond to entities in the data connector.",
                                   "type": "object",
                                   "additionalProperties": {
-                                    "$ref": "#/definitions/TypeMapping"
+                                    "$ref": "#/definitions/TypeMapping",
+                                    "title": "TypeMapping",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["fieldMapping"],
+                                    "properties": {
+                                      "fieldMapping": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                          "$ref": "#/definitions/FieldMapping",
+                                          "title": "ObjectFieldMapping",
+                                          "type": "object",
+                                          "additionalProperties": false,
+                                          "required": ["column"],
+                                          "properties": {
+                                            "column": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
                                   }
                                 },
                                 "argumentMapping": {
@@ -1492,10 +1514,96 @@
                           ]
                         },
                         "filterableFields": {
+                          "items": {
+                            "$ref": "#/definitions/FilterableField",
+                            "title": "FilterableField",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["fieldName", "operators"],
+                            "properties": {
+                              "fieldName": {
+                                "error": "Circular reference detected"
+                              },
+                              "operators": {
+                                "$ref": "#/definitions/EnableAllOrSpecific_for_OperatorName",
+                                "title": "EnableAllOrSpecific",
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["enableAll"],
+                                    "properties": {
+                                      "enableAll": {
+                                        "type": "boolean"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["enableSpecific"],
+                                    "properties": {
+                                      "enableSpecific": {
+                                        "items": {
+                                          "$ref": "#/definitions/OperatorName",
+                                          "type": "string"
+                                        },
+                                        "type": "array"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
                           "description": "A list of fields that can be used to filter the objects in this model.",
                           "type": "array"
                         },
                         "orderableFields": {
+                          "items": {
+                            "$ref": "#/definitions/OrderableField",
+                            "title": "OrderableField",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["fieldName", "orderByDirections"],
+                            "properties": {
+                              "fieldName": {
+                                "error": "Circular reference detected"
+                              },
+                              "orderByDirections": {
+                                "$ref": "#/definitions/EnableAllOrSpecific_for_OrderByDirection",
+                                "title": "EnableAllOrSpecific",
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["enableAll"],
+                                    "properties": {
+                                      "enableAll": {
+                                        "type": "boolean"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["enableSpecific"],
+                                    "properties": {
+                                      "enableSpecific": {
+                                        "items": {
+                                          "$ref": "#/definitions/OrderByDirection2",
+                                          "title": "OrderByDirection",
+                                          "type": "string",
+                                          "enum": ["Asc", "Desc"]
+                                        },
+                                        "type": "array"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          },
                           "description": "A list of fields that can be used to order the objects in this model.",
                           "type": "array"
                         },
@@ -1529,6 +1637,37 @@
                               ],
                               "properties": {
                                 "selectUniques": {
+                                  "items": {
+                                    "$ref": "#/definitions/SelectUniqueGraphQlDefinition",
+                                    "title": "SelectUniqueGraphQlDefinition",
+                                    "description": "The definition of the GraphQL API for selecting a unique row/object from a model.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["queryRootField", "uniqueIdentifier"],
+                                    "properties": {
+                                      "queryRootField": {
+                                        "description": "The name of the query root field for this API.",
+                                        "allOf": [
+                                          {
+                                            "$ref": "#/definitions/GraphQlFieldName",
+                                            "description": "The name of a GraphQL object field.",
+                                            "type": "string"
+                                          }
+                                        ]
+                                      },
+                                      "uniqueIdentifier": {
+                                        "items": {
+                                          "error": "Circular reference detected"
+                                        },
+                                        "description": "A set of fields which can uniquely identify a row/object in the model.",
+                                        "type": "array"
+                                      },
+                                      "description": {
+                                        "description": "The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema.",
+                                        "type": ["string", "null"]
+                                      }
+                                    }
+                                  },
                                   "description": "For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model.",
                                   "type": "array"
                                 },
@@ -1547,9 +1686,7 @@
                                           "description": "The name of the query root field for this API.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/GraphQlFieldName",
-                                              "description": "The name of a GraphQL object field.",
-                                              "type": "string"
+                                              "error": "Circular reference detected"
                                             }
                                           ]
                                         },
@@ -1568,8 +1705,7 @@
                                   "description": "The type name of the input type used to hold the arguments of the model.",
                                   "anyOf": [
                                     {
-                                      "$ref": "#/definitions/GraphQlTypeName",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     },
                                     {
                                       "type": "null"
@@ -1580,8 +1716,7 @@
                                   "description": "The type name of the filter boolean expression input type.",
                                   "anyOf": [
                                     {
-                                      "$ref": "#/definitions/GraphQlTypeName",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     },
                                     {
                                       "type": "null"
@@ -1592,8 +1727,7 @@
                                   "description": "The type name of the order by expression input type.",
                                   "anyOf": [
                                     {
-                                      "$ref": "#/definitions/GraphQlTypeName",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     },
                                     {
                                       "type": "null"
@@ -1684,14 +1818,14 @@
                           "description": "The return type of the command.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/TypeReference",
-                              "title": "TypeReference",
-                              "description": "A reference to an Open DD type including nullable values and arrays.\nSuffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.\nEg: '[String!]!' is a non-nullable array of non-nullable strings.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
                         "arguments": {
+                          "items": {
+                            "error": "Circular reference detected"
+                          },
                           "description": "The list of arguments accepted by this command. Defaults to no arguments.",
                           "type": "array"
                         },
@@ -1720,9 +1854,7 @@
                                   "description": "The name of the data connector backing this command.",
                                   "allOf": [
                                     {
-                                      "$ref": "#/definitions/DataConnectorName",
-                                      "description": "The name of a data connector.",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     }
                                   ]
                                 },
@@ -1767,7 +1899,7 @@
                                   "description": "How the various types used in this command correspond to entities in the data connector.",
                                   "type": "object",
                                   "additionalProperties": {
-                                    "$ref": "#/definitions/TypeMapping"
+                                    "error": "Circular reference detected"
                                   }
                                 },
                                 "argumentMapping": {
@@ -1805,9 +1937,7 @@
                                   "description": "The name of the graphql root field to use for this command.",
                                   "allOf": [
                                     {
-                                      "$ref": "#/definitions/GraphQlFieldName",
-                                      "description": "The name of a GraphQL object field.",
-                                      "type": "string"
+                                      "error": "Circular reference detected"
                                     }
                                   ]
                                 },
@@ -1911,9 +2041,7 @@
                           "description": "The source type of the relationship.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/CustomTypeName",
-                              "description": "The name of a user-defined type.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
@@ -1952,9 +2080,7 @@
                                           "description": "The name of the data model.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/ModelName",
-                                              "description": "The name of data model.",
-                                              "type": "string"
+                                              "error": "Circular reference detected"
                                             }
                                           ]
                                         },
@@ -2008,9 +2134,7 @@
                                           "description": "The name of the command.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/CommandName",
-                                              "description": "The name of a command.",
-                                              "type": "string"
+                                              "error": "Circular reference detected"
                                             }
                                           ]
                                         },
@@ -2027,6 +2151,154 @@
                           ]
                         },
                         "mapping": {
+                          "items": {
+                            "$ref": "#/definitions/RelationshipMapping",
+                            "title": "RelationshipMapping",
+                            "description": "Definition of a how a particular field in the source maps to a target field or argument.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["source", "target"],
+                            "examples": [
+                              {
+                                "source": {
+                                  "fieldPath": [
+                                    {
+                                      "fieldName": "author_id"
+                                    }
+                                  ]
+                                },
+                                "target": {
+                                  "modelField": [
+                                    {
+                                      "fieldName": "author_id"
+                                    }
+                                  ]
+                                }
+                              }
+                            ],
+                            "properties": {
+                              "source": {
+                                "description": "The source configuration for this relationship mapping.",
+                                "allOf": [
+                                  {
+                                    "$ref": "#/definitions/RelationshipMappingSource",
+                                    "title": "RelationshipMappingSource",
+                                    "description": "The source configuration for a relationship mapping.",
+                                    "oneOf": [
+                                      {
+                                        "title": "SourceValue",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": ["value"],
+                                        "properties": {
+                                          "value": {
+                                            "$ref": "#/definitions/ValueExpression",
+                                            "title": "ValueExpression",
+                                            "description": "An expression which evaluates to a value that can be used in permissions.",
+                                            "oneOf": [
+                                              {
+                                                "title": "Literal",
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "required": ["literal"],
+                                                "properties": {
+                                                  "literal": {
+                                                    "type": "boolean"
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "title": "SessionVariable",
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "required": ["sessionVariable"],
+                                                "properties": {
+                                                  "sessionVariable": {
+                                                    "$ref": "#/definitions/OpenDdSessionVariable",
+                                                    "description": "Used to represent the name of a session variable, like \"x-hasura-role\".",
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "title": "SourceField",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": ["fieldPath"],
+                                        "properties": {
+                                          "fieldPath": {
+                                            "items": {
+                                              "$ref": "#/definitions/FieldAccess",
+                                              "title": "RelationshipSourceFieldAccess",
+                                              "type": "object",
+                                              "additionalProperties": false,
+                                              "required": ["fieldName"],
+                                              "properties": {
+                                                "fieldName": {
+                                                  "error": "Circular reference detected"
+                                                }
+                                              }
+                                            },
+                                            "type": "array"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "target": {
+                                "description": "The target configuration for this relationship mapping.",
+                                "allOf": [
+                                  {
+                                    "$ref": "#/definitions/RelationshipMappingTarget",
+                                    "title": "RelationshipMappingTarget",
+                                    "description": "The target configuration for a relationship mapping.",
+                                    "oneOf": [
+                                      {
+                                        "title": "TargetArgument",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": ["argument"],
+                                        "properties": {
+                                          "argument": {
+                                            "$ref": "#/definitions/ArgumentMappingTarget",
+                                            "title": "ArgumentMappingTarget",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": ["argumentName"],
+                                            "properties": {
+                                              "argumentName": {
+                                                "error": "Circular reference detected"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "title": "TargetModelField",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": ["modelField"],
+                                        "properties": {
+                                          "modelField": {
+                                            "items": {
+                                              "error": "Circular reference detected"
+                                            },
+                                            "type": "array"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          },
                           "description": "The mapping configuration of source to target for the relationship.",
                           "type": "array"
                         },
@@ -2088,13 +2360,62 @@
                           "description": "The name of the type for which permissions are being defined. Must be an object type.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/CustomTypeName",
-                              "description": "The name of a user-defined type.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
                         "permissions": {
+                          "items": {
+                            "$ref": "#/definitions/TypePermission",
+                            "title": "TypePermission",
+                            "description": "Defines permissions for a particular role for a type.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["role"],
+                            "examples": [
+                              {
+                                "role": "user",
+                                "output": {
+                                  "allowedFields": ["article_id", "author_id"]
+                                }
+                              }
+                            ],
+                            "properties": {
+                              "role": {
+                                "description": "The role for which permissions are being defined.",
+                                "allOf": [
+                                  {
+                                    "error": "Circular reference detected"
+                                  }
+                                ]
+                              },
+                              "output": {
+                                "description": "Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context.",
+                                "anyOf": [
+                                  {
+                                    "$ref": "#/definitions/TypeOutputPermission",
+                                    "title": "TypeOutputPermission",
+                                    "description": "Permissions for a type for a particular role when used in an output context.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["allowedFields"],
+                                    "properties": {
+                                      "allowedFields": {
+                                        "items": {
+                                          "error": "Circular reference detected"
+                                        },
+                                        "description": "Fields of the type that are accessible for a role",
+                                        "type": "array"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            }
+                          },
                           "description": "A list of type permissions, one for each role.",
                           "type": "array"
                         }
@@ -2160,13 +2481,232 @@
                           "description": "The name of the model for which permissions are being defined.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/ModelName",
-                              "description": "The name of data model.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
                         "permissions": {
+                          "items": {
+                            "$ref": "#/definitions/ModelPermission",
+                            "title": "ModelPermission",
+                            "description": "Defines the permissions for an OpenDD model.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["role"],
+                            "examples": [
+                              {
+                                "role": "user",
+                                "select": {
+                                  "filter": {
+                                    "fieldComparison": {
+                                      "field": "author_id",
+                                      "operator": "_eq",
+                                      "value": {
+                                        "sessionVariable": "x-hasura-user-id"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            ],
+                            "properties": {
+                              "role": {
+                                "description": "The role for which permissions are being defined.",
+                                "allOf": [
+                                  {
+                                    "error": "Circular reference detected"
+                                  }
+                                ]
+                              },
+                              "select": {
+                                "description": "The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model.",
+                                "anyOf": [
+                                  {
+                                    "$ref": "#/definitions/SelectPermission",
+                                    "title": "SelectPermission",
+                                    "description": "Defines the permissions for selecting a model for a role.",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["filter"],
+                                    "properties": {
+                                      "filter": {
+                                        "description": "Filter expression when selecting rows for this model. Null filter implies all rows are selectable.",
+                                        "allOf": [
+                                          {
+                                            "$ref": "#/definitions/NullableModelPredicate",
+                                            "anyOf": [
+                                              {
+                                                "type": "null"
+                                              },
+                                              {
+                                                "$ref": "#/definitions/ModelPredicate",
+                                                "title": "ModelPredicate",
+                                                "description": "A predicate that can be used to restrict the objects returned when querying a model.",
+                                                "examples": [
+                                                  {
+                                                    "fieldComparison": {
+                                                      "field": "author_id",
+                                                      "operator": "_eq",
+                                                      "value": {
+                                                        "sessionVariable": "x-hasura-user-id"
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "oneOf": [
+                                                  {
+                                                    "description": "Filters objects based on a field value.",
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": ["fieldComparison"],
+                                                    "properties": {
+                                                      "fieldComparison": {
+                                                        "$ref": "#/definitions/FieldComparisonPredicate",
+                                                        "title": "FieldComparisonPredicate",
+                                                        "description": "Field comparision predicate filters objects based on a field value.",
+                                                        "type": "object",
+                                                        "additionalProperties": false,
+                                                        "required": ["field", "operator", "value"],
+                                                        "properties": {
+                                                          "field": {
+                                                            "description": "The field name of the object type of the model to compare.",
+                                                            "allOf": [
+                                                              {
+                                                                "error": "Circular reference detected"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "operator": {
+                                                            "description": "The name of the operator to use for comparison.",
+                                                            "allOf": [
+                                                              {
+                                                                "error": "Circular reference detected"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "value": {
+                                                            "description": "The value expression to compare against.",
+                                                            "allOf": [
+                                                              {
+                                                                "error": "Circular reference detected"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": ["fieldIsNull"],
+                                                    "properties": {
+                                                      "fieldIsNull": {
+                                                        "type": "object",
+                                                        "additionalProperties": false,
+                                                        "required": ["field"],
+                                                        "properties": {
+                                                          "field": {
+                                                            "error": "Circular reference detected"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "description": "Filters objects based on the relationship of a model.",
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": ["relationship"],
+                                                    "properties": {
+                                                      "relationship": {
+                                                        "$ref": "#/definitions/RelationshipPredicate",
+                                                        "title": "RelationshipPredicate",
+                                                        "description": "Relationship predicate filters objects of a source model based on a predicate on the related model.",
+                                                        "type": "object",
+                                                        "additionalProperties": false,
+                                                        "required": ["name"],
+                                                        "properties": {
+                                                          "name": {
+                                                            "description": "The name of the relationship of the object type of the model to follow.",
+                                                            "allOf": [
+                                                              {
+                                                                "error": "Circular reference detected"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "predicate": {
+                                                            "description": "The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present.",
+                                                            "anyOf": [
+                                                              {
+                                                                "error": "Circular reference detected"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "title": "And",
+                                                    "description": "Evaluates to true if all sub-predicates evaluate to true.",
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": ["and"],
+                                                    "properties": {
+                                                      "and": {
+                                                        "items": {
+                                                          "error": "Circular reference detected"
+                                                        },
+                                                        "type": "array"
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "title": "Or",
+                                                    "description": "Evaluates to true if any of the sub-predicates evaluate to true.",
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": ["or"],
+                                                    "properties": {
+                                                      "or": {
+                                                        "items": {
+                                                          "error": "Circular reference detected"
+                                                        },
+                                                        "type": "array"
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "title": "Not",
+                                                    "description": "Evaluates to true if the sub-predicate evaluates to false.",
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": ["not"],
+                                                    "properties": {
+                                                      "not": {
+                                                        "error": "Circular reference detected"
+                                                      }
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            }
+                          },
                           "description": "A list of model permissions, one for each role.",
                           "type": "array"
                         }
@@ -2220,13 +2760,39 @@
                           "description": "The name of the command for which permissions are being defined.",
                           "allOf": [
                             {
-                              "$ref": "#/definitions/CommandName",
-                              "description": "The name of a command.",
-                              "type": "string"
+                              "error": "Circular reference detected"
                             }
                           ]
                         },
                         "permissions": {
+                          "items": {
+                            "$ref": "#/definitions/CommandPermission",
+                            "title": "CommandPermission",
+                            "description": "Defines the permissions for a role for a command.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["allowExecution", "role"],
+                            "examples": [
+                              {
+                                "role": "user",
+                                "allowExecution": true
+                              }
+                            ],
+                            "properties": {
+                              "role": {
+                                "description": "The role for which permissions are being defined.",
+                                "allOf": [
+                                  {
+                                    "error": "Circular reference detected"
+                                  }
+                                ]
+                              },
+                              "allowExecution": {
+                                "description": "Whether the command is executable by the role.",
+                                "type": "boolean"
+                              }
+                            }
+                          },
                           "description": "A list of command permissions, one for each role.",
                           "type": "array"
                         }
