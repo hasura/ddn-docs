@@ -1,15 +1,18 @@
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { JSONSchema7 } from './entities/types';
-import { generateMarkdown, writeMarkdownToFile } from './logic';
+import { processSchemaToJson } from './logic';
+
+const schema: JSONSchema7 = JSON.parse(
+  readFileSync('../../schema_examples/supergraph_or_subgraph_object.schemajson', 'utf8')
+);
 
 async function main() {
   try {
-    console.log(process.cwd());
-    const schema: JSONSchema7 = JSON.parse(
-      readFileSync('../../schema_examples/supergraph_or_subgraph_object.schemajson', 'utf8')
-    );
-    const markdown = generateMarkdown(schema);
-    writeMarkdownToFile(markdown);
+    // let's loop over the schema
+    let schemaStructure = processSchemaToJson(schema);
+    console.log(schemaStructure);
+    writeFileSync(`auto-generated.json`, schemaStructure);
+    // then let's make some markdown and add it to the appropriate pages 🤙
   } catch (error) {
     console.error('Error generating markdown:', error);
   }
