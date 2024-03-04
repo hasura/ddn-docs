@@ -33,246 +33,85 @@ then if it is not provided, Hasura will generate the GraphQL API with the defaul
 To create the graphql configuration, you need to define an object of `kind: GraphqlConfig` and `version: v1` in the
 supergraph. The object `definition` has the following fields:
 
-### Metadata structure
+## Metadata structure
 
-```yaml
-kind: GraphqlConfig
-version: v1
-definition:
-  query: <QueryGraphqlConfig>
-  mutation: <MutationGraphqlConfig>
-```
+### GraphqlConfig
 
-| Field      | Type                                              | Required | Description                                       |
-| ---------- | ------------------------------------------------- | -------- | ------------------------------------------------- |
-| `query`    | [`QueryGraphqlConfig`](#queryGraphqlConfig)       | true     | GraphQL configuration for the query operation.    |
-| `mutation` | [`MutationGraphqlConfig`](#mutationGraphqlConfig) | true     | GraphQL configuration for the mutation operation. |
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `query` | object | true |  |
+| `mutation` | object | true |  |
 
-#### QueryGraphqlConfig {#queryGraphqlConfig}
+#### QueryGraphqlConfig
 
-The query GraphQL configuration is an object that defines the configuration for query operations. It has the following
-fields:
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `rootOperationTypeName` | string | true |  |
+| `argumentsInput` | object | false |  |
+| `limitInput` | object | false |  |
+| `offsetInput` | object | false |  |
+| `filterInput` | object | false |  |
+| `orderByInput` | object | false |  |
 
-```yaml
-query:
-  rootOperationTypeName: <String>
-  argumentsInput: <ArgumentsInput>
-  limitInput: <LimitInput>
-  offsetInput: <OffsetInput>
-  filterInput: <FilterInput>
-  orderByInput: <OrderByInput>
-```
+#### ArgumentsInputGraphqlConfig
 
-| `source` Field          | Type                                | Required | Description                                                                                       |
-| ----------------------- | ----------------------------------- | -------- | ------------------------------------------------------------------------------------------------- |
-| `rootOperationTypeName` | `String`                            | true     | The root type name for the GraphQL query operation.                                               |
-| `argumentsInput`        | [`ArgumentsInput`](#argumentsinput) | false    | GraphQL field Name for the `args` field that gets generated for models with arguments.            |
-| `limitInput`            | [`LimitInput`](#limitinput)         | false    | GraphQL field Name for the `limit` field that gets generated for with `selectMany` configuration. |
-| `offsetInput`           | [`OffsetInput`](#offsetinput)       | false    | GraphQL field Name for the `offset` field that gets generated for with `selectMany` configuration |
-| `filterInput`           | [`FilterInput`](#filterinput)       | false    | Type mappings from object types used within the model to the corresponding data connector types.  |
-| `orderByInput`          | [`OrderByInput`](#orderbyinput)     | false    | Type mappings from object types used within the model to the corresponding data connector types.  |
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `fieldName` | string | true |  |
 
-:::note Requirement of Optional fields
+#### LimitInputGraphqlConfig
 
-The `argumentsInput`, `limitInput`, `offsetInput`, `filterInput` and `orderByInput` fields are optional only when these
-feature are not used in any model.
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `fieldName` | string | true |  |
 
-1. `argumentsInput` is required when any model in the metadata has defined `argumentsInputType` in its `graphql` field.
-2. `limitInput` and `offsetInput` are required when any model in the metadata has defined `selectMany` in its `graphql`
-   field.
-3. `filterInput` is required when any model in the metadata has defined `filterExpressionType` in its `graphql` field.
-4. `orderByInput` is required when any model in the metadata has defined `orderByExpressionType` in its `graphql` field.
+#### OffsetInputGraphqlConfig
 
-:::
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `fieldName` | string | true |  |
 
-##### ArgumentsInput
+#### FilterInputGraphqlConfig
 
-The GraphQL field name for `args` field that gets generated for models with arguments.
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `fieldName` | string | true |  |
+| `operatorNames` | object | true |  |
 
-```yaml
-argumentsInput:
-  fieldName: <String>
-```
+#### FilterInputOperatorNames
 
-| `argumentsInput` Field | Type     | Required | Description                                |
-| ---------------------- | -------- | -------- | ------------------------------------------ |
-| `fieldName`            | `String` | true     | GraphQL field name to use for `args` field |
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `and` | string | true |  |
+| `or` | string | true |  |
+| `not` | string | true |  |
+| `isNull` | string | true |  |
 
-##### LimitInput
+#### OrderByInputGraphqlConfig
 
-The GraphQL field name for `limit` field that gets generated for models with `selectMany` configuration.
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `fieldName` | string | true |  |
+| `enumDirectionValues` | object | true |  |
+| `enumTypeNames` | array | true |  |
 
-```yaml
-limitInput:
-  fieldName: <String>
-```
+#### OrderByDirectionValues
 
-| `argumentsInput` Field | Type     | Required | Description                                 |
-| ---------------------- | -------- | -------- | ------------------------------------------- |
-| `fieldName`            | `String` | true     | GraphQL field name to use for `limit` field |
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `asc` | string | true |  |
+| `desc` | string | true |  |
 
-##### OffsetInput
+#### OrderByEnumTypeName
 
-The GraphQL field name for `offset` field that gets generated for models with `selectMany` configuration.
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `directions` | array | true |  |
+| `typeName` | string | true |  |
 
-```yaml
-limitInput:
-  fieldName: <String>
-```
+#### MutationGraphqlConfig
 
-| `argumentsInput` Field | Type     | Required | Description                                  |
-| ---------------------- | -------- | -------- | -------------------------------------------- |
-| `fieldName`            | `String` | true     | GraphQL field name to use for `offset` field |
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `rootOperationTypeName` | string | true |  |
 
-##### FilterInput
-
-The GraphQL field names generated for models which can be filtered.
-
-```yaml
-filterInput:
-  fieldName: <String>
-  operatorNames:
-    and: <String>
-    or: <String>
-    not: <String>
-```
-
-| `filterInput` Field | Type     | Required | Description                                                   |
-| ------------------- | -------- | -------- | ------------------------------------------------------------- |
-| `fieldName`         | `String` | true     | GraphQL field name to use for `where` field.                  |
-| `and`               | `String` | true     | GraphQL field name to use for `and` operator of filter field. |
-| `or`                | `String` | true     | GraphQL field name to use for `or` operator of filter field.  |
-| `not`               | `String` | true     | GraphQL field name to use for `not` operator of filter field. |
-
-##### OrderByInput
-
-The GraphQL field names and type names generated for models which can be ordered.
-
-```yaml
-orderByInput:
-  fieldName: <String>
-  enumDirectionValues:
-    asc: <String>
-    desc: <String>
-  enumTypeNames: EnumTypeNames
-```
-
-| `orderByInput` Field | Type                              | Required | Description                                                             |
-| -------------------- | --------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `fieldName`          | `String`                          | true     | GraphQL field name to use for `order_by` field.                         |
-| `asc`                | `String`                          | true     | GraphQL field name to use for `asc` direction value of order_by field.  |
-| `desc`               | `String`                          | true     | GraphQL field name to use for `desc` direction value of order_by field. |
-| `enumTypeNames`      | [`EnumTypeNames`](#enumtypenames) | true     | GraphQL field name to use for `not` operator of filter field.           |
-
-##### EnumTypeNames
-
-The enumTypeNames is an object that lists the GraphQL type names for the different combinations of `order_by` enum
-values generated for models which can be ordered.
-
-```yaml
-enumTypeNames:
-  - directions: [<String>]
-    typeName: <String>
-```
-
-| `enumTypeNames` Field | Type       | Required | Description                                                                                                             |
-| --------------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `directions`          | [`String`] | true     | The directions for which we want to generate a type. Currently you have to provide both `asc` and `desc` in the values. |
-| `typeName`            | `String`   | true     | The GraphQL type name for this combination of order_by direction.                                                       |
-
-#### MutationGraphqlConfig {#mutationGraphqlConfig}
-
-The mutation GraphQL configuration is an object that defines the configuration for mutation operations. It has the
-following fields:
-
-```yaml
-mutation:
-  rootOperationTypeName: <String>
-```
-
-| `source` Field          | Type     | Required | Description                                            |
-| ----------------------- | -------- | -------- | ------------------------------------------------------ |
-| `rootOperationTypeName` | `String` | true     | The root type name for the GraphQL mutation operation. |
-
-## Examples
-
-In this example, assume that we have a model called `Authors` backed by a database table called `authors` with fields
-`author_id`, `first_name` and `last_name` and we define the GraphQL configuration in the supergraph as follows:
-
-```yaml
-kind: GraphqlConfig
-version: v1
-definition:
-    query:
-      rootOperationTypeName: Query_custom
-      argumentsInput:
-          fieldName: args_custom
-      limitInput:
-          fieldName: limit_custom
-      offsetInput:
-          fieldName: offset_custom
-      filterInput:
-          fieldName: where_custom
-          operatorNames:
-            and: _and_custom
-            or: _or_custom
-            not: _not_custom
-      orderByInput:
-          fieldName: order_by_custom
-          enumDirectionValues:
-            asc: Asc_custom
-            desc: Desc_custom
-          enumTypeNames:
-            - directions:
-              - asc
-              - desc
-          typeName: OrderByAscDesc
-    mutation:
-      rootOperationTypeName: Mutation_custom
-```
-
-The resulting GraphQl API will be:
-
-```graphql
-type Query_custom {
-  node(id: ID!): Node
-  AuthorByID(author_id: Int!): Author
-  AuthorMany(
-    where_custom: Author_Where_Exp,
-    order_by_custom: Author_Order_By,
-    limit_custom: Int,
-    offset_custom: Int
-  ): Author
-}
-
-type Mutation_custom {
-
-}
-
-type Author {
-  id: ID!
-  author_id: Int!
-  first_name: String
-  last_name: String
-}
-
-input Author_Where_Exp: {
-  _and_custom: [Author_Where_Exp!]
-  _or_custom: [Author_Where_Exp!]
-  _not_custom: [Author_Where_Exp!]
-  author_id: int_comparison_exp
-  first_name: text_comparison_exp
-  last_name: text_comparison_exp
-}
-
-input Author_Order_By {
-  author_id: order_by_custom
-  first_name: order_by_custom
-  last_name: order_by_custom
-}
-
-enum OrderByAscDesc {
-  Asc_custom,
-  Desc_custom
-}
-```

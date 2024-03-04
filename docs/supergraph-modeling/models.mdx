@@ -34,269 +34,198 @@ Once a model is declared it will then often be referenced by `Relationship` and/
 To create a model, you need to define an object with `kind: Model` and `version: v1`. The object `definition` has the
 following fields:
 
-### Metadata structure
+## Metadata structure
+
+### Model
+
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `name` | object | true | The name of the data model. |
+| `objectType` | object | true | The type of the objects of which this model is a collection. |
+| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
+| `arguments` | array | false | A list of arguments accepted by this model. Defaults to no arguments. |
+| `source` | object | false | The source configuration for this model. |
+| `filterableFields` | array | true | A list of fields that can be used to filter the objects in this model. |
+| `orderableFields` | array | true | A list of fields that can be used to order the objects in this model. |
+| `graphql` | object | false | Configuration for how this model should appear in the GraphQL schema. |
+| `description` | string,null | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+
+Example:
 
 ```yaml
-kind: Model
-version: v1
-definition:
-  name: <ModelName>
-  description: <String>
-  objectType: <TypeName>
-  globalIDSource: true | false
-  source: <SourceConfiguration>
-  graphql: <GraphQLConfiguration>
-  arguments: [ArgumentDefinition]
-  filterableFields: [FilterableFields]
-  orderableFields: [OrderableFields]
-```
-
-| Field              | Type                                                                                | Required | Description                                                                                   |
-| ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
-| `name`             | `String`                                                                            | true     | Name of the model.                                                                            |
-| `description`      | `String`                                                                            | false    | Description of the model.                                                                     |
-| `objectType`       | `String`                                                                            | true     | [Type](/supergraph-modeling/types.mdx) of the objects in this model.                          |
-| `globalIDSource`   | `Boolean`                                                                           | true     | If this model should be used as the [Global ID](./global-id.mdx) source for its `objectType`. |
-| `source`           | [`SourceConfiguration`](/supergraph-modeling/models.mdx#source)                     | false    | Source configuration for the model.                                                           |
-| `graphql`          | [`ModelGraphQLConfiguration`](supergraph-modeling/models.mdx#graphql)              | false    | GraphQL configuration for the model.                                                          |
-| `arguments`        | [`[ArgumentDefinition]`](supergraph-modeling/common-syntax.mdx#argumentdefinition)  | true     | The argument definitions for the model.                                                       |
-| `filterableFields` | [`[FilterableFieldDefinition]`](#filterablefielddefinition)                         | true     | Filterable fields for the model.                                                              |
-| `orderableFields`  | [`[OrderableFieldDefinition]`](#orderablefielddefinition)                           | true     | Orderable fields for the model.                                                               |
-
-:::note Filterable/Orderable Fields support
-
-At the moment, we don't support field level filterable/orderable customizations. So, you will have to provide an
-exhaustive list of the fields of your model in `filterableFields` and `orderableFields`.
-
-:::
-
-#### SourceConfiguration {#source}
-
-The source configuration is an object that defines the data source for the model. It has the following fields:
-
-```yaml
+name: Articles
+objectType: article
+globalIdSource: true
+arguments: []
 source:
-  dataConnectorName: <DataConnectorName>
-  collection: <CollectionName>
-  typeMapping: <TypeMapping>
+  dataConnectorName: data_connector
+  collection: articles
+  typeMapping:
+    article:
+      fieldMapping:
+        article_id:
+          column: id
+        title:
+          column: title
+        author_id:
+          column: author_id
+  argumentMapping: {}
+filterableFields:
+  - fieldName: article_id
+    operators:
+      enableAll: true
+  - fieldName: title
+    operators:
+      enableAll: true
+  - fieldName: author_id
+    operators:
+      enableAll: true
+orderableFields:
+  - fieldName: article_id
+    orderByDirections:
+      enableAll: true
+  - fieldName: title
+    orderByDirections:
+      enableAll: true
+  - fieldName: author_id
+    orderByDirections:
+      enableAll: true
+graphql:
+  selectUniques:
+    - queryRootField: ArticleByID
+      uniqueIdentifier:
+        - article_id
+      description: Description for the select unique ArticleByID
+  selectMany:
+    queryRootField: ArticleMany
+    description: Description for the select many ArticleMany
+  argumentsInputType: null
+  filterExpressionType: Article_Where_Exp
+  orderByExpressionType: Article_Order_By
+description: Description for the model Articles
+
 ```
 
-| `source` Field  | Type                                             | Required | Description                                                                                      |
-| --------------- | ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------ |
-| `dataConnector` | `String`                                         | true     | Name of the source data connector backing this model.                                            |
-| `collection`    | `String`                                         | true     | Name of the collection in the source data connector backing this model.                          |
-| `typeMapping`   | [`TypeMapping`](./common-syntax.mdx#typemapping) | true     | Type mappings from object types used within the model to the corresponding data connector types. |
+#### ArgumentDefinition
 
-#### ModelGraphQLConfiguration {#graphql}
+The definition of an argument for a field, command, or model.
 
-ModelGraphQLConfiguration is an object that defines how the model should be surfaced in the GraphQL API. It has the
-following fields:
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `name` | string | true |  |
+| `type` | string | true | A reference to an Open DD type including nullable values and arrays. Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array of non-nullable strings. |
+| `description` | string,null | false |  |
+
+#### ModelSource
+
+Description of how a model maps to a particular data connector
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `dataConnectorName` | object | true | The name of the data connector backing this model. |
+| `collection` | string | true | The collection in the data connector that backs this model. |
+| `typeMapping` | object | false | How the various types used in this model correspond to entities in the data connector. |
+| `argumentMapping` | object | false |  |
+
+Example:
 
 ```yaml
-graphql:
-  selectUniques: <SelectUniques>
-  selectMany: <SelectMany>
-  filterExpressionType: <FilterExpressionType>
-  orderByExpressionType: <OrderByExpressionType>
-  argumentsInputType: <ArgumentsInputType>
+dataConnectorName: data_connector
+collection: articles
+typeMapping:
+  article:
+    fieldMapping:
+      article_id:
+        column: id
+      title:
+        column: title
+      author_id:
+        column: author_id
+argumentMapping: {}
+
 ```
 
-| `graphql` Field         | Type                                | Required | Description                                             |
-| ----------------------- | ----------------------------------- | -------- | ------------------------------------------------------- |
-| `selectUniques`         | [`[SelectUniques]`](#selectuniques) | true     | Select uniques configuration for the model.             |
-| `selectMany`            | [`SelectMany`](#selectmany)         | false    | Select many configuration for the model.                |
-| `filterExpressionType`  | `String`                            | false    | GraphQL type name to use for the filter input.          |
-| `orderByExpressionType` | `String`                            | false    | GraphQL type name to use for the order by input.        |
-| `argumentsInputType`    | `String`                            | false    | GraphQL type name to use for the model arguments input. |
+#### FilterableField
 
-##### SelectUniques
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `fieldName` | string | true | The name of a field in a user-defined object type. |
+| `operators` | object | true |  |
 
-Select uniques is an array of objects that defines the unique identifiers for the model. For each select unique defined
-here, a query root field is added to the GraphQL API. For each field defined in the `uniqueIdentifier`, an input
-argument is added to the query root field which can be supplied to retrieve the unique identified object from the model.
+#### EnableAllOrSpecific
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `enableAll` | boolean | true |  |
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `enableSpecific` | array | true |  |
+
+#### OrderableField
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `fieldName` | string | true | The name of a field in a user-defined object type. |
+| `orderByDirections` | object | true |  |
+
+#### EnableAllOrSpecific
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `enableAll` | boolean | true |  |
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `enableSpecific` | array | true |  |
+
+#### ModelGraphQlDefinition
+
+The definition of how a model appears in the GraphQL API.
+
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `selectUniques` | array | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany` | object | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType` | object | false | The type name of the input type used to hold the arguments of the model. |
+| `filterExpressionType` | object | false | The type name of the filter boolean expression input type. |
+| `orderByExpressionType` | object | false | The type name of the order by expression input type. |
+
+Example:
 
 ```yaml
 selectUniques:
-  queryRootField: <QueryRootField>
-  uniqueIdentifier: <UniqueIdentifier>
-```
-
-| Field              | Type     | Required | Description                                                          |
-| ------------------ | -------- | -------- | -------------------------------------------------------------------- |
-| `queryRootField`   | `String` | true     | Name of the query root field to use in the GraphQL API.              |
-| `uniqueIdentifier` | `Array`  | true     | Set of fields which can uniquely identify a row/object in the model. |
-| `description`      | `String` | false    | Description of the select uniques configuration of the model.        |
-
-##### SelectMany
-
-Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple
-objects from the model. This field can accept the following arguments:
-
-- `args`, used for supplying the values for the model's arguments. This argument is generated only if the model has
-  arguments and `argumentsInputType` is set in the ModelGraphQlConfiguration.
-- `where`, used for filtering the objects to retrieve. This argument is generated only if `filterExpressionType` is set
-  in the ModelGraphQlConfiguration. The filter expression contains all the filterable fields and the `_and` / `_or` /
-  `_not` logical operators.
-- `order_by`, used for sorting the retrieved objects. This argument is generated only if `orderByExpressionType` is set
-  in the ModelGraphQlConfiguration. The order by expression contains all the orderable fields.
-- `limit`, used for limiting the number of retrieved objects.
-- `offset`, used for skipping the first `offset` objects when retrieving.
-
-```yaml
+  - queryRootField: ArticleByID
+    uniqueIdentifier:
+      - article_id
+    description: Description for the select unique ArticleByID
 selectMany:
-  queryRootField: <QueryRootField>
+  queryRootField: ArticleMany
+  description: Description for the select many ArticleMany
+argumentsInputType: null
+filterExpressionType: Article_Where_Exp
+orderByExpressionType: Article_Order_By
+
 ```
 
-| Field            | Type     | Required | Description                                                |
-| ---------------- | -------- | -------- | ---------------------------------------------------------- |
-| `queryRootField` | `String` | true     | Name of the query root field to use in the GraphQL API.    |
-| `description`    | `String` | false    | Description of the select many configuration of the model. |
+#### SelectUniqueGraphQlDefinition
 
-:::note Description of select uniques and select many configuration of the models
+The definition of the GraphQL API for selecting a unique row/object from a model.
 
-If the description for select uniques/many configuration of the model is not present and model description is present,
-then the model description will be used for the respective configuration.
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `queryRootField` | object | true | The name of the query root field for this API. |
+| `uniqueIdentifier` | array | true | A set of fields which can uniquely identify a row/object in the model. |
+| `description` | string,null | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
 
-E.g., if the model description is `description of the model`, then the description for the configurations will be as
-follows:
+#### SelectManyGraphQlDefinition
 
-1. select uniques: `Selects a single object from the model. Model description: description of the model`
-2. select many: `Selects multiple objects from the model. Model description: description of the model`
+The definition of the GraphQL API for selecting rows from a model.
 
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| `queryRootField` | object | true | The name of the query root field for this API. |
+| `description` | string,null | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
 
-:::
-
-#### FilterableFieldDefinition
-
-The filterable field definition is an object that lists the allowed operators for a given field.
-
-```yaml
-filterableFields:
-  - fieldName: <String>
-    operators:
-      enableAll: true
-```
-
-| Field       | Type     | Required | Description                                                          |
-| ----------- | -------- | -------- | -------------------------------------------------------------------- |
-| `fieldName` | `String` | true     | Name of the field.                                                   |
-| `operators` | `Object` | true     | Allowed operators (at the moment, we only support `enableAll: true`) |
-
-#### OrderableFieldDefinition
-
-Orderable field definition is an object that lists down the allowed order by directions for a given field.
-
-```yaml
-orderableFields:
-  - fieldName: <String>
-    orderByDirections:
-      enableAll: true
-```
-
-| Field               | Type     | Required | Description                                                                    |
-| ------------------- | -------- | -------- | ------------------------------------------------------------------------------ |
-| `fieldName`         | `String` | true     | Name of the field.                                                             |
-| `orderByDirections` | `Object` | true     | Allowed order by directions (at the moment, we only support `enableAll: true`) |
-
-## Examples
-
-In this example, we're creating a model called `Authors` backed by a database table called `authors` in the `db` data
-source:
-
-```yaml
-kind: Model
-version: v1
-definition:
-  name: Authors
-  description: Author of an article
-  objectType: author
-  globalIdSource: true
-  source:
-    dataConnectorName: db
-    collection: authors
-    typeMapping:
-      author:
-        fieldMapping:
-          author_id:
-            column: id
-          first_name:
-            column: first_name
-          last_name:
-            column: last_name
-  graphql:
-    selectUniques:
-      - queryRootField: AuthorByID
-        uniqueIdentifier:
-          - author_id
-        description: get authors by ID
-    selectMany:
-      queryRootField: AuthorMany
-      description: get authors
-    filterExpressionType: Author_Where_Exp
-    orderByExpressionType: Author_Order_By
-  arguments: []
-  filterableFields:
-    - fieldName: author_id
-      operators:
-        enableAll: true
-    - fieldName: first_name
-      operators:
-        enableAll: true
-    - fieldName: last_name
-      operators:
-        enableAll: true
-  orderableFields:
-    - fieldName: author_id
-      orderByDirections:
-        enableAll: true
-    - fieldName: first_name
-      orderByDirections:
-        enableAll: true
-    - fieldName: last_name
-      orderByDirections:
-        enableAll: true
-```
-
-Assuming the ObjectType was defined like [this](/supergraph-modeling/types.mdx#object-type-examples), and the scalar
-types corresponding to the fields had appropriate comparison expressions defined, the resulting GraphQl API will be:
-
-```graphql
-type Query {
-  node(id: ID!): Node
-  # get authors by ID
-  AuthorByID(author_id: Int!): Author
-  # get authors
-  AuthorMany(where: Author_Where_Exp, order_by Author_Order_By, limit: Int, offset: Int): Author
-}
-
-# author of an article
-type Author {
-  # author of an article
-  id: ID!
-  # id of the author
-  author_id: Int!
-  # first name of the author
-  first_name: String
-  last_name: String
-}
-
-input Author_Where_Exp: {
-  _and: [Author_Where_Exp!]
-  _or: [Author_Where_Exp!]
-  _not: [Author_Where_Exp!]
-  author_id: int_comparison_exp
-  first_name: text_comparison_exp
-  last_name: text_comparison_exp
-}
-
-input Author_Order_By {
-  author_id: order_by
-  first_name: order_by
-  last_name: order_by
-}
-
-enum order_by {
-  Asc,
-  Desc
-}
-```

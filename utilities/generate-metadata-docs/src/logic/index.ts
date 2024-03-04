@@ -1,3 +1,4 @@
-import { processSchemaToJson } from './formatter';
+import { walkSchemaToMarkdown } from './walker';
+import { getMetadataObject, updateMarkdown } from './helpers';
 
-export { processSchemaToJson };
+export { getMetadataObject, walkSchemaToMarkdown, updateMarkdown };
