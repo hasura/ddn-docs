@@ -1,4 +1,4 @@
-import { removeCarriageReturn, isV1Content } from './helpers';
+import { removeNewLineCharacter, isV1Content } from './helpers';
 import jsYaml from 'js-yaml';
 
 export function walkSchemaToMarkdown(
@@ -22,7 +22,6 @@ export function walkSchemaToMarkdown(
   visitedRefs.add(newPath);
 
   let markdown = '';
-  const indent = '    '.repeat(depth);
   const heading = depth === 0 ? '###' : '####';
 
   // Base case: Object is a terminal type or a reference
@@ -30,7 +29,7 @@ export function walkSchemaToMarkdown(
     return '';
   }
   if (object['$ref']) {
-    return `${indent}- Reference to [${object['$ref']}](#${object['$ref'].replace('#/definitions/', '')})\n`;
+    return `Reference to [${object['$ref']}](#${object['$ref'].replace('#/definitions/', '')})\n`;
   }
 
   // Grab the object with title and description
@@ -42,29 +41,48 @@ export function walkSchemaToMarkdown(
   }
 
   // Deal with the object if it has properties
-  if (object.properties && Object.keys(object.properties).length > 0) {
+  if (object.properties) {
     const keys = Object.keys(object.properties);
-    if (keys.length !== 3 || !keys.includes('kind') || !keys.includes('version') || !keys.includes('definition')) {
+    // This avoids the redundancy of instances like Model and ModelV1
+    if (!keys.includes('kind') || !keys.includes('version') || !keys.includes('definition')) {
       markdown += `| Name | Type | Required | Description |\n| ---- | ---- | -------- | ----------- |\n`;
 
       for (const [key, prop] of Object.entries(object.properties)) {
+        const specialCases = ['allOf', 'anyOf'];
         const propName = key;
-        const propType = (prop as any).type
-          ? (prop as any).type
-          : (prop as any)['$ref']
-          ? `[${(prop as any)['$ref'].split('/').pop()}](#${(prop as any)['$ref'].split('/').pop()})`
-          : 'object';
+        let propType = '';
+        if ((prop as any).items) {
+          if ((prop as any)['items']?.title) {
+            propType = `[\`${(prop as any)['items']?.title}\`](#${(prop as any)['items']?.title.toLowerCase()})`;
+          }
+        } else if ((prop as any).additionalProperties && (prop as any)['additionalProperties'].title) {
+          propType = `[\`${(prop as any)['additionalProperties']?.title}\`](#${(prop as any)[
+            'additionalProperties'
+          ]?.title.toLowerCase()})`;
+        } else if ((prop as any).type) {
+          propType = `\`${(prop as any).type}\``;
+        } else {
+          specialCases.forEach(key => {
+            if ((prop as any)[key]) {
+              if ((prop as any)[key][0].title && (prop as any)[key][0].title != 'Type') {
+                propType = `[\`${(prop as any)[key][0].title}\`](#${(prop as any)[key][0].title.toLowerCase()})`;
+              } else {
+                propType = `\`${(prop as any)[key][0].type}\``;
+              }
+            }
+          });
+        }
         const required = object.required?.includes(key) ? 'true' : 'false';
         const description = (prop as any).description || '';
-        markdown += `| \`${propName}\` | ${propType} | ${required} | ${removeCarriageReturn(description)} |\n`;
+        markdown += `| \`${propName}\` | ${propType} | \`${required}\` | ${removeNewLineCharacter(description)} |\n`;
       }
       markdown += `\n`;
     }
   }
 
   // Add examples if they exist
-  if (object.examples && object.examples.length > 0) {
-    markdown += `Example:\n\n`;
+  if (object.examples) {
+    markdown += `\n\nExample:\n\n`;
     object.examples.forEach((example: any) => {
       markdown += `\`\`\`yaml\n${jsYaml.dump(example)}\n\`\`\`\n`;
     });
@@ -84,8 +102,14 @@ export function walkSchemaToMarkdown(
 
   ['oneOf', 'anyOf', 'allOf'].forEach(key => {
     if (object[key]) {
+      if (object['oneOf']) {
+        const keys = Object.keys(object['oneOf']);
+        // This avoids the redundancy of instances like Model and ModelV1
+        // if (!keys.includes('kind') || !keys.includes('version') || !keys.includes('definition')) {
+        // }
+      }
       object[key].forEach((item: any, index: number) => {
-        markdown += walkSchemaToMarkdown(item, path.concat(`oneOf[${index}]`), depth + 1, visitedRefs);
+        if (object[key]) markdown += walkSchemaToMarkdown(item, path.concat(`oneOf[${index}]`), depth + 1, visitedRefs);
       });
     }
   });

@@ -44,9 +44,9 @@ export function walkSchema(object: any, path: string[] = [], depth: number = 0) 
 
 /**
  * Some descriptions have new-line characters which can cause rendering issues inside of md tables.
- * This helper removes the carriage return and provides a single block of text.
+ * This helper removes the new-line character and provides a single block of text.
  */
-export function removeCarriageReturn(text: string) {
+export function removeNewLineCharacter(text: string) {
   return text.replace(/\n/g, ' ');
 }
 
@@ -88,7 +88,7 @@ export function updateMarkdown(filePath: string, newMetadataMarkdown: string): b
 
     writeFileSync(filePath, newContents, 'utf-8');
 
-    console.log(`✅ markdown updated for ${filePath}`);
+    console.log(`    ✅ markdown updated for ${filePath}`);
     return true;
   } catch (error) {
     console.error(`Failed to update Markdown: ${error}`);
