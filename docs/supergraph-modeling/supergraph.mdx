@@ -21,8 +21,10 @@ Definition of the authentication configuration used by the API server.
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `allowRoleEmulationBy` | object | false |  |
-| `mode` | object | true | The configuration for the authentication mode to use - webhook or JWT. |
+| `allowRoleEmulationBy` | `string` | `false` |  |
+| `mode` |  | `true` | The configuration for the authentication mode to use - webhook or JWT. |
+
+
 
 Example:
 
@@ -41,7 +43,7 @@ The configuration for the authentication mode to use - webhook or JWT.
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `webhook` | object | true | The configuration of the authentication webhook. |
+| `webhook` | `object` | `true` | The configuration of the authentication webhook. |
 
 #### AuthHookConfig
 
@@ -49,8 +51,10 @@ The configuration of the authentication webhook.
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `url` | string | true | The URL of the authentication webhook. |
-| `method` | object | true | The HTTP method to be used to make the request to the auth hook. |
+| `url` | `string` | `true` | The URL of the authentication webhook. |
+| `method` | [`AuthHookMethod`](#authhookmethod) | `true` | The HTTP method to be used to make the request to the auth hook. |
+
+
 
 Example:
 
@@ -62,7 +66,7 @@ method: Post
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `jwt` | object | true | JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims. |
+| `jwt` | `object` | `true` | JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims. |
 
 #### JWTConfig
 
@@ -70,12 +74,14 @@ JWT config according to which the incoming JWT will be verified and decoded to e
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `audience` | array,null | false | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
-| `issuer` | string,null | false | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error. |
-| `allowedSkew` | integer,null | false | Allowed leeway (in seconds) to the `exp` validation to account for clock skew. |
-| `claimsConfig` | object | true | Claims config. Either specified via `claims_mappings` or `claims_namespace_path` |
-| `tokenLocation` | object | true | Source of the JWT authentication token. |
-| `key` | object | true | Mode according to which the JWT auth is configured. |
+| `audience` |  | `false` | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer` | `string,null` | `false` | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error. |
+| `allowedSkew` | `integer,null` | `false` | Allowed leeway (in seconds) to the `exp` validation to account for clock skew. |
+| `claimsConfig` | [`JWTClaimsConfig`](#jwtclaimsconfig) | `true` | Claims config. Either specified via `claims_mappings` or `claims_namespace_path` |
+| `tokenLocation` | [`JWTTokenLocation`](#jwttokenlocation) | `true` | Source of the JWT authentication token. |
+| `key` | [`JWTKey`](#jwtkey) | `true` | Mode according to which the JWT auth is configured. |
+
+
 
 Example:
 
@@ -103,7 +109,7 @@ Config to describe how/where the engine should look for the claims within the de
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `locations` | object | true | Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value. |
+| `locations` | `object` | `true` | Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value. |
 
 #### JWTClaimsMap
 
@@ -111,46 +117,46 @@ Can be used when Hasura claims are not all present in the single object, but ind
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `x-hasura-default-role` | object | true | JSON pointer to lookup the default role within the decoded JWT. |
-| `x-hasura-allowed-roles` | object | true | JSON pointer to lookup the allowed roles within the decoded JWT. |
+| `x-hasura-default-role` | [`JWTClaimsMappingEntry`](#jwtclaimsmappingentry) | `true` | JSON pointer to lookup the default role within the decoded JWT. |
+| `x-hasura-allowed-roles` | [`JWTClaimsMappingEntry`](#jwtclaimsmappingentry) | `true` | JSON pointer to lookup the allowed roles within the decoded JWT. |
 
 #### JWTClaimsMappingEntry
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `literal` | string | true |  |
+| `literal` | `string` | `true` |  |
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `path` | object | true |  |
+| `path` | `object` | `true` |  |
 
 #### JWTClaimsMappingPathEntry
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `path` | string | true | JSON pointer to find the particular claim in the decoded JWT token. |
-| `default` | object | false | Default value to be used when no value is found when looking up the value using the `path`. |
+| `path` | `string` | `true` | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` | `string` | `false` | Default value to be used when no value is found when looking up the value using the `path`. |
 
 #### JWTClaimsMappingEntry
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `literal` | array | true |  |
+| `literal` |  | `true` |  |
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `path` | object | true |  |
+| `path` | `object` | `true` |  |
 
 #### JWTClaimsMappingPathEntry
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `path` | string | true | JSON pointer to find the particular claim in the decoded JWT token. |
-| `default` | array,null | false | Default value to be used when no value is found when looking up the value using the `path`. |
+| `path` | `string` | `true` | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` |  | `false` | Default value to be used when no value is found when looking up the value using the `path`. |
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `namespace` | object | true | Used when all of the Hasura claims are present in a single object within the decoded JWT. |
+| `namespace` | `object` | `true` | Used when all of the Hasura claims are present in a single object within the decoded JWT. |
 
 #### JWTClaimsNamespace
 
@@ -158,8 +164,8 @@ Used when all of the Hasura claims are present in a single object within the dec
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `claimsFormat` | object | true | Format in which the Hasura claims will be present. |
-| `location` | string | true | Pointer to lookup the Hasura claims within the decoded claims. |
+| `claimsFormat` | [`JWTClaimsFormat`](#jwtclaimsformat) | `true` | Format in which the Hasura claims will be present. |
+| `location` | `string` | `true` | Pointer to lookup the Hasura claims within the decoded claims. |
 
 #### JWTClaimsFormat
 
@@ -169,7 +175,7 @@ Source of the Authorization token
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `type` | string | true |  |
+| `type` | `string` | `true` |  |
 
 #### JWTCookieLocation
 
@@ -177,8 +183,8 @@ Get the token from the Cookie header under the specificied cookie name.
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `type` | string | true |  |
-| `name` | string | true |  |
+| `type` | `string` | `true` |  |
+| `name` | `string` | `true` |  |
 
 #### JWTHeaderLocation
 
@@ -186,8 +192,8 @@ Custom header from where the header should be parsed from.
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `type` | string | true |  |
-| `name` | string | true |  |
+| `type` | `string` | `true` |  |
+| `name` | `string` | `true` |  |
 
 #### JWTKey
 
@@ -195,7 +201,7 @@ JWT key configuration according to which the incoming JWT will be decoded.
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `fixed` | object | true | JWT Secret config according to which the incoming JWT will be decoded. |
+| `fixed` | `object` | `true` | JWT Secret config according to which the incoming JWT will be decoded. |
 
 #### JWTKeyConfig
 
@@ -203,8 +209,8 @@ JWT Secret config according to which the incoming JWT will be decoded.
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `algorithm` | object | true | The algorithm used to decode the JWT. |
-| `key` | object | true | The key to use for decoding the JWT. |
+| `algorithm` | [`JWTAlgorithm`](#jwtalgorithm) | `true` | The algorithm used to decode the JWT. |
+| `key` | [`EnvironmentValue`](#environmentvalue) | `true` | The key to use for decoding the JWT. |
 
 #### JWTAlgorithm
 
@@ -216,13 +222,13 @@ Either a literal string or a reference to a Hasura secret
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `value` | string | true |  |
+| `value` | `string` | `true` |  |
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `valueFromEnv` | string | true |  |
+| `valueFromEnv` | `string` | `true` |  |
 
 | Name | Type | Required | Description |
 | ---- | ---- | -------- | ----------- |
-| `jwkFromUrl` | string | true |  |
+| `jwkFromUrl` | `string` | `true` |  |
 
