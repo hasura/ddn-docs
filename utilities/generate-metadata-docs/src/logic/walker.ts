@@ -1,8 +1,9 @@
+import { JSONSchema7, JSONSchema7Definition } from '../entities';
 import { removeNewLineCharacter, isV1Content } from './helpers';
 import jsYaml from 'js-yaml';
 
 export function walkSchemaToMarkdown(
-  object: any,
+  object: JSONSchema7,
   path: string[] = [],
   depth: number = 0,
   visitedRefs = new Set<string>(),
@@ -51,19 +52,21 @@ export function walkSchemaToMarkdown(
         const specialCases = ['allOf', 'anyOf'];
         const propName = key;
         let propType = '';
-        if ((prop as any).items) {
-          if ((prop as any)['items']?.title) {
-            propType = `[\`${(prop as any)['items']?.title}\`](#${(prop as any)['items']?.title.toLowerCase()})`;
+        if (prop.items) {
+          if ((prop.items as JSONSchema7).title) {
+            propType = `[\`${(prop.items as JSONSchema7).title}\`](#${(
+              prop.items as JSONSchema7
+            ).title.toLowerCase()})`;
           }
-        } else if ((prop as any).additionalProperties && (prop as any)['additionalProperties'].title) {
-          propType = `[\`${(prop as any)['additionalProperties']?.title}\`](#${(prop as any)[
+        } else if (prop.additionalProperties && prop['additionalProperties'].title) {
+          propType = `[\`${prop['additionalProperties']?.title}\`](#${prop[
             'additionalProperties'
           ]?.title.toLowerCase()})`;
-        } else if ((prop as any).type) {
-          propType = `\`${(prop as any).type}\``;
+        } else if (prop.type) {
+          propType = `\`${prop.type}\``;
         } else {
           specialCases.forEach(key => {
-            if ((prop as any)[key]) {
+            if (prop[key]) {
               if ((prop as any)[key][0].title && (prop as any)[key][0].title != 'Type') {
                 propType = `[\`${(prop as any)[key][0].title}\`](#${(prop as any)[key][0].title.toLowerCase()})`;
               } else {
@@ -82,10 +85,8 @@ export function walkSchemaToMarkdown(
 
   // Add examples if they exist
   if (object.examples) {
-    markdown += `\n\nExample:\n\n`;
-    object.examples.forEach((example: any) => {
-      markdown += `\`\`\`yaml\n${jsYaml.dump(example)}\n\`\`\`\n`;
-    });
+    markdown += `\n\n**Example:**\n\n`;
+    markdown += `\`\`\`yaml\n${jsYaml.dump(object.examples[0])}\n\`\`\`\n`;
     markdown += `\n`;
   }
 
@@ -97,7 +98,13 @@ export function walkSchemaToMarkdown(
   }
 
   if (object.type === 'array' && object.items) {
-    markdown += walkSchemaToMarkdown(object.items, path.concat('[]'), depth + 1, visitedRefs);
+    if (Array.isArray(object.items)) {
+      object.items.forEach(item => {
+        markdown += walkSchemaToMarkdown(item, path.concat('[]'), depth + 1, visitedRefs);
+      });
+    } else {
+      markdown += walkSchemaToMarkdown(object.items, path.concat('[]'), depth + 1, visitedRefs);
+    }
   }
 
   ['oneOf', 'anyOf', 'allOf'].forEach(key => {

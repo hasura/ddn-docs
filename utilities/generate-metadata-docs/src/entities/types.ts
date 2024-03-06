@@ -49,7 +49,7 @@ export type JSONSchema7Version = string;
  * JSON Schema v7
  * @see https://tools.ietf.org/html/draft-handrews-json-schema-validation-01
  */
-export type JSONSchema7Definition = JSONSchema7 | boolean;
+export type JSONSchema7Definition = JSONSchema7;
 export interface JSONSchema7 {
   $id?: string | undefined;
   $ref?: string | undefined;
