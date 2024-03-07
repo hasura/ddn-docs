@@ -49,38 +49,25 @@ export function walkSchemaToMarkdown(
       markdown += `| Name | Type | Required | Description |\n| ---- | ---- | -------- | ----------- |\n`;
 
       for (const [key, prop] of Object.entries(object.properties)) {
-        const specialCases = ['allOf', 'anyOf'];
         const propName = key;
-        let propType = '';
-        if (prop.items) {
-          if ((prop.items as JSONSchema7).title) {
-            propType = `[\`${(prop.items as JSONSchema7).title}\`](#${(
-              prop.items as JSONSchema7
-            ).title.toLowerCase()})`;
-          }
-        } else if (prop.additionalProperties && prop['additionalProperties'].title) {
-          propType = `[\`${prop['additionalProperties']?.title}\`](#${prop[
-            'additionalProperties'
-          ]?.title.toLowerCase()})`;
-        } else if (prop.type) {
-          propType = `\`${prop.type}\``;
-        } else {
-          specialCases.forEach(key => {
-            if (prop[key]) {
-              if ((prop as any)[key][0].title && (prop as any)[key][0].title != 'Type') {
-                propType = `[\`${(prop as any)[key][0].title}\`](#${(prop as any)[key][0].title.toLowerCase()})`;
-              } else {
-                propType = `\`${(prop as any)[key][0].type}\``;
-              }
-            }
-          });
-        }
+        const propType = getPropType(prop);
         const required = object.required?.includes(key) ? 'true' : 'false';
         const description = (prop as any).description || '';
         markdown += `| \`${propName}\` | ${propType} | \`${required}\` | ${removeNewLineCharacter(description)} |\n`;
       }
       markdown += `\n`;
     }
+  }
+  let externallyTaggedOneOf = isExternallyTaggedOneOf(object);
+  if (externallyTaggedOneOf) {
+    markdown += '\nThis object must have exactly one of the following fields:\n\n';
+    markdown += `| Name | Type | Description |\n| ---- | ---- | ----------- |\n`;
+    object.oneOf.forEach(sub_object => {
+      let [propName, prop] = Object.entries(sub_object.properties).at(0);
+      let propType = getPropType(prop);
+      let description = prop.description || '';
+      markdown += `| \`${propName}\` | ${propType} | ${removeNewLineCharacter(description)} |\n`;
+    });
   }
 
   // Add examples if they exist
@@ -107,6 +94,15 @@ export function walkSchemaToMarkdown(
     }
   }
 
+  if (externallyTaggedOneOf) {
+    console.log(object.title);
+    object.oneOf.forEach(sub_object => {
+      let [key, prop] = Object.entries(sub_object.properties).at(0);
+      markdown += walkSchemaToMarkdown(prop, path.concat(key), depth + 1, visitedRefs);
+    });
+    return markdown;
+  }
+
   ['oneOf', 'anyOf', 'allOf'].forEach(key => {
     if (object[key]) {
       if (object['oneOf']) {
@@ -115,6 +111,7 @@ export function walkSchemaToMarkdown(
         // if (!keys.includes('kind') || !keys.includes('version') || !keys.includes('definition')) {
         // }
       }
+
       object[key].forEach((item: any, index: number) => {
         if (object[key]) markdown += walkSchemaToMarkdown(item, path.concat(`oneOf[${index}]`), depth + 1, visitedRefs);
       });
@@ -122,4 +119,47 @@ export function walkSchemaToMarkdown(
   });
 
   return markdown;
+}
+
+// Checks if the given object is a `oneOf` with each variant being discriminated
+// by the presence of a particular field and the variant specific fields nested
+// within.
+function isExternallyTaggedOneOf(object: JSONSchema7): boolean {
+  if (object.oneOf) {
+    return object.oneOf.every(sub_object => {
+      let result = sub_object.properties && Object.keys(sub_object.properties).length === 1 && sub_object.required && Object.keys(sub_object.required).length === 1;
+      return result;
+    });
+  } else {
+    return false;
+  }
+}
+
+function getPropType(prop: JSONSchema7): string {
+  const specialCases = ['allOf', 'anyOf'];
+  let propType = '';
+  if (prop.items) {
+    if ((prop.items as JSONSchema7).title) {
+      propType = `[\`${(prop.items as JSONSchema7).title}\`](#${(
+        prop.items as JSONSchema7
+      ).title.toLowerCase()})`;
+    }
+  } else if (prop.additionalProperties && prop['additionalProperties'].title) {
+    propType = `[\`${prop['additionalProperties']?.title}\`](#${prop[
+      'additionalProperties'
+    ]?.title.toLowerCase()})`;
+  } else if (prop.type) {
+    propType = `\`${prop.type}\``;
+  } else {
+    specialCases.forEach(key => {
+      if (prop[key]) {
+        if ((prop as any)[key][0].title && (prop as any)[key][0].title != 'Type') {
+          propType = `[\`${(prop as any)[key][0].title}\`](#${(prop as any)[key][0].title.toLowerCase()})`;
+        } else {
+          propType = `\`${(prop as any)[key][0].type}\``;
+        }
+      }
+    });
+  }
+  return propType;
 }
