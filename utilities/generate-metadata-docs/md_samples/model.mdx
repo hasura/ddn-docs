@@ -1,222 +1,23 @@
 ### Model
 
-The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
-more CRUD operations.
-
-| Name         | Type   | Required | Description                                                                                                                                   |
-| ------------ | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kind`       | string | true     |                                                                                                                                               |
-| `version`    | string | true     |                                                                                                                                               |
-| `definition` | object | true     | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
-
-| Name               | Type        | Required | Description                                                                                     |
-| ------------------ | ----------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `name`             | object      | true     | The name of the data model.                                                                     |
-| `objectType`       | object      | true     | The type of the objects of which this model is a collection.                                    |
-| `globalIdSource`   | boolean     | false    | Whether this model should be used as the global ID source for all objects of its type.          |
-| `arguments`        | array       | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
-| `source`           | object      | false    | The source configuration for this model.                                                        |
-| `filterableFields` | array       | true     | A list of fields that can be used to filter the objects in this model.                          |
-| `orderableFields`  | array       | true     | A list of fields that can be used to order the objects in this model.                           |
-| `graphql`          | object      | false    | Configuration for how this model should appear in the GraphQL schema.                           |
-| `description`      | string,null | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
-
-Examples:
-
-```yaml
-name: Articles
-objectType: article
-globalIdSource: true
-arguments: []
-source:
-  dataConnectorName: data_connector
-  collection: articles
-  typeMapping:
-    article:
-      fieldMapping:
-        article_id:
-          column: id
-        title:
-          column: title
-        author_id:
-          column: author_id
-  argumentMapping: {}
-filterableFields:
-  - fieldName: article_id
-    operators:
-      enableAll: true
-  - fieldName: title
-    operators:
-      enableAll: true
-  - fieldName: author_id
-    operators:
-      enableAll: true
-orderableFields:
-  - fieldName: article_id
-    orderByDirections:
-      enableAll: true
-  - fieldName: title
-    orderByDirections:
-      enableAll: true
-  - fieldName: author_id
-    orderByDirections:
-      enableAll: true
-graphql:
-  selectUniques:
-    - queryRootField: ArticleByID
-      uniqueIdentifier:
-        - article_id
-      description: Description for the select unique ArticleByID
-  selectMany:
-    queryRootField: ArticleMany
-    description: Description for the select many ArticleMany
-  argumentsInputType: null
-  filterExpressionType: Article_Where_Exp
-  orderByExpressionType: Article_Order_By
-description: Description for the model Articles
-```
-
-#### ArgumentDefinition
-
-The definition of an argument for a field, command, or model.
-
-| Name          | Type        | Required | Description                                                                                                                                                                                                                    |
-| ------------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `name`        | string      | true     |                                                                                                                                                                                                                                |
-| `type`        | string      | true     | A reference to an Open DD type including nullable values and arrays. Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array of non-nullable strings. |
-| `description` | string,null | false    |                                                                                                                                                                                                                                |
-
-#### ModelSource
-
-Description of how a model maps to a particular data connector
-
-| Name                | Type   | Required | Description                                                                            |
-| ------------------- | ------ | -------- | -------------------------------------------------------------------------------------- |
-| `dataConnectorName` | object | true     | The name of the data connector backing this model.                                     |
-| `collection`        | string | true     | The collection in the data connector that backs this model.                            |
-| `typeMapping`       | object | false    | How the various types used in this model correspond to entities in the data connector. |
-| `argumentMapping`   | object | false    |                                                                                        |
-
-Examples:
-
-```yaml
-dataConnectorName: data_connector
-collection: articles
-typeMapping:
-  article:
-    fieldMapping:
-      article_id:
-        column: id
-      title:
-        column: title
-      author_id:
-        column: author_id
-argumentMapping: {}
-```
-
-#### FilterableField
-
-| Name        | Type   | Required | Description                                        |
-| ----------- | ------ | -------- | -------------------------------------------------- |
-| `fieldName` | string | true     | The name of a field in a user-defined object type. |
-| `operators` | object | true     |                                                    |
-
-#### EnableAllOrSpecific
-
-| Name        | Type    | Required | Description |
-| ----------- | ------- | -------- | ----------- |
-| `enableAll` | boolean | true     |             |
-
-| Name             | Type  | Required | Description |
-| ---------------- | ----- | -------- | ----------- |
-| `enableSpecific` | array | true     |             |
-
-#### OrderableField
-
-| Name                | Type   | Required | Description                                        |
-| ------------------- | ------ | -------- | -------------------------------------------------- |
-| `fieldName`         | string | true     | The name of a field in a user-defined object type. |
-| `orderByDirections` | object | true     |                                                    |
-
-#### EnableAllOrSpecific
-
-| Name        | Type    | Required | Description |
-| ----------- | ------- | -------- | ----------- |
-| `enableAll` | boolean | true     |             |
-
-| Name             | Type  | Required | Description |
-| ---------------- | ----- | -------- | ----------- |
-| `enableSpecific` | array | true     |             |
-
-#### ModelGraphQlDefinition
-
-The definition of how a model appears in the GraphQL API.
-
-| Name                    | Type   | Required | Description                                                                                                                                    |
-| ----------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `selectUniques`         | array  | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany`            | object | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType`    | object | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
-| `filterExpressionType`  | object | false    | The type name of the filter boolean expression input type.                                                                                     |
-| `orderByExpressionType` | object | false    | The type name of the order by expression input type.                                                                                           |
-
-Examples:
-
-```yaml
-selectUniques:
-  - queryRootField: ArticleByID
-    uniqueIdentifier:
-      - article_id
-    description: Description for the select unique ArticleByID
-selectMany:
-  queryRootField: ArticleMany
-  description: Description for the select many ArticleMany
-argumentsInputType: null
-filterExpressionType: Article_Where_Exp
-orderByExpressionType: Article_Order_By
-```
-
-#### SelectUniqueGraphQlDefinition
-
-The definition of the GraphQL API for selecting a unique row/object from a model.
-
-| Name               | Type        | Required | Description                                                                                                                                                             |
-| ------------------ | ----------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `queryRootField`   | object      | true     | The name of the query root field for this API.                                                                                                                          |
-| `uniqueIdentifier` | array       | true     | A set of fields which can uniquely identify a row/object in the model.                                                                                                  |
-| `description`      | string,null | false    | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
-
-#### SelectManyGraphQlDefinition
-
-The definition of the GraphQL API for selecting rows from a model.
-
-| Name             | Type        | Required | Description                                                                                                                                                         |
-| ---------------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `queryRootField` | object      | true     | The name of the query root field for this API.                                                                                                                      |
-| `description`    | string,null | false    | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
-### Model
-
 The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `kind` | string | true |  |
-| `version` | string | true |  |
-| `definition` | object | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `name` | object | true | The name of the data model. |
-| `objectType` | object | true | The type of the objects of which this model is a collection. |
-| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
-| `arguments` | array | false | A list of arguments accepted by this model. Defaults to no arguments. |
-| `source` | object | false | The source configuration for this model. |
-| `filterableFields` | array | true | A list of fields that can be used to filter the objects in this model. |
-| `orderableFields` | array | true | A list of fields that can be used to order the objects in this model. |
-| `graphql` | object | false | Configuration for how this model should appear in the GraphQL schema. |
-| `description` | string,null | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+| ----- | ----- | ----- | ----- |
+| `name` | `string` | Yes | The name of the data model. |
+| `objectType` | `string` | Yes | The type of the objects of which this model is a collection. |
+| `globalIdSource` | `boolean` | No | Whether this model should be used as the global ID source for all objects of its type. |
+| `arguments` | [`array`](#argumentdefinition) | No | A list of arguments accepted by this model. Defaults to no arguments. |
+| `source` | [`object`](#modelsource) | No | The source configuration for this model. |
+| `filterableFields` | [`array`](#filterablefield) | Yes | A list of fields that can be used to filter the objects in this model. |
+| `orderableFields` | [`array`](#orderablefield) | Yes | A list of fields that can be used to order the objects in this model. |
+| `graphql` | [`object`](#modelgraphqldefinition) | No | Configuration for how this model should appear in the GraphQL schema. |
+| `description` | `string,null` | No | The description of the model. Gets added to the description of the model in the graphql schema. |
 
-Examples:
+
+**Example:**
 
 ```yaml
 name: Articles
@@ -272,28 +73,39 @@ description: Description for the model Articles
 
 ```
 
+
 #### ArgumentDefinition
 
 The definition of an argument for a field, command, or model.
 
+
+
+**Properties**
+
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `name` | string | true |  |
-| `type` | string | true | A reference to an Open DD type including nullable values and arrays. Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array of non-nullable strings. |
-| `description` | string,null | false |  |
+| ----- | ----- | ----- | ----- |
+| `name` | `string` | Yes | N/A |
+| `type` | `string` | Yes | A reference to an Open DD type including nullable values and arrays. Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array of non-nullable strings. |
+| `description` | `string,null` | No | N/A |
+
 
 #### ModelSource
 
 Description of how a model maps to a particular data connector
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `dataConnectorName` | object | true | The name of the data connector backing this model. |
-| `collection` | string | true | The collection in the data connector that backs this model. |
-| `typeMapping` | object | false | How the various types used in this model correspond to entities in the data connector. |
-| `argumentMapping` | object | false |  |
 
-Examples:
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `dataConnectorName` | `string` | Yes | The name of the data connector backing this model. |
+| `collection` | `string` | Yes | The collection in the data connector that backs this model. |
+| `typeMapping` | `object` | No | How the various types used in this model correspond to entities in the data connector. |
+| `argumentMapping` | `object` | No | N/A |
+
+
+**Example:**
 
 ```yaml
 dataConnectorName: data_connector
@@ -311,53 +123,49 @@ argumentMapping: {}
 
 ```
 
+
 #### FilterableField
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `fieldName` | string | true | The name of a field in a user-defined object type. |
-| `operators` | object | true |  |
 
-#### EnableAllOrSpecific
+
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableAll` | boolean | true |  |
+| ----- | ----- | ----- | ----- |
+| `fieldName` | `string` | Yes | The name of a field in a user-defined object type. |
+| `operators` | `object` | Yes | N/A |
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableSpecific` | array | true |  |
 
 #### OrderableField
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `fieldName` | string | true | The name of a field in a user-defined object type. |
-| `orderByDirections` | object | true |  |
 
-#### EnableAllOrSpecific
+
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableAll` | boolean | true |  |
+| ----- | ----- | ----- | ----- |
+| `fieldName` | `string` | Yes | The name of a field in a user-defined object type. |
+| `orderByDirections` | `object` | Yes | N/A |
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableSpecific` | array | true |  |
 
 #### ModelGraphQlDefinition
 
 The definition of how a model appears in the GraphQL API.
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `selectUniques` | array | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany` | object | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType` | object | false | The type name of the input type used to hold the arguments of the model. |
-| `filterExpressionType` | object | false | The type name of the filter boolean expression input type. |
-| `orderByExpressionType` | object | false | The type name of the order by expression input type. |
 
-Examples:
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `selectUniques` | [`array`](#selectuniquegraphqldefinition) | Yes | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany` | [`object`](#selectmanygraphqldefinition) | No | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType` | `string` | No | The type name of the input type used to hold the arguments of the model. |
+| `filterExpressionType` | `string` | No | The type name of the filter boolean expression input type. |
+| `orderByExpressionType` | `string` | No | The type name of the order by expression input type. |
+
+
+**Example:**
 
 ```yaml
 selectUniques:
@@ -374,420 +182,85 @@ orderByExpressionType: Article_Order_By
 
 ```
 
-#### SelectUniqueGraphQlDefinition
 
-The definition of the GraphQL API for selecting a unique row/object from a model.
+#### TypeReference
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `queryRootField` | object | true | The name of the query root field for this API. |
-| `uniqueIdentifier` | array | true | A set of fields which can uniquely identify a row/object in the model. |
-| `description` | string,null | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
+A reference to an Open DD type including nullable values and arrays.
+Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array.
+Eg: '[String!]!' is a non-nullable array of non-nullable strings.
 
-#### SelectManyGraphQlDefinition
 
-The definition of the GraphQL API for selecting rows from a model.
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `queryRootField` | object | true | The name of the query root field for this API. |
-| `description` | string,null | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
+#### TypeMapping
 
-### Model
 
-The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `kind` | string | true |  |
-| `version` | string | true |  |
-| `definition` | object | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
+| ----- | ----- | ----- | ----- |
+| `fieldMapping` | `object` | Yes | N/A |
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `name` | object | true | The name of the data model. |
-| `objectType` | object | true | The type of the objects of which this model is a collection. |
-| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
-| `arguments` | array | false | A list of arguments accepted by this model. Defaults to no arguments. |
-| `source` | object | false | The source configuration for this model. |
-| `filterableFields` | array | true | A list of fields that can be used to filter the objects in this model. |
-| `orderableFields` | array | true | A list of fields that can be used to order the objects in this model. |
-| `graphql` | object | false | Configuration for how this model should appear in the GraphQL schema. |
-| `description` | string,null | false | The description of the model. Gets added to the description of the model in the graphql schema. |
-
-Examples:
-
-```yaml
-name: Articles
-objectType: article
-globalIdSource: true
-arguments: []
-source:
-  dataConnectorName: data_connector
-  collection: articles
-  typeMapping:
-    article:
-      fieldMapping:
-        article_id:
-          column: id
-        title:
-          column: title
-        author_id:
-          column: author_id
-  argumentMapping: {}
-filterableFields:
-  - fieldName: article_id
-    operators:
-      enableAll: true
-  - fieldName: title
-    operators:
-      enableAll: true
-  - fieldName: author_id
-    operators:
-      enableAll: true
-orderableFields:
-  - fieldName: article_id
-    orderByDirections:
-      enableAll: true
-  - fieldName: title
-    orderByDirections:
-      enableAll: true
-  - fieldName: author_id
-    orderByDirections:
-      enableAll: true
-graphql:
-  selectUniques:
-    - queryRootField: ArticleByID
-      uniqueIdentifier:
-        - article_id
-      description: Description for the select unique ArticleByID
-  selectMany:
-    queryRootField: ArticleMany
-    description: Description for the select many ArticleMany
-  argumentsInputType: null
-  filterExpressionType: Article_Where_Exp
-  orderByExpressionType: Article_Order_By
-description: Description for the model Articles
-
-```
-
-#### ArgumentDefinition
-
-The definition of an argument for a field, command, or model.
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `name` | string | true |  |
-| `type` | string | true | A reference to an Open DD type including nullable values and arrays. Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array of non-nullable strings. |
-| `description` | string,null | false |  |
-
-#### ModelSource
-
-Description of how a model maps to a particular data connector
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `dataConnectorName` | object | true | The name of the data connector backing this model. |
-| `collection` | string | true | The collection in the data connector that backs this model. |
-| `typeMapping` | object | false | How the various types used in this model correspond to entities in the data connector. |
-| `argumentMapping` | object | false |  |
-
-Examples:
-
-```yaml
-dataConnectorName: data_connector
-collection: articles
-typeMapping:
-  article:
-    fieldMapping:
-      article_id:
-        column: id
-      title:
-        column: title
-      author_id:
-        column: author_id
-argumentMapping: {}
-
-```
-
-#### FilterableField
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `fieldName` | string | true | The name of a field in a user-defined object type. |
-| `operators` | object | true |  |
 
 #### EnableAllOrSpecific
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableAll` | boolean | true |  |
+
+
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableSpecific` | array | true |  |
+| ----- | ----- | ----- | ----- |
+| `enableAll` | object | Yes |  |
+| `enableSpecific` | object | Yes |  |
 
-#### OrderableField
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `fieldName` | string | true | The name of a field in a user-defined object type. |
-| `orderByDirections` | object | true |  |
 
 #### EnableAllOrSpecific
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableAll` | boolean | true |  |
+
+
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableSpecific` | array | true |  |
+| ----- | ----- | ----- | ----- |
+| `enableAll` | object | Yes |  |
+| `enableSpecific` | object | Yes |  |
 
-#### ModelGraphQlDefinition
-
-The definition of how a model appears in the GraphQL API.
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `selectUniques` | array | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany` | object | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType` | object | false | The type name of the input type used to hold the arguments of the model. |
-| `filterExpressionType` | object | false | The type name of the filter boolean expression input type. |
-| `orderByExpressionType` | object | false | The type name of the order by expression input type. |
-
-Examples:
-
-```yaml
-selectUniques:
-  - queryRootField: ArticleByID
-    uniqueIdentifier:
-      - article_id
-    description: Description for the select unique ArticleByID
-selectMany:
-  queryRootField: ArticleMany
-  description: Description for the select many ArticleMany
-argumentsInputType: null
-filterExpressionType: Article_Where_Exp
-orderByExpressionType: Article_Order_By
-
-```
 
 #### SelectUniqueGraphQlDefinition
 
 The definition of the GraphQL API for selecting a unique row/object from a model.
 
+
+
+**Properties**
+
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `queryRootField` | object | true | The name of the query root field for this API. |
-| `uniqueIdentifier` | array | true | A set of fields which can uniquely identify a row/object in the model. |
-| `description` | string,null | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
+| ----- | ----- | ----- | ----- |
+| `queryRootField` | `string` | Yes | The name of the query root field for this API. |
+| `uniqueIdentifier` | [`array`](#fieldname) | Yes | A set of fields which can uniquely identify a row/object in the model. |
+| `description` | `string,null` | No | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
+
 
 #### SelectManyGraphQlDefinition
 
 The definition of the GraphQL API for selecting rows from a model.
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `queryRootField` | object | true | The name of the query root field for this API. |
-| `description` | string,null | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
 
-### Model
 
-The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `kind` | string | true |  |
-| `version` | string | true |  |
-| `definition` | object | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
+| ----- | ----- | ----- | ----- |
+| `queryRootField` | `string` | Yes | The name of the query root field for this API. |
+| `description` | `string,null` | No | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
+
+
+#### ObjectFieldMapping
+
+
+
+**Properties**
 
 | Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `name` | object | true | The name of the data model. |
-| `objectType` | object | true | The type of the objects of which this model is a collection. |
-| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
-| `arguments` | array | false | A list of arguments accepted by this model. Defaults to no arguments. |
-| `source` | object | false | The source configuration for this model. |
-| `filterableFields` | array | true | A list of fields that can be used to filter the objects in this model. |
-| `orderableFields` | array | true | A list of fields that can be used to order the objects in this model. |
-| `graphql` | object | false | Configuration for how this model should appear in the GraphQL schema. |
-| `description` | string,null | false | The description of the model. Gets added to the description of the model in the graphql schema. |
-
-Examples:
-
-```yaml
-name: Articles
-objectType: article
-globalIdSource: true
-arguments: []
-source:
-  dataConnectorName: data_connector
-  collection: articles
-  typeMapping:
-    article:
-      fieldMapping:
-        article_id:
-          column: id
-        title:
-          column: title
-        author_id:
-          column: author_id
-  argumentMapping: {}
-filterableFields:
-  - fieldName: article_id
-    operators:
-      enableAll: true
-  - fieldName: title
-    operators:
-      enableAll: true
-  - fieldName: author_id
-    operators:
-      enableAll: true
-orderableFields:
-  - fieldName: article_id
-    orderByDirections:
-      enableAll: true
-  - fieldName: title
-    orderByDirections:
-      enableAll: true
-  - fieldName: author_id
-    orderByDirections:
-      enableAll: true
-graphql:
-  selectUniques:
-    - queryRootField: ArticleByID
-      uniqueIdentifier:
-        - article_id
-      description: Description for the select unique ArticleByID
-  selectMany:
-    queryRootField: ArticleMany
-    description: Description for the select many ArticleMany
-  argumentsInputType: null
-  filterExpressionType: Article_Where_Exp
-  orderByExpressionType: Article_Order_By
-description: Description for the model Articles
-
-```
-
-#### ArgumentDefinition
-
-The definition of an argument for a field, command, or model.
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `name` | string | true |  |
-| `type` | string | true | A reference to an Open DD type including nullable values and arrays. Suffix '!' to indicate a non-nullable reference, and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array of non-nullable strings. |
-| `description` | string,null | false |  |
-
-#### ModelSource
-
-Description of how a model maps to a particular data connector
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `dataConnectorName` | object | true | The name of the data connector backing this model. |
-| `collection` | string | true | The collection in the data connector that backs this model. |
-| `typeMapping` | object | false | How the various types used in this model correspond to entities in the data connector. |
-| `argumentMapping` | object | false |  |
-
-Examples:
-
-```yaml
-dataConnectorName: data_connector
-collection: articles
-typeMapping:
-  article:
-    fieldMapping:
-      article_id:
-        column: id
-      title:
-        column: title
-      author_id:
-        column: author_id
-argumentMapping: {}
-
-```
-
-#### FilterableField
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `fieldName` | string | true | The name of a field in a user-defined object type. |
-| `operators` | object | true |  |
-
-#### EnableAllOrSpecific
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableAll` | boolean | true |  |
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableSpecific` | array | true |  |
-
-#### OrderableField
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `fieldName` | string | true | The name of a field in a user-defined object type. |
-| `orderByDirections` | object | true |  |
-
-#### EnableAllOrSpecific
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableAll` | boolean | true |  |
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `enableSpecific` | array | true |  |
-
-#### ModelGraphQlDefinition
-
-The definition of how a model appears in the GraphQL API.
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `selectUniques` | array | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany` | object | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType` | object | false | The type name of the input type used to hold the arguments of the model. |
-| `filterExpressionType` | object | false | The type name of the filter boolean expression input type. |
-| `orderByExpressionType` | object | false | The type name of the order by expression input type. |
-
-Examples:
-
-```yaml
-selectUniques:
-  - queryRootField: ArticleByID
-    uniqueIdentifier:
-      - article_id
-    description: Description for the select unique ArticleByID
-selectMany:
-  queryRootField: ArticleMany
-  description: Description for the select many ArticleMany
-argumentsInputType: null
-filterExpressionType: Article_Where_Exp
-orderByExpressionType: Article_Order_By
-
-```
-
-#### SelectUniqueGraphQlDefinition
-
-The definition of the GraphQL API for selecting a unique row/object from a model.
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `queryRootField` | object | true | The name of the query root field for this API. |
-| `uniqueIdentifier` | array | true | A set of fields which can uniquely identify a row/object in the model. |
-| `description` | string,null | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
-
-#### SelectManyGraphQlDefinition
-
-The definition of the GraphQL API for selecting rows from a model.
-
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| `queryRootField` | object | true | The name of the query root field for this API. |
-| `description` | string,null | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
-
+| ----- | ----- | ----- | ----- |
+| `column` | `string` | Yes | N/A |

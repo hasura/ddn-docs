@@ -1,165 +1,223 @@
-import { JSONSchema7, JSONSchema7Definition } from '../entities';
-import { removeNewLineCharacter, isV1Content } from './helpers';
+import { readFileSync } from 'fs';
+import { JSONSchema7 } from '../entities';
+import { removeNewLineCharacter } from './helpers';
 import jsYaml from 'js-yaml';
 
-export function walkSchemaToMarkdown(
-  object: JSONSchema7,
-  path: string[] = [],
-  depth: number = 0,
-  visitedRefs = new Set<string>(),
-  currentPath = ''
-): string {
-  // Construct a unique identifier for the current object
-  let uniqueId = object['$id'] || object.title || path.join('.');
-  if (visitedRefs.has(uniqueId)) {
-    return '';
-  }
-  visitedRefs.add(uniqueId);
+const parentSchema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
 
-  const newPath = currentPath + '.' + path.join('.');
-  if (visitedRefs.has(newPath)) {
-    return '';
-  }
-  visitedRefs.add(newPath);
+// Unique identifier for each object based on title
+type UniqueIdentifier = string;
 
+function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIdentifier, JSONSchema7]>] {
+  // We'll create a placeholder for the array's return value and the markdown we intend to nest
+  let subObjectsToProcess: Array<[UniqueIdentifier, JSONSchema7]> = [];
   let markdown = '';
-  const heading = depth === 0 ? '###' : '####';
 
-  // Base case: Object is a terminal type or a reference
-  if (object.type && object.type !== 'object' && object.type !== 'array') {
-    return '';
-  }
-  if (object['$ref']) {
-    return `Reference to [${object['$ref']}](#${object['$ref'].replace('#/definitions/', '')})\n`;
-  }
-
-  // Grab the object with title and description
-  if (object.title && !isV1Content(object)) {
-    markdown += `${heading} ${object.title}\n\n`;
-    if (object.description && !isV1Content(object)) {
-      markdown += `${object.description}\n\n`;
-    }
-  }
-
-  // Deal with the object if it has properties
-  if (object.properties) {
-    const keys = Object.keys(object.properties);
-    // This avoids the redundancy of instances like Model and ModelV1
-    if (!keys.includes('kind') || !keys.includes('version') || !keys.includes('definition')) {
-      markdown += `| Name | Type | Required | Description |\n| ---- | ---- | -------- | ----------- |\n`;
-
-      for (const [key, prop] of Object.entries(object.properties)) {
-        const propName = key;
-        const propType = getPropType(prop);
-        const required = object.required?.includes(key) ? 'true' : 'false';
-        const description = (prop as any).description || '';
-        markdown += `| \`${propName}\` | ${propType} | \`${required}\` | ${removeNewLineCharacter(description)} |\n`;
+  // Deal with pruning the V1 suffixes on various objects
+  if (object.title) {
+    if (!object.title.includes(`V1`)) {
+      markdown += `\n\n#### ${object.title}\n\n`;
+      if (object.description) {
+        markdown += `${object.description}\n\n`;
       }
-      markdown += `\n`;
-    }
-  }
-  let externallyTaggedOneOf = isExternallyTaggedOneOf(object);
-  if (externallyTaggedOneOf) {
-    markdown += '\nThis object must have exactly one of the following fields:\n\n';
-    markdown += `| Name | Type | Description |\n| ---- | ---- | ----------- |\n`;
-    object.oneOf.forEach(sub_object => {
-      let [propName, prop] = Object.entries(sub_object.properties).at(0);
-      let propType = getPropType(prop);
-      let description = prop.description || '';
-      markdown += `| \`${propName}\` | ${propType} | ${removeNewLineCharacter(description)} |\n`;
-    });
-  }
-
-  // Add examples if they exist
-  if (object.examples) {
-    markdown += `\n\n**Example:**\n\n`;
-    markdown += `\`\`\`yaml\n${jsYaml.dump(object.examples[0])}\n\`\`\`\n`;
-    markdown += `\n`;
-  }
-
-  // Recursive case: deal with nested objects, arrays, and oneOf/anyOf/allOf
-  if (object.properties) {
-    for (const [key, prop] of Object.entries(object.properties)) {
-      markdown += walkSchemaToMarkdown(prop, path.concat(key), depth + 1, visitedRefs);
     }
   }
 
-  if (object.type === 'array' && object.items) {
-    if (Array.isArray(object.items)) {
-      object.items.forEach(item => {
-        markdown += walkSchemaToMarkdown(item, path.concat('[]'), depth + 1, visitedRefs);
-      });
-    } else {
-      markdown += walkSchemaToMarkdown(object.items, path.concat('[]'), depth + 1, visitedRefs);
-    }
-  }
-
-  if (externallyTaggedOneOf) {
-    console.log(object.title);
-    object.oneOf.forEach(sub_object => {
-      let [key, prop] = Object.entries(sub_object.properties).at(0);
-      markdown += walkSchemaToMarkdown(prop, path.concat(key), depth + 1, visitedRefs);
-    });
-    return markdown;
-  }
-
-  ['oneOf', 'anyOf', 'allOf'].forEach(key => {
-    if (object[key]) {
-      if (object['oneOf']) {
-        const keys = Object.keys(object['oneOf']);
-        // This avoids the redundancy of instances like Model and ModelV1
-        // if (!keys.includes('kind') || !keys.includes('version') || !keys.includes('definition')) {
-        // }
-      }
-
-      object[key].forEach((item: any, index: number) => {
-        if (object[key]) markdown += walkSchemaToMarkdown(item, path.concat(`oneOf[${index}]`), depth + 1, visitedRefs);
-      });
-    }
-  });
-
-  return markdown;
-}
-
-// Checks if the given object is a `oneOf` with each variant being discriminated
-// by the presence of a particular field and the variant specific fields nested
-// within.
-function isExternallyTaggedOneOf(object: JSONSchema7): boolean {
   if (object.oneOf) {
-    return object.oneOf.every(sub_object => {
-      let result = sub_object.properties && Object.keys(sub_object.properties).length === 1 && sub_object.required && Object.keys(sub_object.required).length === 1;
-      return result;
-    });
-  } else {
-    return false;
-  }
-}
+    markdown += `\n\n**Properties**\n\n| Name | Type | Required | Description |\n| ----- | ----- | ----- | ----- |\n`;
+    object.oneOf.map(subObject => {
+      // If there's top-level information available, we'll grab it.
+      let propType = subObject.type;
+      let propName = subObject.title ? subObject.title : subObject.required;
+      let required = `No`;
+      let propDescription = subObject.description ? subObject.description : ``;
 
-function getPropType(prop: JSONSchema7): string {
-  const specialCases = ['allOf', 'anyOf'];
-  let propType = '';
-  if (prop.items) {
-    if ((prop.items as JSONSchema7).title) {
-      propType = `[\`${(prop.items as JSONSchema7).title}\`](#${(
-        prop.items as JSONSchema7
-      ).title.toLowerCase()})`;
-    }
-  } else if (prop.additionalProperties && prop['additionalProperties'].title) {
-    propType = `[\`${prop['additionalProperties']?.title}\`](#${prop[
-      'additionalProperties'
-    ]?.title.toLowerCase()})`;
-  } else if (prop.type) {
-    propType = `\`${prop.type}\``;
-  } else {
-    specialCases.forEach(key => {
-      if (prop[key]) {
-        if ((prop as any)[key][0].title && (prop as any)[key][0].title != 'Type') {
-          propType = `[\`${(prop as any)[key][0].title}\`](#${(prop as any)[key][0].title.toLowerCase()})`;
-        } else {
-          propType = `\`${(prop as any)[key][0].type}\``;
+      // Otherwise, we need to unpack the properties
+      if (subObject.properties) {
+        for (const [key, value] of Object.entries(subObject.properties)) {
+          // Check to see if it has a $ref and filter out non-local refs
+          if (value.$ref && !value.$ref.includes('http')) {
+            const uniqueIdentifier = value.$ref.split('/').pop();
+            const referencedObject = parentSchema.definitions[uniqueIdentifier];
+            propDescription = referencedObject.description ? referencedObject.description : `N/A`;
+          }
         }
       }
+      markdown += `| \`${propName}\` | ${propType} | ${required ? `Yes` : `No`} | ${propDescription} |\n`;
     });
   }
-  return propType;
+
+  if (object.properties) {
+    // Start with the header
+    markdown += `\n\n**Properties**\n\n| Name | Type | Required | Description |\n| ----- | ----- | ----- | ----- |\n`;
+
+    // We'll se the basic information for the property in the table
+    for (const [key, value] of Object.entries(object.properties)) {
+      const propName = key;
+      // TODO: This is where we need to deal with the missing types
+      // One instance is an enum that we may have to unpack: InbuiltType...
+      let propType = value.type ? `\`${value.type}\`` : 'booboo';
+      let propDescription = value.description ? value.description : 'N/A';
+      let required = object.required ? object.required.includes(key) : 'N/A';
+
+      // If the type is simple, we can grab it. Otherwise, we need to get the type of the ref
+      if (value.type == 'string' || value.type == 'boolean' || value.type == 'number') {
+        propType = `\`${value.type}\``;
+      }
+
+      if (value.type === 'array') {
+        const uniqueIdentifier = Array.isArray(value.items)
+          ? value.items[0].$ref.split('/').pop()
+          : value.items.$ref.split('/').pop();
+        const referencedObject = parentSchema.definitions[uniqueIdentifier];
+        subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
+        const propRef = uniqueIdentifier.toLowerCase();
+        propType = `[\`array\`](#${propRef})`;
+        if (value.description) {
+          propDescription = value.description;
+        }
+      }
+
+      if (value.allOf) {
+        const uniqueIdentifier = value.allOf[0].$ref.split('/').pop();
+        const referencedObject = parentSchema.definitions[uniqueIdentifier];
+        subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
+        if (referencedObject.type) {
+          // If there is a type, we'll create an anchor tag to the type's location on the page
+          const propRef = uniqueIdentifier.toLowerCase();
+          const simplifiedType = referencedObject.type.toString();
+          if (simplifiedType === 'string') {
+            propType = `\`string\``;
+          } else {
+            propType = `[\`${simplifiedType}\`](#${propRef})`;
+          }
+        } else if (referencedObject.title) {
+          propType = `[\`object\`](#${referencedObject.title.toLowerCase()})`;
+        } else {
+          // This will be an anyOf
+          referencedObject.anyOf.map(subObject => {
+            if (subObject.$ref != null) {
+              const uniqueIdentifier = subObject.$ref.split('/').pop();
+              const referencedObject = parentSchema.definitions[uniqueIdentifier];
+              subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
+            }
+          });
+        }
+      }
+
+      if (value.anyOf) {
+        console.log(value);
+        const uniqueIdentifier = value.anyOf[0].$ref.split('/').pop();
+        const referencedObject = parentSchema.definitions[uniqueIdentifier];
+        subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
+        if (referencedObject.type) {
+          // we'll create an anchor tag to the type's location on the page
+          const propRef = uniqueIdentifier.toLowerCase();
+          const simplifiedType = referencedObject.type.toString();
+          if (simplifiedType === 'string') {
+            propType = `\`string\``;
+          } else {
+            propType = `[\`${simplifiedType}\`](#${propRef})`;
+          }
+        }
+      }
+
+      if (value.$ref) {
+        const uniqueIdentifier = value.$ref.split('/').pop();
+        const referencedObject = parentSchema.definitions[uniqueIdentifier];
+        subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
+        if (referencedObject.description != undefined) {
+          propDescription = referencedObject.description;
+        } else {
+          propDescription = `N/A`;
+        }
+        if (referencedObject.type != undefined) {
+          propType = `\`${referencedObject.type.toString()}\``;
+        } else {
+          propType = `\`object\``;
+        }
+      }
+
+      if (value.additionalProperties && value.additionalProperties.$ref) {
+        const uniqueIdentifier = value.additionalProperties.$ref.split('/').pop();
+        const referencedObject = parentSchema.definitions[uniqueIdentifier];
+        subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
+      }
+
+      if (value.description) {
+        propDescription = value.description;
+      }
+
+      if (value.type === 'object') {
+        propType = `\`object\``;
+        if (value.description) {
+          propDescription = value.description;
+        } else {
+          propDescription = `N/A`;
+        }
+      }
+
+      markdown += `| \`${propName}\` | ${propType} | ${required ? `Yes` : `No`} | ${removeNewLineCharacter(
+        propDescription
+      )} |\n`;
+    }
+  }
+
+  if (object.examples) {
+    markdown += `\n\n**Example:**\n\n\`\`\`yaml\n${jsYaml.dump(object.examples[0])}\n\`\`\`\n`;
+  }
+  // return the map of unique identifier to jsonschema openDdObjects
+  return [markdown, subObjectsToProcess];
+}
+
+export function generateMarkdownForTopLevelMetadataKind(object: JSONSchema7): string | void {
+  // If, for some reason, we pass the wrong object here, early return
+  if (!object.oneOf) {
+    return;
+  }
+
+  // We can start our markdown
+  let md = `### ${object.title}\n\n${object.description}`;
+
+  // If we pass the correct object here, it will have a oneOf that are our top-level objects
+  let metadataObject = object.oneOf[0];
+  /**
+   * Then, we'll create a tuple to determine which sub-objects for which we need to generate
+   * markdown, and a Set for storing those for which we've already generated markdown
+   */
+  let objectsToGenerate: Array<[string, JSONSchema7]> = [['', metadataObject.properties.definition]];
+  let generatedObjects = new Set<[string, JSONSchema7]>();
+
+  /**
+   * So long as there are sub-objects for which to generate markdown, we need this loop to continue
+   */
+  while (objectsToGenerate.length != 0) {
+    let object = objectsToGenerate.shift();
+    /**
+     * If we run into an object for which we've already generated markdown, skip it.
+     * Otherwise, add it to the generatedObjects set and let's call generateObjectMarkdown
+     * give us the tables, etc. markdown and any subObjects that are referenced in the object
+     */
+    if (generatedObjects.has(object)) {
+      continue;
+    }
+
+    generatedObjects.add(object);
+
+    if (object[1].$ref) {
+      const uniqueIdentifier = object[1].$ref;
+      const referencedObject = parentSchema.definitions[uniqueIdentifier.split('/').pop()];
+      let subObject: [UniqueIdentifier, JSONSchema7] = [uniqueIdentifier, referencedObject];
+      objectsToGenerate.push(subObject);
+    }
+    // From the object — which is an array — we grab the metadata object (ref) and pass it on
+    let [subMarkdown, subObjects] = generateObjectMarkdown(object[1]);
+    /**
+     * Add the additional markdown to the parent object's markdown and populate the objectsToGenerate
+     * array if necessary
+     */
+    md += subMarkdown;
+    objectsToGenerate.push(...subObjects);
+  }
+  return md;
 }

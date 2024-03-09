@@ -95,3 +95,13 @@ export function updateMarkdown(filePath: string, newMetadataMarkdown: string): b
     return false;
   }
 }
+
+/**
+ * Checks for whether or not a type is a simple scalar — if it is, we don't need
+ * a reference so we return false.
+ */
+export function isTypeSimpleScalar(objectType: string): boolean {
+  const scalars = [`string`, `number`];
+  scalars.includes(objectType) && true;
+  return false;
+}

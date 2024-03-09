@@ -1,4 +1,4 @@
-import { walkSchemaToMarkdown } from './walker';
-import { getMetadataObject, updateMarkdown } from './helpers';
+import { generateMarkdownForTopLevelMetadataKind } from './walker';
+import { getMetadataObject, updateMarkdown, isTypeSimpleScalar } from './helpers';
 
-export { getMetadataObject, walkSchemaToMarkdown, updateMarkdown };
+export { getMetadataObject, generateMarkdownForTopLevelMetadataKind, updateMarkdown, isTypeSimpleScalar };
