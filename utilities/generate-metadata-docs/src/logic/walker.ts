@@ -24,10 +24,10 @@ function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIden
   }
 
   if (object.oneOf) {
-    markdown += `\n\n**Properties**\n\n| Name | Type | Required | Description |\n| ----- | ----- | ----- | ----- |\n`;
+    markdown += `\n\n**This object must have exactly one of the following:**\n\n| Name | Type | Required | Description |\n| ----- | ----- | ----- | ----- |\n`;
     object.oneOf.map(subObject => {
       // If there's top-level information available, we'll grab it.
-      let propType = subObject.type;
+      let propType = subObject.type.toString();
       let propName = subObject.title ? subObject.title : subObject.required;
       let required = `No`;
       let propDescription = subObject.description ? subObject.description : ``;
@@ -35,15 +35,18 @@ function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIden
       // Otherwise, we need to unpack the properties
       if (subObject.properties) {
         for (const [key, value] of Object.entries(subObject.properties)) {
-          // Check to see if it has a $ref and filter out non-local refs
-          if (value.$ref && !value.$ref.includes('http')) {
+          if (value.type) {
+            propType = `\`${value.type.toString()}\``;
+          } else {
             const uniqueIdentifier = value.$ref.split('/').pop();
             const referencedObject = parentSchema.definitions[uniqueIdentifier];
-            propDescription = referencedObject.description ? referencedObject.description : `N/A`;
+            // TODO: This is where our issue is with things like AuthConfig not expanding
+            // TODO: This causes an infinite loop... 👇
+            // subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
           }
         }
       }
-      markdown += `| \`${propName}\` | ${propType} | ${required ? `Yes` : `No`} | ${propDescription} |\n`;
+      markdown += `| \`${propName}\` | ${propType} | ${required} | ${propDescription} |\n`;
     });
   }
 
@@ -54,8 +57,7 @@ function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIden
     // We'll se the basic information for the property in the table
     for (const [key, value] of Object.entries(object.properties)) {
       const propName = key;
-      // TODO: This is where we need to deal with the missing types
-      // One instance is an enum that we may have to unpack: InbuiltType...
+      // Using booboo for easy debugging
       let propType = value.type ? `\`${value.type}\`` : 'booboo';
       let propDescription = value.description ? value.description : 'N/A';
       let required = object.required ? object.required.includes(key) : 'N/A';
@@ -81,9 +83,7 @@ function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIden
       if (value.allOf) {
         const uniqueIdentifier = value.allOf[0].$ref.split('/').pop();
         const referencedObject = parentSchema.definitions[uniqueIdentifier];
-        subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
         if (referencedObject.type) {
-          // If there is a type, we'll create an anchor tag to the type's location on the page
           const propRef = uniqueIdentifier.toLowerCase();
           const simplifiedType = referencedObject.type.toString();
           if (simplifiedType === 'string') {
@@ -99,6 +99,7 @@ function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIden
             if (subObject.$ref != null) {
               const uniqueIdentifier = subObject.$ref.split('/').pop();
               const referencedObject = parentSchema.definitions[uniqueIdentifier];
+              propType = referencedObject.type ? `\`${referencedObject.type.toString()}\`` : `\`object\``;
               subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
             }
           });
@@ -106,7 +107,6 @@ function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIden
       }
 
       if (value.anyOf) {
-        console.log(value);
         const uniqueIdentifier = value.anyOf[0].$ref.split('/').pop();
         const referencedObject = parentSchema.definitions[uniqueIdentifier];
         subObjectsToProcess.push([uniqueIdentifier, referencedObject]);
@@ -157,6 +157,11 @@ function generateObjectMarkdown(object: JSONSchema7): [string, Array<[UniqueIden
         }
       }
 
+      // Deal with string,null instances of propType
+      if (propType.includes(`null`)) {
+        propType = `\`string\``;
+      }
+
       markdown += `| \`${propName}\` | ${propType} | ${required ? `Yes` : `No`} | ${removeNewLineCharacter(
         propDescription
       )} |\n`;
@@ -177,7 +182,7 @@ export function generateMarkdownForTopLevelMetadataKind(object: JSONSchema7): st
   }
 
   // We can start our markdown
-  let md = `### ${object.title}\n\n${object.description}`;
+  let md = `### ${object.title}\n\n${object.description ? object.description : ''}`;
 
   // If we pass the correct object here, it will have a oneOf that are our top-level objects
   let metadataObject = object.oneOf[0];
