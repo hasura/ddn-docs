@@ -21,86 +21,132 @@ seoFrontMatterUpdated: true
 ## Introduction
 
 The Native Data Connector for PostgreSQL is our flagship connector, with rich support for all kinds of queries. In the
-sections below, we'll cover the supported SQL data types, GraphQL types, and query operations.
+sections below, we'll try to give an overview of the features of the PostgreSQL connector and how to configure it in a
+Hasura project.
 
 :::tip Flavors of PostgreSQL
 
-This connector works with most flavors of PostgreSQL — such as Yugabyte and Aurora — but has not been tested with all.
-If you are looking for a connector for a specific flavor of PostgreSQL, you can search the
-[Connector Hub](https://hasura.io/connectors) or [build your own](/connectors/build-your-own-connector.mdx).
+As much as possible we attempt to provide explicit support for database projects that identify as being derived from
+PostgreSQL with this connector. This includes various popular hosting options for PostgreSQL proper.
+
+The following variants and hosting offerings enjoy the same level of support as a dedicated installation of the latest
+stable PostgreSQL release:
+
+* [AWS Aurora][AWS Aurora], distributed PostgreSQL derivative and service offering
+* [Citus][Citus], PostgreSQL extension
+* [Cockroach][Cockroach], distributed PostgreSQL-compatible service offering
+* [YugabyteDB][YugabyteDB], distributed PostgreSQL derivative and service offering
 
 :::
+
+The PostgreSQL data connector makes available any database resource that is listed in its configuration. In order to
+populate the configuration, the connector supports introspecting the database via the CLI `update` command.
+
+## Queryable collections
+
+The PostgreSQL data connector supports several types of queryable collections:
+
+* Tables
+* Views
+* Native queries
+
+Tables and views are typically discovered automatically during the introspection process.
+
+Native queries on the other hand are named SQL select statements that you specify in the data connector configuration.
+They are similar to a database view, but more expressive as they admit parameters similar to a function and do not
+require any DDL permissions on the database. See the configuration reference on [Native Queries](config.mdx#native-queries).
 
 ## Scalar types
 
-SQL data types are mapped to GraphQL types. The current mappings are as follows:
+The PostgreSQL data connector supports any scalar type that PostgreSQL knows how encode and decode as JSON - No scalar
+type is handled as a special case.
 
-| SQL data type | GraphQL type |
-| ------------- | ------------ |
-| `bool`        | `Boolean`    |
-| `int2`        | `Int`        |
-| `int4`        | `Int`        |
-| `int8`        | `Int`        |
-| `float4`      | `Float`      |
-| `float8`      | `Float`      |
-| `numeric`     | `Float`      |
-| `char`        | `String`     |
-| `varchar`     | `String`     |
-| `text`        | `String`     |
-| `uuid`        | `String`     |
-| `date`        | `String`     |
-| `time`        | `String`     |
-| `timestamp`   | `String`     |
-| `timestamptz` | `String`     |
-| `timetz`      | `String`     |
 
-Other SQL scalar types are unsupported, but may still work in certain situations.
+:::tip Data type names
 
-:::info Data type aliases
+Many scalar types have aliases in PostgreSQL, which can be found in the [PostgreSQL documentation on data
+types][PostgreSQL: data types].
+The connector exposes only the canonical name of a scalar type (as per [`pg_catalog.pg_type(typname)`][PostgreSQL:
+pg_type]) in its NDC schema. 
 
-Note that many of these SQL data types have aliases in PostgreSQL, which can be found in the [PostgreSQL documentation
-on data types][PostgreSQL: data types].
-
-[PostgreSQL: data types]: https://www.postgresql.org/docs/current/datatype.html
+In order to use standard GraphQL scalar types rather than custom scalar types in the resulting GraphQL schema, the DDN
+configuration enables expressing a mapping between data connector types and GraphQL types.
 
 :::
 
-## Nested types
+:::info Limited support
 
-The connector does not currently support nested data structures, such as `array`, `hstore`, `json`, or `jsonb`, though
-they may still work in certain situations.
+The data connector doesn't currently support [domain][PostgreSQL: CREATE DOMAIN] types, [enum, or range][PostgreSQL:
+CREATE TYPE] types, and the introspection process will not include entities these types.
+
+Manually adding entities of a type to the configuration may work to an extent, but there is no guarantee that
+e.g. domain constraints will be checked.
+
+:::
+
+## Structural types
+
+The data connector supports postgres array and composite types, and they will appear as such in the schema it exposes.
+
+Collections may have columns that are arrays of any supported type, and columns that are of a composite type, and
+arbitrary cominations thereof.
+
+As an example (without regard as to whether this is a good database design or not) the following may be tracked
+with full typing fidelity:
+
+```sql
+CREATE TYPE address AS (address_lines varchar[], zipcode varchar, country varchar);
+CREATE TABLE person(id int primary key, name varchar, address address);
+```
+
+Note that the `json` and `jsonb` types are not considered structural types. They are opaque scalar types that do not
+admit to any schema.
+
+:::info Limited support
+
+The data connector doesn't currently support introspecting [composite types][PostgreSQL: CREATE TYPE] apart from those
+defined implicitly by a table. Custom defined composite types need to be added to the configuration manually to be
+usable.
+
+:::
 
 ## Queries
 
 The connector supports all query operations; see the [query documentation](/graphql-api/queries/index.mdx) for details.
 
-### Predicates
+### Filtering
 
-The `_is_null` operator checks whether a value is `NULL`.
+The connector supports the introspection and usage of all binary comparison functions and operators defined for any
+tracked scalar type, built-in and user-defined alike.
 
-The following binary operators are supported when filtering:
-
-| Name                       | GraphQL operator | PostgreSQL operator | GraphQL types |
-| -------------------------- | ---------------- | ------------------- | ------------- |
-| equals                     | `_eq`            | `=`                 | all           |
-| not equals                 | `_neq`           | `<>`                | all           |
-| less than                  | `_lt`            | `<`                 | all           |
-| less than or equal to      | `_lte`           | `<=`                | all           |
-| greater than               | `_gt`            | `>`                 | all           |
-| greater than or equal to   | `_gte`           | `>=`                | all           |
-| like                       | `_like`          | `LIKE`              | `String`      |
-| not like                   | `_nlike`         | `NOT LIKE`          | `String`      |
-| case-insensitive like      | `_ilike`         | `ILIKE`             | `String`      |
-| not case-insensitive like  | `_nilike`        | `NOT ILIKE`         | `String`      |
-| similar                    | `_similar`       | `SIMILAR TO`        | `String`      |
-| not similar                | `_nsimilar`      | `NOT SIMILAR TO`    | `String`      |
-| regex                      | `_regex`         | `~`                 | `String`      |
-| not regex                  | `_nregex`        | `!~`                | `String`      |
-| case-insensitive regex     | `_iregex`        | `~`                 | `String`      |
-| not case-insensitive regex | `_niregex`       | `!~`                | `String`      |
-
-The `_not`, `_and`, and `_or` operators all work as usual.
+However, because PostgreSQL operators don't translate syntactically well to GraphQL, and because not all binary
+procedures are necessarily appropriate comparison operators, the introspection process needs some guidance in order to
+map names and select which functions to include. See the configuration reference for [Comparison
+Operators](config#comparison-operators) for details.
 
 ## Mutations
 
-The connector supports [mutations via Native Queries](/connectors/postgresql/config.mdx#mutations).
+The connector supports insert and delete mutations for tables. Additionally, a native query containing a DML statement
+may be exposed as a mutation.
+
+Mutations are still undergoing active development and are likely to change in the future. The configuration option
+`mutationsVersion` lets you choose between currently supported variants.
+
+Currently a single version exists: `mutationsVersion: "v1"`.
+
+A table `my_table` gets a `v1_insert_my_table` mutation in the connector schema which takes a single argument `_object`
+of object type equivalent to the type of the table. It is a runtime error to insert into columns that are generated. The
+mutation result type is that of the table, allowing selection of fields from the row that was inserted.
+
+A table `my_table` with a single-column primary key `my_id_column` gets a `v1_delete_my_table_by_my_id_column` mutation
+with a single argument `my_id_column` of type equal to that of the column. The mutation result type is that of the
+table, allowing selection of fields from the row that was deleted.
+
+[PostgreSQL: pg_type]: https://www.postgresql.org/docs/current/catalog-pg-type.html
+[PostgreSQL: data types]: https://www.postgresql.org/docs/current/datatype.html
+[PostgreSQL: CREATE DOMAIN]: https://www.postgresql.org/docs/current/sql-createdomain.html
+[PostgreSQL: CREATE TYPE]: https://www.postgresql.org/docs/current/sql-createtype.html
+[AWS Aurora]: https://aws.amazon.com/rds/aurora/
+[Citus]: https://citusdata.com
+[Cockroach]: https://cockroachlabs.com
+[YugabyteDB]: https://yugabyte.com
