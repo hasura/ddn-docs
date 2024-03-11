@@ -82,12 +82,12 @@ A predicate that can be used to restrict the objects returned when querying a mo
 
 | Name | Type | Required | Description |
 | ----- | ----- | ----- | ----- |
-| `fieldComparison` | object | No | Filters objects based on a field value. |
+| `fieldComparison` | `object` | No | Field comparision predicate filters objects based on a field value. |
 | `fieldIsNull` | `object` | No |  |
-| `relationship` | object | No | Filters objects based on the relationship of a model. |
+| `relationship` | `object` | No | Relationship predicate filters objects of a source model based on a predicate on the related model. |
 | `And` | `array` | No | Evaluates to true if all sub-predicates evaluate to true. |
 | `Or` | `array` | No | Evaluates to true if any of the sub-predicates evaluate to true. |
-| `Not` | object | No | Evaluates to true if the sub-predicate evaluates to false. |
+| `Not` | `object` | No | A predicate that can be used to restrict the objects returned when querying a model. |
 
 
 **Example:**
@@ -100,3 +100,46 @@ fieldComparison:
     sessionVariable: x-hasura-user-id
 
 ```
+
+
+#### FieldComparisonPredicate
+
+Field comparision predicate filters objects based on a field value.
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `field` | `string` | Yes | The field name of the object type of the model to compare. |
+| `operator` | `string` | Yes | The name of the operator to use for comparison. |
+| `value` | [`object`](#valueexpression) | Yes | The value expression to compare against. |
+
+
+#### RelationshipPredicate
+
+Relationship predicate filters objects of a source model based on a predicate on the related model.
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `name` | `string` | Yes | The name of the relationship of the object type of the model to follow. |
+| `predicate` | [`object`](#modelpredicate) | No | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
+
+
+#### ValueExpression
+
+An expression which evaluates to a value that can be used in permissions.
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `Literal` | `object` | No |  |
+| `SessionVariable` | `string` | No | Used to represent the name of a session variable, like "x-hasura-role". |

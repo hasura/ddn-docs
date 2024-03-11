@@ -4,10 +4,11 @@ Definition of the authentication configuration used by the API server.
 
 **Properties**
 
-| Name                   | Type     | Required | Description                                                            |
-| ---------------------- | -------- | -------- | ---------------------------------------------------------------------- |
-| `allowRoleEmulationBy` | `string` | No       | N/A                                                                    |
-| `mode`                 | `object` | Yes      | The configuration for the authentication mode to use - webhook or JWT. |
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `allowRoleEmulationBy` | `string` | No |  |
+| `mode` | `object` | Yes | The configuration for the authentication mode to use - webhook or JWT. |
+
 
 **Example:**
 
@@ -17,15 +18,240 @@ mode:
   webhook:
     url: http://auth_hook:3050/validate-request
     method: Post
+
 ```
+
 
 #### AuthModeConfig
 
 The configuration for the authentication mode to use - webhook or JWT.
 
+
+
 **This object must have exactly one of the following:**
 
-| Name      | Type   | Required | Description |
-| --------- | ------ | -------- | ----------- |
-| `webhook` | object | No       |             |
-| `jwt`     | object | No       |             |
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `webhook` | `object` | No | The configuration of the authentication webhook. |
+| `jwt` | `object` | No | JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims. |
+
+
+#### AuthHookConfig
+
+The configuration of the authentication webhook.
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `url` | `string` | Yes | The URL of the authentication webhook. |
+| `method` | `string` | Yes | The HTTP method to be used to make the request to the auth hook. |
+
+
+**Example:**
+
+```yaml
+url: http://auth_hook:3050/validate-request
+method: Post
+
+```
+
+
+#### JWTConfig
+
+JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `audience` | `string` | No | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer` | `string` | No | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error. |
+| `allowedSkew` | `string` | No | Allowed leeway (in seconds) to the `exp` validation to account for clock skew. |
+| `claimsConfig` | [`object`](#jwtclaimsconfig) | Yes | Claims config. Either specified via `claims_mappings` or `claims_namespace_path` |
+| `tokenLocation` | [`object`](#jwttokenlocation) | Yes | Source of the JWT authentication token. |
+| `key` | [`object`](#jwtkey) | Yes | Mode according to which the JWT auth is configured. |
+
+
+**Example:**
+
+```yaml
+audience: null
+issuer: null
+allowedSkew: null
+claimsConfig:
+  namespace:
+    claimsFormat: Json
+    location: /https:~1~1hasura.io~1jwt~1claims
+tokenLocation:
+  type: BearerAuthorization
+key:
+  fixed:
+    algorithm: HS256
+    key:
+      value: token
+
+```
+
+
+#### JWTClaimsConfig
+
+Config to describe how/where the engine should look for the claims within the decoded token.
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `locations` | `object` | No | Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value. |
+| `namespace` | `object` | No | Used when all of the Hasura claims are present in a single object within the decoded JWT. |
+
+
+#### JWTTokenLocation
+
+Source of the Authorization token
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `type` | `string` | No | Get the bearer token from the `Authorization` header. |
+| `JWTCookieLocation` | `string` | No | Get the token from the Cookie header under the specificied cookie name. |
+| `JWTHeaderLocation` | `string` | No | Custom header from where the header should be parsed from. |
+
+
+#### JWTKey
+
+JWT key configuration according to which the incoming JWT will be decoded.
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `fixed` | `object` | No | JWT Secret config according to which the incoming JWT will be decoded. |
+| `jwkFromUrl` | `string` | No | JWT mode where the `type` and `key` parameters are obtained dynamically through JWK. |
+
+
+#### JWTClaimsMap
+
+Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value.
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `x-hasura-default-role` | [`object`](#jwtclaimsmappingentry) | Yes | JSON pointer to lookup the default role within the decoded JWT. |
+| `x-hasura-allowed-roles` | [`object`](#jwtclaimsmappingentry) | Yes | JSON pointer to lookup the allowed roles within the decoded JWT. |
+
+
+#### JWTClaimsNamespace
+
+Used when all of the Hasura claims are present in a single object within the decoded JWT.
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `claimsFormat` | [`object`](#jwtclaimsformat) | Yes | Format in which the Hasura claims will be present. |
+| `location` | `string` | Yes | Pointer to lookup the Hasura claims within the decoded claims. |
+
+
+#### JWTKeyConfig
+
+JWT Secret config according to which the incoming JWT will be decoded.
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `algorithm` | [`object`](#jwtalgorithm) | Yes | The algorithm used to decode the JWT. |
+| `key` | [`object`](#environmentvalue) | Yes | The key to use for decoding the JWT. |
+
+
+#### JWTClaimsMappingEntry
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `literal` | `string` | No | Literal value of the claims mapping |
+| `path` | `object` | No | Look up the Hasura claims at the specified JSON Pointer and provide a default value if the lookup fails. |
+
+
+#### JWTClaimsFormat
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `Json` | `string` | No | Claims will be in the JSON format. |
+| `StringifiedJson` | `string` | No | Claims will be in the Stringified JSON format. |
+
+
+#### JWTAlgorithm
+
+The algorithm used to decode the JWT.
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `HS256` | `string` | No | HMAC using SHA-256 |
+| `HS384` | `string` | No | HMAC using SHA-384 |
+| `HS512` | `string` | No | HMAC using SHA-512 |
+| `ES256` | `string` | No | ECDSA using SHA-256 |
+| `ES384` | `string` | No | ECDSA using SHA-384 |
+| `RS256` | `string` | No | RSASSA-PKCS1-v1_5 using SHA-256 |
+| `RS384` | `string` | No | RSASSA-PKCS1-v1_5 using SHA-384 |
+| `RS512` | `string` | No | RSASSA-PKCS1-v1_5 using SHA-512 |
+| `PS256` | `string` | No | RSASSA-PSS using SHA-256 |
+| `PS384` | `string` | No | RSASSA-PSS using SHA-384 |
+| `PS512` | `string` | No | RSASSA-PSS using SHA-512 |
+| `EdDSA` | `string` | No | Edwards-curve Digital Signature Algorithm (EdDSA) |
+
+
+#### EnvironmentValue
+
+Either a literal string or a reference to a Hasura secret
+
+
+
+**This object must have exactly one of the following:**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `value` | `string` | No |  |
+| `valueFromEnv` | `string` | No |  |
+
+
+#### JWTClaimsMappingPathEntry
+
+
+
+**Properties**
+
+| Name | Type | Required | Description |
+| ----- | ----- | ----- | ----- |
+| `path` | `string` | Yes | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` | `string` | No | Default value to be used when no value is found when looking up the value using the `path`. |
