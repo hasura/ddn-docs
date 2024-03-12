@@ -1,6 +1,5 @@
 import { readFileSync } from 'fs';
 import { JSONSchema7, JSONSchema7Definition } from '../entities';
-import { removeNewLineCharacter } from './helpers';
 import jsYaml from 'js-yaml';
 
 const parentSchema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
@@ -22,7 +21,7 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
   }
 
   if (!metadataObject) {
-    console.log(`Shit`);
+    // console.log(`Shit`);
     return;
   }
 
@@ -76,18 +75,20 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     md = handleAnyOf(metadataObject);
   }
 
+  // Deal with additionalProperties first
+  // if (metadataObject.additionalProperties && type === 'object') {
+  //   md = handleAdditionalProperties(metadataObject);
+  // }
+
   // Deal with properties
   if (metadataObject.properties && type === 'object') {
     md = handleProperties(metadataObject);
   }
 
-  // Deal with additionalProperties first
-  if (metadataObject.additionalProperties && type === 'object') {
-    md = handleAdditionalProperties(metadataObject);
-  }
-
-  // // Deal with anyOf
-  // simplifyAnyOf(metadataObject);
+  // Deal with examples
+  // if (metadataObject.examples) {
+  //   md = handleExamples(metadataObject);
+  // }
 
   if (refTitle) {
     visitedRefs[refTitle] = md;
@@ -153,18 +154,6 @@ function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSON
       ...strippedSchema,
       ...simplifiedSchema,
     };
-  } else if (metadataObject?.anyOf?.length > 1) {
-    const { anyOf, ...strippedSchema } = metadataObject;
-    const filtered = metadataObject.anyOf.filter(option => option.type != 'null');
-    // console.log(filtered);
-    // filtered.map((ref) => {
-
-    // })
-    // simplifiedSchema = simplifyMetadataDefinition(filtered[0]);
-    // simplifiedSchema = {
-    //   ...strippedSchema,
-    //   ...simplifiedSchema,
-    // };
   }
   return simplifiedSchema;
 }
@@ -181,25 +170,25 @@ function handleOneOf(metadataObject: JSONSchema7Definition): string {
 
 function handleProperties(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.type && metadataObject.type === 'object') {
-    markdown += `\n### ${metadataObject.title}\n\n${metadataObject.description || ''}\n\n`;
+    markdown += `\n### ${metadataObject.title || metadataObject.required}\n\n${metadataObject.description || ''}\n\n`;
     markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
     for (const [key, value] of Object.entries(metadataObject.properties)) {
       const prop = setPropertyInformation(value, metadataObject, key);
       markdown += `| \`${key}\` | ${prop.propType} | ${prop.required} | ${prop.description} |\n`;
     }
-    return `[${metadataObject?.title}](#${metadataObject?.title?.toLocaleLowerCase()})`;
+    return `[${metadataObject?.title}](#${metadataObject?.title?.toLowerCase()})`;
   }
   return ``;
 }
 
 function handleAdditionalProperties(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.type && metadataObject.type === 'object') {
-    markdown += `\n### ${metadataObject.title || ``}\n\n${metadataObject.description || ''}\n\n`;
+    markdown += `\n### ${metadataObject.title || ''}\n\n${metadataObject.description || ''}\n\n`;
     markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
     markdown += `| \`customKey\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
       metadataObject.additionalProperties.description ? metadataObject.additionalProperties.description : ``
     } |\n`;
-    return `[${metadataObject?.title}](#${metadataObject?.title?.toLocaleLowerCase()})`;
+    return `[${metadataObject?.title}](#${metadataObject?.title?.toLowerCase()})`;
   }
   return ``;
 }
@@ -216,13 +205,10 @@ function handleRef(metadataObject: JSONSchema7Definition) {
 }
 
 function handleAllOf(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.allOf) {
-    const objectRefs = metadataObject.allOf.map(option => {
-      return handleSchemaDefinition(option);
-    });
-    return objectRefs.join(` or `);
-  }
-  return ``;
+  const objectRefs = metadataObject.allOf.map(option => {
+    return handleSchemaDefinition(option);
+  });
+  return objectRefs.join(` or `);
 }
 
 function handleAnyOf(metadataObject: JSONSchema7Definition): string {
@@ -233,10 +219,6 @@ function handleAnyOf(metadataObject: JSONSchema7Definition): string {
   return objectRefs.join(` or `);
 }
 
-// function getMetadataObjectRef(metadata: JSONSchema7Definition): string {
-
-// }
-
 function handleArrayType(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type === 'array') {
@@ -245,47 +227,14 @@ function handleArrayType(metadataObject: JSONSchema7Definition): string {
   }
 }
 
-function simplifyAnyOf(metadataObject: JSONSchema7Definition) {
-  if (metadataObject.anyOf) {
-    const simplifiedAnyOf = metadataObject.anyOf.filter(obj => obj.type != 'null');
-    simplifiedAnyOf.map(item => {
-      if (item['$ref']) {
-        const anyOf = handleRef(simplifiedAnyOf[0]);
-      }
-    });
-  }
+function handleExamples(metadata: JSONSchema7Definition) {
+  const yaml = jsYaml.dump(metadata.examples[0]);
+  return `\n\n\`\`\`yaml\n${yaml}\`\`\`\n\n`;
 }
 
 /**
  * Everything below this comment is for styling / filling in content in the desired format.
  */
-
-// This adds a title if the metadata object has one
-function addTitle(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.title) {
-    return `\n\n### ${parseV1FromTitle(metadataObject.title)}\n`;
-  } else {
-    return '';
-  }
-}
-
-// This strips V1 from a metadata object
-function parseV1FromTitle(title: string): string {
-  if (title.includes(`V1`)) {
-    return title.replace(`V1`, '');
-  } else {
-    return title;
-  }
-}
-
-// This adds a description
-function addDescription(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.description && metadataObject.properties) {
-    return `\n${metadataObject.description}\n`;
-  } else {
-    return '';
-  }
-}
 
 // This type is used to ensure we're adding the correct information to any row in a `properties` table
 type RefinedProperty = {
@@ -316,10 +265,6 @@ function setPropertyInformation(
   };
 
   propertyDetails.propName = propertyKey;
-
-  if (propertyKey === 'source') {
-    // console.log(property);
-  }
 
   propertyDetails.propType = handleSchemaDefinition(property);
 
