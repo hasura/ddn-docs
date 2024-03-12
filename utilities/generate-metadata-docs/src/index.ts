@@ -1,16 +1,19 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { JSONSchema7, topLevelSubgraphObjects, topLevelSupergraphObjects, openDdObjects } from './entities';
+import {
+  JSONSchema7,
+  topLevelSubgraphObjects,
+  topLevelSupergraphObjects,
+  openDdObjects,
+  JSONSchema7Definition,
+} from './entities';
+import { returnMarkdown } from './logic/walker';
 import { handleSchemaDefinition, updateMarkdown } from './logic';
 
 const schema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
 
 async function main() {
-  const subgraphObjects = schema.definitions['OpenDdSubgraphObject'].oneOf;
   // Process the subgraph objects
-  for (const [metadataKey, metadataObject] of Object.entries(subgraphObjects)) {
-    const definition = handleSchemaDefinition(metadataObject);
-    // console.log(definition);
-  }
+  const definition = returnMarkdown(schema.anyOf[0]);
 }
 
 main();
