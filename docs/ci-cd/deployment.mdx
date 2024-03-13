@@ -40,64 +40,69 @@ environments. If you want to follow along, ensure you've completed the [prerequi
 #### Step 1: Create additional environments
 
 By default, new Hasura DDN [projects](/ci-cd/projects.mdx) ship with a single [environment](/ci-cd/environments.mdx):
-`default`. If you want to follow along with the examples in this guide, you will need to create environments named
-`staging` and `production`. You can do this using the `environment create` command in the
+`dev`. If you want to follow along with the examples in this guide, you will need to create environments named `staging`
+and `production`. You can do this using the `create environment` command in the
 [Hasura CLI](/cli/commands/environment-create.mdx):
 
 ```bash
-hasura3 create environment --name staging
-hasura3 create environment --name production
+ddn create environment staging
+ddn create environment production
 ```
 
-#### Step 2: Create build profiles
+#### Step 2: Create supergraph manifests
 
-You'll also need to create [build profiles](/ci-cd/config.mdx#build-profiles) for each environment by creating new named
-files in the root of your directory:
+You'll also need to create [supergraph manifests](/ci-cd/config.mdx#build-profiles) for each environment by creating new
+named files in the root of your directory:
 
 ```bash
+├── app
+├── base.supergraph.hml
+├── hasura.yaml
 # highlight-start
-├── build-profile-prod.yml
-├── build-profile-staging.yml
+├── staging.supergraph.hml
 # highlight-end
-├── build-profile.yml
-├── hasura.yml
-├── subgraphs
 └── supergraph
+# highlight-start
+├── prod.supergraph.hml
+# highlight-end
 ```
 
 The content for each can follow this format wherein you can specify the environment and the resources to be used for:
 
 ```yml
-# build-profile-prod.yml
-version: 2
-spec:
+# prod.supergraph.hml
+kind: SupergraphManifest
+version: v1
+definition:
   # highlight-start
-  environment: production
+  environment: prod
   # highlight-end
+  name: base
   mode: replace
+  envfile: .local.yaml
   supergraph:
     resources:
-      - supergraph/*
+      - supergraph/**/*.hml
   subgraphs:
-    - name: default
+    - name: app
       resources:
-        - subgraphs/default/**/*.hml
+        - app/**/*.hml
       connectors:
-        pg_db:
-          path: subgraphs/default/dataconnectors/pg_db
-          connectorConfigFile: pg_db.hml
+        app_connector:
+          path: app/app_connector
+          manifestFile: app_connector.build.hml
 ```
 
-#### Step 3: Reference build profiles in `hasura.yml`
+#### Step 3: Reference supergraph manifests in `hasura.yaml`
 
-Then, inside of your `hasura.yml`, you can reference these build profiles:
+Then, inside of your `hasura.yaml`, you can reference these manifests:
 
 ```yml
-buildProfiles:
-  - build-profile.yml
+supergraphManifests:
+  - base.supergraph.hml
   # highlight-start
-  - build-profile-staging.yml
-  - build-profile-prod.yml
+  - staging.supergraph.hml
+  - prod.supergraph.hml
   # highlight-end
 ```
 
@@ -123,25 +128,25 @@ are merged to the trunk of their repository.
 ### Staging
 
 With the changes present in the trunk of the repository, a [new build](/ci-cd/builds.mdx) in the team's staging
-environment can be created using the Hasura CLI, and passing `build-profile-staging.yml` to the `--profile` flag. Then,
-they can apply the build using the `build version` returned by the CLI:
+environment can be created using the Hasura CLI, and passing `staging.supergraph.hml` to the `--supergraph-manifest`
+flag. Then, they can apply the build using the `build version` returned by the CLI:
 
 ```bash
 # create a new build which will return a build version
-hasura3 build create --profile build-profile-staging.yml
+ddn build supergraph --supergraph-manifest staging.supergraph.hml
 ```
 
 ```bash
 # apply the build
-hasura3 build apply --version <build-version>
+ddn apply supergraph-build <build-version>
 ```
 
 The team can run any of their tests against this new build before heading to production.
 
 ### Production
 
-The same process as `staging` is followed, except `build-profile-prod.yml` is used as the argument passed to the
-`--profile` flag.
+The same process as `staging` is followed, except `prod.supergraph.hml` is used as the argument passed to the
+`--supergraph-manifest` flag.
 
 ## Automate deployments
 
