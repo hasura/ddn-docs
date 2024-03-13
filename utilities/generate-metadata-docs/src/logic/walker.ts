@@ -19,7 +19,7 @@ function getType(metadata: JSONSchema7Definition): string | void {
 }
 
 function getParsedRef(ref: string) {
-  return ref?.split('/')?.pop()
+  return ref?.split('/')?.pop();
 }
 
 function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
@@ -123,6 +123,11 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
  * Everything from this to the next comment is for handling cases encountered when navigating
  * a JSONSchema7Definition.
  */
+function handleExamples(metadataObject: JSONSchema7Definition): string {
+  const example = `\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``;
+  return example;
+}
+
 function handleConst(metadataObject: JSONSchema7Definition) {
   if (metadataObject.const) {
     return metadataObject.const.toString();
@@ -174,13 +179,15 @@ function handleProperties(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.type && metadataObject.type === 'object') {
     let markdown = '';
     markdown += `\n### ${metadataObject.title || getParsedRef(metadataObject.$ref)}\n\n`;
-    if (metadataObject.description)
-      markdown += `${metadataObject.description }\n\n`
+    if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
     markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
     for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
       const propertyType = handleSchemaDefinition(propertySchema);
-      const requiredProp =  (metadataObject.required && metadataObject.required.includes(propertyKey));
+      const requiredProp = metadataObject.required && metadataObject.required.includes(propertyKey);
       markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
+    }
+    if (metadataObject.examples) {
+      markdownArray.push(handleExamples(metadataObject));
     }
     markdownArray.push(markdown);
 
@@ -193,8 +200,7 @@ function handleAdditionalProperties(metadataObject: JSONSchema7Definition): stri
   if (metadataObject.type && metadataObject.type === 'object') {
     let markdown = '';
     markdown += `\n### ${metadataObject.title || getParsedRef(metadataObject.$ref)}\n`;
-    if (metadataObject.description)
-      markdown += `${metadataObject.description }\n`
+    if (metadataObject.description) markdown += `${metadataObject.description}\n`;
     markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
     markdown += `| \`customKey\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
       metadataObject.additionalProperties.description || ''
@@ -215,15 +221,15 @@ function handleAllOf(metadataObject: JSONSchema7Definition): string {
 
 function handleAnyOf(metadataObject: JSONSchema7Definition): string {
   const objectRefs = metadataObject.anyOf.map(option => {
-    return  handleSchemaDefinition(option);
+    return handleSchemaDefinition(option);
   });
   return objectRefs.join(` \| `);
 }
 
 function handleOneOf(metadataObject: JSONSchema7Definition): string {
   const objectRefs = metadataObject.oneOf.map(option => {
-      return handleSchemaDefinition(option);
-    });
+    return handleSchemaDefinition(option);
+  });
   return objectRefs.join(` \| `);
 }
 
