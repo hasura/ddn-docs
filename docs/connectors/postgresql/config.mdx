@@ -18,6 +18,14 @@ seoFrontMatterUpdated: true
 
 # Configuration
 
+:::warning Subject to change
+
+During this active development phase, the configuration structure is subject to change.
+
+:::
+
+The format of the configuration data is described by a [json schema][Configuration JSON Schema].
+
 ## Introduction
 
 This document is the reference documentation for the PostgreSQL data connector configuration.
@@ -77,10 +85,20 @@ here in abbreviated form:
 ```yaml
 {
   "version": "3",
-  "connectionUri": {
-    "variable": "CONNECTION_URI"
+  "connectionSettings": {
+    "connectionUri": {
+      "variable": "CONNECTION_URI"
+    },
+    "isolationLevel": "ReadCommitted",
+    "poolSettings":
+      {
+        "maxConnections": 50,
+        "poolTimeout": 30,
+        "idleTimeout": 180,
+        "connectionLifetime": 600
+      }
   },
-  "isolationLevel": "ReadCommitted",
+  "mutationsVersion": null,
   "metadata": {
     "tables": {},
     "compositeTypes": {},
@@ -88,14 +106,7 @@ here in abbreviated form:
     "aggregateFunctions": {},
     "comparisonOperators": {}
   },
-  "poolSettings":
-    {
-      "maxConnections": 50,
-      "poolTimeout": 30,
-      "idleTimeout": 180,
-      "connectionLifetime": 600
-    },
-  "configureOptions": {
+  "introspectionOptions": {
     "excludedSchemas": [
       "information_schema",
       "pg_catalog",
@@ -127,7 +138,6 @@ here in abbreviated form:
       ...
 
       ],
-    "mutationsVersion": null,
     "introspectPrefixFunctionComparisonOperators": [
       "box_above",
       "box_below",
@@ -137,7 +147,7 @@ here in abbreviated form:
 }
 ```
 
-The various default values of `configureOptions` fields are output explicitly. This provides both immediacy, because you
+The various default values of `introspectionOptions` fields are output explicitly. This provides both immediacy, because you
 don't have to look up what the default values are, and versioning flexibily, because it allows the defaults to evolve
 without requiring a version bump.
 
@@ -148,9 +158,12 @@ The very minimal configuration that is acceptable contains just the `version` an
 ```yaml
 {
   "version": "3",
-  "connectionUri": {
-    "value": "postgres://..."
-  },
+  "connectionSettings": {
+    "connectionUri": {
+      "value": "postgres://..."
+    }
+  }
+}
 ```
 
 or, to get the connection uri from an environment variable:
@@ -158,9 +171,12 @@ or, to get the connection uri from an environment variable:
 ```yaml
 {
   "version": "3",
-  "connectionUri": {
+  "connectionSettings": {
+    "connectionUri": {
     "variable": "CONNECTION_URI"
-  },
+    }
+  }
+}
 ```
 
 Note that the choice of environment variable name `CONNECTION_URI` is only a matter of convention. Any environment
@@ -174,13 +190,13 @@ reflect those changes.
 Running `ndc-postgres-cli update` in a configuration directory will do the following:
 
 Connect to the database with the specified `connectionUri`, and then overwrite all data in the `metadata` field (except
-for the native queries) based on the contents of the database and the values given in the `configureOptions` field.
+for the native queries) based on the contents of the database and the values given in the `introspectionOptions` field.
 
 Fill in default values for any fields absent from the configuration, as descriped in the [Versioning
 Policy](#versioning-policy) section.
 
-Various fields in the `configureOptions` object influence the outcome of the introspection process, See [Configure
-options](#configureoptions).
+Various fields in the `introspectionOptions` object influence the outcome of the introspection process, See [Configure
+options](#introspectionoptions).
 
 ### Manually editing
 
@@ -192,28 +208,20 @@ editing it manually. In this case you'd be well advised to keep your configurati
 re-running the `update` command will overwrite your manually-crafted changes.
 
 If there is a pattern to the changes you find yourself applying manually it's possible that your use case could warrant
-a new `configureOptions` field that could integrate the pattern with the normal introspection process. Feel free to
+a new `introspectionOptions` field that could integrate the pattern with the normal introspection process. Feel free to
 raise a feature request issue on the [Issue Tracker][NDC Postgres Issue Tracker].
 
 One section of the configuration that will always need manual authorship is the user-defined
 [`nativeQueries`](#metadatanativequeries).
 
-## Fields
-
-:::warning Subject to change
-
-During this active development phase, the configuration structure is subject to change.
-
-:::
-
-The format of the configuration data is described by a [json schema][Configuration JSON Schema].
-
-### `version`
+## `version`
 
 This field indicates the version of the configuration format that the configuration file adheres to. See [Versioning
 Policy](#versioning-policy).
 
 The currently supported version is: `"3"`.
+
+##  `connectionSettings`
 
 ###  `connectionUri`
 
@@ -271,17 +279,15 @@ It may take on the following values:
 * `RepeatableRead`. Reading the same data twice is guaranteed to return the same result.
 * `Serializable`. Concurrent transactions behave identically to serializing them one at a time.
 
-### `metadata`
+## `metadata`
 
 The metadata section collects declarations of all the database entities that are known to the data connector.
 
-### `metadata.tables`
+### `tables`
 
 The `tables` field collects all the tables and views, and the collection name that will be used for each of them.
 
 Consult the [json schema reference][Configuration JSON Schema] for details.
-
-
 
 **Example**
 
@@ -375,7 +381,7 @@ Note that the support for types is not yet aware of schema namespacing. User-def
 
 :::
 
-### `metadata.compositeTypes`
+### `compositeTypes`
 
 The `compositeTypes` field collects information on all explicitly defined composite types (i.e., those that do not arise
 implicitly from a table).
@@ -476,10 +482,10 @@ Then you may make these types available with the following configuration counter
 }
 ```
 
-### `metadata.nativeQueries`
+### `nativeQueries`
 
-Native queries can be defined by adding them to the `"nativeQueries"` section of a connector. Each query is specified as
-SQL. The return structure of the query must be explicitly specified in the `"columns"` field.
+Native queries can be defined by adding them to the `metadata.nativeQueries` section of the connector configuration.
+Each query is specified as SQL. The return structure of the query must be explicitly specified in the `"columns"` field.
 
 Native queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
 type. The arguments are not interpolated, but provided to your data source as parameters, and therefore must be specific
@@ -558,9 +564,9 @@ Here's an example which inserts into a table called `"Artist"`:
 To expose a Native Query mutation via the GraphQL API, add it as a procedure
 [command](/supergraph-modeling/commands.mdx) to the Hasura metadata.
 
-### `metadata.aggregateFunctions`
+### `aggregateFunctions`
 
-The `aggregateFunctions` field captures the aggregation functions that are defined for the various **scalar types** that
+The `metadata.aggregateFunctions` field captures the aggregation functions that are defined for the various **scalar types** that
 appear in a project.
 
 The introspection process is capabable of discovering all compatible aggregation functions.
@@ -593,9 +599,9 @@ should be defined in the `search_path` of the database user used by the data con
 
 :::
 
-### `metadata.comparisonOperators`
+### `comparisonOperators`
 
-The `comparisonOperators` field defines the comparison operators that may be used for the various **scalar types** that
+The `metadata.comparisonOperators` field defines the comparison operators that may be used for the various **scalar types** that
 appear in a project.
 
 In the configuration, the comparison operators are grouped by the type of their first argument.
@@ -605,7 +611,7 @@ through implicit casts.
 
 Many comparison operators in PostgreSQL are syntactically applied as binary infix operators and denoted by
 non-alphabetical symbols. Therefore we map the names of infix operators. This process is controlled by the
-`configureOptions.comparisonOperatorMapping` field.
+`introspectionOptions.comparisonOperatorMapping` field.
 
 Regular functions (i.e. non-infix) are also usable as comparison operators. Prefix functions too are discoverable by the
 introspection process. However, there is a large body of pre-existing functions that appear to be comparison functions
@@ -613,7 +619,7 @@ according to their type (i.e., they take two arguments and return a bool) yet ca
 performing a comparison operation (such as
 [`pg_has_role`](https://www.postgresql.org/docs/current/functions-info.html#FUNCTIONS-INFO-ACCESS-TABLE)).
 Therefore, only the names mentioned in
-[`configureOptions.introspectPrefixFunctionComparisonOperators`](#configureoptionsintrospectprefixfunctioncomparisonoperators) are considered by
+[`introspectionOptions.introspectPrefixFunctionComparisonOperators`](#introspectionoptionsintrospectprefixfunctioncomparisonoperators) are considered by
 the introspection process.
 
 **Example**
@@ -645,13 +651,13 @@ should be defined in the `search_path` of the database user used by the data con
 
 :::
 
-### `configureOptions`
+## `introspectionOptions`
 
 This field collects various options that may be used to drive the configuration and introspection process.
 
-### `configureOptions.excludedSchemas`
+### `excludedSchemas`
 
-The `excludedSchemas` field is a list of schema names that the introspection process will ignore. The default value
+The `introspectionOptions.excludedSchemas` field is a list of schema names that the introspection process will ignore. The default value
 includes schemas used for internal database bookkeeping and reflection, such as `information_schema`, for PostgreSQL and
 common extensions.
 
@@ -668,9 +674,9 @@ common extensions.
   ]
 ```
 
-### `configureOptions.unqualifiedSchemasForTables`
+### `unqualifiedSchemasForTables`
 
-The `unqualifiedSchemasForTables` field identifies schemas for which the introspection process will generate table
+The `introspectionOptions.unqualifiedSchemasForTables` field identifies schemas for which the introspection process will generate table
 metadata entries that are not prefixed by the schema name.
 
 Tables defined in schemas in this list will have metadata entries that of the form `<table_name>`.
@@ -683,9 +689,9 @@ Those defined in schemas not in this list will have metadata entries that of the
 ],
 ```
 
-### `configureOptions.unqualifiedSchemasForTypesAndProcedures`
+### `unqualifiedSchemasForTypesAndProcedures`
 
-The `unqualifiedSchemasForTypesAndProcedures` field identifies schemas for which the introspection process will generate
+The `introspectionOptions.unqualifiedSchemasForTypesAndProcedures` field identifies schemas for which the introspection process will generate
 type and comparison operator metadata entries that are not prefixed by the schema name, similar to the same for tables.
 
 :::info Global scope
@@ -704,10 +710,10 @@ Consequentially, types and operators defined in any schema not in this list will
 ],
 ```
 
-### `configureOptions.comparisonOperatorMapping`
+### `comparisonOperatorMapping`
 
-The `comparisonOperatorMapping` field describes the names that will be used to represent infix comparison operators such
-as `=`, `!=`, `LIKE`, `<`, etc.
+The `introspectionOptions.comparisonOperatorMapping` field describes the names that will be used to represent infix
+comparison operators such as `=`, `!=`, `LIKE`, `<`, etc.
 
 In order for the introspection process to discover a given operator it must have an entry in this list.
 
@@ -729,9 +735,9 @@ In order for the introspection process to discover a given operator it must have
   ]
 ```
 
-### `configureOptions.introspectPrefixFunctionComparisonOperators`
+### `introspectPrefixFunctionComparisonOperators`
 
-The `introspectPrefixFunctionComparisonOperators` gives the list of prefix-functions that are candidates for comparison
+The `introspectionOptions.introspectPrefixFunctionComparisonOperators` gives the list of prefix-functions that are candidates for comparison
 operators.
 
 Because of the wide variety of predefined functions in existence this is an inclusion list rather than an exclusion
@@ -747,7 +753,7 @@ list. Functions not appearing in this list will not be discoverable by the intro
   ]
 ```
 
-### `configureOptions.mutationsVersion`
+## `mutationsVersion`
 
 :::warning Experimental feature under ongoing development
 
@@ -768,7 +774,7 @@ configuration.
 
 The currently supported value is `"v1"`.
 
-#### `mutationsVersion: "v1"`
+### `mutationsVersion: "v1"`
 
 A table `my_table` gets a `v1_insert_my_table` mutation in the connector schema which takes a single argument `_object`
 of object type equivalent to the type of the table. It is a runtime error to insert into columns that are generated. The
