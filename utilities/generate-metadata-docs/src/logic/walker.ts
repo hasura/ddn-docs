@@ -4,13 +4,39 @@ import jsYaml from 'js-yaml';
 
 const parentSchema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
 
-let markdown = ``;
+let markdownArray: string[] = [];
 
 let visitedRefs = {};
 
-export function returnMarkdown(metadataObject: JSONSchema7): void {
+function getType(metadata: JSONSchema7Definition): string | void {
+  if (metadata.type) {
+    if (Array.isArray(metadata.type)) {
+      return metadata.type[0];
+    } else {
+      return metadata.type;
+    }
+  }
+}
+
+function getParsedRef(ref: string) {
+  return ref?.split('/')?.pop()
+}
+
+function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
+  const ref = metadataObject.$ref;
+  const parsedRef = getParsedRef(ref);
+  const referencedObject = parentSchema.anyOf[0].definitions[parsedRef];
+  if (referencedObject != undefined) {
+    return { ...metadataObject, ...referencedObject };
+  } else {
+    console.warn(`This is a non-local definition: ${ref}`);
+  }
+}
+
+export function returnMarkdown(metadataObject: JSONSchema7): string[] {
   handleSchemaDefinition(metadataObject);
-  console.log(markdown);
+
+  return markdownArray;
 }
 
 export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): string {
@@ -21,11 +47,12 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
   }
 
   if (!metadataObject) {
-    // console.log(`Shit`);
     return;
   }
 
-  const refTitle = metadataObject.title || metadataObject.$ref?.split('/')?.pop();
+  let typeDefinition = ``;
+
+  const refTitle = metadataObject.title || getParsedRef(metadataObject.$ref);
 
   if (refTitle && Object.keys(visitedRefs).includes(refTitle)) {
     // return visitedRefs[metadataObject.title || metadataObject.$ref];
@@ -33,68 +60,63 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
   }
 
   if (refTitle) {
+    //hack: add to visited refs early to avoid infinite loops. the actual value is set at the end of the fn.
     visitedRefs[refTitle] = refTitle;
   }
 
-  let md = ``;
+  const type = getType(metadataObject);
 
   // Deal with const
   if (metadataObject.const) {
-    md = handleConst(metadataObject);
+    typeDefinition = handleConst(metadataObject);
   }
 
   // Deal with enum
   if (metadataObject.enum) {
-    md = handleEnum(metadataObject);
+    typeDefinition = handleEnum(metadataObject);
   }
 
-  // Deal with scalars
-  const type = getType(metadataObject);
   const scalarTypes = [`string`, `number`, `integer`, `null`, `boolean`];
   if (type && scalarTypes.includes(type)) {
-    md = handleScalars(metadataObject);
+    typeDefinition = handleScalars(metadataObject);
   }
 
   // Deal with items
   if (type === 'array') {
-    md = handleArrayType(metadataObject);
+    typeDefinition = handleArrayType(metadataObject);
   }
 
   // Deal with oneOf
   if (metadataObject.oneOf) {
-    md = handleOneOf(metadataObject);
+    typeDefinition = handleOneOf(metadataObject);
   }
 
   // Deal with allOfs
   if (metadataObject.allOf) {
-    md = handleAllOf(metadataObject);
+    typeDefinition = handleAllOf(metadataObject);
   }
 
   // Deal with anyOfs
   if (metadataObject.anyOf) {
-    md = handleAnyOf(metadataObject);
+    typeDefinition = handleAnyOf(metadataObject);
   }
 
-  // Deal with additionalProperties first
-  // if (metadataObject.additionalProperties && type === 'object') {
-  //   md = handleAdditionalProperties(metadataObject);
-  // }
+  // Deal with additionalProperties
+  if (metadataObject.additionalProperties && type === 'object') {
+    typeDefinition = handleAdditionalProperties(metadataObject);
+  }
 
   // Deal with properties
   if (metadataObject.properties && type === 'object') {
-    md = handleProperties(metadataObject);
+    typeDefinition = handleProperties(metadataObject);
   }
-
-  // Deal with examples
-  // if (metadataObject.examples) {
-  //   md = handleExamples(metadataObject);
-  // }
 
   if (refTitle) {
-    visitedRefs[refTitle] = md;
+    // set visited ref to typeDefinition
+    visitedRefs[refTitle] = typeDefinition;
   }
 
-  return md;
+  return typeDefinition;
 }
 
 /**
@@ -110,16 +132,6 @@ function handleConst(metadataObject: JSONSchema7Definition) {
 function handleEnum(metadataObject: JSONSchema7Definition) {
   if (metadataObject.enum) {
     return metadataObject.enum.join(' | ');
-  }
-}
-
-function getType(metadata: JSONSchema7Definition): string | void {
-  if (metadata.type) {
-    if (Array.isArray(metadata.type)) {
-      return metadata.type[0];
-    } else {
-      return metadata.type;
-    }
   }
 }
 
@@ -158,24 +170,20 @@ function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSON
   return simplifiedSchema;
 }
 
-function handleOneOf(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.oneOf) {
-    const objectRefs = metadataObject.oneOf.map(option => {
-      return handleSchemaDefinition(option);
-    });
-    return objectRefs.join(` or `);
-  }
-  return ``;
-}
-
 function handleProperties(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.type && metadataObject.type === 'object') {
-    markdown += `\n### ${metadataObject.title || metadataObject.required}\n\n${metadataObject.description || ''}\n\n`;
+    let markdown = '';
+    markdown += `\n### ${metadataObject.title || getParsedRef(metadataObject.$ref)}\n\n`;
+    if (metadataObject.description)
+      markdown += `${metadataObject.description }\n\n`
     markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
-    for (const [key, value] of Object.entries(metadataObject.properties)) {
-      const prop = setPropertyInformation(value, metadataObject, key);
-      markdown += `| \`${key}\` | ${prop.propType} | ${prop.required} | ${prop.description} |\n`;
+    for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
+      const propertyType = handleSchemaDefinition(propertySchema);
+      const requiredProp =  (metadataObject.required && metadataObject.required.includes(propertyKey));
+      markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
     }
+    markdownArray.push(markdown);
+
     return `[${metadataObject?.title}](#${metadataObject?.title?.toLowerCase()})`;
   }
   return ``;
@@ -183,40 +191,40 @@ function handleProperties(metadataObject: JSONSchema7Definition): string {
 
 function handleAdditionalProperties(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.type && metadataObject.type === 'object') {
-    markdown += `\n### ${metadataObject.title || ''}\n\n${metadataObject.description || ''}\n\n`;
+    let markdown = '';
+    markdown += `\n### ${metadataObject.title || getParsedRef(metadataObject.$ref)}\n`;
+    if (metadataObject.description)
+      markdown += `${metadataObject.description }\n`
     markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
     markdown += `| \`customKey\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
-      metadataObject.additionalProperties.description ? metadataObject.additionalProperties.description : ``
+      metadataObject.additionalProperties.description || ''
     } |\n`;
+    markdownArray.push(markdown);
+
     return `[${metadataObject?.title}](#${metadataObject?.title?.toLowerCase()})`;
   }
   return ``;
-}
-
-function handleRef(metadataObject: JSONSchema7Definition) {
-  const ref = metadataObject.$ref;
-  const parsedRef = ref.split('/').pop();
-  const referencedObject = parentSchema.anyOf[0].definitions[parsedRef];
-  if (referencedObject != undefined) {
-    return { ...metadataObject, ...referencedObject };
-  } else {
-    console.warn(`This is a non-local definition: ${ref}`);
-  }
 }
 
 function handleAllOf(metadataObject: JSONSchema7Definition): string {
   const objectRefs = metadataObject.allOf.map(option => {
     return handleSchemaDefinition(option);
   });
-  return objectRefs.join(` or `);
+  return objectRefs.join(` \| `);
 }
 
 function handleAnyOf(metadataObject: JSONSchema7Definition): string {
   const objectRefs = metadataObject.anyOf.map(option => {
-    const definition = handleSchemaDefinition(option);
-    return definition;
+    return  handleSchemaDefinition(option);
   });
-  return objectRefs.join(` or `);
+  return objectRefs.join(` \| `);
+}
+
+function handleOneOf(metadataObject: JSONSchema7Definition): string {
+  const objectRefs = metadataObject.oneOf.map(option => {
+      return handleSchemaDefinition(option);
+    });
+  return objectRefs.join(` \| `);
 }
 
 function handleArrayType(metadataObject: JSONSchema7Definition): string {
@@ -225,56 +233,4 @@ function handleArrayType(metadataObject: JSONSchema7Definition): string {
     const itemType = Array.isArray(metadataObject.items) ? metadataObject.items[0] : metadataObject.items;
     return `[${handleSchemaDefinition(itemType)}]`;
   }
-}
-
-function handleExamples(metadata: JSONSchema7Definition) {
-  const yaml = jsYaml.dump(metadata.examples[0]);
-  return `\n\n\`\`\`yaml\n${yaml}\`\`\`\n\n`;
-}
-
-/**
- * Everything below this comment is for styling / filling in content in the desired format.
- */
-
-// This type is used to ensure we're adding the correct information to any row in a `properties` table
-type RefinedProperty = {
-  propName: string;
-  propType: string;
-  required: string;
-  description: string;
-};
-
-/**
- * This uses the `RefinedProperty` type to write a row based on the passed values of:
- * @param property
- * @param parentObject
- * @param propertyKey
- * @param referencedObject
- * @returns
- */
-function setPropertyInformation(
-  property: JSONSchema7,
-  parentObject: JSONSchema7,
-  propertyKey: string
-): RefinedProperty {
-  let propertyDetails = {
-    propName: ``,
-    propType: ``,
-    required: `No`, // doing this so we can have a default and overwrite it
-    description: ``,
-  };
-
-  propertyDetails.propName = propertyKey;
-
-  propertyDetails.propType = handleSchemaDefinition(property);
-
-  if (property.description) {
-    propertyDetails.description = property.description;
-  }
-
-  if (parentObject.required && parentObject.required.includes(propertyKey)) {
-    propertyDetails.required = `Yes`;
-  }
-
-  return propertyDetails;
 }
