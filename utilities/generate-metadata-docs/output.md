@@ -132,7 +132,7 @@ Evaluates to true if the sub-predicate evaluates to false.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `not` | ModelPredicate | true |  |
+| `not` | [ModelPredicate](#modelpredicate) | true |  |
 
 
 
@@ -142,7 +142,7 @@ Evaluates to true if any of the sub-predicates evaluate to true.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `or` | [ModelPredicate] | true |  |
+| `or` | [[ModelPredicate](#modelpredicate)] | true |  |
 
 
 
@@ -152,7 +152,7 @@ Evaluates to true if all sub-predicates evaluate to true.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `and` | [ModelPredicate] | true |  |
+| `and` | [[ModelPredicate](#modelpredicate)] | true |  |
 
 
 
@@ -173,7 +173,7 @@ Relationship predicate filters objects of a source model based on a predicate on
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
 | `name` | string | true | The name of the relationship of the object type of the model to follow. |
-| `predicate` | ModelPredicate / null | false | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
+| `predicate` | [ModelPredicate](#modelpredicate) / null | false | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
 
 
@@ -1394,7 +1394,7 @@ An array type
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
 | `type` | string | true |  |
-| `element_type` | Type | true | The type of the elements of the array |
+| `element_type` | [Type](#type) | true | The type of the elements of the array |
 
 
 
@@ -1405,7 +1405,7 @@ A nullable type
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
 | `type` | string | true |  |
-| `underlying_type` | Type | true | The type of the non-null inhabitants of this type |
+| `underlying_type` | [Type](#type) | true | The type of the non-null inhabitants of this type |
 
 
 

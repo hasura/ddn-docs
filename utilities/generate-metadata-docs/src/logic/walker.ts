@@ -112,7 +112,7 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
 
   if (refTitle) {
     //hack: add to visited refs early to avoid infinite loops. the actual value is set at the end of the fn.
-    visitedRefs[refTitle] = refTitle;
+    visitedRefs[refTitle] = getRefLink(metadataObject);
   }
 
   const type = getType(metadataObject);
