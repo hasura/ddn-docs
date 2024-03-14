@@ -14,3 +14,189 @@ keywords:
 ---
 
 # Add Business Logic
+
+## Introduction
+
+With DDN, Hasura introduces a new way of writing custom business logic using the the TypeScript connector. This exposes
+functions or procedures that can be added to Hasura metadata as a [command](/supergraph-modeling/commands.mdx), which
+can be made available over your GraphQL API as a query or a mutation.
+
+## Step 1: Navigate to the TypeScript connector
+
+When we ran `ddn quickstart`, we told the CLI we wanted to include the TypeScript connector; inside of the
+`app/ts_connector` directory, we can find all the files the CLI generated, including `functions.ts` which will house our
+custom logic:
+
+```bash
+├── builds
+# highlight-start
+│   ├── functions.ts
+# highlight-end
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── ts_connector.build.hml
+│   └── tsconfig.json
+└── ts_connector.hml
+```
+
+If we open `functions.ts`, we'll see the following contents:
+
+```ts
+/**
+ * @readonly Exposes the function as an NDC function (the function should only query data without making modifications)
+ */
+export function hello(name?: string) {
+  return `hello ${name ?? "world"}`;
+}
+```
+
+We can use this in our API by running the following query:
+
+```graphql
+query MyQuery {
+  hello(name: "Hasura")
+}
+```
+
+Which should return:
+
+```JSON
+{
+  "data": {
+    "hello": "hello Hasura"
+  }
+}
+```
+
+## Step 2: Make some changes
+
+Since we're running `ddn dev`, the CLI generated a tunnel between this locally running TypeScript connector and our API
+hosted on Hasura DDN. This means any changes we make will trigger a new build and instantly be available via our API.
+Let's modify `hello()` to the following:
+
+```ts
+export function hello(name?: string) {
+  return `Hello, ${name ?? "World"}! 👋`;
+}
+```
+
+Now, if we re-run our query, we should see nearly the same message...just with a bit more gusto!
+
+```JSON
+{
+  "data": {
+    "hello": "Hello, Hasura! 👋"
+  }
+}
+```
+
+## Step 3: Create and track a new function
+
+Of course, our API will need more than one function. Let's create a new function called `scoldUser()` inside
+`functions.ts` that yells at a user if they do something they're not supposed to do:
+
+```ts
+// functions.ts
+
+/**
+ * @readonly
+ */
+export function scoldUser(username: string) {
+  return `DON'T DO THAT, ${username.toUpperCase()}!`;
+}
+```
+
+We need to make sure our connector is aware of this function by tracking it. If we look inside our `ts_connector.hml`
+file, we'll see the key-value pair with a warning for our new function. If we hover over the warning line, we can use
+code actions (quick fix) to track the new function and add it to our API:
+
+// TODO: Add screenshot
+
+This will trigger a rebuild of our connector and our new function will be available in our API:
+
+// TODO: Add screenshot
+
+## Step 4: Import a package
+
+The TypeScript connector acts like any NodeJS project; this means you can use all the packages you're already familiar
+with. Let's add the `pg` package so we can directly interact with our database.
+
+Inside the `app/ts_connector/builds` directory, run the following:
+
+```bash
+npm i pg
+npm i --save-dev @types/pg
+```
+
+Update your `functions.ts` file to read as follows:
+
+```ts
+import { Client } from "pg";
+
+/**
+ * @readonly Exposes the function as an NDC function (the function should only query data without making modifications)
+ */
+export function hello(name?: string) {
+  return `Hello, ${name ?? "World"}! 👋`;
+}
+
+/**
+ * @readonly
+ */
+export async function scoldUser(userId: string) {
+  // Yes, for ease we're reusing the same sample app 😉
+  const client = new Client({
+    host: "35.236.11.122",
+    port: 5432,
+    database: "docs-sample-app",
+    user: "read_only_user",
+    password: "readonlyuser",
+  });
+
+  await client.connect();
+
+  const queryText = "SELECT name FROM users WHERE id = $1";
+  const result = await client.query(queryText, [userId]);
+
+  if (result.rows.length > 0) {
+    const userName = result.rows[0].name;
+    return `DON'T DO THAT, ${userName.toUpperCase()}!`;
+  } else {
+    return `Issue retrieving user`;
+  }
+}
+```
+
+This modifies our function to accept an `id` for a user. We'll use this to determine who our user is and scold them.
+After modifying the `function.ts` file, try this query in your API:
+
+```graphql
+query MyQuery {
+  scoldUser(userId: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb")
+}
+```
+
+You should see the following returned:
+
+```json
+{
+  "data": {
+    "scoldUser": "DON'T DO THAT, SEAN!"
+  }
+}
+```
+
+## Step 5: Create a relationship
+
+The reality is, we don't need the `pg` package. We can create relationships directly between our commands and models.
+That means we can call `scoldUser` directly on Sean from our API without requiring any extra packages. Find the... TODO
+
+## Step 6: Add permissions
+
+Of course, we don't want any user accessing this command from our API. Just like our models, we can declaratively
+restrict access to specific user roles using permissions. Find the... TODO
+
+## Learn more
+
+Hasura can host your TypeScript connector for you, or you can host it yourself. You can learn more about the connector
+and deployment options to Hasura DDN or self-hosted solutions by visiting [this page](/connectors/deployment.mdx).
