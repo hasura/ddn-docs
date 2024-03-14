@@ -542,7 +542,7 @@ Mapping from command argument names to data connector table argument names.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | string | No |  |
+| `<customKey>` | string | No |  |
 
 
 
@@ -706,7 +706,7 @@ collection: articles
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | string | No |  |
+| `<customKey>` | string | No |  |
 
 
 
@@ -960,7 +960,7 @@ This defines the mapping of the fields of an object type to the corresponding co
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [undefined](#undefined) | No |  |
+| `<customKey>` | [undefined](#undefined) | No |  |
 
 
 
@@ -1152,7 +1152,7 @@ Any arguments that this collection requires
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Argument Info](#argument-info) | No |  |
+| `<customKey>` | [Argument Info](#argument-info) | No |  |
 
 
 
@@ -1173,7 +1173,7 @@ Any arguments that this collection requires
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Argument Info](#argument-info) | No |  |
+| `<customKey>` | [Argument Info](#argument-info) | No |  |
 
 
 
@@ -1198,7 +1198,7 @@ Any foreign key constraints enforced on this collection
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Foreign Key Constraint](#foreign-key constraint) | No |  |
+| `<customKey>` | [Foreign Key Constraint](#foreign-key constraint) | No |  |
 
 
 
@@ -1217,7 +1217,7 @@ The columns on which you want want to define the foreign key.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | string | No |  |
+| `<customKey>` | string | No |  |
 
 
 
@@ -1227,7 +1227,7 @@ Any uniqueness constraints enforced on this collection
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Uniqueness Constraint](#uniqueness-constraint) | No |  |
+| `<customKey>` | [Uniqueness Constraint](#uniqueness-constraint) | No |  |
 
 
 
@@ -1245,7 +1245,7 @@ Any arguments that this collection requires
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Argument Info](#argument-info) | No |  |
+| `<customKey>` | [Argument Info](#argument-info) | No |  |
 
 
 
@@ -1264,7 +1264,7 @@ A list of object types which can be used as the types of arguments, or return ty
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Object Type](#object-type) | No |  |
+| `<customKey>` | [Object Type](#object-type) | No |  |
 
 
 
@@ -1285,7 +1285,7 @@ Fields defined on this object type
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Object Field](#object-field) | No |  |
+| `<customKey>` | [Object Field](#object-field) | No |  |
 
 
 
@@ -1306,7 +1306,7 @@ A list of scalar types which will be used as the types of collection columns
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Scalar Type](#scalar-type) | No |  |
+| `<customKey>` | [Scalar Type](#scalar-type) | No |  |
 
 
 
@@ -1327,7 +1327,7 @@ A map from comparison operator names to their definitions. Argument type names m
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) | No |  |
+| `<customKey>` | [undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) | No |  |
 
 
 
@@ -1362,7 +1362,7 @@ A map from aggregate function names to their definitions. Result type names must
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [Aggregate Function Definition](#aggregate-function definition) | No |  |
+| `<customKey>` | [Aggregate Function Definition](#aggregate-function definition) | No |  |
 
 
 
@@ -1426,7 +1426,7 @@ Key value map of HTTP headers to be sent with each request to the data connector
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `customKey` | [undefined](#undefined) / [undefined](#undefined) | No |  |
+| `<customKey>` | [undefined](#undefined) / [undefined](#undefined) | No |  |
 
 
 

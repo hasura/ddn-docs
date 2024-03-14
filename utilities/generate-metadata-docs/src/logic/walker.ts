@@ -62,33 +62,30 @@ function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSON
   let simplifiedSchema = metadataObject;
   if (metadataObject?.allOf?.length === 1) {
     const { allOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = simplifyMetadataDefinition(allOf[0]);
     simplifiedSchema = {
       ...strippedSchema,
-      ...simplifiedSchema,
+      ...simplifyMetadataDefinition(allOf[0]),
     };
   } else if (metadataObject?.oneOf?.length === 1) {
     const { oneOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = simplifyMetadataDefinition(oneOf[0]);
     simplifiedSchema = {
       ...strippedSchema,
-      ...simplifiedSchema,
+      ...simplifyMetadataDefinition(oneOf[0]),
     };
   } else if (metadataObject?.anyOf?.length === 1) {
     const { anyOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = simplifyMetadataDefinition(anyOf[0]);
     simplifiedSchema = {
       ...strippedSchema,
-      ...simplifiedSchema,
+      ...simplifyMetadataDefinition(anyOf[0]),
     };
   }
   return simplifiedSchema;
 }
 
-export function returnMarkdown(metadataObject: JSONSchema7): string[] {
+export function returnMarkdown(metadataObject: JSONSchema7): string {
   handleSchemaDefinition(metadataObject);
 
-  return markdownArray;
+  return markdownArray.reverse().join('\n\n');
 }
 
 export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): string {
@@ -96,6 +93,8 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
 
   if (metadataObject.$ref) {
     metadataObject = handleRef(metadataObject);
+    // TODO: investigate. the following should solve the undefined issue, but leads to objects not being outputted instead
+    // metadataObject = simplifyMetadataDefinition(metadataObject);
   }
 
   if (!metadataObject) {
@@ -137,6 +136,11 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleArrayType(metadataObject);
   }
 
+  // Deal with objects
+  if (type === 'object') {
+    typeDefinition = handleObject(metadataObject);
+  }
+
   // Deal with oneOf
   if (metadataObject.oneOf) {
     typeDefinition = handleOneOf(metadataObject);
@@ -150,11 +154,6 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
   // Deal with anyOfs
   if (metadataObject.anyOf) {
     typeDefinition = handleAnyOf(metadataObject);
-  }
-
-  // Deal with objects
-  if (type === 'object') {
-    typeDefinition = handleObject(metadataObject);
   }
 
   if (refTitle) {
@@ -185,8 +184,17 @@ function handleScalars(metadataObject: JSONSchema7Definition): string {
   }
 }
 
+function handleArrayType(metadataObject: JSONSchema7Definition): string {
+  const type = getType(metadataObject);
+  if (type === 'array') {
+    const itemType = Array.isArray(metadataObject.items) ? metadataObject.items[0] : metadataObject.items;
+    return `[${handleSchemaDefinition(itemType)}]`;
+  }
+}
+
 function handleObject(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.type && metadataObject.type === 'object') {
+  const type = getType(metadataObject);
+  if (type === 'object') {
     let markdown = '';
 
     markdown += `\n### ${getTitle(metadataObject)}\n\n`;
@@ -204,7 +212,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
     }
 
     if (metadataObject.additionalProperties) {
-      markdown += `| \`customKey\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
+      markdown += `| \`<customKey>\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
           metadataObject.additionalProperties.description || ''
       } |\n`;
     }
@@ -239,12 +247,4 @@ function handleOneOf(metadataObject: JSONSchema7Definition): string {
     return handleSchemaDefinition(option);
   });
   return objectRefs.join(` / `);
-}
-
-function handleArrayType(metadataObject: JSONSchema7Definition): string {
-  const type = getType(metadataObject);
-  if (type === 'array') {
-    const itemType = Array.isArray(metadataObject.items) ? metadataObject.items[0] : metadataObject.items;
-    return `[${handleSchemaDefinition(itemType)}]`;
-  }
 }

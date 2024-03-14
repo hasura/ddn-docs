@@ -9,7 +9,7 @@ async function main() {
   // generate markdown for SupergraphOrSubgraphObject
   const markdown = returnMarkdown(schema.anyOf[0]);
 
-  console.log(markdown.reverse().join('\n\n'));
+  console.log(markdown);
 }
 
 main();
