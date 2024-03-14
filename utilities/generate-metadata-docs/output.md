@@ -1090,8 +1090,8 @@ Describes the features of the specification which a data connector implements.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `relation_comparisons` | [undefined](#undefined) / null | undefined | Does the connector support comparisons that involve related collections (ie. joins)? |
-| `order_by_aggregate` | [undefined](#undefined) / null | undefined | Does the connector support ordering by an aggregated array relationship? |
+| `relation_comparisons` | [LeafCapability](#leafcapability) / null | undefined | Does the connector support comparisons that involve related collections (ie. joins)? |
+| `order_by_aggregate` | [LeafCapability](#leafcapability) / null | undefined | Does the connector support ordering by an aggregated array relationship? |
 
 
 
@@ -1099,8 +1099,8 @@ Describes the features of the specification which a data connector implements.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `transactional` | [undefined](#undefined) / null | undefined | Does the connector support executing multiple mutations in a transaction. |
-| `explain` | [undefined](#undefined) / null | undefined | Does the connector support explaining mutations |
+| `transactional` | [LeafCapability](#leafcapability) / null | undefined | Does the connector support executing multiple mutations in a transaction. |
+| `explain` | [LeafCapability](#leafcapability) / null | undefined | Does the connector support explaining mutations |
 
 
 
@@ -1108,9 +1108,9 @@ Describes the features of the specification which a data connector implements.
 
 | Name | Type | Required | Description |
 |-----|-----|-----|-----|
-| `aggregates` | [undefined](#undefined) / null | undefined | Does the connector support aggregate queries |
-| `variables` | [undefined](#undefined) / null | undefined | Does the connector support queries which use variables |
-| `explain` | [undefined](#undefined) / null | undefined | Does the connector support explaining queries |
+| `aggregates` | [LeafCapability](#leafcapability) / null | undefined | Does the connector support aggregate queries |
+| `variables` | [LeafCapability](#leafcapability) / null | undefined | Does the connector support queries which use variables |
+| `explain` | [LeafCapability](#leafcapability) / null | undefined | Does the connector support explaining queries |
 
 
 

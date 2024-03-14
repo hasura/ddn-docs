@@ -105,10 +105,3 @@ export function isTypeSimpleScalar(objectType: string): boolean {
   scalars.includes(objectType) && true;
   return false;
 }
-
-// For formatting heading tags
-export function formatLink(linkText: string): string {
-  if (linkText) {
-    return linkText.toLowerCase().replace(' ', '-');
-  }
-}

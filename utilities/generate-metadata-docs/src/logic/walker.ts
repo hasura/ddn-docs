@@ -1,6 +1,5 @@
 import { readFileSync } from 'fs';
 import { JSONSchema7, JSONSchema7Definition } from '../entities';
-import { formatLink } from './helpers';
 import jsYaml from 'js-yaml';
 
 const parentSchema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
@@ -9,14 +8,29 @@ let markdownArray: string[] = [];
 
 let visitedRefs = {};
 
-function getType(metadata: JSONSchema7Definition): string | void {
-  if (metadata.type) {
-    if (Array.isArray(metadata.type)) {
-      return metadata.type[0];
+function getType(metadataObject: JSONSchema7Definition): string | void {
+  if (metadataObject.type) {
+    if (Array.isArray(metadataObject.type)) {
+      return metadataObject.type[0];
     } else {
-      return metadata.type;
+      return metadataObject.type;
     }
   }
+}
+
+function getTitle(metadataObject: JSONSchema7Definition): string {
+  return metadataObject.title || getParsedRef(metadataObject.$ref);
+}
+
+// For formatting heading tags
+function formatLink(linkText: string): string {
+  if (linkText) {
+    return linkText.toLowerCase().replace(' ', '-');
+  }
+}
+
+function getRefLink(metadataObject: JSONSchema7Definition): string {
+  return `[${getTitle(metadataObject)}](#${formatLink(getTitle(metadataObject))})`
 }
 
 function getParsedRef(ref: string) {
@@ -43,6 +57,34 @@ function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition
   }
 }
 
+
+function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
+  let simplifiedSchema = metadataObject;
+  if (metadataObject?.allOf?.length === 1) {
+    const { allOf, ...strippedSchema } = metadataObject;
+    simplifiedSchema = simplifyMetadataDefinition(allOf[0]);
+    simplifiedSchema = {
+      ...strippedSchema,
+      ...simplifiedSchema,
+    };
+  } else if (metadataObject?.oneOf?.length === 1) {
+    const { oneOf, ...strippedSchema } = metadataObject;
+    simplifiedSchema = simplifyMetadataDefinition(oneOf[0]);
+    simplifiedSchema = {
+      ...strippedSchema,
+      ...simplifiedSchema,
+    };
+  } else if (metadataObject?.anyOf?.length === 1) {
+    const { anyOf, ...strippedSchema } = metadataObject;
+    simplifiedSchema = simplifyMetadataDefinition(anyOf[0]);
+    simplifiedSchema = {
+      ...strippedSchema,
+      ...simplifiedSchema,
+    };
+  }
+  return simplifiedSchema;
+}
+
 export function returnMarkdown(metadataObject: JSONSchema7): string[] {
   handleSchemaDefinition(metadataObject);
 
@@ -62,10 +104,9 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
 
   let typeDefinition = ``;
 
-  const refTitle = metadataObject.title || getParsedRef(metadataObject.$ref);
+  const refTitle = getTitle(metadataObject);
 
   if (refTitle && Object.keys(visitedRefs).includes(refTitle)) {
-    // return visitedRefs[metadataObject.title || metadataObject.$ref];
     return visitedRefs[refTitle];
   }
 
@@ -111,14 +152,9 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleAnyOf(metadataObject);
   }
 
-  // Deal with additionalProperties
-  if (metadataObject.additionalProperties && type === 'object') {
-    typeDefinition = handleAdditionalProperties(metadataObject);
-  }
-
-  // Deal with properties
-  if (metadataObject.properties && type === 'object') {
-    typeDefinition = handleProperties(metadataObject);
+  // Deal with objects
+  if (type === 'object') {
+    typeDefinition = handleObject(metadataObject);
   }
 
   if (refTitle) {
@@ -127,15 +163,6 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
   }
 
   return typeDefinition;
-}
-
-/**
- * Everything from this to the next comment is for handling cases encountered when navigating
- * a JSONSchema7Definition.
- */
-function handleExamples(metadataObject: JSONSchema7Definition): string {
-  const example = `\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``;
-  return example;
 }
 
 function handleConst(metadataObject: JSONSchema7Definition) {
@@ -158,96 +185,60 @@ function handleScalars(metadataObject: JSONSchema7Definition): string {
   }
 }
 
-function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
-  let simplifiedSchema = metadataObject;
-  if (metadataObject?.allOf?.length === 1) {
-    const { allOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = simplifyMetadataDefinition(allOf[0]);
-    simplifiedSchema = {
-      ...strippedSchema,
-      ...simplifiedSchema,
-    };
-  } else if (metadataObject?.oneOf?.length === 1) {
-    const { oneOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = simplifyMetadataDefinition(oneOf[0]);
-    simplifiedSchema = {
-      ...strippedSchema,
-      ...simplifiedSchema,
-    };
-  } else if (metadataObject?.anyOf?.length === 1) {
-    const { anyOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = simplifyMetadataDefinition(anyOf[0]);
-    simplifiedSchema = {
-      ...strippedSchema,
-      ...simplifiedSchema,
-    };
-  }
-  return simplifiedSchema;
-}
-
-function handleProperties(metadataObject: JSONSchema7Definition): string {
+function handleObject(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.type && metadataObject.type === 'object') {
     let markdown = '';
-    if (metadataObject.$ref === undefined || metadataObject.title === undefined) {
-      console.log(metadataObject.required);
-    }
-    // ! Should we ever have a scenario where one of these isn't true? 👇
-    markdown += `\n### ${metadataObject.title || getParsedRef(metadataObject.$ref)}\n\n`;
+
+    markdown += `\n### ${getTitle(metadataObject)}\n\n`;
+
     if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
-    markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
-    for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
-      // console.log(propertySchema);
-      const propertyType = handleSchemaDefinition(propertySchema);
-      if (propertyType.includes('undefined')) {
-        // console.log(propertySchema);
+
+    markdown += `| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
+
+    if(metadataObject.properties) {
+      for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
+        const propertyType = handleSchemaDefinition(propertySchema);
+        const requiredProp = metadataObject.required && metadataObject.required.includes(propertyKey);
+        markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
       }
-      const requiredProp = metadataObject.required && metadataObject.required.includes(propertyKey);
-      markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
     }
+
+    if (metadataObject.additionalProperties) {
+      markdown += `| \`customKey\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
+          metadataObject.additionalProperties.description || ''
+      } |\n`;
+    }
+
     if (metadataObject.examples) {
-      markdownArray.push(handleExamples(metadataObject));
+      markdown += `\n #### Example\n\n\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``
     }
+
     markdownArray.push(markdown);
 
-    return `[${metadataObject?.title}](#${formatLink(metadataObject?.title)})`;
+    return getRefLink(metadataObject);
   }
   return ``;
-}
-
-function handleAdditionalProperties(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.type && metadataObject.type === 'object') {
-    let markdown = '';
-    markdown += `\n### ${metadataObject.title || getParsedRef(metadataObject.$ref)}\n`;
-    if (metadataObject.description) markdown += `${metadataObject.description}\n`;
-    markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
-    markdown += `| \`customKey\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
-      metadataObject.additionalProperties.description || ''
-    } |\n`;
-    markdownArray.push(markdown);
-
-    return `[${metadataObject?.title}](#${formatLink(metadataObject?.title)})`;
-  } else return ``;
 }
 
 function handleAllOf(metadataObject: JSONSchema7Definition): string {
   const objectRefs = metadataObject.allOf.map(option => {
     return handleSchemaDefinition(option);
   });
-  return objectRefs.join(` \| `);
+  return objectRefs.join(` / `);
 }
 
 function handleAnyOf(metadataObject: JSONSchema7Definition): string {
   const objectRefs = metadataObject.anyOf.map(option => {
     return handleSchemaDefinition(option);
   });
-  return objectRefs.join(` \| `);
+  return objectRefs.join(` / `);
 }
 
 function handleOneOf(metadataObject: JSONSchema7Definition): string {
   const objectRefs = metadataObject.oneOf.map(option => {
     return handleSchemaDefinition(option);
   });
-  return objectRefs.join(` \| `);
+  return objectRefs.join(` / `);
 }
 
 function handleArrayType(metadataObject: JSONSchema7Definition): string {
