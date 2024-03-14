@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { JSONSchema7, JSONSchema7Definition } from '../entities';
+import { formatLink } from './helpers';
 import jsYaml from 'js-yaml';
 
 const parentSchema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
@@ -29,7 +30,16 @@ function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition
   if (referencedObject != undefined) {
     return { ...metadataObject, ...referencedObject };
   } else {
-    console.warn(`This is a non-local definition: ${ref}`);
+    // We have a set of deeply nested refs that aren't at #/anyOf/0/definitions/
+    const base = `#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/`;
+    const nestedRef = ref.split(base)[1];
+    const category = nestedRef.split('/')[0];
+    const deeplyNestedObject = nestedRef.split('/').pop();
+    const nestedReferencedObject =
+      parentSchema.anyOf[0].definitions['VersionedSchemaAndCapabilities'].oneOf[0].properties[category].definitions[
+        deeplyNestedObject
+      ];
+    return { ...metadataObject, ...nestedReferencedObject };
   }
 }
 
@@ -191,7 +201,7 @@ function handleProperties(metadataObject: JSONSchema7Definition): string {
     }
     markdownArray.push(markdown);
 
-    return `[${metadataObject?.title}](#${metadataObject?.title?.toLowerCase()})`;
+    return `[${metadataObject?.title}](#${formatLink(metadataObject?.title)})`;
   }
   return ``;
 }
@@ -207,7 +217,7 @@ function handleAdditionalProperties(metadataObject: JSONSchema7Definition): stri
     } |\n`;
     markdownArray.push(markdown);
 
-    return `[${metadataObject?.title}](#${metadataObject?.title?.toLowerCase()})`;
+    return `[${metadataObject?.title}](#${formatLink(metadataObject?.title)})`;
   }
   return ``;
 }
