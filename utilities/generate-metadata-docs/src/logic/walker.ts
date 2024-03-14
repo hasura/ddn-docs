@@ -188,11 +188,19 @@ function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSON
 function handleProperties(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.type && metadataObject.type === 'object') {
     let markdown = '';
+    if (metadataObject.$ref === undefined || metadataObject.title === undefined) {
+      console.log(metadataObject.required);
+    }
+    // ! Should we ever have a scenario where one of these isn't true? 👇
     markdown += `\n### ${metadataObject.title || getParsedRef(metadataObject.$ref)}\n\n`;
     if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
     markdown += `\n| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
     for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
+      // console.log(propertySchema);
       const propertyType = handleSchemaDefinition(propertySchema);
+      if (propertyType.includes('undefined')) {
+        // console.log(propertySchema);
+      }
       const requiredProp = metadataObject.required && metadataObject.required.includes(propertyKey);
       markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
     }
@@ -218,8 +226,7 @@ function handleAdditionalProperties(metadataObject: JSONSchema7Definition): stri
     markdownArray.push(markdown);
 
     return `[${metadataObject?.title}](#${formatLink(metadataObject?.title)})`;
-  }
-  return ``;
+  } else return ``;
 }
 
 function handleAllOf(metadataObject: JSONSchema7Definition): string {
