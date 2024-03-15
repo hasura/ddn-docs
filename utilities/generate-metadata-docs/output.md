@@ -24,7 +24,7 @@ Definition of permissions for an OpenDD command.
 | `commandName` | string | true | The name of the command for which permissions are being defined. |
 | `permissions` | [[CommandPermission](#commandpermission)] | true | A list of command permissions, one for each role. |
 
- #### Example
+ **Example**
 
 ```yaml
 commandName: get_article_by_id
@@ -45,7 +45,7 @@ Defines the permissions for a role for a command.
 | `role` | string | true | The role for which permissions are being defined. |
 | `allowExecution` | boolean | true | Whether the command is executable by the role. |
 
- #### Example
+ **Example**
 
 ```yaml
 role: user
@@ -74,7 +74,7 @@ Definition of permissions for an OpenDD model.
 | `modelName` | string | true | The name of the model for which permissions are being defined. |
 | `permissions` | [[ModelPermission](#modelpermission)] | true | A list of model permissions, one for each role. |
 
- #### Example
+ **Example**
 
 ```yaml
 modelName: Articles
@@ -102,7 +102,7 @@ Defines the permissions for an OpenDD model.
 | `role` | string | true | The role for which permissions are being defined. |
 | `select` | [SelectPermission](#selectpermission) / null | false | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
 
- #### Example
+ **Example**
 
 ```yaml
 role: user
@@ -236,7 +236,7 @@ Definition of permissions for an OpenDD type.
 | `typeName` | string | true | The name of the type for which permissions are being defined. Must be an object type. |
 | `permissions` | [[TypePermission](#typepermission)] | true | A list of type permissions, one for each role. |
 
- #### Example
+ **Example**
 
 ```yaml
 typeName: article
@@ -264,7 +264,7 @@ Defines permissions for a particular role for a type.
 | `role` | string | true | The role for which permissions are being defined. |
 | `output` | [TypeOutputPermission](#typeoutputpermission) / null | false | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
 
- #### Example
+ **Example**
 
 ```yaml
 role: user
@@ -309,7 +309,7 @@ Definition of a relationship on an OpenDD type which allows it to be extended wi
 | `mapping` | [[RelationshipMapping](#relationshipmapping)] | true | The mapping configuration of source to target for the relationship. |
 | `description` | string | false | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
 
- #### Example
+ **Example**
 
 ```yaml
 name: Articles
@@ -340,7 +340,7 @@ Definition of a how a particular field in the source maps to a target field or a
 | `source` | [SourceValue](#sourcevalue) / [SourceField](#sourcefield) | true | The source configuration for this relationship mapping. |
 | `target` | [TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield) | true | The target configuration for this relationship mapping. |
 
- #### Example
+ **Example**
 
 ```yaml
 source:
@@ -481,7 +481,7 @@ Definition of an OpenDD Command, which is a custom operation that can take argum
 | `graphql` | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false | Configuration for how this command should appear in the GraphQL schema. |
 | `description` | string | false | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
 
- #### Example
+ **Example**
 
 ```yaml
 name: get_latest_article
@@ -508,7 +508,7 @@ The definition of how a command should appear in the GraphQL API.
 | `rootFieldName` | string | true | The name of the graphql root field to use for this command. |
 | `rootFieldKind` | string | true | Whether to put this command in the Query or Mutation root of the GraphQL API. |
 
- #### Example
+ **Example**
 
 ```yaml
 rootFieldName: getLatestArticle
@@ -526,7 +526,7 @@ Description of how a command maps to a particular data connector
 | `dataConnectorCommand` | [Function](#function) / [Procedure](#procedure) | true | The function/procedure in the data connector that backs this command. |
 | `argumentMapping` | [undefined](#undefined) | false | Mapping from command argument names to data connector table argument names. |
 
- #### Example
+ **Example**
 
 ```yaml
 dataConnectorName: data_connector
@@ -590,7 +590,7 @@ The definition of a data model. A data model is a collection of objects of a par
 | `graphql` | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false | Configuration for how this model should appear in the GraphQL schema. |
 | `description` | string | false | The description of the model. Gets added to the description of the model in the graphql schema. |
 
- #### Example
+ **Example**
 
 ```yaml
 name: Articles
@@ -637,7 +637,7 @@ The definition of how a model appears in the GraphQL API.
 | `argumentsInputType` | string / null | false | The type name of the input type used to hold the arguments of the model. |
 | `orderByExpressionType` | string / null | false | The type name of the order by expression input type. |
 
- #### Example
+ **Example**
 
 ```yaml
 selectUniques:
@@ -694,7 +694,7 @@ Description of how a model maps to a particular data connector
 | `collection` | string | true | The collection in the data connector that backs this model. |
 | `argumentMapping` | [undefined](#undefined) | false |  |
 
- #### Example
+ **Example**
 
 ```yaml
 dataConnectorName: data_connector
@@ -745,7 +745,7 @@ The representation of a data connector scalar in terms of Open DD types
 | `representation` | string / string | true | The name of the Open DD type that this data connector scalar type should be represented as. |
 | `graphql` | [DataConnectorScalarGraphQLConfiguration](#dataconnectorscalargraphqlconfiguration) / null | false | Configuration for how this scalar's operators should appear in the GraphQL schema. |
 
- #### Example
+ **Example**
 
 ```yaml
 dataConnectorName: data_connector
@@ -791,7 +791,7 @@ Definition of a type representing a boolean expression on an Open DD object type
 | `comparableFields` | [[ComparableField](#comparablefield)] | true | The list of fields of the object type that can be used for comparison when evaluating this boolean expression. |
 | `graphql` | [ObjectBooleanExpressionTypeGraphQlConfiguration](#objectbooleanexpressiontypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
 
- #### Example
+ **Example**
 
 ```yaml
 name: AuthorBoolExp
@@ -870,7 +870,7 @@ Definition of a user-defined scalar type that that has opaque semantics.
 | `graphql` | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false | Configuration for how this scalar type should appear in the GraphQL schema. |
 | `description` | string | false | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
 
- #### Example
+ **Example**
 
 ```yaml
 name: CustomString
@@ -915,7 +915,7 @@ Definition of a user-defined Open DD object type.
 | `description` | string | false | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
 | `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)] | false | Mapping of this object type to corresponding object types in various data connectors. |
 
- #### Example
+ **Example**
 
 ```yaml
 name: Author
@@ -1030,7 +1030,7 @@ Definition of a data connector - version 1.
 | `headers` | [undefined](#undefined) | false | Key value map of HTTP headers to be sent with each request to the data connector. |
 | `schema` | [SchemaAndCapabilitiesV01](#schemaandcapabilitiesv01) | true | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
 
- #### Example
+ **Example**
 
 ```yaml
 name: data_connector
@@ -1611,7 +1611,7 @@ JWT config according to which the incoming JWT will be verified and decoded to e
 | `tokenLocation` | [undefined](#undefined) / [JWTCookieLocation](#jwtcookielocation) / [JWTHeaderLocation](#jwtheaderlocation) | true | Source of the JWT authentication token. |
 | `key` | [undefined](#undefined) / [undefined](#undefined) | true | Mode according to which the JWT auth is configured. |
 
- #### Example
+ **Example**
 
 ```yaml
 audience: null
@@ -1794,7 +1794,7 @@ The configuration of the authentication webhook.
 | `url` | string | true | The URL of the authentication webhook. |
 | `method` | string | true | The HTTP method to be used to make the request to the auth hook. |
 
- #### Example
+ **Example**
 
 ```yaml
 url: http://auth_hook:3050/validate-request

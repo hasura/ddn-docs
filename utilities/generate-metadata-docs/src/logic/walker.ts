@@ -39,21 +39,19 @@ function getParsedRef(ref: string) {
 
 function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
   const ref = metadataObject.$ref;
-  const parsedRef = getParsedRef(ref);
-  const referencedObject = parentSchema.anyOf[0].definitions[parsedRef];
-  if (referencedObject != undefined) {
-    return { ...metadataObject, ...referencedObject };
+
+  const refPath = ref.split('/');
+  let refObject = parentSchema;
+  refPath.forEach(path => {
+    if (path !== '#') {
+      refObject = refObject?.[path];
+    }
+  })
+
+  if (refObject !== undefined) {
+    return { ...metadataObject, ...refObject };
   } else {
-    // We have a set of deeply nested refs that aren't at #/anyOf/0/definitions/
-    const base = `#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/`;
-    const nestedRef = ref.split(base)[1];
-    const category = nestedRef.split('/')[0];
-    const deeplyNestedObject = nestedRef.split('/').pop();
-    const nestedReferencedObject =
-      parentSchema.anyOf[0].definitions['VersionedSchemaAndCapabilities'].oneOf[0].properties[category].definitions[
-        deeplyNestedObject
-      ];
-    return { ...metadataObject, ...nestedReferencedObject };
+    console.warn('Ref not found: ',  ref);
   }
 }
 
@@ -218,7 +216,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
     }
 
     if (metadataObject.examples) {
-      markdown += `\n #### Example\n\n\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``
+      markdown += `\n **Example**\n\n\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``
     }
 
     markdownArray.push(markdown);
