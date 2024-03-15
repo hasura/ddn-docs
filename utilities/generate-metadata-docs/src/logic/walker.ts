@@ -30,7 +30,7 @@ function formatLink(linkText: string): string {
 }
 
 function getRefLink(metadataObject: JSONSchema7Definition): string {
-  return `[${getTitle(metadataObject)}](#${formatLink(getTitle(metadataObject))})`
+  return `[${getTitle(metadataObject)}](#${formatLink(getTitle(metadataObject))})`;
 }
 
 function getParsedRef(ref: string) {
@@ -46,15 +46,14 @@ function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition
     if (path !== '#') {
       refObject = refObject?.[path];
     }
-  })
+  });
 
   if (refObject !== undefined) {
     return { ...metadataObject, ...refObject };
   } else {
-    console.warn('Ref not found: ',  ref);
+    console.warn('Ref not found: ', ref);
   }
 }
-
 
 function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
   let simplifiedSchema = metadataObject;
@@ -201,7 +200,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
 
     markdown += `| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
 
-    if(metadataObject.properties) {
+    if (metadataObject.properties) {
       for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
         const propertyType = handleSchemaDefinition(propertySchema);
         const requiredProp = metadataObject.required && metadataObject.required.includes(propertyKey);
@@ -211,12 +210,12 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
 
     if (metadataObject.additionalProperties) {
       markdown += `| \`<customKey>\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
-          metadataObject.additionalProperties.description || ''
+        metadataObject.additionalProperties.description || ''
       } |\n`;
     }
 
     if (metadataObject.examples) {
-      markdown += `\n **Example**\n\n\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``
+      markdown += `\n **Example**\n\n\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``;
     }
 
     markdownArray.push(markdown);
