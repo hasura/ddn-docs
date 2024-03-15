@@ -6,7 +6,7 @@ const parentSchema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8
 
 let markdownArray: string[] = [];
 
-let visitedRefs = {};
+let visitedRefs: Record<string, any> = {};
 
 function getType(metadataObject: JSONSchema7Definition): string | void {
   if (metadataObject.type) {
@@ -33,7 +33,7 @@ function getRefLink(metadataObject: JSONSchema7Definition): string {
   return `[${getTitle(metadataObject)}](#${formatLink(getTitle(metadataObject))})`;
 }
 
-function getParsedRef(ref: string) {
+function getParsedRef(ref: string): string {
   return ref?.split('/')?.pop();
 }
 
@@ -161,15 +161,15 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
   return typeDefinition;
 }
 
-function handleConst(metadataObject: JSONSchema7Definition) {
+function handleConst(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.const) {
     return metadataObject.const.toString();
   }
 }
 
-function handleEnum(metadataObject: JSONSchema7Definition) {
+function handleEnum(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.enum) {
-    return metadataObject.enum.join(' | ');
+    return metadataObject.enum.join(' / ');
   }
 }
 
