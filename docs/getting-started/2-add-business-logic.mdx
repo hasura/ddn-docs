@@ -13,6 +13,8 @@ keywords:
   - typescript
 ---
 
+import Thumbnail from "@site/src/components/Thumbnail";
+
 # Add Business Logic
 
 ## Introduction
@@ -24,8 +26,8 @@ can be made available over your GraphQL API as a query or a mutation.
 ## Step 1: Navigate to the TypeScript connector
 
 When we ran `ddn quickstart`, we told the CLI we wanted to include the TypeScript connector; inside of the
-`app/ts_connector` directory, we can find all the files the CLI generated, including `functions.ts` which will house our
-custom logic:
+`/app/app_functions` directory, we can find all the files the CLI generated, including `functions.ts` which will house
+our custom logic:
 
 ```bash
 ├── builds
@@ -34,9 +36,9 @@ custom logic:
 # highlight-end
 │   ├── package-lock.json
 │   ├── package.json
-│   ├── ts_connector.build.hml
+│   ├── app_functions.build.hml
 │   └── tsconfig.json
-└── ts_connector.hml
+└── app_functions.hml
 ```
 
 If we open `functions.ts`, we'll see the following contents:
@@ -96,32 +98,52 @@ Of course, our API will need more than one function. Let's create a new function
 `functions.ts` that yells at a user if they do something they're not supposed to do:
 
 ```ts
-// functions.ts
-
 /**
  * @readonly
  */
-export function scoldUser(username: string) {
-  return `DON'T DO THAT, ${username.toUpperCase()}!`;
+export function scoldUser(userId: string) {
+  return `DON'T DO THAT, ${userId}!`;
 }
 ```
 
-We need to make sure our connector is aware of this function by tracking it. If we look inside our `ts_connector.hml`
+We need to make sure our connector is aware of this function by tracking it. If we look inside our `app_functions.hml`
 file, we'll see the key-value pair with a warning for our new function. If we hover over the warning line, we can use
 code actions (quick fix) to track the new function and add it to our API:
 
-// TODO: Add screenshot
+<Thumbnail src="/img/get-started/0.0.1_vs-code_track-new-function.png" alt="Tracking new function" width="1000px" />
 
-This will trigger a rebuild of our connector and our new function will be available in our API:
+:::info Storing tracked functions
 
-// TODO: Add screenshot
+After selecting this code action, the extension will ask you where you'd like to save the metadata for `scoldUser()`.
+Choose the `Default` option to store it in its own file for ease and organization. This will create a new file in
+`commands` called `scoldUser.hml`.
+
+:::
+
+:::danger HEY!
+
+NOT YET READY VIA CLI — IF YOU'RE FOLLOWING ALONG FOR TESTING, KILL DEV MODE AND RESTART IT TO HAVE THE NEW COMMAND BE
+AVAILABLE IN YOUR API
+
+:::
+
+This will trigger a rebuild of our connector and our new function will instantly be available in our API. We can test it
+by running the following query:
+
+```graphql
+query MyQuery {
+  scoldUser(userId: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb")
+}
+```
+
+<Thumbnail src="/img/get-started/0.0.1_console_run-scoldUser.png" alt="Scold a user" width="1000px" />
 
 ## Step 4: Import a package
 
 The TypeScript connector acts like any NodeJS project; this means you can use all the packages you're already familiar
 with. Let's add the `pg` package so we can directly interact with our database.
 
-Inside the `app/ts_connector/builds` directory, run the following:
+Inside the `/app/app_functions/builds` directory, run the following:
 
 ```bash
 npm i pg
@@ -148,7 +170,7 @@ export async function scoldUser(userId: string) {
   const client = new Client({
     host: "35.236.11.122",
     port: 5432,
-    database: "docs-sample-app",
+    database: "v3-docs-sample-app",
     user: "read_only_user",
     password: "readonlyuser",
   });
@@ -167,16 +189,9 @@ export async function scoldUser(userId: string) {
 }
 ```
 
-This modifies our function to accept an `id` for a user. We'll use this to determine who our user is and scold them.
-After modifying the `function.ts` file, try this query in your API:
+We'll use this to determine who our user is and scold them by name.
 
-```graphql
-query MyQuery {
-  scoldUser(userId: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb")
-}
-```
-
-You should see the following returned:
+After modifying the `functions.ts` file, re-run the same query in your API and you should see the following returned:
 
 ```json
 {
@@ -188,15 +203,126 @@ You should see the following returned:
 
 ## Step 5: Create a relationship
 
-The reality is, we don't need the `pg` package. We can create relationships directly between our commands and models.
-That means we can call `scoldUser` directly on Sean from our API without requiring any extra packages. Find the... TODO
+It would be nice to call this function as part of a larger query for a user. We can create relationships **directly**
+between our commands and models. That means we can call `scoldUser` directly on Sean from our API without requiring
+additional queries, and — if we'd like — can even return other related data.
+
+Find the `users.hml` file in `/app_connector/models` and add a new entry at the bottom of the file by adding `---` and
+hitting `ENTER`.
+
+Once you hit enter, you should see Hasura's LSP kick in and provide you with the variety of options of new metadata
+objects you can add. If you start typing `relationship`, choose the `Relationship (to command)` option, and hit `ENTER`,
+the LSP will scaffold out your metadata object.
+
+<Thumbnail src="/img/get-started/0.0.1_vs-code_add-relationship.png" alt="Add a relationship" width="1000px" />
+
+You can tab through each key-value pair; the LSP will assist you by returning available options based on your data
+sources. Your final relationship should look like this:
+
+```yaml
+---
+kind: Relationship
+version: v1
+definition:
+  name: scold_user
+  source: users
+  target:
+    command:
+      name: scoldUser
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        argument:
+          argumentName: userId
+```
+
+Upon saving the file, your API will be re-built. If you head to your project's console and run the following query, you
+can directly call your TypeScript function from your API based on your user's ID:
+
+```graphql
+query MyQuery {
+  users(where: { id: { _eq: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb" } }) {
+    scold_user
+  }
+}
+```
+
+And the response is:
+
+```JSON
+{
+  "data": {
+    "users": [
+      {
+        "scold_user": "DON'T DO THAT, SEAN!"
+      }
+    ]
+  }
+}
+```
 
 ## Step 6: Add permissions
 
-Of course, we don't want any user accessing this command from our API. Just like our models, we can declaratively
-restrict access to specific user roles using permissions. Find the... TODO
+Of course, we don't want _any_ user accessing this command from the API. With both models and commands, we can
+declaratively restrict access to specific roles using permissions.
 
-## Learn more
+Find the `scoldUser.hml` file in `/app/app_functions/commands` and let's use the LSP to help us create a permission.
+Within this file, you'll see `CommandPermissions` for `scoldUser` command. There's already a permissions array with the
+role of `admin` enabled by default.
 
-Hasura can host your TypeScript connector for you, or you can host it yourself. You can learn more about the connector
-and deployment options to Hasura DDN or self-hosted solutions by visiting [this page](/connectors/deployment).
+<Thumbnail
+  src="/img/get-started/0.0.1_vs-code_existing-user-permissions.png"
+  alt="Default command permissions"
+  width="1000px"
+/>
+
+Let's add a new item to the array for a `user` role and disallow execution:
+
+```yaml
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: scoldUser
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: false
+```
+
+If you head back to your API, you can add the following key-value pair to test our new permission:
+
+| Key             | Value  |
+| --------------- | ------ |
+| `x-hasura-role` | `user` |
+
+This header tells your API that the request is being made by someone with the role of `user`. That role's access-control
+rules are then evaluated against your metadata resulting in whether or not that role has access to the requested
+resource.
+
+<Thumbnail
+  src="/img/get-started/0.0.1_console_disallowed_roles.png"
+  alt="Console with disallowed roles"
+  width="1000px"
+/>
+
+## What just happened?
+
+We learned a lot!
+
+First, we introduced you to a quick and easy way of adding custom business logic to your API. Hasura can host your
+TypeScript connector for you, or you can host it yourself. You can learn more about the connector and deployment options
+to Hasura DDN or self-hosted solutions by visiting [this page](/connectors/deployment).
+
+We saw that as this connector uses NodeJS under the hood, we can utilize any existing `npm` package for working with and
+enriching data before returning it to our end users.
+
+Finally, we learned that with the **superpower** of LSP-assisted metadata authoring, we can intuitively and
+declaratively create relationships and permissions to use these functions in concert with models present in our
+**supergraph** 🤯
+
+For our final step in this getting started guide, let's add a second subgraph with a data source to truly make this a
+supergraph.

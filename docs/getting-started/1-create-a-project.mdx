@@ -12,6 +12,8 @@ keywords:
   - supergraph
 ---
 
+import Thumbnail from "@site/src/components/Thumbnail";
+
 # Create a Project
 
 ## Introduction
@@ -92,7 +94,7 @@ ddn quickstart
 
 ### Step 3.1: Choose a host
 
-We'll be prompted to choose the data delivery network to which we want to host our project:
+We'll be prompted to choose the data delivery network on which we want to host our project:
 
 ```bash
 ? Choose the DDN to create your project on  [Use arrows to move, type to filter]
@@ -164,8 +166,15 @@ INF Data connector app_connector set up successfully
 When we enter our connection string, the CLI will introspect our data source and ask us if we'd like to track all of our
 tables and relationships; we'll select `y` as this will automatically write our metadata for us! 🎉
 
+:::danger HEY!
+
+NOT YET READY VIA CLI — IF YOU'RE FOLLOWING ALONG FOR TESTING, TRACK THINGS VIA THE VS CODE EXTENSION ONCE YOU RUN DDN
+DEV
+
+:::
+
 ```bash
-TODO...NOT YET READY VIA CLI — IF YOU'RE FOLLOWING ALONG FOR TESTING, TRACK THINGS VIA THE VS CODE EXTENSION
+TODO when above is complete
 ```
 
 At this point, the CLI will ask us if we want to connect another data source. For now, we don't, so type `n` and hit
@@ -175,7 +184,7 @@ At this point, the CLI will ask us if we want to connect another data source. Fo
 
 We won't use this until later in the guide, but we can go ahead and add the NodeJS/TypeScript connector to incorporate
 our own custom business logic into our API. When prompted, type `y` and hit `ENTER`. Then, let's name this connector
-`ts_connector`:
+`app_functions`:
 
 ```bash
 ? Do you want add custom business logic using NodeJS/TypeScript functions? y
@@ -203,8 +212,8 @@ INF Run 'cd my-first-supergraph && ddn dev' to build your GraphQL API.
 
 ## Step 4: Build your GraphQL API
 
-If we run the provided command from the previous step, we'll see the CLI output information our first build, including
-the URL for our project's Console 🎉
+If we run the provided command from the previous step's output, we'll see the CLI created our first build, including the
+URL for our project's Console 🎉
 
 ```bash
 INF Preparing project...
@@ -246,6 +255,56 @@ INF Doing a supergraph build...
 |               | <TIMESTAMP>                                                        |
 +---------------+--------------------------------------------------------------------+
 ```
+
+:::info What's a build?
+
+<details>
+<summary>Click to learn more »</summary>
+
+This is the first concept we've introduced in this guide. [Builds](/ci-cd/builds.mdx) are a new concept in Hasura that
+allow you to quickly iterate and prototype on your project's metadata. A build is an immutable, fully-functioning
+GraphQL API that represents a milestone in your development cycle.
+
+It may be helpful to think of builds as git commits. Since each is deployed on Hasura DDN, it can be shared with other
+users.
+
+Each build is completely independent. One project can have multiple builds, out of which, one is applied to production.
+This workflow allows for easier rollbacks on production, and greater collaboration during development.
+
+</details>
+
+:::
+
+## Step 5: Run your first query
+
+We're using the docs sample app's schema for this guide's visuals, but you can use the GraphiQL Explorer to create your
+query or write it manually:
+
+<Thumbnail src="/img/get-started/0.0.1_console-execute-query-on-build.png" alt="Execute a query" width="1000px" />
+
+<details>
+<summary>Using our sample db? You can use this query!</summary>
+
+```graphql
+query OrdersQuery {
+  orders {
+    id
+    status
+    delivery_date
+    user {
+      id
+      name
+      email
+    }
+    product {
+      id
+      name
+    }
+  }
+}
+```
+
+</details>
 
 ## What just happened?
 
