@@ -1,6 +1,6 @@
 ---
 title: Create a project
-sidebar_label: "Step 1. Create a project"
+sidebar_label: "Create a project"
 sidebar_position: 2
 description: "Learn how to create your first project, a supergraph, and see your APIs come to life with Hasura."
 keywords:
@@ -24,11 +24,12 @@ introduced to new Hasura concepts, like builds, our new metadata structure, and 
 
 ## Step 1: Prerequisites
 
-1. Install the [new Hasura CLI](/cli/installation.mdx)
-2. Install the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) (support
-   for other editors coming soon!)
-3. Install [Docker](https://docs.docker.com/get-docker/)
-4. Have a PostgreSQL database
+1. **Install the [new Hasura CLI](/cli/installation.mdx)** — to quickly and easily create and manage your Hasura
+   projects and deployments.
+2. **Install the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)** —
+   with support for other editors coming soon!
+3. **Install [Docker](https://docs.docker.com/get-docker/)** — for locally-running connectors during development.
+4. Have a PostgreSQL database — for supplying data to your API.
 
 You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/cli/overview.mdx). If you don't
 have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
@@ -188,27 +189,42 @@ our own custom business logic into our API. When prompted, type `y` and hit `ENT
 
 ```bash
 ? Do you want add custom business logic using NodeJS/TypeScript functions? y
-? What do you want to name your hasura/nodejs:v1.0.0 connector? (app_connector) ts_connector
+? What do you want to name your hasura/nodejs:v1.0.0 connector? (app_connector) app_functions
 ```
 
 :::info Ensure Docker is running
 
 We'll utilize a local development workflow to iteratively test our TypeScript connector and update our project's
-configuration; this requires the Docker daemon running in the background. Before proceeding, ensure the daemon is up
-and, should you need to use `sudo` when running Docker, in the next step, prefix `ddn dev` with `sudo ddn dev`.
+configuration; this requires the Docker daemon running in the background. Before proceeding, ensure the daemon is up.
+
+If you're on a Unix or Linux machine that requires `sudo` when running Docker, in the next step, prefix `ddn dev` with
+`sudo ddn dev`.
 
 :::
 
 Finally, the CLI will configure our TypeScript connector and let us know we're ready to go!
 
 ```bash
-INF Adding connector manifest: ddn add connector-manifest ts_connector --type local --hub hasura/nodejs:v1.0.0 --subgraph app
+INF Adding connector manifest: ddn add connector-manifest app_functions --type local --hub hasura/nodejs:v1.0.0 --subgraph app
 INF Setting env vars
 INF env file .local.yaml updated
-INF Data connector ts_connector set up successfully
+INF Data connector app_functions set up successfully
 INF Your DDN project is all set up
 INF Run 'cd my-first-supergraph && ddn dev' to build your GraphQL API.
 ```
+
+:::info Now would be a good time to git init
+
+If you wish to use Git for version control and want to create a starting point to which you can rewind, run the
+following at this point:
+
+```bash
+git init .
+git add .
+git commit -m "init supergraph"
+```
+
+:::
 
 ## Step 4: Build your GraphQL API
 
@@ -306,6 +322,96 @@ query OrdersQuery {
 
 </details>
 
+## Step 6: Add permissions
+
+For our `users` model, we want to introduce an authorization concept we call **permissions**. This allows you to control
+which models are accessible to which users — via a **model permission** — and which fields can be returned using **type
+permissions**.
+
+In just a few lines — and with the assistance of LSP using the VS Code extension — we can declaratively restrict access
+so that a user is only able to see a limited set of their own data.
+
+As you can see below, when we start typing `role`, LSP kicks in and assists us with creating the following permission
+which checks the `x-hasura-user-id` header to only return a specific user's information. We're triggering the
+auto-complete options using `TAB` and `CTRL+SPACE`:
+
+<Thumbnail src="/img/get-started/modelPermissions.gif" alt="Execute a query" width="1000px" />
+
+Open your project directory in VS Code. Find the `/app/app_connector/models/users.hml` file. Then, let's make our
+`ModelPermissions` object look like so in our `users.hml` file:
+
+```yaml
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: users
+  permissions:
+    - role: admin
+      select:
+        filter: null
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+```
+
+We can then modify the `TypePermissions` in the same file to the following:
+
+```yaml
+kind: TypePermissions
+version: v1
+definition:
+  typeName: users
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - created_at
+          - email
+          - favorite_artist
+          - id
+          - is_email_verified
+          - last_seen
+          - name
+          - password
+          - updated_at
+    - role: user
+      output:
+        allowedFields:
+          - email
+          - favorite_artist
+          - id
+          - name
+          - password
+```
+
+When our build is ready, we can add the following headers in our project's console:
+
+| Key                | Value                                  |
+| ------------------ | -------------------------------------- |
+| `x-hasura-role`    | `user`                                 |
+| `x-hasura-user-id` | `7cf0a66c-65b7-11ed-b904-fb49f034fbbb` |
+
+Hasura will parse these values and apply our permissions, returning only Sean's data and only the fields he access to
+under the `user` role:
+
+<Thumbnail
+  src="/img/get-started/0.0.1_console_query-with-permissions.png"
+  alt="Execute a query with permissions"
+  width="1000px"
+/>
+
+:::warning Before proceeding
+
+Remove the two headers we just added.
+
+:::
+
 ## What just happened?
 
 When you ran the `quickstart` command, the CLI created a new project for you on Hasura DDN. It also scaffolded out all
@@ -319,5 +425,9 @@ the necessary configuration and metadata in your project's directory:
 ```
 
 You can learn more about this project structure by visiting our [CI/CD section](/ci-cd/overview.mdx).
+
+You also added a simple-to-use-but-powerful set of permissions to your user's type, restricting users to only viewing
+their own data and only what you want them to see. You can learn more about
+[permissions here](/supergraph-modeling/permissions.mdx).
 
 But, for now, let's keep moving and add some custom business logic to our API!

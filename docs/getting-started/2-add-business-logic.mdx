@@ -1,6 +1,6 @@
 ---
 title: Add business logic
-sidebar_label: "Step 2. Add business logic"
+sidebar_label: "Add business logic"
 sidebar_position: 3
 description: "Learn how to add custom business logic to your API."
 keywords:
@@ -52,7 +52,8 @@ export function hello(name?: string) {
 }
 ```
 
-We can use this in our API by running the following query:
+We can use this in our API by running the following query, **assuming we removed the `x-hasura-role` and
+`x-hasura-user-id` headers we added on the previous page**:
 
 ```graphql
 query MyQuery {
@@ -113,7 +114,7 @@ We need to make sure our connector is aware of this function by tracking it. If 
 file, we'll see the key-value pair with a warning for our new function. If we hover over the warning line, we can use
 code actions (quick fix) to track the new function and add it to our API:
 
-<Thumbnail src="/img/get-started/0.0.1_vs-code_track-new-function.png" alt="Tracking new function" width="1000px" />
+<Thumbnail src="/img/get-started/trackScoldUser.gif" alt="Track scoldUser command" width="1000px" />
 
 :::info Storing tracked functions
 
@@ -146,7 +147,13 @@ query MyQuery {
 The TypeScript connector acts like any NodeJS project; this means you can use all the packages you're already familiar
 with. Let's add the `pg` package so we can directly interact with our database.
 
-Inside the `/app/app_functions/builds` directory, run the following:
+Run the following from the root of the project:
+
+```bash
+cd ./app/app_functions/builds
+```
+
+Then, let's install the `pg` package and its types:
 
 ```bash
 npm i pg
@@ -217,7 +224,7 @@ Once you hit enter, you should see Hasura's LSP kick in and provide you with the
 objects you can add. If you start typing `relationship`, choose the `Relationship (to command)` option, and hit `ENTER`,
 the LSP will scaffold out your metadata object.
 
-<Thumbnail src="/img/get-started/0.0.1_vs-code_add-relationship.png" alt="Add a relationship" width="1000px" />
+<Thumbnail src="/img/get-started/addRelationship.gif" alt="Add a relationship with LSP" width="1000px" />
 
 You can tab through each key-value pair; the LSP will assist you by returning available options based on your data
 sources. Your final relationship should look like this:
@@ -268,8 +275,8 @@ And the response is:
 
 ## Step 6: Add permissions
 
-Of course, we don't want _any_ user accessing this command from the API. With both models and commands, we can
-declaratively restrict access to specific roles using permissions.
+Of course, we don't want _any_ user accessing this command from the API. Just as we did earlier with the `users` model,
+with commands we can also declaratively restrict access to specific roles using permissions.
 
 Find the `scoldUser.hml` file in `/app/app_functions/commands` and let's use the LSP to help us create a permission.
 Within this file, you'll see `CommandPermissions` for `scoldUser` command. There's already a permissions array with the
@@ -296,7 +303,7 @@ definition:
       allowExecution: false
 ```
 
-If you head back to your API, you can add the following key-value pair to test our new permission:
+If you head back to your API, you can use the following key-value pair from earlier:
 
 | Key             | Value  |
 | --------------- | ------ |
