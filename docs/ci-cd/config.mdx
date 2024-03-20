@@ -22,15 +22,23 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-Hasura v3 introduces a new configuration model for projects on the Hasura Data Delivery Network (DDN). This model relies
-on four types of files:
+Hasura v3 introduces new configuration for projects on the Hasura Data Delivery Network (DDN). This config relies on
+four types of files:
 
-| File type           | Description                                                                        |
-| ------------------- | ---------------------------------------------------------------------------------- |
-| `hasura.yaml`       | The main configuration file.                                                       |
-| `.local.yaml`       | A file that stores environment variables and pertinent information for connectors. |
-| `*.supergraph.yaml` | Build manifest file(s) for a project.                                                     |
-| `*.hml`             | Hasura metadata files for a project.                                               |
+| File type              | Required     | Description                                                                                                                |
+| ---------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `hasura.yaml`          | Yes          | The main configuration file.                                                                                               |
+| `.local.yaml`          | Yes          | A file that stores environment variables and pertinent information for connectors.                                         |
+| `*.supergraph.yaml`    | Yes          | Build manifest file(s) for a project.                                                                                      |
+| `*.hml`                | User-defined | Hasura metadata files for a project.                                                                                       |
+| `<SUBGRAPH_DIRECTORY>` | Yes          | A directory, containing all the necessary configuration and metadata files, for a corresponding subgraph within a project. |
+
+:::info Required files
+
+We've highlighted the required files for a project to successfully build. However, your API will be pretty barren
+without any `hml` files representing entities in your data sources.
+
+:::
 
 ### hasura.yaml
 
@@ -50,16 +58,16 @@ The `version` section is used to specify the version of the configuration file. 
 the project name.
 
 The `hasura.yaml` file also contains a `supergraphManifests` section. This section is used to specify the various
-manifest files associated with the project. As you can see from this example, we only have one manifest,
-`base.supergraph.hml` which is also identified as the default to use when creating a new build. **The `base` profile is
-required for a project.**
+[manifest files](#supergraph-manifests) associated with the project. As you can see from this example, we only have one
+manifest, `base.supergraph.hml` which is also identified as the default to use when creating a new build. **The `base`
+profile is required for a project.**
 
 ### .local.yaml
 
-This file is used to store environment variables and pertinent information for connectors. Ideally, the CLI will handle
-this file for you, but you can also manually edit it if you need to.
+This file is used to store environment variables and pertinent information for connectors. The CLI will handle this file
+for you, but you can also manually edit it if you need to.
 
-### Supergraph manifests
+### Supergraph manifests {#supergraph-manifests}
 
 Supergraph manifests tell Hasura DDN how to construct your supergraph. A manifest will contain information such as which
 environment to use, which subgraphs to include, and which resources to use for the build.
@@ -86,17 +94,6 @@ definition:
           path: app/app_connector
           manifestFile: app_connector.build.hml
 ```
-
-Here, you can see that the `base.supergraph.hml` file contains a `definition` section with the following fields:
-
-| Field         | Description                                 |
-| ------------- | ------------------------------------------- |
-| `environment` | The environment to use for the build.       |
-| `name`        | The name of the manifest.                   |
-| `mode`        | The mode to use for the build.              |
-| `envfile`     | The file to use for environment variables.  |
-| `supergraph`  | The resources to use for the supergraph.    |
-| `subgraphs`   | The subgraphs to include in the supergraph. |
 
 ### Supergraph
 
@@ -125,7 +122,7 @@ Each subgraph is listed as a top-level directory in the root of the project. The
 `app` subgraph.
 
 Each subgraph directory will contain the following folder structure when a new connector manifest is added for the
-directory:
+subgraph:
 
 ```bash
 └── <CONNECTOR_NAME>
