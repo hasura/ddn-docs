@@ -11,10 +11,10 @@ export const topLevelSupergraphObjects = {
 };
 
 export const topLevelSubgraphObjects = {
-  'types.mdx': ['ObjectType', 'ScalarType'],
-  'models.mdx': ['Model'],
-  'relationships.mdx': ['Relationship'],
-  'commands.mdx': ['Command'],
-  'permissions.mdx': ['ModelPermissions', 'TypePermissions', 'CommandPermissions'],
-  'data-connectors.mdx': ['DataConnectorLink', 'DataConnectorScalarRepresentation'],
+  'types.mdx': ['ObjectTypeV1', 'ScalarTypeV1'],
+  'models.mdx': ['ModelV1'],
+  'relationships.mdx': ['RelationshipV1'],
+  'commands.mdx': ['CommandV1'],
+  'permissions.mdx': ['ModelPermissionsV1', 'TypePermissionsV1', 'CommandPermissionsV1'],
+  'data-connectors.mdx': ['DataConnectorLinkV1', 'DataConnectorScalarRepresentationV1'],
 };
