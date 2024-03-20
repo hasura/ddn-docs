@@ -102,10 +102,10 @@ function isExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): boolean
 
 // Checks if the given object is `anyOf` either null or a metadataObject
 function isExternallyTaggedNullable(metadataObject: JSONSchema7Definition): boolean {
-  return !!(
+  return (
     metadataObject.anyOf &&
     metadataObject.anyOf.length === 2 &&
-    metadataObject.anyOf.find(sub_object => sub_object.type === 'null')
+    metadataObject.anyOf.some(sub_object => sub_object.type === 'null')
   );
 }
 
