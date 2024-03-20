@@ -1,9 +1,9 @@
 import { readFileSync } from 'fs';
-import { JSONSchema7, topLevelSubgraphObjects, topLevelSupergraphObjects } from './entities';
+import { JSONSchema7, JSONSchema7Definition, topLevelSubgraphObjects, topLevelSupergraphObjects } from './entities';
 import { returnMarkdown, updateMarkdown } from './logic';
 
 const schema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
-const schemaDefinitions: JSONSchema7 = schema.anyOf[0].definitions;
+const schemaDefinitions: Record<string, JSONSchema7Definition> = schema.anyOf[0].definitions;
 
 async function main() {
   // generate markdown for subgraph objects

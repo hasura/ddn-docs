@@ -363,13 +363,12 @@ Key value map of HTTP headers to be sent with each request to the data connector
 
 The url(s) to access the data connector.
 
-[undefined](#undefined) / [undefined](#undefined)
+Must have exactly one of the following fields:
 
-### undefined
-
-| Name            | Type                            | Required | Description |
-| --------------- | ------------------------------- | -------- | ----------- |
-| `readWriteUrls` | [ReadWriteUrls](#readwriteurls) | true     |             |
+| Name            | Type                                  | Required | Description |
+| --------------- | ------------------------------------- | -------- | ----------- |
+| `singleUrl`     | [EnvironmentValue](#environmentvalue) | false    |             |
+| `readWriteUrls` | [ReadWriteUrls](#readwriteurls)       | false    |             |
 
 ### ReadWriteUrls
 
@@ -378,29 +377,16 @@ The url(s) to access the data connector.
 | `read`  | [EnvironmentValue](#environmentvalue) | true     |             |
 | `write` | [EnvironmentValue](#environmentvalue) | true     |             |
 
-### undefined
-
-| Name        | Type                                  | Required | Description |
-| ----------- | ------------------------------------- | -------- | ----------- |
-| `singleUrl` | [EnvironmentValue](#environmentvalue) | true     |             |
-
 ### EnvironmentValue
 
 Either a literal string or a reference to a Hasura secret
 
-[undefined](#undefined) / [undefined](#undefined)
-
-### undefined
+Must have exactly one of the following fields:
 
 | Name           | Type   | Required | Description |
 | -------------- | ------ | -------- | ----------- |
-| `valueFromEnv` | string | true     |             |
-
-### undefined
-
-| Name    | Type   | Required | Description |
-| ------- | ------ | -------- | ----------- |
-| `value` | string | true     |             |
+| `value`        | string | false    |             |
+| `valueFromEnv` | string | false    |             |
 
 ### TypePermissionsV1
 
@@ -534,19 +520,12 @@ Mapping from command argument names to data connector table argument names.
 
 The function/procedure in the data connector that backs this command.
 
-[Function](#function) / [Procedure](#procedure)
-
-### Procedure
+Must have exactly one of the following fields:
 
 | Name        | Type   | Required | Description |
 | ----------- | ------ | -------- | ----------- |
-| `procedure` | string | true     |             |
-
-### Function
-
-| Name       | Type   | Required | Description |
-| ---------- | ------ | -------- | ----------- |
-| `function` | string | true     |             |
+| `function`  | string | false    |             |
+| `procedure` | string | false    |             |
 
 ### ModelV1
 
@@ -653,19 +632,12 @@ The definition of the GraphQL API for selecting a unique row/object from a model
 
 ### EnableAllOrSpecific
 
-[undefined](#undefined) / [undefined](#undefined)
-
-### undefined
+Must have exactly one of the following fields:
 
 | Name             | Type     | Required | Description |
 | ---------------- | -------- | -------- | ----------- |
-| `enableSpecific` | [string] | true     |             |
-
-### undefined
-
-| Name        | Type    | Required | Description |
-| ----------- | ------- | -------- | ----------- |
-| `enableAll` | boolean | true     |             |
+| `enableAll`      | boolean  | false    |             |
+| `enableSpecific` | [string] | false    |             |
 
 ### ModelSource
 
@@ -841,12 +813,6 @@ The target model for a relationship.
 | `subgraph`         | string                                | false    | The subgraph of the target model. Defaults to the current subgraph. |
 | `relationshipType` | [RelationshipType](#relationshiptype) | true     | Type of the relationship - object or array.                         |
 
-### undefined
-
-| Name    | Type                                                | Required | Description |
-| ------- | --------------------------------------------------- | -------- | ----------- |
-| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true     |             |
-
 ### CommandRelationshipTarget
 
 The target command for a relationship.
@@ -856,41 +822,27 @@ The target command for a relationship.
 | `name`     | string | true     | The name of the command.                                              |
 | `subgraph` | string | false    | The subgraph of the target command. Defaults to the current subgraph. |
 
-### undefined
-
-| Name      | Type                                                    | Required | Description |
-| --------- | ------------------------------------------------------- | -------- | ----------- |
-| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true     |             |
-
 ### RelationshipTarget
 
 The target for a relationship.
 
-[undefined](#undefined) / [undefined](#undefined)
+Must have exactly one of the following fields:
 
-### Literal
-
-| Name      | Type | Required | Description |
-| --------- | ---- | -------- | ----------- |
-| `literal` |      | true     |             |
-
-### SessionVariable
-
-| Name              | Type   | Required | Description |
-| ----------------- | ------ | -------- | ----------- |
-| `sessionVariable` | string | true     |             |
+| Name      | Type                                                    | Required | Description |
+| --------- | ------------------------------------------------------- | -------- | ----------- |
+| `model`   | [ModelRelationshipTarget](#modelrelationshiptarget)     | false    |             |
+| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | false    |             |
 
 ### ValueExpression
 
 An expression which evaluates to a value that can be used in permissions.
 
-[Literal](#literal) / [SessionVariable](#sessionvariable)
+Must have exactly one of the following fields:
 
-### SourceValue
-
-| Name    | Type                                | Required | Description |
-| ------- | ----------------------------------- | -------- | ----------- |
-| `value` | [ValueExpression](#valueexpression) | true     |             |
+| Name              | Type   | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
 
 ### RelationshipSourceFieldAccess
 
@@ -898,17 +850,16 @@ An expression which evaluates to a value that can be used in permissions.
 | ----------- | ------ | -------- | ----------- |
 | `fieldName` | string | true     |             |
 
-### SourceField
-
-| Name        | Type                                                              | Required | Description |
-| ----------- | ----------------------------------------------------------------- | -------- | ----------- |
-| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
-
 ### RelationshipMappingSource
 
 The source configuration for a relationship mapping.
 
-[SourceValue](#sourcevalue) / [SourceField](#sourcefield)
+Must have exactly one of the following fields:
+
+| Name        | Type                                                              | Required | Description |
+| ----------- | ----------------------------------------------------------------- | -------- | ----------- |
+| `value`     | [ValueExpression](#valueexpression)                               | false    |             |
+| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | false    |             |
 
 ### ArgumentMappingTarget
 
@@ -916,23 +867,16 @@ The source configuration for a relationship mapping.
 | -------------- | ------ | -------- | ----------- |
 | `argumentName` | string | true     |             |
 
-### TargetArgument
-
-| Name       | Type                                            | Required | Description |
-| ---------- | ----------------------------------------------- | -------- | ----------- |
-| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true     |             |
-
-### TargetModelField
-
-| Name         | Type                                                              | Required | Description |
-| ------------ | ----------------------------------------------------------------- | -------- | ----------- |
-| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
-
 ### RelationshipMappingTarget
 
 The target configuration for a relationship mapping.
 
-[TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield)
+Must have exactly one of the following fields:
+
+| Name         | Type                                                              | Required | Description |
+| ------------ | ----------------------------------------------------------------- | -------- | ----------- |
+| `argument`   | [ArgumentMappingTarget](#argumentmappingtarget)                   | false    |             |
+| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | false    |             |
 
 ### RelationshipMapping
 
@@ -999,23 +943,9 @@ Field comparision predicate filters objects based on a field value.
 
 ### undefined
 
-Filters objects based on a field value.
-
-| Name              | Type                                                  | Required | Description |
-| ----------------- | ----------------------------------------------------- | -------- | ----------- |
-| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true     |             |
-
-### undefined
-
 | Name    | Type   | Required | Description |
 | ------- | ------ | -------- | ----------- |
 | `field` | string | true     |             |
-
-### undefined
-
-| Name          | Type                    | Required | Description |
-| ------------- | ----------------------- | -------- | ----------- |
-| `fieldIsNull` | [undefined](#undefined) | true     |             |
 
 ### RelationshipPredicate
 
@@ -1026,57 +956,28 @@ Relationship predicate filters objects of a source model based on a predicate on
 | `name`      | string                                   | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
 | `predicate` | [ModelPredicate](#modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
-### undefined
-
-Filters objects based on the relationship of a model.
-
-| Name           | Type                                            | Required | Description |
-| -------------- | ----------------------------------------------- | -------- | ----------- |
-| `relationship` | [RelationshipPredicate](#relationshippredicate) | true     |             |
-
-### And
-
-Evaluates to true if all sub-predicates evaluate to true.
-
-| Name  | Type                                | Required | Description |
-| ----- | ----------------------------------- | -------- | ----------- |
-| `and` | [[ModelPredicate](#modelpredicate)] | true     |             |
-
-### Or
-
-Evaluates to true if any of the sub-predicates evaluate to true.
-
-| Name | Type                                | Required | Description |
-| ---- | ----------------------------------- | -------- | ----------- |
-| `or` | [[ModelPredicate](#modelpredicate)] | true     |             |
-
-### Not
-
-Evaluates to true if the sub-predicate evaluates to false.
-
-| Name  | Type                              | Required | Description |
-| ----- | --------------------------------- | -------- | ----------- |
-| `not` | [ModelPredicate](#modelpredicate) | true     |             |
-
 ### ModelPredicate
 
 A predicate that can be used to restrict the objects returned when querying a model.
 
-[undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not)
+Must have exactly one of the following fields:
 
-### NullableModelPredicate
-
-Filter expression when selecting rows for this model. Null filter implies all rows are selectable.
-
-null / [ModelPredicate](#modelpredicate)
+| Name              | Type                                                  | Required | Description |
+| ----------------- | ----------------------------------------------------- | -------- | ----------- |
+| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | false    |             |
+| `fieldIsNull`     | [undefined](#undefined)                               | false    |             |
+| `relationship`    | [RelationshipPredicate](#relationshippredicate)       | false    |             |
+| `and`             | [[ModelPredicate](#modelpredicate)]                   | false    |             |
+| `or`              | [[ModelPredicate](#modelpredicate)]                   | false    |             |
+| `not`             | [ModelPredicate](#modelpredicate)                     | false    |             |
 
 ### SelectPermission
 
 Defines the permissions for selecting a model for a role.
 
-| Name     | Type                                              | Required | Description                                                                                        |
-| -------- | ------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
-| `filter` | [NullableModelPredicate](#nullablemodelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
+| Name     | Type                                     | Required | Description                                                                                        |
+| -------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `filter` | null / [ModelPredicate](#modelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
 
 ### ModelPermission
 
@@ -1287,53 +1188,24 @@ select:
 
 Defines the permissions for selecting a model for a role.
 
-| Name     | Type                                              | Required | Description                                                                                        |
-| -------- | ------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
-| `filter` | [NullableModelPredicate](#nullablemodelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
-
-### NullableModelPredicate
-
-Filter expression when selecting rows for this model. Null filter implies all rows are selectable.
-
-null / [ModelPredicate](#modelpredicate)
+| Name     | Type                                     | Required | Description                                                                                        |
+| -------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `filter` | null / [ModelPredicate](#modelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
 
 ### ModelPredicate
 
 A predicate that can be used to restrict the objects returned when querying a model.
 
-[undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not)
+Must have exactly one of the following fields:
 
-### Not
-
-Evaluates to true if the sub-predicate evaluates to false.
-
-| Name  | Type                              | Required | Description |
-| ----- | --------------------------------- | -------- | ----------- |
-| `not` | [ModelPredicate](#modelpredicate) | true     |             |
-
-### Or
-
-Evaluates to true if any of the sub-predicates evaluate to true.
-
-| Name | Type                                | Required | Description |
-| ---- | ----------------------------------- | -------- | ----------- |
-| `or` | [[ModelPredicate](#modelpredicate)] | true     |             |
-
-### And
-
-Evaluates to true if all sub-predicates evaluate to true.
-
-| Name  | Type                                | Required | Description |
-| ----- | ----------------------------------- | -------- | ----------- |
-| `and` | [[ModelPredicate](#modelpredicate)] | true     |             |
-
-### undefined
-
-Filters objects based on the relationship of a model.
-
-| Name           | Type                                            | Required | Description |
-| -------------- | ----------------------------------------------- | -------- | ----------- |
-| `relationship` | [RelationshipPredicate](#relationshippredicate) | true     |             |
+| Name              | Type                                                  | Required | Description |
+| ----------------- | ----------------------------------------------------- | -------- | ----------- |
+| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | false    |             |
+| `fieldIsNull`     | [undefined](#undefined)                               | false    |             |
+| `relationship`    | [RelationshipPredicate](#relationshippredicate)       | false    |             |
+| `and`             | [[ModelPredicate](#modelpredicate)]                   | false    |             |
+| `or`              | [[ModelPredicate](#modelpredicate)]                   | false    |             |
+| `not`             | [ModelPredicate](#modelpredicate)                     | false    |             |
 
 ### RelationshipPredicate
 
@@ -1346,23 +1218,9 @@ Relationship predicate filters objects of a source model based on a predicate on
 
 ### undefined
 
-| Name          | Type                    | Required | Description |
-| ------------- | ----------------------- | -------- | ----------- |
-| `fieldIsNull` | [undefined](#undefined) | true     |             |
-
-### undefined
-
 | Name    | Type   | Required | Description |
 | ------- | ------ | -------- | ----------- |
 | `field` | string | true     |             |
-
-### undefined
-
-Filters objects based on a field value.
-
-| Name              | Type                                                  | Required | Description |
-| ----------------- | ----------------------------------------------------- | -------- | ----------- |
-| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true     |             |
 
 ### FieldComparisonPredicate
 
@@ -1431,19 +1289,12 @@ target:
 
 The target configuration for a relationship mapping.
 
-[TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield)
-
-### TargetModelField
+Must have exactly one of the following fields:
 
 | Name         | Type                                                              | Required | Description |
 | ------------ | ----------------------------------------------------------------- | -------- | ----------- |
-| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
-
-### TargetArgument
-
-| Name       | Type                                            | Required | Description |
-| ---------- | ----------------------------------------------- | -------- | ----------- |
-| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true     |             |
+| `argument`   | [ArgumentMappingTarget](#argumentmappingtarget)                   | false    |             |
+| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | false    |             |
 
 ### ArgumentMappingTarget
 
@@ -1455,13 +1306,12 @@ The target configuration for a relationship mapping.
 
 The source configuration for a relationship mapping.
 
-[SourceValue](#sourcevalue) / [SourceField](#sourcefield)
-
-### SourceField
+Must have exactly one of the following fields:
 
 | Name        | Type                                                              | Required | Description |
 | ----------- | ----------------------------------------------------------------- | -------- | ----------- |
-| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
+| `value`     | [ValueExpression](#valueexpression)                               | false    |             |
+| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | false    |             |
 
 ### RelationshipSourceFieldAccess
 
@@ -1469,41 +1319,27 @@ The source configuration for a relationship mapping.
 | ----------- | ------ | -------- | ----------- |
 | `fieldName` | string | true     |             |
 
-### SourceValue
-
-| Name    | Type                                | Required | Description |
-| ------- | ----------------------------------- | -------- | ----------- |
-| `value` | [ValueExpression](#valueexpression) | true     |             |
-
 ### ValueExpression
 
 An expression which evaluates to a value that can be used in permissions.
 
-[Literal](#literal) / [SessionVariable](#sessionvariable)
-
-### SessionVariable
+Must have exactly one of the following fields:
 
 | Name              | Type   | Required | Description |
 | ----------------- | ------ | -------- | ----------- |
-| `sessionVariable` | string | true     |             |
-
-### Literal
-
-| Name      | Type | Required | Description |
-| --------- | ---- | -------- | ----------- |
-| `literal` |      | true     |             |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
 
 ### RelationshipTarget
 
 The target for a relationship.
 
-[undefined](#undefined) / [undefined](#undefined)
-
-### undefined
+Must have exactly one of the following fields:
 
 | Name      | Type                                                    | Required | Description |
 | --------- | ------------------------------------------------------- | -------- | ----------- |
-| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true     |             |
+| `model`   | [ModelRelationshipTarget](#modelrelationshiptarget)     | false    |             |
+| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | false    |             |
 
 ### CommandRelationshipTarget
 
@@ -1513,12 +1349,6 @@ The target command for a relationship.
 | ---------- | ------ | -------- | --------------------------------------------------------------------- |
 | `name`     | string | true     | The name of the command.                                              |
 | `subgraph` | string | false    | The subgraph of the target command. Defaults to the current subgraph. |
-
-### undefined
-
-| Name    | Type                                                | Required | Description |
-| ------- | --------------------------------------------------- | -------- | ----------- |
-| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true     |             |
 
 ### ModelRelationshipTarget
 
@@ -1694,21 +1524,14 @@ dataConnectorName: data_connector
 collection: articles
 ```
 
-### undefined
+### EnableAllOrSpecific
 
-| Name        | Type    | Required | Description |
-| ----------- | ------- | -------- | ----------- |
-| `enableAll` | boolean | true     |             |
-
-### undefined
+Must have exactly one of the following fields:
 
 | Name             | Type     | Required | Description |
 | ---------------- | -------- | -------- | ----------- |
-| `enableSpecific` | [string] | true     |             |
-
-### EnableAllOrSpecific
-
-[undefined](#undefined) / [undefined](#undefined)
+| `enableAll`      | boolean  | false    |             |
+| `enableSpecific` | [string] | false    |             |
 
 ### OrderableField
 
@@ -1813,23 +1636,16 @@ graphql:
 description: Description for the model Articles
 ```
 
-### Function
-
-| Name       | Type   | Required | Description |
-| ---------- | ------ | -------- | ----------- |
-| `function` | string | true     |             |
-
-### Procedure
-
-| Name        | Type   | Required | Description |
-| ----------- | ------ | -------- | ----------- |
-| `procedure` | string | true     |             |
-
 ### DataConnectorCommand
 
 The function/procedure in the data connector that backs this command.
 
-[Function](#function) / [Procedure](#procedure)
+Must have exactly one of the following fields:
+
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `function`  | string | false    |             |
+| `procedure` | string | false    |             |
 
 ### undefined
 
@@ -1959,29 +1775,16 @@ permissions:
         - author_id
 ```
 
-### undefined
-
-| Name    | Type   | Required | Description |
-| ------- | ------ | -------- | ----------- |
-| `value` | string | true     |             |
-
-### undefined
-
-| Name           | Type   | Required | Description |
-| -------------- | ------ | -------- | ----------- |
-| `valueFromEnv` | string | true     |             |
-
 ### EnvironmentValue
 
 Either a literal string or a reference to a Hasura secret
 
-[undefined](#undefined) / [undefined](#undefined)
+Must have exactly one of the following fields:
 
-### undefined
-
-| Name        | Type                                  | Required | Description |
-| ----------- | ------------------------------------- | -------- | ----------- |
-| `singleUrl` | [EnvironmentValue](#environmentvalue) | true     |             |
+| Name           | Type   | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `value`        | string | false    |             |
+| `valueFromEnv` | string | false    |             |
 
 ### ReadWriteUrls
 
@@ -1990,17 +1793,16 @@ Either a literal string or a reference to a Hasura secret
 | `read`  | [EnvironmentValue](#environmentvalue) | true     |             |
 | `write` | [EnvironmentValue](#environmentvalue) | true     |             |
 
-### undefined
-
-| Name            | Type                            | Required | Description |
-| --------------- | ------------------------------- | -------- | ----------- |
-| `readWriteUrls` | [ReadWriteUrls](#readwriteurls) | true     |             |
-
 ### DataConnectorUrlV1
 
 The url(s) to access the data connector.
 
-[undefined](#undefined) / [undefined](#undefined)
+Must have exactly one of the following fields:
+
+| Name            | Type                                  | Required | Description |
+| --------------- | ------------------------------------- | -------- | ----------- |
+| `singleUrl`     | [EnvironmentValue](#environmentvalue) | false    |             |
+| `readWriteUrls` | [ReadWriteUrls](#readwriteurls)       | false    |             |
 
 ### undefined
 

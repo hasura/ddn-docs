@@ -79,6 +79,36 @@ function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSON
   return simplifiedSchema;
 }
 
+// Checks if the given metadataObject is a `oneOf` with each variant being discriminated
+// by the presence of a particular field and the variant specific fields nested
+// within.
+function isExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): boolean {
+  if (metadataObject.oneOf) {
+    return (
+      metadataObject.oneOf.length > 1 &&
+      metadataObject.oneOf.every(sub_object => {
+        let result =
+          sub_object.properties &&
+          Object.keys(sub_object.properties).length === 1 &&
+          sub_object.required &&
+          Object.keys(sub_object.required).length === 1;
+        return result;
+      })
+    );
+  } else {
+    return false;
+  }
+}
+
+// Checks if the given object is `anyOf` either null or a metadataObject
+function isExternallyTaggedNullable(metadataObject: JSONSchema7Definition): boolean {
+  return !!(
+    metadataObject.anyOf &&
+    metadataObject.anyOf.length === 2 &&
+    metadataObject.anyOf.find(sub_object => sub_object.type === 'null')
+  );
+}
+
 export function returnMarkdown(metadataObject: JSONSchema7): string {
   handleSchemaDefinition(metadataObject);
 
@@ -219,16 +249,15 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
 }
 
 function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
-  const objectRefs = (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).map(option => {
-    return handleSchemaDefinition(option);
-  });
+  if (isExternallyTaggedNullable(metadataObject)) {
+    const objectRefs = metadataObject.anyOf.map(option => {
+      return handleSchemaDefinition(option);
+    });
 
-  const title = getTitle(metadataObject);
-
-  // handle ref or null
-  if (!title && objectRefs.length === 2 && objectRefs[1] === 'null') {
     return objectRefs.join(` / `);
   }
+
+  const title = getTitle(metadataObject);
 
   let markdown = '';
 
@@ -236,7 +265,22 @@ function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
-  markdown += objectRefs.join(` / `);
+  if (isExternallyTaggedOneOf(metadataObject)) {
+    markdown += '\nMust have exactly one of the following fields:\n\n';
+    markdown += `| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
+    metadataObject.oneOf.forEach(sub_object => {
+      let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
+      const propertyType = handleSchemaDefinition(propertySchema);
+      const requiredProp = false;
+      markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
+    });
+  } else {
+    const objectRefs = (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).map(option => {
+      return handleSchemaDefinition(option);
+    });
+
+    markdown += objectRefs.join(` / `);
+  }
 
   markdownArray.push(markdown);
 
