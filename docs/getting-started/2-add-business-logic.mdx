@@ -1,6 +1,6 @@
 ---
 title: Add business logic
-sidebar_label: "Add business logic"
+sidebar_label: "II: Add business logic"
 sidebar_position: 3
 description: "Learn how to add custom business logic to your API."
 keywords:
@@ -19,14 +19,17 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## Introduction
 
-With DDN, Hasura introduces a new way of writing custom business logic using the the TypeScript connector. This exposes
-functions or procedures that can be added to Hasura metadata as a [command](/supergraph-modeling/commands.mdx), which
-can be made available over your GraphQL API as a query or a mutation.
+With DDN, Hasura introduces a new way of writing custom business logic using connectors. We can expose generic functions
+or procedures that can be added to metadata as a [command](/supergraph-modeling/commands.mdx), which can be made
+available over your GraphQL API as a query or a mutation.
+
+Let's take a look at doing this with the
+[Node.js Lambda Connector with TypeScript](https://github.com/hasura/ndc-nodejs-lambda).
 
 ## Step 1: Navigate to the TypeScript connector
 
-When we ran `ddn quickstart`, we told the CLI we wanted to include the TypeScript connector; inside of the
-`/app/app_functions` directory, we can find all the files the CLI generated, including `functions.ts` which will house
+When we ran `ddn quickstart`, we told the CLI that we wanted to include the TypeScript connector. Inside of the
+`/app/app_functions` directory we can find all the files the CLI generated, including `functions.ts` which will contain
 our custom logic:
 
 ```bash
@@ -211,7 +214,7 @@ After modifying the `functions.ts` file, re-run the same query in your API and y
 }
 ```
 
-## Step 5: Create a relationship
+## Step 5: Create a relationship from a command to a model
 
 It would be nice to call this function as part of a larger query for a user. We can create relationships **directly**
 between our commands and models. That means we can call `scoldUser` directly on Sean from our API without requiring
@@ -299,8 +302,10 @@ definition:
   permissions:
     - role: admin
       allowExecution: true
+    # highlight-start
     - role: user
       allowExecution: false
+    # highlight-end
 ```
 
 If you head back to your API, you can use the following key-value pair from earlier:
@@ -323,16 +328,18 @@ resource.
 
 We learned a lot!
 
-First, we introduced you to a quick and easy way of adding custom business logic to your API. Hasura can host your
-TypeScript connector for you, or you can host it yourself. You can learn more about the connector and deployment options
-to Hasura DDN or self-hosted solutions by visiting [this page](/connectors/deployment).
+- First, we introduced you to a quick and easy way of adding [custom business logic](/connectors/typescript.mdx) to your
+  API. Hasura can host your TypeScript connector for you, or you can host it yourself. You can learn more about the
+  connector and deployment options to Hasura DDN or self-hosted solutions by visiting
+  [this page](/connectors/deployment).
 
-We saw that as this connector uses NodeJS under the hood, we can utilize any existing `npm` package for working with and
-enriching data before returning it to our end users.
+- We saw that as this connector uses Node.js under the hood, we can utilize any existing `npm` package for working with
+  and enriching data before returning it to our end users.
 
-Finally, we learned that with the **superpower** of LSP-assisted metadata authoring, we can intuitively and
-declaratively create relationships and permissions to use these functions in concert with models present in our
-**supergraph** 🤯
+- Finally, we learned that with the **superpower** of LSP-assisted metadata authoring, we can intuitively and
+  declaratively create [relationships](/supergraph-modeling/relationships.mdx) and
+  [permissions](supergraph-modeling/permissions.mdx) to use these functions in concert with models present in our
+  **supergraph** 🤯
 
 For our final step in this getting started guide, let's add a second subgraph with a data source to truly make this a
 supergraph.

@@ -1,6 +1,6 @@
 ---
 title: Create a project
-sidebar_label: "Create a project"
+sidebar_label: "I. Create a project"
 sidebar_position: 2
 description: "Learn how to create your first project, a supergraph, and see your APIs come to life with Hasura."
 keywords:
@@ -18,9 +18,30 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## Introduction
 
-To start, we'll walk you through the steps to create a new Hasura project, connect a database, execute your first query
-and create lightning-fast production builds — all with the **new Hasura CLI**. Throughout this guide, you'll be
-introduced to new Hasura concepts, like builds, our new metadata structure, and more.
+To start, we'll walk you through the steps to:
+
+- Create a new Hasura project
+- Connect a database
+- Execute your first query
+- Create lightning-fast production builds all with the **new Hasura CLI**.
+
+Throughout this guide, you'll be introduced to new Hasura concepts, like builds, our new metadata structure, and more.
+
+:::tip What's about to happen?
+
+We'll create a **project** on Hasura DDN, which is fully defined in metadata files using a simple directory structure.
+We'll use the CLI's `quickstart` command, which is a convenient way of setting up these files using best practices, to
+scaffold out our project.
+
+During this process, we'll add a pair of **data connectors** to connect to a PostgreSQL data source and to run custom
+logic. Data connectors can connect to any data source, be it a database, REST API, TypeScript functions, or anything in
+between. Connectors are available from Hasura and the community on the [Connector Hub](https://hasura.io/connectors), or
+you can [write your own](/connectors/build-your-own-connector.mdx).
+
+Once a project is defined, we can use the `dev` command to continually watch for changes and build the project to make
+it available as an API on Hasura DDN.
+
+:::
 
 ## Step 1: Prerequisites
 
@@ -30,6 +51,10 @@ introduced to new Hasura concepts, like builds, our new metadata structure, and 
    with support for other editors coming soon!
 3. **Install [Docker](https://docs.docker.com/get-docker/)** — for locally-running connectors during development.
 4. Have a PostgreSQL database — for supplying data to your API.
+5. **For users on Windows, we recommend utilizing
+   [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.4) for this tutorial.
+   The tutorial commands are based on Unix/Linux syntax. However, PowerShell on Windows supports these commands through
+   aliases, allowing you to use Unix/Linux-style commands directly on Windows.**
 
 You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/cli/overview.mdx). If you don't
 have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
@@ -37,28 +62,8 @@ have a PostgreSQL database and prefer to connect to a cloud provider, check out 
 
 :::info Don't want to set up a database?
 
-We've provisioned a few read-only databases for you to use for this guide if you'd like. You can use one of the
-following connection strings in Step 3:
-
-  <details>
-
-<summary> See the connection strings:</summary>
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
-```
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
-```
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
-```
-
-Throughout this guide we will be using `v3-docs-sample-app` as an example.
-
-  </details>
+We've provisioned a few read-only databases for you to use for this guide if you'd like. The connection strings are
+available later in the guide.
 
 :::
 
@@ -109,7 +114,8 @@ We'll choose `Hasura DDN` as we want Hasura to host this project for us.
 
 ### Step 3.2: Choose a directory
 
-Next, we'll be prompted to choose the directory to house this project; let's call it `my-first-supergraph`:
+Next, we'll be prompted to choose the directory to house this project. The CLI will create the directory for us. Let's
+call it `my-first-supergraph`:
 
 ```bash
 ? Choose the DDN to create your project on Hasura DDN
@@ -143,9 +149,33 @@ The CLI will add the PostgreSQL connector configuration to our project; we'll us
 so we can simply press `ENTER` to bring up the next prompt. Once the connector is added, the CLI will ask us for the
 connection URI. If you have your own, you can provide it. Otherwise, we'll use the demo database's URI:
 
-```
+:::info Want to use one of our read-only sample databases?
+
+<details>
+
+<summary> See the connection strings:</summary>
+
+The docs-sample-app is a hypothetical e-commerce database. It's what we use in all of our samples and screenshots below.
+
+```text
 postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
 ```
+
+A music-platform themed dataset.
+
+```text
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
+```
+
+A database filled with a number of functions.
+
+```text
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
+```
+
+  </details>
+
+:::
 
 :::info Want to use a local DB?
 
@@ -183,8 +213,8 @@ At this point, the CLI will ask us if we want to connect another data source. Fo
 
 ### Step 3.5: Add the TypeScript Connector
 
-We won't use this until later in the guide, but we can go ahead and add the NodeJS/TypeScript connector to incorporate
-our own custom business logic into our API. When prompted, type `y` and hit `ENTER`. Then, let's name this connector
+We won't use this until later in the guide, but we can go ahead and add the Node.js Lambda connector to incorporate our
+own custom business logic into our API. When prompted, type `y` and hit `ENTER`. Then, let's name this connector
 `app_functions`:
 
 ```bash
@@ -213,7 +243,7 @@ INF Your DDN project is all set up
 INF Run 'cd my-first-supergraph && ddn dev' to build your GraphQL API.
 ```
 
-:::info Now would be a good time to git init
+:::tip Now would be a good time to git init
 
 If you wish to use Git for version control and want to create a starting point to which you can rewind, run the
 following at this point:
@@ -228,8 +258,12 @@ git commit -m "init supergraph"
 
 ## Step 4: Build your GraphQL API
 
-If we run the provided command from the previous step's output, we'll see the CLI created our first build, including the
-URL for our project's Console 🎉
+If we run the command from the output of the previous step, we'll see the CLI creates our first build, displays the URL
+for our project's Console, and watches for changes 🎉
+
+```bash
+cd my-first-supergraph && ddn dev
+```
 
 ```bash
 INF Preparing project...
@@ -277,15 +311,15 @@ INF Doing a supergraph build...
 <details>
 <summary>Click to learn more »</summary>
 
-This is the first concept we've introduced in this guide. [Builds](/ci-cd/builds.mdx) are a new concept in Hasura that
-allow you to quickly iterate and prototype on your project's metadata. A build is an immutable, fully-functioning
-GraphQL API that represents a milestone in your development cycle.
+A [build](/ci-cd/builds.mdx) in Hasura DDN is an immutable state of your GraphQL API that represents a milestone in your
+development cycle.
 
-It may be helpful to think of builds as git commits. Since each is deployed on Hasura DDN, it can be shared with other
-users.
+A project can have multiple builds for each [environment](/ci-cd/environments.mdx), and only one can be applied to an
+environment's endpoint. All builds on a project have a unique URL on Hasura DDN to access their GraphQL API which can be
+shared with other users.
 
-Each build is completely independent. One project can have multiple builds, out of which, one is applied to production.
-This workflow allows for easier rollbacks on production, and greater collaboration during development.
+Builds allow you and your team to quickly iterate and experiment with your project's metadata and allow for easier
+rollbacks on production and greater collaboration during development.
 
 </details>
 
@@ -293,8 +327,8 @@ This workflow allows for easier rollbacks on production, and greater collaborati
 
 ## Step 5: Run your first query
 
-We're using the docs sample app's schema for this guide's visuals, but you can use the GraphiQL Explorer to create your
-query or write it manually:
+We're using the Docs Sample App schema for the visuals in this guide, but you can use the GraphiQL Explorer in Console
+to create your own query or write it manually:
 
 <Thumbnail src="/img/get-started/0.0.1_console-execute-query-on-build.png" alt="Execute a query" width="1000px" />
 
@@ -324,12 +358,16 @@ query OrdersQuery {
 
 ## Step 6: Add permissions
 
-For our `users` model, we want to introduce an authorization concept we call **permissions**. This allows you to control
-which models are accessible to which users — via a **model permission** — and which fields can be returned using **type
-permissions**.
+When we tracked the tables from our PostgreSQL database, the CLI imported them as
+[**models**](/supergraph-modeling/models.mdx). Models, defined in metadata, tell our GraphQL API how to expose
+collections from our data sources.
 
-In just a few lines — and with the assistance of LSP using the VS Code extension — we can declaratively restrict access
-so that a user is only able to see a limited set of their own data.
+For our `users` model, we want to introduce an authorization concept we call
+[**permissions**](/supergraph-modeling/permissions.mdx). This allows you to control which models are accessible to which
+users — via a **model permission** — and which fields can be returned using **type permissions**.
+
+In just a few lines — and with the assistance of LSP, our underlying language server — we can declaratively restrict
+access so that a user is only able to see a limited set of their own data.
 
 As you can see below, when we start typing `role`, LSP kicks in and assists us with creating the following permission
 which checks the `x-hasura-user-id` header to only return a specific user's information. We're triggering the
@@ -337,8 +375,8 @@ auto-complete options using `TAB` and `CTRL+SPACE`:
 
 <Thumbnail src="/img/get-started/modelPermissions.gif" alt="Execute a query" width="1000px" />
 
-Open your project directory in VS Code. Find the `/app/app_connector/models/users.hml` file. Then, let's make our
-`ModelPermissions` object look like so in our `users.hml` file:
+Open your project directory in VS Code. Find the `/app/app_connector/models/users.hml` file. Then, with the guidance of
+LSP, let's make our `ModelPermissions` object look like the metadata below in our `users.hml` file:
 
 ```yaml
 ---
@@ -350,6 +388,7 @@ definition:
     - role: admin
       select:
         filter: null
+    # highlight-start
     - role: user
       select:
         filter:
@@ -358,6 +397,7 @@ definition:
             operator: _eq
             value:
               sessionVariable: x-hasura-user-id
+  # highlight-end
 ```
 
 We can then modify the `TypePermissions` in the same file to the following:
@@ -380,6 +420,7 @@ definition:
           - name
           - password
           - updated_at
+    # highlight-start
     - role: user
       output:
         allowedFields:
@@ -388,9 +429,11 @@ definition:
           - id
           - name
           - password
+    # highlight-end
 ```
 
-When our build is ready, we can add the following headers in our project's console:
+Since the CLI should still be running in `dev` mode, as we make our changes it will create a new build automatically.
+When our build is ready, we can add the following headers in our project's Console:
 
 | Key                | Value                                  |
 | ------------------ | -------------------------------------- |
@@ -424,9 +467,9 @@ the necessary configuration and metadata in your project's directory:
 └── supergraph
 ```
 
-You can learn more about this project structure by visiting our [CI/CD section](/ci-cd/overview.mdx).
+You can learn more about project structure by visiting our [CI/CD section](/ci-cd/overview.mdx).
 
-You also added a simple-to-use-but-powerful set of permissions to your user's type, restricting users to only viewing
+You also added a simple-to-use-but-powerful set of permissions to your `user` `type`, restricting users to only viewing
 their own data and only what you want them to see. You can learn more about
 [permissions here](/supergraph-modeling/permissions.mdx).
 
