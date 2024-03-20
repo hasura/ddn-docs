@@ -1,48 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 
 /**
- * Wrote this just for testing and to better understand base-case philosophy with recursion.
- */
-export function walkSchema(object: any, path: string[] = [], depth: number = 0) {
-  const indent = '    '.repeat(depth); // Increase indentation based on depth
-  const pathStr = path.join('.');
-
-  // Base case is an object that is a terminal type or a reference
-  if (object.type && object.type !== 'object' && object.type !== 'array') {
-    console.log(`${indent}🛑   Terminal found at ${pathStr} with type ${object.type}`);
-    return;
-  }
-  if (object['$ref']) {
-    console.log(`${indent}Reference found at ${pathStr} with reference ${object['$ref']}`);
-    return;
-  }
-
-  // Recursive case of object that has properties
-  if (object.properties) {
-    console.log(`${indent}📂 ${pathStr} (object with properties)`);
-    for (const key of Object.keys(object.properties)) {
-      walkSchema(object.properties[key], path.concat(key), depth + 1);
-    }
-  }
-
-  // Recursive case of an array with items
-  if (object.type === 'array' && object.items) {
-    console.log(`${indent}📄 ${pathStr} (array)`);
-    walkSchema(object.items, path.concat('[]'), depth + 1);
-  }
-
-  // Recursive case for oneOf, anyOf, allOf
-  ['oneOf', 'anyOf', 'allOf'].forEach(key => {
-    if (object[key]) {
-      console.log(`${indent}📦 ${pathStr} can be unpacked (${key})`);
-      object[key].forEach((item: any, index: number) => {
-        walkSchema(item, path.concat(`${key}[${index}]`), depth + 1);
-      });
-    }
-  });
-}
-
-/**
  * Some descriptions have new-line characters which can cause rendering issues inside of md tables.
  * This helper removes the new-line character and provides a single block of text.
  */
