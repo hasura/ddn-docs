@@ -181,55 +181,17 @@ GraphQL configuration of an Open DD object type.
 | `typeName`      | string / null | false    | The name to use for the GraphQL type representation of this object type when used in an output context. |
 | `inputTypeName` | string / null | false    | The name to use for the GraphQL type representation of this object type when used in an input context.  |
 
-### ColumnFieldMapping
-
-The target column in a data connector object that a source field maps to.
-
-| Name   | Type   | Required | Description                   |
-| ------ | ------ | -------- | ----------------------------- |
-| `name` | string | true     | The name of the target column |
-
-### undefined
-
-Source field directly maps to some column in the data connector.
-
-| Name     | Type                                      | Required | Description |
-| -------- | ----------------------------------------- | -------- | ----------- |
-| `column` | [ColumnFieldMapping](#columnfieldmapping) | true     |             |
-
-### ObjectFieldMapping
-
-[undefined](#undefined)
-
-### undefined
-
-| Name          | Type                                      | Required | Description |
-| ------------- | ----------------------------------------- | -------- | ----------- |
-| `<customKey>` | [ObjectFieldMapping](#objectfieldmapping) | false    |             |
-
-### DataConnectorTypeMapping
-
-This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data
-connector.
-
-| Name                      | Type                    | Required | Description |
-| ------------------------- | ----------------------- | -------- | ----------- |
-| `dataConnectorName`       | string                  | true     |             |
-| `dataConnectorObjectType` | string                  | true     |             |
-| `fieldMapping`            | [undefined](#undefined) | false    |             |
-
 ### ObjectTypeV1
 
 Definition of a user-defined Open DD object type.
 
-| Name                       | Type                                                                     | Required | Description                                                                                                                                                                                                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `name`                     | string                                                                   | true     | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.                                                                                                                                                      |
-| `fields`                   | [[ObjectFieldDefinition](#objectfielddefinition)]                        | true     | The list of fields defined for this object type.                                                                                                                                                                                                                                                 |
-| `globalIdFields`           | [string]                                                                 | false    | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
-| `graphql`                  | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false    | Configuration for how this object type should appear in the GraphQL schema.                                                                                                                                                                                                                      |
-| `description`              | string                                                                   | false    | The description of the object. Gets added to the description of the object's definition in the graphql schema.                                                                                                                                                                                   |
-| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)]                  | false    | Mapping of this object type to corresponding object types in various data connectors.                                                                                                                                                                                                            |
+| Name             | Type                                                                     | Required | Description                                                                                                                                                                                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`           | string                                                                   | true     | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.                                                                                                                                                      |
+| `fields`         | [[ObjectFieldDefinition](#objectfielddefinition)]                        | true     | The list of fields defined for this object type.                                                                                                                                                                                                                                                 |
+| `globalIdFields` | [string]                                                                 | false    | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql`        | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false    | Configuration for how this object type should appear in the GraphQL schema.                                                                                                                                                                                                                      |
+| `description`    | string                                                                   | false    | The description of the object. Gets added to the description of the object's definition in the graphql schema.                                                                                                                                                                                   |
 
 **Example**
 
@@ -245,18 +207,12 @@ fields:
   - name: last_name
     type: String
     description: The last name of the author
-description: An author of a book
 globalIdFields:
   - author_id
 graphql:
   typeName: Author
-dataConnectorTypeMapping:
-  - dataConnectorName: my_db
-    dataConnectorObjectType: author
-    fieldMapping:
-      author_id:
-        column:
-          name: id
+  inputTypeName: null
+description: An author of a book
 ```
 
 ### ArgumentDefinition
@@ -269,6 +225,32 @@ The definition of an argument for a field, command, or model.
 | `type`        | string | true     |             |
 | `description` | string | false    |             |
 
+### ObjectFieldMapping
+
+| Name     | Type   | Required | Description |
+| -------- | ------ | -------- | ----------- |
+| `column` | string | true     |             |
+
+### undefined
+
+| Name          | Type                                      | Required | Description |
+| ------------- | ----------------------------------------- | -------- | ----------- |
+| `<customKey>` | [ObjectFieldMapping](#objectfieldmapping) | false    |             |
+
+### TypeMapping
+
+| Name           | Type                    | Required | Description |
+| -------------- | ----------------------- | -------- | ----------- |
+| `fieldMapping` | [undefined](#undefined) | true     |             |
+
+### undefined
+
+How the various types used in this model correspond to entities in the data connector.
+
+| Name          | Type                        | Required | Description |
+| ------------- | --------------------------- | -------- | ----------- |
+| `<customKey>` | [TypeMapping](#typemapping) | false    |             |
+
 ### undefined
 
 | Name          | Type   | Required | Description |
@@ -279,17 +261,28 @@ The definition of an argument for a field, command, or model.
 
 Description of how a model maps to a particular data connector
 
-| Name                | Type                    | Required | Description                                                 |
-| ------------------- | ----------------------- | -------- | ----------------------------------------------------------- |
-| `dataConnectorName` | string                  | true     | The name of the data connector backing this model.          |
-| `collection`        | string                  | true     | The collection in the data connector that backs this model. |
-| `argumentMapping`   | [undefined](#undefined) | false    |                                                             |
+| Name                | Type                    | Required | Description                                                                            |
+| ------------------- | ----------------------- | -------- | -------------------------------------------------------------------------------------- |
+| `dataConnectorName` | string                  | true     | The name of the data connector backing this model.                                     |
+| `collection`        | string                  | true     | The collection in the data connector that backs this model.                            |
+| `typeMapping`       | [undefined](#undefined) | false    | How the various types used in this model correspond to entities in the data connector. |
+| `argumentMapping`   | [undefined](#undefined) | false    |                                                                                        |
 
 **Example**
 
 ```yaml
 dataConnectorName: data_connector
 collection: articles
+typeMapping:
+  article:
+    fieldMapping:
+      article_id:
+        column: id
+      title:
+        column: title
+      author_id:
+        column: author_id
+argumentMapping: {}
 ```
 
 ### EnableAllOrSpecific
@@ -300,6 +293,13 @@ Must have exactly one of the following fields:
 | ---------------- | -------- | -------- | ----------- |
 | `enableAll`      | boolean  | false    |             |
 | `enableSpecific` | [string] | false    |             |
+
+### FilterableField
+
+| Name        | Type                                        | Required | Description |
+| ----------- | ------------------------------------------- | -------- | ----------- |
+| `fieldName` | string                                      | true     |             |
+| `operators` | [EnableAllOrSpecific](#enableallorspecific) | true     |             |
 
 ### OrderableField
 
@@ -336,6 +336,7 @@ The definition of how a model appears in the GraphQL API.
 | `selectUniques`         | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)]  | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
 | `selectMany`            | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
 | `argumentsInputType`    | string / null                                                      | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
+| `filterExpressionType`  | string / null                                                      | false    | The type name of the filter boolean expression input type.                                                                                     |
 | `orderByExpressionType` | string / null                                                      | false    | The type name of the order by expression input type.                                                                                           |
 
 **Example**
@@ -349,6 +350,8 @@ selectUniques:
 selectMany:
   queryRootField: ArticleMany
   description: Description for the select many ArticleMany
+argumentsInputType: null
+filterExpressionType: Article_Where_Exp
 orderByExpressionType: Article_Order_By
 ```
 
@@ -357,17 +360,17 @@ orderByExpressionType: Article_Order_By
 The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
 more CRUD operations.
 
-| Name                   | Type                                                     | Required | Description                                                                                     |
-| ---------------------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `name`                 | string                                                   | true     | The name of the data model.                                                                     |
-| `objectType`           | string                                                   | true     | The type of the objects of which this model is a collection.                                    |
-| `globalIdSource`       | boolean                                                  | false    | Whether this model should be used as the global ID source for all objects of its type.          |
-| `arguments`            | [[ArgumentDefinition](#argumentdefinition)]              | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
-| `source`               | [ModelSource](#modelsource) / null                       | false    | The source configuration for this model.                                                        |
-| `filterExpressionType` | string / null                                            | false    | The boolean expression type that should be used to perform filtering on this model.             |
-| `orderableFields`      | [[OrderableField](#orderablefield)]                      | true     | A list of fields that can be used to order the objects in this model.                           |
-| `graphql`              | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false    | Configuration for how this model should appear in the GraphQL schema.                           |
-| `description`          | string                                                   | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
+| Name               | Type                                                     | Required | Description                                                                                     |
+| ------------------ | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `name`             | string                                                   | true     | The name of the data model.                                                                     |
+| `objectType`       | string                                                   | true     | The type of the objects of which this model is a collection.                                    |
+| `globalIdSource`   | boolean                                                  | false    | Whether this model should be used as the global ID source for all objects of its type.          |
+| `arguments`        | [[ArgumentDefinition](#argumentdefinition)]              | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
+| `source`           | [ModelSource](#modelsource) / null                       | false    | The source configuration for this model.                                                        |
+| `filterableFields` | [[FilterableField](#filterablefield)]                    | true     | A list of fields that can be used to filter the objects in this model.                          |
+| `orderableFields`  | [[OrderableField](#orderablefield)]                      | true     | A list of fields that can be used to order the objects in this model.                           |
+| `graphql`          | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false    | Configuration for how this model should appear in the GraphQL schema.                           |
+| `description`      | string                                                   | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
 
 **Example**
 
@@ -379,8 +382,26 @@ arguments: []
 source:
   dataConnectorName: data_connector
   collection: articles
+  typeMapping:
+    article:
+      fieldMapping:
+        article_id:
+          column: id
+        title:
+          column: title
+        author_id:
+          column: author_id
   argumentMapping: {}
-filterExpressionType: Article_bool_exp
+filterableFields:
+  - fieldName: article_id
+    operators:
+      enableAll: true
+  - fieldName: title
+    operators:
+      enableAll: true
+  - fieldName: author_id
+    operators:
+      enableAll: true
 orderableFields:
   - fieldName: article_id
     orderByDirections:
@@ -400,6 +421,8 @@ graphql:
   selectMany:
     queryRootField: ArticleMany
     description: Description for the select many ArticleMany
+  argumentsInputType: null
+  filterExpressionType: Article_Where_Exp
   orderByExpressionType: Article_Order_By
 description: Description for the model Articles
 ```

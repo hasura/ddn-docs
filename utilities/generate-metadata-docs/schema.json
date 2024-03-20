@@ -15,7 +15,6 @@
       ],
       "definitions": {
         "SupergraphObject": {
-          "$id": "https://hasura.io/jsonschemas/metadata/SupergraphObject",
           "title": "SupergraphObject",
           "anyOf": [
             {
@@ -27,8 +26,6 @@
           ]
         },
         "HasuraSupergraphObject": {
-          "$id": "https://hasura.io/jsonschemas/metadata/HasuraSupergraphObject",
-          "title": "HasuraSupergraphObject",
           "oneOf": [
             {
               "$id": "https://hasura.io/jsonschemas/metadata/CompatibilityConfig",
@@ -87,6 +84,17 @@
           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV1",
           "title": "AuthConfigV1",
           "description": "Definition of the authentication configuration used by the API server.",
+          "examples": [
+            {
+              "allowRoleEmulationBy": "admin",
+              "mode": {
+                "webhook": {
+                  "url": "http://auth_hook:3050/validate-request",
+                  "method": "Post"
+                }
+              }
+            }
+          ],
           "type": "object",
           "required": ["mode"],
           "properties": {
@@ -107,8 +115,6 @@
           "additionalProperties": false
         },
         "Role": {
-          "$id": "https://hasura.io/jsonschemas/metadata/Role",
-          "title": "Role",
           "type": "string"
         },
         "AuthModeConfig": {
@@ -311,7 +317,7 @@
               "required": ["literal"],
               "properties": {
                 "literal": {
-                  "$ref": "#/anyOf/0/definitions/Role2"
+                  "$ref": "#/anyOf/0/definitions/Role"
                 }
               },
               "additionalProperties": false
@@ -329,9 +335,6 @@
             }
           ]
         },
-        "Role2": {
-          "type": "string"
-        },
         "JWTClaimsMappingPathEntry_for_Role": {
           "$id": "https://hasura.io/jsonschemas/metadata/JWTClaimsMappingPathEntry_for_Role",
           "title": "JWTClaimsMappingPathEntry",
@@ -347,7 +350,7 @@
               "description": "Default value to be used when no value is found when looking up the value using the `path`.",
               "anyOf": [
                 {
-                  "$ref": "#/anyOf/0/definitions/Role2"
+                  "$ref": "#/anyOf/0/definitions/Role"
                 },
                 {
                   "type": "null"
@@ -369,7 +372,7 @@
                 "literal": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/anyOf/0/definitions/Role2"
+                    "$ref": "#/anyOf/0/definitions/Role"
                   }
                 }
               },
@@ -403,7 +406,7 @@
               "description": "Default value to be used when no value is found when looking up the value using the `path`.",
               "type": ["array", "null"],
               "items": {
-                "$ref": "#/anyOf/0/definitions/Role2"
+                "$ref": "#/anyOf/0/definitions/Role"
               }
             }
           },
@@ -706,8 +709,6 @@
           ]
         },
         "OpenDdSupergraphObject": {
-          "$id": "https://hasura.io/jsonschemas/metadata/OpenDdSupergraphObject",
-          "title": "OpenDdSupergraphObject",
           "oneOf": [
             {
               "$id": "https://hasura.io/jsonschemas/metadata/GraphqlConfig",
@@ -957,7 +958,6 @@
           "additionalProperties": false
         },
         "SubgraphObject": {
-          "$id": "https://hasura.io/jsonschemas/metadata/SubgraphObject",
           "title": "SubgraphObject",
           "anyOf": [
             {
@@ -966,8 +966,6 @@
           ]
         },
         "OpenDdSubgraphObject": {
-          "$id": "https://hasura.io/jsonschemas/metadata/OpenDdSubgraphObject",
-          "title": "OpenDdSubgraphObject",
           "oneOf": [
             {
               "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorLink",
@@ -1038,31 +1036,6 @@
                     },
                     "definition": {
                       "$ref": "#/anyOf/0/definitions/ScalarTypeV1"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              ]
-            },
-            {
-              "$id": "https://hasura.io/jsonschemas/metadata/ObjectBooleanExpressionType",
-              "title": "ObjectBooleanExpressionType",
-              "description": "Definition of a type representing a boolean expression on an Open DD object type.",
-              "oneOf": [
-                {
-                  "type": "object",
-                  "required": ["definition", "kind", "version"],
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "enum": ["ObjectBooleanExpressionType"]
-                    },
-                    "version": {
-                      "type": "string",
-                      "enum": ["v1"]
-                    },
-                    "definition": {
-                      "$ref": "#/anyOf/0/definitions/ObjectBooleanExpressionTypeV1"
                     }
                   },
                   "additionalProperties": false
@@ -1269,12 +1242,11 @@
                   "procedures": []
                 },
                 "capabilities": {
-                  "version": "0.1.0",
+                  "versions": "*",
                   "capabilities": {
                     "query": {
                       "variables": {}
-                    },
-                    "mutation": {}
+                    }
                   }
                 }
               }
@@ -1319,8 +1291,6 @@
           "additionalProperties": false
         },
         "DataConnectorName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorName",
-          "title": "DataConnectorName",
           "description": "The name of a data connector.",
           "type": "string"
         },
@@ -1515,67 +1485,24 @@
                               ]
                             }
                           }
-                        },
-                        {
-                          "description": "A predicate type for a given object type",
-                          "type": "object",
-                          "required": ["object_type_name", "type"],
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": ["predicate"]
-                            },
-                            "object_type_name": {
-                              "description": "The object type name",
-                              "type": "string"
-                            }
-                          }
                         }
                       ]
                     },
                     "ComparisonOperatorDefinition": {
                       "title": "Comparison Operator Definition",
                       "description": "The definition of a comparison operator on a scalar type",
-                      "oneOf": [
-                        {
-                          "type": "object",
-                          "required": ["type"],
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": ["equal"]
+                      "type": "object",
+                      "required": ["argument_type"],
+                      "properties": {
+                        "argument_type": {
+                          "description": "The type of the argument to this operator",
+                          "allOf": [
+                            {
+                              "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/schema/definitions/Type"
                             }
-                          }
-                        },
-                        {
-                          "type": "object",
-                          "required": ["type"],
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": ["in"]
-                            }
-                          }
-                        },
-                        {
-                          "type": "object",
-                          "required": ["argument_type", "type"],
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "enum": ["custom"]
-                            },
-                            "argument_type": {
-                              "description": "The type of the argument to this operator",
-                              "allOf": [
-                                {
-                                  "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/schema/definitions/Type"
-                                }
-                              ]
-                            }
-                          }
+                          ]
                         }
-                      ]
+                      }
                     },
                     "ObjectType": {
                       "title": "Object Type",
@@ -1773,9 +1700,9 @@
                   "$schema": "http://json-schema.org/draft-07/schema#",
                   "title": "Capabilities Response",
                   "type": "object",
-                  "required": ["capabilities", "version"],
+                  "required": ["capabilities", "versions"],
                   "properties": {
-                    "version": {
+                    "versions": {
                       "type": "string"
                     },
                     "capabilities": {
@@ -1787,13 +1714,20 @@
                       "title": "Capabilities",
                       "description": "Describes the features of the specification which a data connector implements.",
                       "type": "object",
-                      "required": ["mutation", "query"],
+                      "required": ["query"],
                       "properties": {
                         "query": {
                           "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/capabilities/definitions/QueryCapabilities"
                         },
-                        "mutation": {
-                          "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/capabilities/definitions/MutationCapabilities"
+                        "explain": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/capabilities/definitions/LeafCapability"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "relationships": {
                           "anyOf": [
@@ -1832,51 +1766,12 @@
                               "type": "null"
                             }
                           ]
-                        },
-                        "explain": {
-                          "description": "Does the connector support explaining queries",
-                          "anyOf": [
-                            {
-                              "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/capabilities/definitions/LeafCapability"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
                         }
                       }
                     },
                     "LeafCapability": {
                       "description": "A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future sub-capabilities.",
                       "type": "object"
-                    },
-                    "MutationCapabilities": {
-                      "title": "Mutation Capabilities",
-                      "type": "object",
-                      "properties": {
-                        "transactional": {
-                          "description": "Does the connector support executing multiple mutations in a transaction.",
-                          "anyOf": [
-                            {
-                              "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/capabilities/definitions/LeafCapability"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "explain": {
-                          "description": "Does the connector support explaining mutations",
-                          "anyOf": [
-                            {
-                              "$ref": "#/anyOf/0/definitions/VersionedSchemaAndCapabilities/oneOf/0/properties/capabilities/definitions/LeafCapability"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      }
                     },
                     "RelationshipCapabilities": {
                       "title": "Relationship Capabilities",
@@ -1937,24 +1832,12 @@
                   "description": "The last name of the author"
                 }
               ],
-              "description": "An author of a book",
               "globalIdFields": ["author_id"],
               "graphql": {
-                "typeName": "Author"
+                "typeName": "Author",
+                "inputTypeName": null
               },
-              "dataConnectorTypeMapping": [
-                {
-                  "dataConnectorName": "my_db",
-                  "dataConnectorObjectType": "author",
-                  "fieldMapping": {
-                    "author_id": {
-                      "column": {
-                        "name": "id"
-                      }
-                    }
-                  }
-                }
-              ]
+              "description": "An author of a book"
             }
           ],
           "type": "object",
@@ -1996,21 +1879,11 @@
             "description": {
               "description": "The description of the object. Gets added to the description of the object's definition in the graphql schema.",
               "type": ["string", "null"]
-            },
-            "dataConnectorTypeMapping": {
-              "description": "Mapping of this object type to corresponding object types in various data connectors.",
-              "default": [],
-              "type": "array",
-              "items": {
-                "$ref": "#/anyOf/0/definitions/DataConnectorTypeMapping"
-              }
             }
           },
           "additionalProperties": false
         },
         "CustomTypeName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/CustomTypeName",
-          "title": "CustomTypeName",
           "description": "The name of a user-defined type.",
           "type": "string"
         },
@@ -2045,8 +1918,6 @@
           "additionalProperties": false
         },
         "FieldName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/FieldName",
-          "title": "FieldName",
           "description": "The name of a field in a user-defined object type.",
           "type": "string"
         },
@@ -2088,63 +1959,7 @@
           "additionalProperties": false
         },
         "GraphQlTypeName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/GraphQlTypeName",
-          "title": "GraphQlTypeName",
           "type": "string"
-        },
-        "DataConnectorTypeMapping": {
-          "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorTypeMapping",
-          "title": "DataConnectorTypeMapping",
-          "description": "This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data connector.",
-          "type": "object",
-          "required": ["dataConnectorName", "dataConnectorObjectType"],
-          "properties": {
-            "dataConnectorName": {
-              "$ref": "#/anyOf/0/definitions/DataConnectorName"
-            },
-            "dataConnectorObjectType": {
-              "type": "string"
-            },
-            "fieldMapping": {
-              "default": {},
-              "type": "object",
-              "additionalProperties": {
-                "$ref": "#/anyOf/0/definitions/FieldMapping"
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        "FieldMapping": {
-          "$id": "https://hasura.io/jsonschemas/metadata/FieldMapping",
-          "title": "ObjectFieldMapping",
-          "oneOf": [
-            {
-              "description": "Source field directly maps to some column in the data connector.",
-              "type": "object",
-              "required": ["column"],
-              "properties": {
-                "column": {
-                  "$ref": "#/anyOf/0/definitions/ColumnFieldMapping"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        },
-        "ColumnFieldMapping": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ColumnFieldMapping",
-          "title": "ColumnFieldMapping",
-          "description": "The target column in a data connector object that a source field maps to.",
-          "type": "object",
-          "required": ["name"],
-          "properties": {
-            "name": {
-              "description": "The name of the target column",
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
         },
         "ScalarTypeV1": {
           "$id": "https://hasura.io/jsonschemas/metadata/ScalarTypeV1",
@@ -2197,158 +2012,6 @@
           "properties": {
             "typeName": {
               "description": "The name of the GraphQl type to use for this scalar.",
-              "allOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/GraphQlTypeName"
-                }
-              ]
-            }
-          },
-          "additionalProperties": false
-        },
-        "ObjectBooleanExpressionTypeV1": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ObjectBooleanExpressionTypeV1",
-          "title": "ObjectBooleanExpressionTypeV1",
-          "description": "Definition of a type representing a boolean expression on an Open DD object type.",
-          "examples": [
-            {
-              "name": "AuthorBoolExp",
-              "objectType": "Author",
-              "dataConnectorName": "my_db",
-              "dataConnectorObjectType": "author",
-              "comparableFields": [
-                {
-                  "fieldName": "article_id",
-                  "operators": {
-                    "enableAll": true
-                  }
-                },
-                {
-                  "fieldName": "title",
-                  "operators": {
-                    "enableAll": true
-                  }
-                },
-                {
-                  "fieldName": "author_id",
-                  "operators": {
-                    "enableAll": true
-                  }
-                }
-              ],
-              "graphql": {
-                "typeName": "Author_bool_exp"
-              }
-            }
-          ],
-          "type": "object",
-          "required": ["comparableFields", "dataConnectorName", "dataConnectorObjectType", "name", "objectType"],
-          "properties": {
-            "name": {
-              "description": "The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.",
-              "allOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/CustomTypeName"
-                }
-              ]
-            },
-            "objectType": {
-              "description": "The name of the object type that this boolean expression applies to.",
-              "allOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/CustomTypeName"
-                }
-              ]
-            },
-            "dataConnectorName": {
-              "description": "The data connector this boolean expression type is based on.",
-              "allOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/DataConnectorName"
-                }
-              ]
-            },
-            "dataConnectorObjectType": {
-              "description": "The object type in the data connector's schema this boolean expression type is based on.",
-              "type": "string"
-            },
-            "comparableFields": {
-              "description": "The list of fields of the object type that can be used for comparison when evaluating this boolean expression.",
-              "type": "array",
-              "items": {
-                "$ref": "#/anyOf/0/definitions/ComparableField"
-              }
-            },
-            "graphql": {
-              "description": "Configuration for how this object type should appear in the GraphQL schema.",
-              "anyOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/ObjectBooleanExpressionTypeGraphQlConfiguration"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          },
-          "additionalProperties": false
-        },
-        "ComparableField": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ComparableField",
-          "title": "ComparableField",
-          "type": "object",
-          "required": ["fieldName", "operators"],
-          "properties": {
-            "fieldName": {
-              "$ref": "#/anyOf/0/definitions/FieldName"
-            },
-            "operators": {
-              "$ref": "#/anyOf/0/definitions/EnableAllOrSpecific_for_OperatorName"
-            }
-          },
-          "additionalProperties": false
-        },
-        "EnableAllOrSpecific_for_OperatorName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/EnableAllOrSpecific_for_OperatorName",
-          "title": "EnableAllOrSpecific",
-          "oneOf": [
-            {
-              "type": "object",
-              "required": ["enableAll"],
-              "properties": {
-                "enableAll": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": ["enableSpecific"],
-              "properties": {
-                "enableSpecific": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/anyOf/0/definitions/OperatorName"
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        },
-        "OperatorName": {
-          "type": "string"
-        },
-        "ObjectBooleanExpressionTypeGraphQlConfiguration": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ObjectBooleanExpressionTypeGraphQlConfiguration",
-          "title": "ObjectBooleanExpressionTypeGraphQlConfiguration",
-          "description": "GraphQL configuration of an Open DD boolean expression type.",
-          "type": "object",
-          "required": ["typeName"],
-          "properties": {
-            "typeName": {
-              "description": "The name to use for the GraphQL type representation of this boolean expression type.",
               "allOf": [
                 {
                   "$ref": "#/anyOf/0/definitions/GraphQlTypeName"
@@ -2458,9 +2121,43 @@
               "source": {
                 "dataConnectorName": "data_connector",
                 "collection": "articles",
+                "typeMapping": {
+                  "article": {
+                    "fieldMapping": {
+                      "article_id": {
+                        "column": "id"
+                      },
+                      "title": {
+                        "column": "title"
+                      },
+                      "author_id": {
+                        "column": "author_id"
+                      }
+                    }
+                  }
+                },
                 "argumentMapping": {}
               },
-              "filterExpressionType": "Article_bool_exp",
+              "filterableFields": [
+                {
+                  "fieldName": "article_id",
+                  "operators": {
+                    "enableAll": true
+                  }
+                },
+                {
+                  "fieldName": "title",
+                  "operators": {
+                    "enableAll": true
+                  }
+                },
+                {
+                  "fieldName": "author_id",
+                  "operators": {
+                    "enableAll": true
+                  }
+                }
+              ],
               "orderableFields": [
                 {
                   "fieldName": "article_id",
@@ -2493,13 +2190,15 @@
                   "queryRootField": "ArticleMany",
                   "description": "Description for the select many ArticleMany"
                 },
+                "argumentsInputType": null,
+                "filterExpressionType": "Article_Where_Exp",
                 "orderByExpressionType": "Article_Order_By"
               },
               "description": "Description for the model Articles"
             }
           ],
           "type": "object",
-          "required": ["name", "objectType", "orderableFields"],
+          "required": ["filterableFields", "name", "objectType", "orderableFields"],
           "properties": {
             "name": {
               "description": "The name of the data model.",
@@ -2541,16 +2240,12 @@
                 }
               ]
             },
-            "filterExpressionType": {
-              "description": "The boolean expression type that should be used to perform filtering on this model.",
-              "anyOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/CustomTypeName"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+            "filterableFields": {
+              "description": "A list of fields that can be used to filter the objects in this model.",
+              "type": "array",
+              "items": {
+                "$ref": "#/anyOf/0/definitions/FilterableField"
+              }
             },
             "orderableFields": {
               "description": "A list of fields that can be used to order the objects in this model.",
@@ -2578,8 +2273,6 @@
           "additionalProperties": false
         },
         "ModelName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ModelName",
-          "title": "ModelName",
           "description": "The name of data model.",
           "type": "string"
         },
@@ -2603,8 +2296,6 @@
           "additionalProperties": false
         },
         "ArgumentName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ArgumentName",
-          "title": "ArgumentName",
           "type": "string"
         },
         "ModelSource": {
@@ -2614,7 +2305,23 @@
           "examples": [
             {
               "dataConnectorName": "data_connector",
-              "collection": "articles"
+              "collection": "articles",
+              "typeMapping": {
+                "article": {
+                  "fieldMapping": {
+                    "article_id": {
+                      "column": "id"
+                    },
+                    "title": {
+                      "column": "title"
+                    },
+                    "author_id": {
+                      "column": "author_id"
+                    }
+                  }
+                }
+              },
+              "argumentMapping": {}
             }
           ],
           "type": "object",
@@ -2632,6 +2339,14 @@
               "description": "The collection in the data connector that backs this model.",
               "type": "string"
             },
+            "typeMapping": {
+              "description": "How the various types used in this model correspond to entities in the data connector.",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/anyOf/0/definitions/TypeMapping"
+              }
+            },
             "argumentMapping": {
               "default": {},
               "type": "object",
@@ -2641,6 +2356,80 @@
             }
           },
           "additionalProperties": false
+        },
+        "TypeMapping": {
+          "$id": "https://hasura.io/jsonschemas/metadata/TypeMapping",
+          "title": "TypeMapping",
+          "type": "object",
+          "required": ["fieldMapping"],
+          "properties": {
+            "fieldMapping": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/anyOf/0/definitions/FieldMapping"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "FieldMapping": {
+          "$id": "https://hasura.io/jsonschemas/metadata/FieldMapping",
+          "title": "ObjectFieldMapping",
+          "type": "object",
+          "required": ["column"],
+          "properties": {
+            "column": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "FilterableField": {
+          "$id": "https://hasura.io/jsonschemas/metadata/FilterableField",
+          "title": "FilterableField",
+          "type": "object",
+          "required": ["fieldName", "operators"],
+          "properties": {
+            "fieldName": {
+              "$ref": "#/anyOf/0/definitions/FieldName"
+            },
+            "operators": {
+              "$ref": "#/anyOf/0/definitions/EnableAllOrSpecific_for_OperatorName"
+            }
+          },
+          "additionalProperties": false
+        },
+        "EnableAllOrSpecific_for_OperatorName": {
+          "$id": "https://hasura.io/jsonschemas/metadata/EnableAllOrSpecific_for_OperatorName",
+          "title": "EnableAllOrSpecific",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["enableAll"],
+              "properties": {
+                "enableAll": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": ["enableSpecific"],
+              "properties": {
+                "enableSpecific": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/anyOf/0/definitions/OperatorName"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "OperatorName": {
+          "type": "string"
         },
         "OrderableField": {
           "$id": "https://hasura.io/jsonschemas/metadata/OrderableField",
@@ -2709,6 +2498,8 @@
                 "queryRootField": "ArticleMany",
                 "description": "Description for the select many ArticleMany"
               },
+              "argumentsInputType": null,
+              "filterExpressionType": "Article_Where_Exp",
               "orderByExpressionType": "Article_Order_By"
             }
           ],
@@ -2735,6 +2526,17 @@
             },
             "argumentsInputType": {
               "description": "The type name of the input type used to hold the arguments of the model.",
+              "anyOf": [
+                {
+                  "$ref": "#/anyOf/0/definitions/GraphQlTypeName"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "filterExpressionType": {
+              "description": "The type name of the filter boolean expression input type.",
               "anyOf": [
                 {
                   "$ref": "#/anyOf/0/definitions/GraphQlTypeName"
@@ -2788,8 +2590,6 @@
           "additionalProperties": false
         },
         "GraphQlFieldName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/GraphQlFieldName",
-          "title": "GraphQlFieldName",
           "description": "The name of a GraphQL object field.",
           "type": "string"
         },
@@ -2828,6 +2628,15 @@
                 "dataConnectorName": "data_connector",
                 "dataConnectorCommand": {
                   "function": "latest_article"
+                },
+                "typeMapping": {
+                  "commandArticle": {
+                    "fieldMapping": {
+                      "article_id": {
+                        "column": "id"
+                      }
+                    }
+                  }
                 },
                 "argumentMapping": {}
               },
@@ -2895,8 +2704,6 @@
           "additionalProperties": false
         },
         "CommandName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/CommandName",
-          "title": "CommandName",
           "description": "The name of a command.",
           "type": "string"
         },
@@ -2910,6 +2717,7 @@
               "dataConnectorCommand": {
                 "function": "latest_article"
               },
+              "typeMapping": {},
               "argumentMapping": {}
             }
           ],
@@ -2931,6 +2739,14 @@
                   "$ref": "#/anyOf/0/definitions/DataConnectorCommand"
                 }
               ]
+            },
+            "typeMapping": {
+              "description": "How the various types used in this command correspond to entities in the data connector.",
+              "default": {},
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/anyOf/0/definitions/TypeMapping"
+              }
             },
             "argumentMapping": {
               "description": "Mapping from command argument names to data connector table argument names.",
@@ -3096,8 +2912,6 @@
           "additionalProperties": false
         },
         "RelationshipName": {
-          "$id": "https://hasura.io/jsonschemas/metadata/RelationshipName",
-          "title": "RelationshipName",
           "description": "The name of the GraphQL relationship field.",
           "type": "string"
         },
@@ -3846,156 +3660,185 @@
           "anyOf": [
             {
               "$schema": "http://json-schema.org/draft-07/schema#",
+              "title": "SupergraphManifest",
+              "description": "Details of how to build the Supergraph.",
               "type": "object",
+              "required": ["definition", "kind", "version"],
               "properties": {
                 "kind": {
                   "type": "string",
-                  "const": "SupergraphManifest"
+                  "enum": ["SupergraphManifest"]
                 },
                 "version": {
                   "type": "string",
-                  "const": "v1"
+                  "enum": ["v1"]
                 },
                 "definition": {
-                  "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/SupergraphManifestDefinition",
-                  "description": "Details of how to build the Supergraph."
+                  "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/SupergraphManifestDefinitionV1"
                 }
               },
-              "required": ["kind", "version", "definition"],
               "additionalProperties": false,
-              "description": "Details of how to build the Supergraph.",
-              "title": "SupergraphManifest",
               "definitions": {
-                "SupergraphManifestDefinition": {
+                "SupergraphManifestDefinitionV1": {
+                  "title": "SupergraphManifestDefinitionV1",
+                  "description": "Details of how to build the Supergraph.",
+                  "examples": [
+                    {
+                      "environment": "default",
+                      "name": "base",
+                      "mode": "replace",
+                      "envfile": ".env",
+                      "supergraph": {
+                        "resources": ["supergraph/*"]
+                      },
+                      "subgraphs": [
+                        {
+                          "name": "default",
+                          "resources": ["default/**/*.hml"],
+                          "connectors": {
+                            "pg_db": {
+                              "path": "default/pg_db",
+                              "connectorConfigFile": "pg_db.hml"
+                            },
+                            "ts_logic": {
+                              "watchCommand": "deno run -A --watch --check https://deno.land/x/hasura_typescript_connector/mod.ts serve --configuration ./ts.connector.config.json",
+                              "path": "default/ts_logic",
+                              "connectorConfigFile": "ts_logic.hml"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ],
                   "type": "object",
+                  "required": ["name", "environment", "mode", "supergraph", "subgraphs"],
                   "properties": {
                     "environment": {
-                      "type": "string",
-                      "description": "The environment to create the build in."
+                      "description": "The environment to create the supergraph build in.",
+                      "type": "string"
                     },
                     "name": {
-                      "type": "string",
-                      "description": "Name of the supergraph manifest."
+                      "description": "Name of the supergraph manifest.",
+                      "type": "string"
                     },
                     "mode": {
+                      "description": "The mode of building subgraphs not defined in the manifest.",
                       "type": "string",
-                      "enum": ["replace", "patch"],
-                      "description": "The mode of building subgraphs not defined in the manifest."
+                      "enum": ["replace", "patch"]
                     },
                     "patchOn": {
-                      "anyOf": [
+                      "description": "Base to patch and create build on top of.",
+                      "oneOf": [
                         {
                           "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/PatchOnEnvironment"
                         },
                         {
                           "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/PatchOnBuild"
                         }
-                      ],
-                      "description": "Base to patch and create build on top of."
+                      ]
                     },
                     "envfile": {
-                      "type": "string",
-                      "description": "Path to file containing environment variables."
+                      "description": "Path to file containing environment variables.",
+                      "type": "string"
                     },
                     "supergraph": {
-                      "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/Supergraph",
-                      "description": "Details about the resources of the supergraph."
+                      "description": "Details about the resources of the supergraph.",
+                      "type": "object",
+                      "required": ["resources"],
+                      "properties": {
+                        "resources": {
+                          "description": "Directory path containing all resources related to the supergraph configuration.",
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
                     },
                     "subgraphs": {
+                      "description": "Details about the resources of subgraphs.",
                       "type": "array",
                       "items": {
-                        "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/Subgraph"
-                      },
-                      "description": "Details about the resources of subgraphs.",
-                      "minItems": 1
+                        "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/SubgraphDetails"
+                      }
                     }
                   },
-                  "required": ["environment", "name", "mode", "supergraph", "subgraphs"],
-                  "additionalProperties": false,
-                  "description": "Details of how to build the Supergraph."
+                  "additionalProperties": false
                 },
                 "PatchOnEnvironment": {
+                  "title": "PatchOnEnvironment",
+                  "description": "Environment to use latest build of as base.",
                   "type": "object",
+                  "required": ["environment"],
                   "properties": {
                     "environment": {
+                      "description": "Name of environment to use latest build of as base.",
                       "type": "string"
                     }
                   },
-                  "required": ["environment"],
-                  "additionalProperties": false,
-                  "description": "Environment to use latest build of as base."
+                  "additionalProperties": false
                 },
                 "PatchOnBuild": {
+                  "title": "PatchOnBuild",
+                  "description": "Build to use as base.",
                   "type": "object",
+                  "required": ["build"],
                   "properties": {
                     "build": {
+                      "description": "Build version of build to use as base.",
                       "type": "string"
                     }
                   },
-                  "required": ["build"],
-                  "additionalProperties": false,
-                  "description": "Build version of build to use as base."
+                  "additionalProperties": false
                 },
-                "Supergraph": {
+                "SubgraphDetails": {
+                  "title": "SubgraphDetails",
+                  "description": "Details about the resources of a subgraph",
                   "type": "object",
-                  "properties": {
-                    "resources": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "description": "Directory path containing all resources related to the supergraph configuration."
-                    }
-                  },
-                  "required": ["resources"],
-                  "additionalProperties": false,
-                  "description": "Details about the resources of the supergraph."
-                },
-                "Subgraph": {
-                  "type": "object",
+                  "required": ["name", "resources", "connectors"],
                   "properties": {
                     "name": {
-                      "type": "string",
-                      "description": "Name of the subgraph."
+                      "description": "Name of the subgraph.",
+                      "type": "string"
                     },
                     "resources": {
+                      "description": "Directory path containing all resources related to the subgraph.",
                       "type": "array",
                       "items": {
                         "type": "string"
-                      },
-                      "description": "Directory path containing all resources related to the subgraph."
+                      }
                     },
                     "connectors": {
-                      "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/Connector",
-                      "description": "Details about the data connectors present in the subgraph."
+                      "description": "Details about the data connectors present in the subgraph.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/ConnectorDetails"
+                      }
                     }
                   },
-                  "required": ["name", "resources", "connectors"],
-                  "additionalProperties": false,
-                  "description": "Details about the resources of subgraphs."
-                },
-                "Connector": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/ConnectorDetails"
-                  },
-                  "description": "Environment variables for the connector build."
+                  "additionalProperties": false
                 },
                 "ConnectorDetails": {
+                  "title": "ConnectorDetails",
+                  "description": "Details about a data connector present in the subgraph.",
                   "type": "object",
+                  "required": ["path", "connectorConfigFile"],
                   "properties": {
                     "path": {
-                      "type": "string",
-                      "description": "Directory path containing all resources related to the data connector."
+                      "description": "Directory path containing all resources related to the data connector.",
+                      "type": "string"
                     },
-                    "manifestFile": {
-                      "type": "string",
-                      "description": "Path to the ConnectorManifest for the data connector."
+                    "connectorConfigFile": {
+                      "description": "Path to the ConnectorManifest for the data connector.",
+                      "type": "string"
+                    },
+                    "watchCommand": {
+                      "description": "Watch command used to run connector in dev mode.",
+                      "type": "string"
                     }
                   },
-                  "required": ["path", "manifestFile"],
-                  "additionalProperties": false,
-                  "description": "Details about a data connector present in the subgraph."
+                  "additionalProperties": false
                 }
               }
             }
@@ -4006,262 +3849,201 @@
           "anyOf": [
             {
               "$schema": "http://json-schema.org/draft-07/schema#",
+              "title": "ConnectorManifest",
+              "description": "Defines the configuration used to build the connector.",
               "type": "object",
+              "required": ["definition", "kind", "version"],
               "properties": {
                 "kind": {
                   "type": "string",
-                  "const": "ConnectorManifest"
+                  "enum": ["ConnectorManifest"]
                 },
                 "version": {
                   "type": "string",
-                  "const": "v1"
+                  "enum": ["v1"]
                 },
                 "definition": {
-                  "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorManifestDefinition",
-                  "description": "Connector Manifest Definition"
+                  "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorManifestDefinitionV1"
                 }
               },
-              "required": ["kind", "version", "definition"],
               "additionalProperties": false,
-              "description": "Defines the configuration used to build the connector.",
-              "title": "ConnectorManifest",
               "definitions": {
-                "ConnectorManifestDefinition": {
-                  "anyOf": [
+                "ConnectorManifestDefinitionV1": {
+                  "oneOf": [
                     {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/CloudConnectorManifestDefinition"
+                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/LocalConnectorManifest"
                     },
                     {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/LocalConnectorManifestDefinition"
+                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/CloudConnectorManifest"
                     },
                     {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/EndpointConnectorManifestDefinition"
+                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/EndpointConnectorManifest"
                     }
-                  ],
-                  "description": "Defines the configuration used to build a connector."
+                  ]
                 },
-                "CloudConnectorManifestDefinition": {
+                "LocalConnectorManifest": {
+                  "title": "LocalConnectorManifest",
+                  "description": "Defines the configuration used to build a local connector.",
                   "type": "object",
+                  "required": ["name", "type", "hub_connector", "instances"],
                   "properties": {
                     "name": {
-                      "type": "string",
-                      "description": "Name of the connector."
-                    },
-                    "type": {
-                      "type": "string",
-                      "const": "cloud",
-                      "description": "Deployment type of the connector."
-                    },
-                    "connector": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorType",
-                      "description": "Type of connector."
-                    },
-                    "instances": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/CloudInstance"
-                      },
-                      "description": "Details about the cloud deployment instance for the connector.",
-                      "minItems": 1
-                    }
-                  },
-                  "required": ["name", "type", "connector", "instances"],
-                  "additionalProperties": false,
-                  "description": "Defines the configuration used to build a cloud connector."
-                },
-                "ConnectorType": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string",
-                      "enum": ["hub", "inline"],
-                      "description": "Type of connector."
-                    },
-                    "name": {
-                      "type": "string",
-                      "description": "Hub connector ID (Name and version)"
-                    }
-                  },
-                  "required": ["type"],
-                  "additionalProperties": false,
-                  "description": "Connector Type information."
-                },
-                "CloudInstance": {
-                  "type": "object",
-                  "properties": {
-                    "deployment": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/InstanceDeployment",
-                      "description": "Details about the connector deployment instance."
-                    },
-                    "build": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/InstanceBuild",
-                      "description": "Details about connector build configuration."
-                    }
-                  },
-                  "required": ["deployment", "build"],
-                  "additionalProperties": false,
-                  "description": "Details about the cloud deployment instance for the connector."
-                },
-                "InstanceDeployment": {
-                  "type": "object",
-                  "properties": {
-                    "region": {
-                      "type": "string",
-                      "description": "Region of deployment."
-                    },
-                    "mode": {
-                      "type": "string",
-                      "enum": ["ReadWrite", "ReadOnly", "WriteOnly"],
-                      "description": "Mode of deployment."
-                    }
-                  },
-                  "required": ["region", "mode"],
-                  "additionalProperties": false,
-                  "description": "Details about the connector deployment instance."
-                },
-                "InstanceBuild": {
-                  "type": "object",
-                  "properties": {
-                    "context": {
-                      "type": "string",
-                      "description": "Path of the connector context directory."
-                    },
-                    "env": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/Envs",
-                      "description": "Environment variables for the connector build."
-                    }
-                  },
-                  "required": ["context", "env"],
-                  "additionalProperties": false,
-                  "description": "Details about connector build configuration."
-                },
-                "Envs": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ValueOrFromEnv"
-                  },
-                  "description": "Environment variables for the connector build."
-                },
-                "ValueOrFromEnv": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/EnvValue"
-                    },
-                    {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/EnvValueFromEnv"
-                    }
-                  ],
-                  "description": "Specifies an explicit value for the Env var or loads it from provided Env vars to the command."
-                },
-                "EnvValue": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
+                      "description": "Name of the connector.",
                       "type": "string"
-                    }
-                  },
-                  "required": ["value"],
-                  "additionalProperties": false,
-                  "description": "Explicit value of an Env var."
-                },
-                "EnvValueFromEnv": {
-                  "type": "object",
-                  "properties": {
-                    "valueFromEnv": {
-                      "type": "string"
-                    }
-                  },
-                  "required": ["valueFromEnv"],
-                  "additionalProperties": false,
-                  "description": "Load Env var value from the provided Env vars to the command."
-                },
-                "LocalConnectorManifestDefinition": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Name of the connector."
                     },
                     "type": {
+                      "description": "Deployment type of the connector.",
                       "type": "string",
-                      "const": "local",
-                      "description": "Deployment type of the connector."
+                      "enum": ["local"]
+                    },
+                    "hub_connector": {
+                      "description": "Type of connector.",
+                      "type": "string"
                     },
                     "tunnel": {
-                      "type": "boolean",
-                      "description": "Expose connector via a tunnel."
-                    },
-                    "connector": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorType",
-                      "description": "Type of connector."
+                      "description": "Expose connector via a tunnel.",
+                      "type": "boolean"
                     },
                     "instances": {
                       "type": "array",
+                      "maxItems": 1,
                       "items": {
-                        "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/LocalInstance"
-                      },
-                      "description": "Details about the local deployment instance for the connector.",
-                      "minItems": 1,
-                      "maxItems": 1
+                        "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/LocalConnectorManifestInstance"
+                      }
                     }
                   },
-                  "required": ["name", "type", "tunnel", "connector", "instances"],
-                  "additionalProperties": false,
-                  "description": "Details about the local deployment instance for the connector."
+                  "additionalProperties": false
                 },
-                "LocalInstance": {
+                "LocalConnectorManifestInstance": {
+                  "title": "LocalConnectorManifestInstance",
+                  "description": "Details about the local deployment instance for the connector.",
                   "type": "object",
-                  "properties": {
-                    "build": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/InstanceBuild",
-                      "description": "Details about connector build configuration."
-                    }
-                  },
                   "required": ["build"],
-                  "additionalProperties": false,
-                  "description": "Details about the local deployment instance for the connector."
+                  "properties": {
+                    "build": {
+                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorInstanceBuildConfiguration"
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "EndpointConnectorManifestDefinition": {
+                "CloudConnectorManifest": {
+                  "title": "CloudConnectorManifest",
+                  "description": "Defines the configuration used to build a cloud connector.",
                   "type": "object",
+                  "required": ["name", "type", "hub_connector", "instances"],
                   "properties": {
                     "name": {
-                      "type": "string",
-                      "description": "Name of the connector."
+                      "description": "Name of the connector.",
+                      "type": "string"
                     },
                     "type": {
+                      "description": "Deployment type of the connector.",
                       "type": "string",
-                      "const": "endpoints",
-                      "description": "Deployment type of the connector."
+                      "enum": ["cloud"]
                     },
-                    "tunnel": {
-                      "type": "boolean",
-                      "description": "Expose connector via a tunnel."
+                    "hub_connector": {
+                      "description": "Type of connector.",
+                      "type": "string"
                     },
                     "instances": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/EndpointInstance"
-                      },
-                      "description": "Details about the connector endpoint.",
-                      "minItems": 1,
-                      "maxItems": 1
+                        "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/CloudConnectorManifestInstance"
+                      }
                     }
                   },
-                  "required": ["name", "type", "instances"],
-                  "additionalProperties": false,
-                  "description": "Defines the configuration used to build a local connector."
+                  "additionalProperties": false
                 },
-                "EndpointInstance": {
+                "CloudConnectorManifestInstance": {
+                  "title": "CloudConnectorManifestInstance",
+                  "description": "Details about the local deployment instance for the connector.",
                   "type": "object",
+                  "required": ["build", "deployment"],
+                  "properties": {
+                    "build": {
+                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorInstanceBuildConfiguration"
+                    },
+                    "deployment": {
+                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorInstanceDeployment"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "EndpointConnectorManifest": {
+                  "title": "EndpointConnectorManifest",
+                  "description": "Defines the configuration used to build a local connector.",
+                  "type": "object",
+                  "required": ["name", "type", "instances"],
+                  "properties": {
+                    "name": {
+                      "description": "Name of the connector.",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "Deployment type of the connector.",
+                      "type": "string",
+                      "enum": ["endpoint"]
+                    },
+                    "instances": {
+                      "type": "array",
+                      "maxItems": 1,
+                      "items": {
+                        "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/EndpointsConnectorManifestInstance"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "EndpointsConnectorManifestInstance": {
+                  "title": "EndpointsConnectorManifestInstance",
+                  "description": "Details about the connector endpoint.",
+                  "type": "object",
+                  "required": ["endpoint"],
                   "properties": {
                     "endpoint": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ValueOrFromEnv",
-                      "description": "Endpoint of the connector."
+                      "description": "Endpoint of the connector.",
+                      "type": "string"
                     }
                   },
-                  "required": ["endpoint"],
-                  "additionalProperties": false,
-                  "description": "Details about the connector endpoint."
+                  "additionalProperties": false
+                },
+                "ConnectorInstanceDeployment": {
+                  "title": "ConnectorInstanceDeployment",
+                  "description": "Details about the connector deployment instance.",
+                  "type": "object",
+                  "required": ["region", "mode"],
+                  "properties": {
+                    "region": {
+                      "description": "Region of deployment.",
+                      "type": "string"
+                    },
+                    "mode": {
+                      "description": "Mode of deployment.",
+                      "type": "string",
+                      "enum": ["ReadWrite", "ReadOnly", "WriteOnly"]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "ConnectorInstanceBuildConfiguration": {
+                  "title": "ConnectorInstanceBuildConfiguration",
+                  "description": "Details about connector build configuration.",
+                  "type": "object",
+                  "required": ["context", "env"],
+                  "properties": {
+                    "context": {
+                      "description": "Path of the connector context directory.",
+                      "type": "string"
+                    },
+                    "env": {
+                      "description": "Environment variables for the connector build.",
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
                 }
               }
             }
