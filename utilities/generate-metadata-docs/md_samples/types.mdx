@@ -1,0 +1,239 @@
+## Metadata structure
+
+
+### ObjectTypeV1
+
+Definition of a user-defined Open DD object type.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `fields` | [[ObjectFieldDefinition](#objectfielddefinition)] | true | The list of fields defined for this object type. |
+| `globalIdFields` | [string] | false | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql` | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
+| `description` | string | false | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
+| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)] | false | Mapping of this object type to corresponding object types in various data connectors. |
+
+ **Example**
+
+```yaml
+name: Author
+fields:
+  - name: author_id
+    type: Int!
+    description: The id of the author
+  - name: first_name
+    type: String
+    description: The first name of the author
+  - name: last_name
+    type: String
+    description: The last name of the author
+description: An author of a book
+globalIdFields:
+  - author_id
+graphql:
+  typeName: Author
+dataConnectorTypeMapping:
+  - dataConnectorName: my_db
+    dataConnectorObjectType: author
+    fieldMapping:
+      author_id:
+        column:
+          name: id
+```
+
+
+### DataConnectorTypeMapping
+
+This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data connector.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `dataConnectorName` | string | true |  |
+| `dataConnectorObjectType` | string | true |  |
+| `fieldMapping` | [undefined](#undefined) | false |  |
+
+
+
+### undefined
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [undefined](#undefined) | No |  |
+
+
+
+### undefined
+
+Source field directly maps to some column in the data connector.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `column` | [ColumnFieldMapping](#columnfieldmapping) | true |  |
+
+
+
+### ColumnFieldMapping
+
+The target column in a data connector object that a source field maps to.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | The name of the target column |
+
+
+
+### ObjectTypeGraphQLConfiguration
+
+GraphQL configuration of an Open DD object type.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `typeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context. |
+
+
+
+### ObjectFieldDefinition
+
+The definition of a field in a user-defined object type.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
+| `type` | string | true | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string | false | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
+
+### ScalarTypeV1
+
+Definition of a user-defined scalar type that that has opaque semantics.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `graphql` | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false | Configuration for how this scalar type should appear in the GraphQL schema. |
+| `description` | string | false | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
+
+ **Example**
+
+```yaml
+name: CustomString
+graphql:
+  typeName: CustomString
+description: A custom string type
+```
+
+
+### ScalarTypeGraphQLConfiguration
+
+GraphQL configuration of an Open DD scalar type
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `typeName` | string | true | The name of the GraphQl type to use for this scalar. |
+
+
+
+### ObjectFieldDefinition
+
+The definition of a field in a user-defined object type.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
+| `type` | string | true | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string | false | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
+
+
+
+### ObjectTypeGraphQLConfiguration
+
+GraphQL configuration of an Open DD object type.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `typeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context. |
+
+
+
+### ColumnFieldMapping
+
+The target column in a data connector object that a source field maps to.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | The name of the target column |
+
+
+
+### undefined
+
+Source field directly maps to some column in the data connector.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `column` | [ColumnFieldMapping](#columnfieldmapping) | true |  |
+
+
+
+### undefined
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [undefined](#undefined) | No |  |
+
+
+
+### DataConnectorTypeMapping
+
+This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data connector.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `dataConnectorName` | string | true |  |
+| `dataConnectorObjectType` | string | true |  |
+| `fieldMapping` | [undefined](#undefined) | false |  |
+
+
+
+### ObjectTypeV1
+
+Definition of a user-defined Open DD object type.
+
+| Name | Type | Required | Description |
+|-----|-----|-----|-----|
+| `name` | string | true | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `fields` | [[ObjectFieldDefinition](#objectfielddefinition)] | true | The list of fields defined for this object type. |
+| `globalIdFields` | [string] | false | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql` | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
+| `description` | string | false | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
+| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)] | false | Mapping of this object type to corresponding object types in various data connectors. |
+
+ **Example**
+
+```yaml
+name: Author
+fields:
+  - name: author_id
+    type: Int!
+    description: The id of the author
+  - name: first_name
+    type: String
+    description: The first name of the author
+  - name: last_name
+    type: String
+    description: The last name of the author
+description: An author of a book
+globalIdFields:
+  - author_id
+graphql:
+  typeName: Author
+dataConnectorTypeMapping:
+  - dataConnectorName: my_db
+    dataConnectorObjectType: author
+    fieldMapping:
+      author_id:
+        column:
+          name: id
+```
