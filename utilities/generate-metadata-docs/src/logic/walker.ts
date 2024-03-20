@@ -133,24 +133,13 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleArrayType(metadataObject);
   }
 
-  // Deal with objects
+  // Deal with properties / additionalProperties
   if (type === 'object') {
     typeDefinition = handleObject(metadataObject);
   }
 
-  // Deal with oneOf
-  if (metadataObject.oneOf) {
-    typeDefinition = handleOneOf(metadataObject);
-  }
-
-  // Deal with allOfs
-  if (metadataObject.allOf) {
-    typeDefinition = handleAllOf(metadataObject);
-  }
-
-  // Deal with anyOfs
-  if (metadataObject.anyOf) {
-    typeDefinition = handleAnyOf(metadataObject);
+  if (metadataObject.oneOf || metadataObject.allOf || metadataObject.anyOf) {
+    typeDefinition = handleAllOfAnyOfOneOf(metadataObject);
   }
 
   if (refTitle) {
@@ -211,9 +200,9 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
     }
 
     if (metadataObject.additionalProperties) {
-      markdown += `| \`<customKey>\` | ${handleSchemaDefinition(metadataObject.additionalProperties)} | No | ${
-        metadataObject.additionalProperties.description || ''
-      } |\n`;
+      const propertySchema = metadataObject.additionalProperties;
+      const propertyType = handleSchemaDefinition(propertySchema);
+      markdown += `| \`<customKey>\` | ${propertyType} | false | ${propertySchema.description || ''} |\n`;
     }
 
     if (metadataObject.examples) {
@@ -227,23 +216,20 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
   return ``;
 }
 
-function handleAllOf(metadataObject: JSONSchema7Definition): string {
-  const objectRefs = metadataObject.allOf.map(option => {
+function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
+  const objectRefs = (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).map(option => {
     return handleSchemaDefinition(option);
   });
-  return objectRefs.join(` / `);
-}
 
-function handleAnyOf(metadataObject: JSONSchema7Definition): string {
-  const objectRefs = metadataObject.anyOf.map(option => {
-    return handleSchemaDefinition(option);
-  });
-  return objectRefs.join(` / `);
-}
+  let markdown = '';
 
-function handleOneOf(metadataObject: JSONSchema7Definition): string {
-  const objectRefs = metadataObject.oneOf.map(option => {
-    return handleSchemaDefinition(option);
-  });
-  return objectRefs.join(` / `);
+  markdown += `\n### ${getTitle(metadataObject)}\n\n`;
+
+  if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
+
+  markdown += objectRefs.join(` / `);
+
+  markdownArray.push(markdown);
+
+  return getRefLink(metadataObject);
 }
