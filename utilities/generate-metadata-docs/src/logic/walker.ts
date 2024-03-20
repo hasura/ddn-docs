@@ -194,7 +194,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
     if (metadataObject.properties) {
       for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
         const propertyType = handleSchemaDefinition(propertySchema);
-        const requiredProp = metadataObject.required && metadataObject.required.includes(propertyKey);
+        const requiredProp = metadataObject.required ? metadataObject.required.includes(propertyKey) : false;
         markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${
           propertySchema.description || ''
         } |\n`;
