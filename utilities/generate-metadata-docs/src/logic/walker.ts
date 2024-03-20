@@ -181,9 +181,11 @@ function handleArrayType(metadataObject: JSONSchema7Definition): string {
 function handleObject(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type === 'object') {
+    const title = getTitle(metadataObject);
+
     let markdown = '';
 
-    markdown += `\n### ${getTitle(metadataObject)}\n\n`;
+    markdown += `\n### ${title}\n\n`;
 
     if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
@@ -221,9 +223,16 @@ function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
     return handleSchemaDefinition(option);
   });
 
+  const title = getTitle(metadataObject);
+
+  // handle ref or null
+  if (!title && objectRefs.length === 2 && objectRefs[1] === 'null') {
+    return objectRefs.join(` / `);
+  }
+
   let markdown = '';
 
-  markdown += `\n### ${getTitle(metadataObject)}\n\n`;
+  markdown += `\n### ${title}\n\n`;
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 

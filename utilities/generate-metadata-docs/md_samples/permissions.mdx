@@ -1,16 +1,15 @@
 ## Metadata structure
 
-
 ### ModelPermissionsV1
 
 Definition of permissions for an OpenDD model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `modelName` | string | true | The name of the model for which permissions are being defined. |
-| `permissions` | [[ModelPermission](#modelpermission)] | true | A list of model permissions, one for each role. |
+| Name          | Type                                  | Required | Description                                                    |
+| ------------- | ------------------------------------- | -------- | -------------------------------------------------------------- |
+| `modelName`   | string                                | true     | The name of the model for which permissions are being defined. |
+| `permissions` | [[ModelPermission](#modelpermission)] | true     | A list of model permissions, one for each role.                |
 
- **Example**
+**Example**
 
 ```yaml
 modelName: Articles
@@ -28,17 +27,16 @@ permissions:
             sessionVariable: x-hasura-user-id
 ```
 
-
 ### ModelPermission
 
 Defines the permissions for an OpenDD model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `select` | [SelectPermission](#selectpermission) / null | false | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
+| Name     | Type                                         | Required | Description                                                                                                               |
+| -------- | -------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | string                                       | true     | The role for which permissions are being defined.                                                                         |
+| `select` | [SelectPermission](#selectpermission) / null | false    | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
 
- **Example**
+**Example**
 
 ```yaml
 role: user
@@ -51,119 +49,110 @@ select:
         sessionVariable: x-hasura-user-id
 ```
 
-
 ### SelectPermission
 
 Defines the permissions for selecting a model for a role.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `filter` | null / [undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not) | true | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
+| Name     | Type                                              | Required | Description                                                                                        |
+| -------- | ------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `filter` | [NullableModelPredicate](#nullablemodelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
 
+### NullableModelPredicate
 
+Filter expression when selecting rows for this model. Null filter implies all rows are selectable.
+
+null / [ModelPredicate](#modelpredicate)
+
+### ModelPredicate
+
+A predicate that can be used to restrict the objects returned when querying a model.
+
+[undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not)
 
 ### Not
 
 Evaluates to true if the sub-predicate evaluates to false.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `not` | [ModelPredicate](#modelpredicate) | true |  |
-
-
+| Name  | Type                              | Required | Description |
+| ----- | --------------------------------- | -------- | ----------- |
+| `not` | [ModelPredicate](#modelpredicate) | true     |             |
 
 ### Or
 
 Evaluates to true if any of the sub-predicates evaluate to true.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `or` | [[ModelPredicate](#modelpredicate)] | true |  |
-
-
+| Name | Type                                | Required | Description |
+| ---- | ----------------------------------- | -------- | ----------- |
+| `or` | [[ModelPredicate](#modelpredicate)] | true     |             |
 
 ### And
 
 Evaluates to true if all sub-predicates evaluate to true.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `and` | [[ModelPredicate](#modelpredicate)] | true |  |
-
-
+| Name  | Type                                | Required | Description |
+| ----- | ----------------------------------- | -------- | ----------- |
+| `and` | [[ModelPredicate](#modelpredicate)] | true     |             |
 
 ### undefined
 
 Filters objects based on the relationship of a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `relationship` | [RelationshipPredicate](#relationshippredicate) | true |  |
-
-
+| Name           | Type                                            | Required | Description |
+| -------------- | ----------------------------------------------- | -------- | ----------- |
+| `relationship` | [RelationshipPredicate](#relationshippredicate) | true     |             |
 
 ### RelationshipPredicate
 
 Relationship predicate filters objects of a source model based on a predicate on the related model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the relationship of the object type of the model to follow. |
-| `predicate` | [ModelPredicate](#modelpredicate) / null | false | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
-
-
+| Name        | Type                                     | Required | Description                                                                                                                                                   |
+| ----------- | ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`      | string                                   | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
+| `predicate` | [ModelPredicate](#modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldIsNull` | [undefined](#undefined) | true |  |
-
-
+| Name          | Type                    | Required | Description |
+| ------------- | ----------------------- | -------- | ----------- |
+| `fieldIsNull` | [undefined](#undefined) | true     |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true |  |
-
-
+| Name    | Type   | Required | Description |
+| ------- | ------ | -------- | ----------- |
+| `field` | string | true     |             |
 
 ### undefined
 
 Filters objects based on a field value.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true |  |
-
-
+| Name              | Type                                                  | Required | Description |
+| ----------------- | ----------------------------------------------------- | -------- | ----------- |
+| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true     |             |
 
 ### FieldComparisonPredicate
 
 Field comparision predicate filters objects based on a field value.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true | The field name of the object type of the model to compare. |
-| `operator` | string | true | The name of the operator to use for comparison. |
-| `value` | [Literal](#literal) / [SessionVariable](#sessionvariable) | true | The value expression to compare against. |
-
-
+| Name       | Type                                | Required | Description                                                |
+| ---------- | ----------------------------------- | -------- | ---------------------------------------------------------- |
+| `field`    | string                              | true     | The field name of the object type of the model to compare. |
+| `operator` | string                              | true     | The name of the operator to use for comparison.            |
+| `value`    | [ValueExpression](#valueexpression) | true     | The value expression to compare against.                   |
 
 ### RelationshipV1
 
 Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the relationship. |
-| `source` | string | true | The source type of the relationship. |
-| `target` | [undefined](#undefined) / [undefined](#undefined) | true | The target of the relationship. |
-| `mapping` | [[RelationshipMapping](#relationshipmapping)] | true | The mapping configuration of source to target for the relationship. |
-| `description` | string | false | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
+| Name          | Type                                          | Required | Description                                                                                                   |
+| ------------- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                        | true     | The name of the relationship.                                                                                 |
+| `source`      | string                                        | true     | The source type of the relationship.                                                                          |
+| `target`      | [RelationshipTarget](#relationshiptarget)     | true     | The target of the relationship.                                                                               |
+| `mapping`     | [[RelationshipMapping](#relationshipmapping)] | true     | The mapping configuration of source to target for the relationship.                                           |
+| `description` | string                                        | false    | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: Articles
@@ -184,17 +173,16 @@ mapping:
 description: Articles written by an author
 ```
 
-
 ### RelationshipMapping
 
 Definition of a how a particular field in the source maps to a target field or argument.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `source` | [SourceValue](#sourcevalue) / [SourceField](#sourcefield) | true | The source configuration for this relationship mapping. |
-| `target` | [TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield) | true | The target configuration for this relationship mapping. |
+| Name     | Type                                                    | Required | Description                                             |
+| -------- | ------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `source` | [RelationshipMappingSource](#relationshipmappingsource) | true     | The source configuration for this relationship mapping. |
+| `target` | [RelationshipMappingTarget](#relationshipmappingtarget) | true     | The target configuration for this relationship mapping. |
 
- **Example**
+**Example**
 
 ```yaml
 source:
@@ -205,122 +193,127 @@ target:
     - fieldName: author_id
 ```
 
+### RelationshipMappingTarget
+
+The target configuration for a relationship mapping.
+
+[TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield)
 
 ### TargetModelField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true |  |
-
-
+| Name         | Type                                                              | Required | Description |
+| ------------ | ----------------------------------------------------------------- | -------- | ----------- |
+| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
 
 ### TargetArgument
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true |  |
-
-
+| Name       | Type                                            | Required | Description |
+| ---------- | ----------------------------------------------- | -------- | ----------- |
+| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true     |             |
 
 ### ArgumentMappingTarget
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `argumentName` | string | true |  |
+| Name           | Type   | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `argumentName` | string | true     |             |
 
+### RelationshipMappingSource
 
+The source configuration for a relationship mapping.
+
+[SourceValue](#sourcevalue) / [SourceField](#sourcefield)
 
 ### SourceField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true |  |
-
-
+| Name        | Type                                                              | Required | Description |
+| ----------- | ----------------------------------------------------------------- | -------- | ----------- |
+| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
 
 ### RelationshipSourceFieldAccess
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-
-
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `fieldName` | string | true     |             |
 
 ### SourceValue
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `value` | [Literal](#literal) / [SessionVariable](#sessionvariable) | true |  |
+| Name    | Type                                | Required | Description |
+| ------- | ----------------------------------- | -------- | ----------- |
+| `value` | [ValueExpression](#valueexpression) | true     |             |
 
+### ValueExpression
 
+An expression which evaluates to a value that can be used in permissions.
+
+[Literal](#literal) / [SessionVariable](#sessionvariable)
 
 ### SessionVariable
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `sessionVariable` | string | true |  |
-
-
+| Name              | Type   | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `sessionVariable` | string | true     |             |
 
 ### Literal
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `literal` |  | true |  |
+| Name      | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `literal` |      | true     |             |
 
+### RelationshipTarget
 
+The target for a relationship.
+
+[undefined](#undefined) / [undefined](#undefined)
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true |  |
-
-
+| Name      | Type                                                    | Required | Description |
+| --------- | ------------------------------------------------------- | -------- | ----------- |
+| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true     |             |
 
 ### CommandRelationshipTarget
 
 The target command for a relationship.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the command. |
-| `subgraph` | string | false | The subgraph of the target command. Defaults to the current subgraph. |
-
-
+| Name       | Type   | Required | Description                                                           |
+| ---------- | ------ | -------- | --------------------------------------------------------------------- |
+| `name`     | string | true     | The name of the command.                                              |
+| `subgraph` | string | false    | The subgraph of the target command. Defaults to the current subgraph. |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true |  |
-
-
+| Name    | Type                                                | Required | Description |
+| ------- | --------------------------------------------------- | -------- | ----------- |
+| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true     |             |
 
 ### ModelRelationshipTarget
 
 The target model for a relationship.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the data model. |
-| `namespace` | string | false |  |
-| `subgraph` | string | false | The subgraph of the target model. Defaults to the current subgraph. |
-| `relationshipType` | string / string | true | Type of the relationship - object or array. |
+| Name               | Type                                  | Required | Description                                                         |
+| ------------------ | ------------------------------------- | -------- | ------------------------------------------------------------------- |
+| `name`             | string                                | true     | The name of the data model.                                         |
+| `namespace`        | string                                | false    |                                                                     |
+| `subgraph`         | string                                | false    | The subgraph of the target model. Defaults to the current subgraph. |
+| `relationshipType` | [RelationshipType](#relationshiptype) | true     | Type of the relationship - object or array.                         |
 
+### RelationshipType
 
+Type of the relationship.
+
+string / string
 
 ### ScalarTypeV1
 
 Definition of a user-defined scalar type that that has opaque semantics.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `graphql` | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false | Configuration for how this scalar type should appear in the GraphQL schema. |
-| `description` | string | false | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
+| Name          | Type                                                                     | Required | Description                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                                   | true     | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `graphql`     | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false    | Configuration for how this scalar type should appear in the GraphQL schema.                                                                 |
+| `description` | string                                                                   | false    | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema.                             |
 
- **Example**
+**Example**
 
 ```yaml
 name: CustomString
@@ -329,94 +322,84 @@ graphql:
 description: A custom string type
 ```
 
-
 ### ScalarTypeGraphQLConfiguration
 
 GraphQL configuration of an Open DD scalar type
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string | true | The name of the GraphQl type to use for this scalar. |
-
-
+| Name       | Type   | Required | Description                                          |
+| ---------- | ------ | -------- | ---------------------------------------------------- |
+| `typeName` | string | true     | The name of the GraphQl type to use for this scalar. |
 
 ### ObjectFieldDefinition
 
 The definition of a field in a user-defined object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
-| `type` | string | true | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
-| `description` | string | false | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
-
-
+| Name          | Type   | Required | Description                                                                                                                                                   |
+| ------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string | true     | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.         |
+| `type`        | string | true     | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string | false    | The description of this field. Gets added to the description of the field's definition in the graphql schema.                                                 |
 
 ### ObjectTypeGraphQLConfiguration
 
 GraphQL configuration of an Open DD object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
-| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context. |
-
-
+| Name            | Type          | Required  | Description                                                                                             |
+| --------------- | ------------- | --------- | ------------------------------------------------------------------------------------------------------- |
+| `typeName`      | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context.  |
 
 ### ColumnFieldMapping
 
 The target column in a data connector object that a source field maps to.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the target column |
-
-
+| Name   | Type   | Required | Description                   |
+| ------ | ------ | -------- | ----------------------------- |
+| `name` | string | true     | The name of the target column |
 
 ### undefined
 
 Source field directly maps to some column in the data connector.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `column` | [ColumnFieldMapping](#columnfieldmapping) | true |  |
+| Name     | Type                                      | Required | Description |
+| -------- | ----------------------------------------- | -------- | ----------- |
+| `column` | [ColumnFieldMapping](#columnfieldmapping) | true     |             |
 
+### ObjectFieldMapping
 
+[undefined](#undefined)
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | [undefined](#undefined) | No |  |
-
-
+| Name          | Type                                      | Required | Description |
+| ------------- | ----------------------------------------- | -------- | ----------- |
+| `<customKey>` | [ObjectFieldMapping](#objectfieldmapping) | false    |             |
 
 ### DataConnectorTypeMapping
 
-This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data connector.
+This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data
+connector.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true |  |
-| `dataConnectorObjectType` | string | true |  |
-| `fieldMapping` | [undefined](#undefined) | false |  |
-
-
+| Name                      | Type                    | Required | Description |
+| ------------------------- | ----------------------- | -------- | ----------- |
+| `dataConnectorName`       | string                  | true     |             |
+| `dataConnectorObjectType` | string                  | true     |             |
+| `fieldMapping`            | [undefined](#undefined) | false    |             |
 
 ### ObjectTypeV1
 
 Definition of a user-defined Open DD object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `fields` | [[ObjectFieldDefinition](#objectfielddefinition)] | true | The list of fields defined for this object type. |
-| `globalIdFields` | [string] | false | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
-| `graphql` | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
-| `description` | string | false | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
-| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)] | false | Mapping of this object type to corresponding object types in various data connectors. |
+| Name                       | Type                                                                     | Required | Description                                                                                                                                                                                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`                     | string                                                                   | true     | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.                                                                                                                                                      |
+| `fields`                   | [[ObjectFieldDefinition](#objectfielddefinition)]                        | true     | The list of fields defined for this object type.                                                                                                                                                                                                                                                 |
+| `globalIdFields`           | [string]                                                                 | false    | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql`                  | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false    | Configuration for how this object type should appear in the GraphQL schema.                                                                                                                                                                                                                      |
+| `description`              | string                                                                   | false    | The description of the object. Gets added to the description of the object's definition in the graphql schema.                                                                                                                                                                                   |
+| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)]                  | false    | Mapping of this object type to corresponding object types in various data connectors.                                                                                                                                                                                                            |
 
- **Example**
+**Example**
 
 ```yaml
 name: Author
@@ -444,105 +427,93 @@ dataConnectorTypeMapping:
           name: id
 ```
 
-
 ### ArgumentDefinition
 
 The definition of an argument for a field, command, or model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true |  |
-| `type` | string | true |  |
-| `description` | string | false |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `name`        | string | true     |             |
+| `type`        | string | true     |             |
+| `description` | string | false    |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | string | No |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `<customKey>` | string | false    |             |
 
 ### ModelSource
 
 Description of how a model maps to a particular data connector
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true | The name of the data connector backing this model. |
-| `collection` | string | true | The collection in the data connector that backs this model. |
-| `argumentMapping` | [undefined](#undefined) | false |  |
+| Name                | Type                    | Required | Description                                                 |
+| ------------------- | ----------------------- | -------- | ----------------------------------------------------------- |
+| `dataConnectorName` | string                  | true     | The name of the data connector backing this model.          |
+| `collection`        | string                  | true     | The collection in the data connector that backs this model. |
+| `argumentMapping`   | [undefined](#undefined) | false    |                                                             |
 
- **Example**
+**Example**
 
 ```yaml
 dataConnectorName: data_connector
 collection: articles
 ```
 
+### undefined
+
+| Name        | Type    | Required | Description |
+| ----------- | ------- | -------- | ----------- |
+| `enableAll` | boolean | true     |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `enableAll` | boolean | true |  |
+| Name             | Type     | Required | Description |
+| ---------------- | -------- | -------- | ----------- |
+| `enableSpecific` | [string] | true     |             |
 
+### EnableAllOrSpecific
 
-
-### undefined
-
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `enableSpecific` | [string] | true |  |
-
-
+[undefined](#undefined) / [undefined](#undefined)
 
 ### OrderableField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-| `orderByDirections` | [undefined](#undefined) / [undefined](#undefined) | true |  |
-
-
+| Name                | Type                                        | Required | Description |
+| ------------------- | ------------------------------------------- | -------- | ----------- |
+| `fieldName`         | string                                      | true     |             |
+| `orderByDirections` | [EnableAllOrSpecific](#enableallorspecific) | true     |             |
 
 ### SelectUniqueGraphQlDefinition
 
 The definition of the GraphQL API for selecting a unique row/object from a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `queryRootField` | string | true | The name of the query root field for this API. |
-| `uniqueIdentifier` | [string] | true | A set of fields which can uniquely identify a row/object in the model. |
-| `description` | string | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
-
-
+| Name               | Type     | Required | Description                                                                                                                                                             |
+| ------------------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryRootField`   | string   | true     | The name of the query root field for this API.                                                                                                                          |
+| `uniqueIdentifier` | [string] | true     | A set of fields which can uniquely identify a row/object in the model.                                                                                                  |
+| `description`      | string   | false    | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
 
 ### SelectManyGraphQlDefinition
 
 The definition of the GraphQL API for selecting rows from a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `queryRootField` | string | true | The name of the query root field for this API. |
-| `description` | string | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
-
-
+| Name             | Type   | Required | Description                                                                                                                                                         |
+| ---------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryRootField` | string | true     | The name of the query root field for this API.                                                                                                                      |
+| `description`    | string | false    | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
 
 ### ModelGraphQlDefinition
 
 The definition of how a model appears in the GraphQL API.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `selectUniques` | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)] | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany` | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType` | string / null | false | The type name of the input type used to hold the arguments of the model. |
-| `orderByExpressionType` | string / null | false | The type name of the order by expression input type. |
+| Name                    | Type                                                               | Required | Description                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectUniques`         | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)]  | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany`            | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType`    | string / null                                                      | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
+| `orderByExpressionType` | string / null                                                      | false    | The type name of the order by expression input type.                                                                                           |
 
- **Example**
+**Example**
 
 ```yaml
 selectUniques:
@@ -556,24 +527,24 @@ selectMany:
 orderByExpressionType: Article_Order_By
 ```
 
-
 ### ModelV1
 
-The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
+more CRUD operations.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the data model. |
-| `objectType` | string | true | The type of the objects of which this model is a collection. |
-| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
-| `arguments` | [[ArgumentDefinition](#argumentdefinition)] | false | A list of arguments accepted by this model. Defaults to no arguments. |
-| `source` | [ModelSource](#modelsource) / null | false | The source configuration for this model. |
-| `filterExpressionType` | string / null | false | The boolean expression type that should be used to perform filtering on this model. |
-| `orderableFields` | [[OrderableField](#orderablefield)] | true | A list of fields that can be used to order the objects in this model. |
-| `graphql` | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false | Configuration for how this model should appear in the GraphQL schema. |
-| `description` | string | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+| Name                   | Type                                                     | Required | Description                                                                                     |
+| ---------------------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `name`                 | string                                                   | true     | The name of the data model.                                                                     |
+| `objectType`           | string                                                   | true     | The type of the objects of which this model is a collection.                                    |
+| `globalIdSource`       | boolean                                                  | false    | Whether this model should be used as the global ID source for all objects of its type.          |
+| `arguments`            | [[ArgumentDefinition](#argumentdefinition)]              | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
+| `source`               | [ModelSource](#modelsource) / null                       | false    | The source configuration for this model.                                                        |
+| `filterExpressionType` | string / null                                            | false    | The boolean expression type that should be used to perform filtering on this model.             |
+| `orderableFields`      | [[OrderableField](#orderablefield)]                      | true     | A list of fields that can be used to order the objects in this model.                           |
+| `graphql`              | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false    | Configuration for how this model should appear in the GraphQL schema.                           |
+| `description`          | string                                                   | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: Articles
@@ -608,44 +579,43 @@ graphql:
 description: Description for the model Articles
 ```
 
-
 ### Function
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `function` | string | true |  |
-
-
+| Name       | Type   | Required | Description |
+| ---------- | ------ | -------- | ----------- |
+| `function` | string | true     |             |
 
 ### Procedure
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `procedure` | string | true |  |
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `procedure` | string | true     |             |
 
+### DataConnectorCommand
 
+The function/procedure in the data connector that backs this command.
+
+[Function](#function) / [Procedure](#procedure)
 
 ### undefined
 
 Mapping from command argument names to data connector table argument names.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | string | No |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `<customKey>` | string | false    |             |
 
 ### CommandSource
 
 Description of how a command maps to a particular data connector
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true | The name of the data connector backing this command. |
-| `dataConnectorCommand` | [Function](#function) / [Procedure](#procedure) | true | The function/procedure in the data connector that backs this command. |
-| `argumentMapping` | [undefined](#undefined) | false | Mapping from command argument names to data connector table argument names. |
+| Name                   | Type                                          | Required | Description                                                                 |
+| ---------------------- | --------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `dataConnectorName`    | string                                        | true     | The name of the data connector backing this command.                        |
+| `dataConnectorCommand` | [DataConnectorCommand](#dataconnectorcommand) | true     | The function/procedure in the data connector that backs this command.       |
+| `argumentMapping`      | [undefined](#undefined)                       | false    | Mapping from command argument names to data connector table argument names. |
 
- **Example**
+**Example**
 
 ```yaml
 dataConnectorName: data_connector
@@ -654,38 +624,37 @@ dataConnectorCommand:
 argumentMapping: {}
 ```
 
-
 ### CommandGraphQlDefinition
 
 The definition of how a command should appear in the GraphQL API.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `rootFieldName` | string | true | The name of the graphql root field to use for this command. |
-| `rootFieldKind` | string | true | Whether to put this command in the Query or Mutation root of the GraphQL API. |
+| Name            | Type   | Required | Description                                                                   |
+| --------------- | ------ | -------- | ----------------------------------------------------------------------------- |
+| `rootFieldName` | string | true     | The name of the graphql root field to use for this command.                   |
+| `rootFieldKind` | string | true     | Whether to put this command in the Query or Mutation root of the GraphQL API. |
 
- **Example**
+**Example**
 
 ```yaml
 rootFieldName: getLatestArticle
 rootFieldKind: Query
 ```
 
-
 ### CommandV1
 
-Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD.
+Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The
+semantics of a command are opaque to OpenDD.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the command. |
-| `outputType` | string | true | The return type of the command. |
-| `arguments` | [[ArgumentDefinition](#argumentdefinition)] | false | The list of arguments accepted by this command. Defaults to no arguments. |
-| `source` | [CommandSource](#commandsource) / null | false | The source configuration for this command. |
-| `graphql` | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false | Configuration for how this command should appear in the GraphQL schema. |
-| `description` | string | false | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
+| Name          | Type                                                         | Required | Description                                                                                                      |
+| ------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                       | true     | The name of the command.                                                                                         |
+| `outputType`  | string                                                       | true     | The return type of the command.                                                                                  |
+| `arguments`   | [[ArgumentDefinition](#argumentdefinition)]                  | false    | The list of arguments accepted by this command. Defaults to no arguments.                                        |
+| `source`      | [CommandSource](#commandsource) / null                       | false    | The source configuration for this command.                                                                       |
+| `graphql`     | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false    | Configuration for how this command should appear in the GraphQL schema.                                          |
+| `description` | string                                                       | false    | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: get_latest_article
@@ -701,16 +670,17 @@ graphql:
   rootFieldKind: Query
 description: Get the latest article
 ```
+
 ### TypePermissionsV1
 
 Definition of permissions for an OpenDD type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string | true | The name of the type for which permissions are being defined. Must be an object type. |
-| `permissions` | [[TypePermission](#typepermission)] | true | A list of type permissions, one for each role. |
+| Name          | Type                                | Required | Description                                                                           |
+| ------------- | ----------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `typeName`    | string                              | true     | The name of the type for which permissions are being defined. Must be an object type. |
+| `permissions` | [[TypePermission](#typepermission)] | true     | A list of type permissions, one for each role.                                        |
 
- **Example**
+**Example**
 
 ```yaml
 typeName: article
@@ -728,17 +698,16 @@ permissions:
         - author_id
 ```
 
-
 ### TypePermission
 
 Defines permissions for a particular role for a type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `output` | [TypeOutputPermission](#typeoutputpermission) / null | false | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
+| Name     | Type                                                 | Required | Description                                                                                                                                   |
+| -------- | ---------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | string                                               | true     | The role for which permissions are being defined.                                                                                             |
+| `output` | [TypeOutputPermission](#typeoutputpermission) / null | false    | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
 
- **Example**
+**Example**
 
 ```yaml
 role: user
@@ -748,31 +717,29 @@ output:
     - author_id
 ```
 
-
 ### TypeOutputPermission
 
 Permissions for a type for a particular role when used in an output context.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `allowedFields` | [string] | true | Fields of the type that are accessible for a role |
-
-
+| Name            | Type     | Required | Description                                       |
+| --------------- | -------- | -------- | ------------------------------------------------- |
+| `allowedFields` | [string] | true     | Fields of the type that are accessible for a role |
 
 ### CommandV1
 
-Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD.
+Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The
+semantics of a command are opaque to OpenDD.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the command. |
-| `outputType` | string | true | The return type of the command. |
-| `arguments` | [[ArgumentDefinition](#argumentdefinition)] | false | The list of arguments accepted by this command. Defaults to no arguments. |
-| `source` | [CommandSource](#commandsource) / null | false | The source configuration for this command. |
-| `graphql` | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false | Configuration for how this command should appear in the GraphQL schema. |
-| `description` | string | false | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
+| Name          | Type                                                         | Required | Description                                                                                                      |
+| ------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                       | true     | The name of the command.                                                                                         |
+| `outputType`  | string                                                       | true     | The return type of the command.                                                                                  |
+| `arguments`   | [[ArgumentDefinition](#argumentdefinition)]                  | false    | The list of arguments accepted by this command. Defaults to no arguments.                                        |
+| `source`      | [CommandSource](#commandsource) / null                       | false    | The source configuration for this command.                                                                       |
+| `graphql`     | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false    | Configuration for how this command should appear in the GraphQL schema.                                          |
+| `description` | string                                                       | false    | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: get_latest_article
@@ -789,35 +756,33 @@ graphql:
 description: Get the latest article
 ```
 
-
 ### CommandGraphQlDefinition
 
 The definition of how a command should appear in the GraphQL API.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `rootFieldName` | string | true | The name of the graphql root field to use for this command. |
-| `rootFieldKind` | string | true | Whether to put this command in the Query or Mutation root of the GraphQL API. |
+| Name            | Type   | Required | Description                                                                   |
+| --------------- | ------ | -------- | ----------------------------------------------------------------------------- |
+| `rootFieldName` | string | true     | The name of the graphql root field to use for this command.                   |
+| `rootFieldKind` | string | true     | Whether to put this command in the Query or Mutation root of the GraphQL API. |
 
- **Example**
+**Example**
 
 ```yaml
 rootFieldName: getLatestArticle
 rootFieldKind: Query
 ```
 
-
 ### CommandSource
 
 Description of how a command maps to a particular data connector
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true | The name of the data connector backing this command. |
-| `dataConnectorCommand` | [Function](#function) / [Procedure](#procedure) | true | The function/procedure in the data connector that backs this command. |
-| `argumentMapping` | [undefined](#undefined) | false | Mapping from command argument names to data connector table argument names. |
+| Name                   | Type                                          | Required | Description                                                                 |
+| ---------------------- | --------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `dataConnectorName`    | string                                        | true     | The name of the data connector backing this command.                        |
+| `dataConnectorCommand` | [DataConnectorCommand](#dataconnectorcommand) | true     | The function/procedure in the data connector that backs this command.       |
+| `argumentMapping`      | [undefined](#undefined)                       | false    | Mapping from command argument names to data connector table argument names. |
 
- **Example**
+**Example**
 
 ```yaml
 dataConnectorName: data_connector
@@ -826,50 +791,50 @@ dataConnectorCommand:
 argumentMapping: {}
 ```
 
-
 ### undefined
 
 Mapping from command argument names to data connector table argument names.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | string | No |  |
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `<customKey>` | string | false    |             |
 
+### DataConnectorCommand
 
+The function/procedure in the data connector that backs this command.
+
+[Function](#function) / [Procedure](#procedure)
 
 ### Procedure
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `procedure` | string | true |  |
-
-
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `procedure` | string | true     |             |
 
 ### Function
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `function` | string | true |  |
-
-
+| Name       | Type   | Required | Description |
+| ---------- | ------ | -------- | ----------- |
+| `function` | string | true     |             |
 
 ### ModelV1
 
-The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
+more CRUD operations.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the data model. |
-| `objectType` | string | true | The type of the objects of which this model is a collection. |
-| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
-| `arguments` | [[ArgumentDefinition](#argumentdefinition)] | false | A list of arguments accepted by this model. Defaults to no arguments. |
-| `source` | [ModelSource](#modelsource) / null | false | The source configuration for this model. |
-| `filterExpressionType` | string / null | false | The boolean expression type that should be used to perform filtering on this model. |
-| `orderableFields` | [[OrderableField](#orderablefield)] | true | A list of fields that can be used to order the objects in this model. |
-| `graphql` | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false | Configuration for how this model should appear in the GraphQL schema. |
-| `description` | string | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+| Name                   | Type                                                     | Required | Description                                                                                     |
+| ---------------------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `name`                 | string                                                   | true     | The name of the data model.                                                                     |
+| `objectType`           | string                                                   | true     | The type of the objects of which this model is a collection.                                    |
+| `globalIdSource`       | boolean                                                  | false    | Whether this model should be used as the global ID source for all objects of its type.          |
+| `arguments`            | [[ArgumentDefinition](#argumentdefinition)]              | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
+| `source`               | [ModelSource](#modelsource) / null                       | false    | The source configuration for this model.                                                        |
+| `filterExpressionType` | string / null                                            | false    | The boolean expression type that should be used to perform filtering on this model.             |
+| `orderableFields`      | [[OrderableField](#orderablefield)]                      | true     | A list of fields that can be used to order the objects in this model.                           |
+| `graphql`              | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false    | Configuration for how this model should appear in the GraphQL schema.                           |
+| `description`          | string                                                   | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: Articles
@@ -904,19 +869,18 @@ graphql:
 description: Description for the model Articles
 ```
 
-
 ### ModelGraphQlDefinition
 
 The definition of how a model appears in the GraphQL API.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `selectUniques` | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)] | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany` | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType` | string / null | false | The type name of the input type used to hold the arguments of the model. |
-| `orderByExpressionType` | string / null | false | The type name of the order by expression input type. |
+| Name                    | Type                                                               | Required | Description                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectUniques`         | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)]  | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany`            | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType`    | string / null                                                      | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
+| `orderByExpressionType` | string / null                                                      | false    | The type name of the order by expression input type.                                                                                           |
 
- **Example**
+**Example**
 
 ```yaml
 selectUniques:
@@ -930,107 +894,95 @@ selectMany:
 orderByExpressionType: Article_Order_By
 ```
 
-
 ### SelectManyGraphQlDefinition
 
 The definition of the GraphQL API for selecting rows from a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `queryRootField` | string | true | The name of the query root field for this API. |
-| `description` | string | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
-
-
+| Name             | Type   | Required | Description                                                                                                                                                         |
+| ---------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryRootField` | string | true     | The name of the query root field for this API.                                                                                                                      |
+| `description`    | string | false    | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
 
 ### SelectUniqueGraphQlDefinition
 
 The definition of the GraphQL API for selecting a unique row/object from a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `queryRootField` | string | true | The name of the query root field for this API. |
-| `uniqueIdentifier` | [string] | true | A set of fields which can uniquely identify a row/object in the model. |
-| `description` | string | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
-
-
+| Name               | Type     | Required | Description                                                                                                                                                             |
+| ------------------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryRootField`   | string   | true     | The name of the query root field for this API.                                                                                                                          |
+| `uniqueIdentifier` | [string] | true     | A set of fields which can uniquely identify a row/object in the model.                                                                                                  |
+| `description`      | string   | false    | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
 
 ### OrderableField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-| `orderByDirections` | [undefined](#undefined) / [undefined](#undefined) | true |  |
+| Name                | Type                                        | Required | Description |
+| ------------------- | ------------------------------------------- | -------- | ----------- |
+| `fieldName`         | string                                      | true     |             |
+| `orderByDirections` | [EnableAllOrSpecific](#enableallorspecific) | true     |             |
 
+### EnableAllOrSpecific
 
-
-### undefined
-
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `enableSpecific` | [string] | true |  |
-
-
+[undefined](#undefined) / [undefined](#undefined)
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `enableAll` | boolean | true |  |
+| Name             | Type     | Required | Description |
+| ---------------- | -------- | -------- | ----------- |
+| `enableSpecific` | [string] | true     |             |
 
+### undefined
 
+| Name        | Type    | Required | Description |
+| ----------- | ------- | -------- | ----------- |
+| `enableAll` | boolean | true     |             |
 
 ### ModelSource
 
 Description of how a model maps to a particular data connector
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true | The name of the data connector backing this model. |
-| `collection` | string | true | The collection in the data connector that backs this model. |
-| `argumentMapping` | [undefined](#undefined) | false |  |
+| Name                | Type                    | Required | Description                                                 |
+| ------------------- | ----------------------- | -------- | ----------------------------------------------------------- |
+| `dataConnectorName` | string                  | true     | The name of the data connector backing this model.          |
+| `collection`        | string                  | true     | The collection in the data connector that backs this model. |
+| `argumentMapping`   | [undefined](#undefined) | false    |                                                             |
 
- **Example**
+**Example**
 
 ```yaml
 dataConnectorName: data_connector
 collection: articles
 ```
 
-
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | string | No |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `<customKey>` | string | false    |             |
 
 ### ArgumentDefinition
 
 The definition of an argument for a field, command, or model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true |  |
-| `type` | string | true |  |
-| `description` | string | false |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `name`        | string | true     |             |
+| `type`        | string | true     |             |
+| `description` | string | false    |             |
 
 ### ObjectTypeV1
 
 Definition of a user-defined Open DD object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `fields` | [[ObjectFieldDefinition](#objectfielddefinition)] | true | The list of fields defined for this object type. |
-| `globalIdFields` | [string] | false | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
-| `graphql` | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
-| `description` | string | false | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
-| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)] | false | Mapping of this object type to corresponding object types in various data connectors. |
+| Name                       | Type                                                                     | Required | Description                                                                                                                                                                                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`                     | string                                                                   | true     | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.                                                                                                                                                      |
+| `fields`                   | [[ObjectFieldDefinition](#objectfielddefinition)]                        | true     | The list of fields defined for this object type.                                                                                                                                                                                                                                                 |
+| `globalIdFields`           | [string]                                                                 | false    | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql`                  | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false    | Configuration for how this object type should appear in the GraphQL schema.                                                                                                                                                                                                                      |
+| `description`              | string                                                                   | false    | The description of the object. Gets added to the description of the object's definition in the graphql schema.                                                                                                                                                                                   |
+| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)]                  | false    | Mapping of this object type to corresponding object types in various data connectors.                                                                                                                                                                                                            |
 
- **Example**
+**Example**
 
 ```yaml
 name: Author
@@ -1058,91 +1010,81 @@ dataConnectorTypeMapping:
           name: id
 ```
 
-
 ### DataConnectorTypeMapping
 
-This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data connector.
+This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data
+connector.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true |  |
-| `dataConnectorObjectType` | string | true |  |
-| `fieldMapping` | [undefined](#undefined) | false |  |
-
-
+| Name                      | Type                    | Required | Description |
+| ------------------------- | ----------------------- | -------- | ----------- |
+| `dataConnectorName`       | string                  | true     |             |
+| `dataConnectorObjectType` | string                  | true     |             |
+| `fieldMapping`            | [undefined](#undefined) | false    |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | [undefined](#undefined) | No |  |
+| Name          | Type                                      | Required | Description |
+| ------------- | ----------------------------------------- | -------- | ----------- |
+| `<customKey>` | [ObjectFieldMapping](#objectfieldmapping) | false    |             |
 
+### ObjectFieldMapping
 
+[undefined](#undefined)
 
 ### undefined
 
 Source field directly maps to some column in the data connector.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `column` | [ColumnFieldMapping](#columnfieldmapping) | true |  |
-
-
+| Name     | Type                                      | Required | Description |
+| -------- | ----------------------------------------- | -------- | ----------- |
+| `column` | [ColumnFieldMapping](#columnfieldmapping) | true     |             |
 
 ### ColumnFieldMapping
 
 The target column in a data connector object that a source field maps to.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the target column |
-
-
+| Name   | Type   | Required | Description                   |
+| ------ | ------ | -------- | ----------------------------- |
+| `name` | string | true     | The name of the target column |
 
 ### ObjectTypeGraphQLConfiguration
 
 GraphQL configuration of an Open DD object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
-| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context. |
-
-
+| Name            | Type          | Required  | Description                                                                                             |
+| --------------- | ------------- | --------- | ------------------------------------------------------------------------------------------------------- |
+| `typeName`      | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context.  |
 
 ### ObjectFieldDefinition
 
 The definition of a field in a user-defined object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
-| `type` | string | true | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
-| `description` | string | false | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
-
-
+| Name          | Type   | Required | Description                                                                                                                                                   |
+| ------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string | true     | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.         |
+| `type`        | string | true     | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string | false    | The description of this field. Gets added to the description of the field's definition in the graphql schema.                                                 |
 
 ### ScalarTypeGraphQLConfiguration
 
 GraphQL configuration of an Open DD scalar type
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string | true | The name of the GraphQl type to use for this scalar. |
-
-
+| Name       | Type   | Required | Description                                          |
+| ---------- | ------ | -------- | ---------------------------------------------------- |
+| `typeName` | string | true     | The name of the GraphQl type to use for this scalar. |
 
 ### ScalarTypeV1
 
 Definition of a user-defined scalar type that that has opaque semantics.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `graphql` | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false | Configuration for how this scalar type should appear in the GraphQL schema. |
-| `description` | string | false | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
+| Name          | Type                                                                     | Required | Description                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                                   | true     | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `graphql`     | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false    | Configuration for how this scalar type should appear in the GraphQL schema.                                                                 |
+| `description` | string                                                                   | false    | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema.                             |
 
- **Example**
+**Example**
 
 ```yaml
 name: CustomString
@@ -1151,121 +1093,126 @@ graphql:
 description: A custom string type
 ```
 
+### RelationshipType
+
+Type of the relationship.
+
+string / string
 
 ### ModelRelationshipTarget
 
 The target model for a relationship.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the data model. |
-| `namespace` | string | false |  |
-| `subgraph` | string | false | The subgraph of the target model. Defaults to the current subgraph. |
-| `relationshipType` | string / string | true | Type of the relationship - object or array. |
-
-
+| Name               | Type                                  | Required | Description                                                         |
+| ------------------ | ------------------------------------- | -------- | ------------------------------------------------------------------- |
+| `name`             | string                                | true     | The name of the data model.                                         |
+| `namespace`        | string                                | false    |                                                                     |
+| `subgraph`         | string                                | false    | The subgraph of the target model. Defaults to the current subgraph. |
+| `relationshipType` | [RelationshipType](#relationshiptype) | true     | Type of the relationship - object or array.                         |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true |  |
-
-
+| Name    | Type                                                | Required | Description |
+| ------- | --------------------------------------------------- | -------- | ----------- |
+| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true     |             |
 
 ### CommandRelationshipTarget
 
 The target command for a relationship.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the command. |
-| `subgraph` | string | false | The subgraph of the target command. Defaults to the current subgraph. |
-
-
+| Name       | Type   | Required | Description                                                           |
+| ---------- | ------ | -------- | --------------------------------------------------------------------- |
+| `name`     | string | true     | The name of the command.                                              |
+| `subgraph` | string | false    | The subgraph of the target command. Defaults to the current subgraph. |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true |  |
+| Name      | Type                                                    | Required | Description |
+| --------- | ------------------------------------------------------- | -------- | ----------- |
+| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true     |             |
 
+### RelationshipTarget
 
+The target for a relationship.
+
+[undefined](#undefined) / [undefined](#undefined)
 
 ### Literal
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `literal` |  | true |  |
-
-
+| Name      | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `literal` |      | true     |             |
 
 ### SessionVariable
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `sessionVariable` | string | true |  |
+| Name              | Type   | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `sessionVariable` | string | true     |             |
 
+### ValueExpression
 
+An expression which evaluates to a value that can be used in permissions.
+
+[Literal](#literal) / [SessionVariable](#sessionvariable)
 
 ### SourceValue
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `value` | [Literal](#literal) / [SessionVariable](#sessionvariable) | true |  |
-
-
+| Name    | Type                                | Required | Description |
+| ------- | ----------------------------------- | -------- | ----------- |
+| `value` | [ValueExpression](#valueexpression) | true     |             |
 
 ### RelationshipSourceFieldAccess
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-
-
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `fieldName` | string | true     |             |
 
 ### SourceField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true |  |
+| Name        | Type                                                              | Required | Description |
+| ----------- | ----------------------------------------------------------------- | -------- | ----------- |
+| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
 
+### RelationshipMappingSource
 
+The source configuration for a relationship mapping.
+
+[SourceValue](#sourcevalue) / [SourceField](#sourcefield)
 
 ### ArgumentMappingTarget
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `argumentName` | string | true |  |
-
-
+| Name           | Type   | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `argumentName` | string | true     |             |
 
 ### TargetArgument
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true |  |
-
-
+| Name       | Type                                            | Required | Description |
+| ---------- | ----------------------------------------------- | -------- | ----------- |
+| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true     |             |
 
 ### TargetModelField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true |  |
+| Name         | Type                                                              | Required | Description |
+| ------------ | ----------------------------------------------------------------- | -------- | ----------- |
+| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
 
+### RelationshipMappingTarget
 
+The target configuration for a relationship mapping.
+
+[TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield)
 
 ### RelationshipMapping
 
 Definition of a how a particular field in the source maps to a target field or argument.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `source` | [SourceValue](#sourcevalue) / [SourceField](#sourcefield) | true | The source configuration for this relationship mapping. |
-| `target` | [TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield) | true | The target configuration for this relationship mapping. |
+| Name     | Type                                                    | Required | Description                                             |
+| -------- | ------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `source` | [RelationshipMappingSource](#relationshipmappingsource) | true     | The source configuration for this relationship mapping. |
+| `target` | [RelationshipMappingTarget](#relationshipmappingtarget) | true     | The target configuration for this relationship mapping. |
 
- **Example**
+**Example**
 
 ```yaml
 source:
@@ -1276,20 +1223,19 @@ target:
     - fieldName: author_id
 ```
 
-
 ### RelationshipV1
 
 Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the relationship. |
-| `source` | string | true | The source type of the relationship. |
-| `target` | [undefined](#undefined) / [undefined](#undefined) | true | The target of the relationship. |
-| `mapping` | [[RelationshipMapping](#relationshipmapping)] | true | The mapping configuration of source to target for the relationship. |
-| `description` | string | false | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
+| Name          | Type                                          | Required | Description                                                                                                   |
+| ------------- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                        | true     | The name of the relationship.                                                                                 |
+| `source`      | string                                        | true     | The source type of the relationship.                                                                          |
+| `target`      | [RelationshipTarget](#relationshiptarget)     | true     | The target of the relationship.                                                                               |
+| `mapping`     | [[RelationshipMapping](#relationshipmapping)] | true     | The mapping configuration of source to target for the relationship.                                           |
+| `description` | string                                        | false    | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: Articles
@@ -1310,116 +1256,107 @@ mapping:
 description: Articles written by an author
 ```
 
-
 ### FieldComparisonPredicate
 
 Field comparision predicate filters objects based on a field value.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true | The field name of the object type of the model to compare. |
-| `operator` | string | true | The name of the operator to use for comparison. |
-| `value` | [Literal](#literal) / [SessionVariable](#sessionvariable) | true | The value expression to compare against. |
-
-
+| Name       | Type                                | Required | Description                                                |
+| ---------- | ----------------------------------- | -------- | ---------------------------------------------------------- |
+| `field`    | string                              | true     | The field name of the object type of the model to compare. |
+| `operator` | string                              | true     | The name of the operator to use for comparison.            |
+| `value`    | [ValueExpression](#valueexpression) | true     | The value expression to compare against.                   |
 
 ### undefined
 
 Filters objects based on a field value.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true |  |
-
-
+| Name              | Type                                                  | Required | Description |
+| ----------------- | ----------------------------------------------------- | -------- | ----------- |
+| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true     |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true |  |
-
-
+| Name    | Type   | Required | Description |
+| ------- | ------ | -------- | ----------- |
+| `field` | string | true     |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldIsNull` | [undefined](#undefined) | true |  |
-
-
+| Name          | Type                    | Required | Description |
+| ------------- | ----------------------- | -------- | ----------- |
+| `fieldIsNull` | [undefined](#undefined) | true     |             |
 
 ### RelationshipPredicate
 
 Relationship predicate filters objects of a source model based on a predicate on the related model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the relationship of the object type of the model to follow. |
-| `predicate` | [ModelPredicate](#modelpredicate) / null | false | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
-
-
+| Name        | Type                                     | Required | Description                                                                                                                                                   |
+| ----------- | ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`      | string                                   | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
+| `predicate` | [ModelPredicate](#modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
 ### undefined
 
 Filters objects based on the relationship of a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `relationship` | [RelationshipPredicate](#relationshippredicate) | true |  |
-
-
+| Name           | Type                                            | Required | Description |
+| -------------- | ----------------------------------------------- | -------- | ----------- |
+| `relationship` | [RelationshipPredicate](#relationshippredicate) | true     |             |
 
 ### And
 
 Evaluates to true if all sub-predicates evaluate to true.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `and` | [[ModelPredicate](#modelpredicate)] | true |  |
-
-
+| Name  | Type                                | Required | Description |
+| ----- | ----------------------------------- | -------- | ----------- |
+| `and` | [[ModelPredicate](#modelpredicate)] | true     |             |
 
 ### Or
 
 Evaluates to true if any of the sub-predicates evaluate to true.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `or` | [[ModelPredicate](#modelpredicate)] | true |  |
-
-
+| Name | Type                                | Required | Description |
+| ---- | ----------------------------------- | -------- | ----------- |
+| `or` | [[ModelPredicate](#modelpredicate)] | true     |             |
 
 ### Not
 
 Evaluates to true if the sub-predicate evaluates to false.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `not` | [ModelPredicate](#modelpredicate) | true |  |
+| Name  | Type                              | Required | Description |
+| ----- | --------------------------------- | -------- | ----------- |
+| `not` | [ModelPredicate](#modelpredicate) | true     |             |
 
+### ModelPredicate
 
+A predicate that can be used to restrict the objects returned when querying a model.
+
+[undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not)
+
+### NullableModelPredicate
+
+Filter expression when selecting rows for this model. Null filter implies all rows are selectable.
+
+null / [ModelPredicate](#modelpredicate)
 
 ### SelectPermission
 
 Defines the permissions for selecting a model for a role.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `filter` | null / [undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not) | true | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
-
-
+| Name     | Type                                              | Required | Description                                                                                        |
+| -------- | ------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `filter` | [NullableModelPredicate](#nullablemodelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
 
 ### ModelPermission
 
 Defines the permissions for an OpenDD model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `select` | [SelectPermission](#selectpermission) / null | false | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
+| Name     | Type                                         | Required | Description                                                                                                               |
+| -------- | -------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | string                                       | true     | The role for which permissions are being defined.                                                                         |
+| `select` | [SelectPermission](#selectpermission) / null | false    | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
 
- **Example**
+**Example**
 
 ```yaml
 role: user
@@ -1432,17 +1369,16 @@ select:
         sessionVariable: x-hasura-user-id
 ```
 
-
 ### ModelPermissionsV1
 
 Definition of permissions for an OpenDD model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `modelName` | string | true | The name of the model for which permissions are being defined. |
-| `permissions` | [[ModelPermission](#modelpermission)] | true | A list of model permissions, one for each role. |
+| Name          | Type                                  | Required | Description                                                    |
+| ------------- | ------------------------------------- | -------- | -------------------------------------------------------------- |
+| `modelName`   | string                                | true     | The name of the model for which permissions are being defined. |
+| `permissions` | [[ModelPermission](#modelpermission)] | true     | A list of model permissions, one for each role.                |
 
- **Example**
+**Example**
 
 ```yaml
 modelName: Articles
@@ -1459,16 +1395,17 @@ permissions:
           value:
             sessionVariable: x-hasura-user-id
 ```
+
 ### CommandPermissionsV1
 
 Definition of permissions for an OpenDD command.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `commandName` | string | true | The name of the command for which permissions are being defined. |
-| `permissions` | [[CommandPermission](#commandpermission)] | true | A list of command permissions, one for each role. |
+| Name          | Type                                      | Required | Description                                                      |
+| ------------- | ----------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `commandName` | string                                    | true     | The name of the command for which permissions are being defined. |
+| `permissions` | [[CommandPermission](#commandpermission)] | true     | A list of command permissions, one for each role.                |
 
- **Example**
+**Example**
 
 ```yaml
 commandName: get_article_by_id
@@ -1479,34 +1416,32 @@ permissions:
     allowExecution: true
 ```
 
-
 ### CommandPermission
 
 Defines the permissions for a role for a command.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `allowExecution` | boolean | true | Whether the command is executable by the role. |
+| Name             | Type    | Required | Description                                       |
+| ---------------- | ------- | -------- | ------------------------------------------------- |
+| `role`           | string  | true     | The role for which permissions are being defined. |
+| `allowExecution` | boolean | true     | Whether the command is executable by the role.    |
 
- **Example**
+**Example**
 
 ```yaml
 role: user
 allowExecution: true
 ```
 
-
 ### ModelPermissionsV1
 
 Definition of permissions for an OpenDD model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `modelName` | string | true | The name of the model for which permissions are being defined. |
-| `permissions` | [[ModelPermission](#modelpermission)] | true | A list of model permissions, one for each role. |
+| Name          | Type                                  | Required | Description                                                    |
+| ------------- | ------------------------------------- | -------- | -------------------------------------------------------------- |
+| `modelName`   | string                                | true     | The name of the model for which permissions are being defined. |
+| `permissions` | [[ModelPermission](#modelpermission)] | true     | A list of model permissions, one for each role.                |
 
- **Example**
+**Example**
 
 ```yaml
 modelName: Articles
@@ -1524,17 +1459,16 @@ permissions:
             sessionVariable: x-hasura-user-id
 ```
 
-
 ### ModelPermission
 
 Defines the permissions for an OpenDD model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `select` | [SelectPermission](#selectpermission) / null | false | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
+| Name     | Type                                         | Required | Description                                                                                                               |
+| -------- | -------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | string                                       | true     | The role for which permissions are being defined.                                                                         |
+| `select` | [SelectPermission](#selectpermission) / null | false    | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
 
- **Example**
+**Example**
 
 ```yaml
 role: user
@@ -1547,119 +1481,110 @@ select:
         sessionVariable: x-hasura-user-id
 ```
 
-
 ### SelectPermission
 
 Defines the permissions for selecting a model for a role.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `filter` | null / [undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not) | true | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
+| Name     | Type                                              | Required | Description                                                                                        |
+| -------- | ------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `filter` | [NullableModelPredicate](#nullablemodelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
 
+### NullableModelPredicate
 
+Filter expression when selecting rows for this model. Null filter implies all rows are selectable.
+
+null / [ModelPredicate](#modelpredicate)
+
+### ModelPredicate
+
+A predicate that can be used to restrict the objects returned when querying a model.
+
+[undefined](#undefined) / [undefined](#undefined) / [undefined](#undefined) / [And](#and) / [Or](#or) / [Not](#not)
 
 ### Not
 
 Evaluates to true if the sub-predicate evaluates to false.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `not` | [ModelPredicate](#modelpredicate) | true |  |
-
-
+| Name  | Type                              | Required | Description |
+| ----- | --------------------------------- | -------- | ----------- |
+| `not` | [ModelPredicate](#modelpredicate) | true     |             |
 
 ### Or
 
 Evaluates to true if any of the sub-predicates evaluate to true.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `or` | [[ModelPredicate](#modelpredicate)] | true |  |
-
-
+| Name | Type                                | Required | Description |
+| ---- | ----------------------------------- | -------- | ----------- |
+| `or` | [[ModelPredicate](#modelpredicate)] | true     |             |
 
 ### And
 
 Evaluates to true if all sub-predicates evaluate to true.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `and` | [[ModelPredicate](#modelpredicate)] | true |  |
-
-
+| Name  | Type                                | Required | Description |
+| ----- | ----------------------------------- | -------- | ----------- |
+| `and` | [[ModelPredicate](#modelpredicate)] | true     |             |
 
 ### undefined
 
 Filters objects based on the relationship of a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `relationship` | [RelationshipPredicate](#relationshippredicate) | true |  |
-
-
+| Name           | Type                                            | Required | Description |
+| -------------- | ----------------------------------------------- | -------- | ----------- |
+| `relationship` | [RelationshipPredicate](#relationshippredicate) | true     |             |
 
 ### RelationshipPredicate
 
 Relationship predicate filters objects of a source model based on a predicate on the related model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the relationship of the object type of the model to follow. |
-| `predicate` | [ModelPredicate](#modelpredicate) / null | false | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
-
-
+| Name        | Type                                     | Required | Description                                                                                                                                                   |
+| ----------- | ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`      | string                                   | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
+| `predicate` | [ModelPredicate](#modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldIsNull` | [undefined](#undefined) | true |  |
-
-
+| Name          | Type                    | Required | Description |
+| ------------- | ----------------------- | -------- | ----------- |
+| `fieldIsNull` | [undefined](#undefined) | true     |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true |  |
-
-
+| Name    | Type   | Required | Description |
+| ------- | ------ | -------- | ----------- |
+| `field` | string | true     |             |
 
 ### undefined
 
 Filters objects based on a field value.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true |  |
-
-
+| Name              | Type                                                  | Required | Description |
+| ----------------- | ----------------------------------------------------- | -------- | ----------- |
+| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | true     |             |
 
 ### FieldComparisonPredicate
 
 Field comparision predicate filters objects based on a field value.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true | The field name of the object type of the model to compare. |
-| `operator` | string | true | The name of the operator to use for comparison. |
-| `value` | [Literal](#literal) / [SessionVariable](#sessionvariable) | true | The value expression to compare against. |
-
-
+| Name       | Type                                | Required | Description                                                |
+| ---------- | ----------------------------------- | -------- | ---------------------------------------------------------- |
+| `field`    | string                              | true     | The field name of the object type of the model to compare. |
+| `operator` | string                              | true     | The name of the operator to use for comparison.            |
+| `value`    | [ValueExpression](#valueexpression) | true     | The value expression to compare against.                   |
 
 ### RelationshipV1
 
 Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the relationship. |
-| `source` | string | true | The source type of the relationship. |
-| `target` | [undefined](#undefined) / [undefined](#undefined) | true | The target of the relationship. |
-| `mapping` | [[RelationshipMapping](#relationshipmapping)] | true | The mapping configuration of source to target for the relationship. |
-| `description` | string | false | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
+| Name          | Type                                          | Required | Description                                                                                                   |
+| ------------- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                        | true     | The name of the relationship.                                                                                 |
+| `source`      | string                                        | true     | The source type of the relationship.                                                                          |
+| `target`      | [RelationshipTarget](#relationshiptarget)     | true     | The target of the relationship.                                                                               |
+| `mapping`     | [[RelationshipMapping](#relationshipmapping)] | true     | The mapping configuration of source to target for the relationship.                                           |
+| `description` | string                                        | false    | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: Articles
@@ -1680,17 +1605,16 @@ mapping:
 description: Articles written by an author
 ```
 
-
 ### RelationshipMapping
 
 Definition of a how a particular field in the source maps to a target field or argument.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `source` | [SourceValue](#sourcevalue) / [SourceField](#sourcefield) | true | The source configuration for this relationship mapping. |
-| `target` | [TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield) | true | The target configuration for this relationship mapping. |
+| Name     | Type                                                    | Required | Description                                             |
+| -------- | ------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `source` | [RelationshipMappingSource](#relationshipmappingsource) | true     | The source configuration for this relationship mapping. |
+| `target` | [RelationshipMappingTarget](#relationshipmappingtarget) | true     | The target configuration for this relationship mapping. |
 
- **Example**
+**Example**
 
 ```yaml
 source:
@@ -1701,122 +1625,127 @@ target:
     - fieldName: author_id
 ```
 
+### RelationshipMappingTarget
+
+The target configuration for a relationship mapping.
+
+[TargetArgument](#targetargument) / [TargetModelField](#targetmodelfield)
 
 ### TargetModelField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true |  |
-
-
+| Name         | Type                                                              | Required | Description |
+| ------------ | ----------------------------------------------------------------- | -------- | ----------- |
+| `modelField` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
 
 ### TargetArgument
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true |  |
-
-
+| Name       | Type                                            | Required | Description |
+| ---------- | ----------------------------------------------- | -------- | ----------- |
+| `argument` | [ArgumentMappingTarget](#argumentmappingtarget) | true     |             |
 
 ### ArgumentMappingTarget
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `argumentName` | string | true |  |
+| Name           | Type   | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `argumentName` | string | true     |             |
 
+### RelationshipMappingSource
 
+The source configuration for a relationship mapping.
+
+[SourceValue](#sourcevalue) / [SourceField](#sourcefield)
 
 ### SourceField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true |  |
-
-
+| Name        | Type                                                              | Required | Description |
+| ----------- | ----------------------------------------------------------------- | -------- | ----------- |
+| `fieldPath` | [[RelationshipSourceFieldAccess](#relationshipsourcefieldaccess)] | true     |             |
 
 ### RelationshipSourceFieldAccess
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-
-
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `fieldName` | string | true     |             |
 
 ### SourceValue
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `value` | [Literal](#literal) / [SessionVariable](#sessionvariable) | true |  |
+| Name    | Type                                | Required | Description |
+| ------- | ----------------------------------- | -------- | ----------- |
+| `value` | [ValueExpression](#valueexpression) | true     |             |
 
+### ValueExpression
 
+An expression which evaluates to a value that can be used in permissions.
+
+[Literal](#literal) / [SessionVariable](#sessionvariable)
 
 ### SessionVariable
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `sessionVariable` | string | true |  |
-
-
+| Name              | Type   | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `sessionVariable` | string | true     |             |
 
 ### Literal
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `literal` |  | true |  |
+| Name      | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `literal` |      | true     |             |
 
+### RelationshipTarget
 
+The target for a relationship.
+
+[undefined](#undefined) / [undefined](#undefined)
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true |  |
-
-
+| Name      | Type                                                    | Required | Description |
+| --------- | ------------------------------------------------------- | -------- | ----------- |
+| `command` | [CommandRelationshipTarget](#commandrelationshiptarget) | true     |             |
 
 ### CommandRelationshipTarget
 
 The target command for a relationship.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the command. |
-| `subgraph` | string | false | The subgraph of the target command. Defaults to the current subgraph. |
-
-
+| Name       | Type   | Required | Description                                                           |
+| ---------- | ------ | -------- | --------------------------------------------------------------------- |
+| `name`     | string | true     | The name of the command.                                              |
+| `subgraph` | string | false    | The subgraph of the target command. Defaults to the current subgraph. |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true |  |
-
-
+| Name    | Type                                                | Required | Description |
+| ------- | --------------------------------------------------- | -------- | ----------- |
+| `model` | [ModelRelationshipTarget](#modelrelationshiptarget) | true     |             |
 
 ### ModelRelationshipTarget
 
 The target model for a relationship.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the data model. |
-| `namespace` | string | false |  |
-| `subgraph` | string | false | The subgraph of the target model. Defaults to the current subgraph. |
-| `relationshipType` | string / string | true | Type of the relationship - object or array. |
+| Name               | Type                                  | Required | Description                                                         |
+| ------------------ | ------------------------------------- | -------- | ------------------------------------------------------------------- |
+| `name`             | string                                | true     | The name of the data model.                                         |
+| `namespace`        | string                                | false    |                                                                     |
+| `subgraph`         | string                                | false    | The subgraph of the target model. Defaults to the current subgraph. |
+| `relationshipType` | [RelationshipType](#relationshiptype) | true     | Type of the relationship - object or array.                         |
 
+### RelationshipType
 
+Type of the relationship.
+
+string / string
 
 ### ScalarTypeV1
 
 Definition of a user-defined scalar type that that has opaque semantics.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `graphql` | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false | Configuration for how this scalar type should appear in the GraphQL schema. |
-| `description` | string | false | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema. |
+| Name          | Type                                                                     | Required | Description                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                                   | true     | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `graphql`     | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false    | Configuration for how this scalar type should appear in the GraphQL schema.                                                                 |
+| `description` | string                                                                   | false    | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema.                             |
 
- **Example**
+**Example**
 
 ```yaml
 name: CustomString
@@ -1825,94 +1754,84 @@ graphql:
 description: A custom string type
 ```
 
-
 ### ScalarTypeGraphQLConfiguration
 
 GraphQL configuration of an Open DD scalar type
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string | true | The name of the GraphQl type to use for this scalar. |
-
-
+| Name       | Type   | Required | Description                                          |
+| ---------- | ------ | -------- | ---------------------------------------------------- |
+| `typeName` | string | true     | The name of the GraphQl type to use for this scalar. |
 
 ### ObjectFieldDefinition
 
 The definition of a field in a user-defined object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type. |
-| `type` | string | true | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
-| `description` | string | false | The description of this field. Gets added to the description of the field's definition in the graphql schema. |
-
-
+| Name          | Type   | Required | Description                                                                                                                                                   |
+| ------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string | true     | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.         |
+| `type`        | string | true     | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string | false    | The description of this field. Gets added to the description of the field's definition in the graphql schema.                                                 |
 
 ### ObjectTypeGraphQLConfiguration
 
 GraphQL configuration of an Open DD object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
-| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context. |
-
-
+| Name            | Type          | Required  | Description                                                                                             |
+| --------------- | ------------- | --------- | ------------------------------------------------------------------------------------------------------- |
+| `typeName`      | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName` | string / null | undefined | The name to use for the GraphQL type representation of this object type when used in an input context.  |
 
 ### ColumnFieldMapping
 
 The target column in a data connector object that a source field maps to.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the target column |
-
-
+| Name   | Type   | Required | Description                   |
+| ------ | ------ | -------- | ----------------------------- |
+| `name` | string | true     | The name of the target column |
 
 ### undefined
 
 Source field directly maps to some column in the data connector.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `column` | [ColumnFieldMapping](#columnfieldmapping) | true |  |
+| Name     | Type                                      | Required | Description |
+| -------- | ----------------------------------------- | -------- | ----------- |
+| `column` | [ColumnFieldMapping](#columnfieldmapping) | true     |             |
 
+### ObjectFieldMapping
 
+[undefined](#undefined)
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | [undefined](#undefined) | No |  |
-
-
+| Name          | Type                                      | Required | Description |
+| ------------- | ----------------------------------------- | -------- | ----------- |
+| `<customKey>` | [ObjectFieldMapping](#objectfieldmapping) | false    |             |
 
 ### DataConnectorTypeMapping
 
-This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data connector.
+This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data
+connector.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true |  |
-| `dataConnectorObjectType` | string | true |  |
-| `fieldMapping` | [undefined](#undefined) | false |  |
-
-
+| Name                      | Type                    | Required | Description |
+| ------------------------- | ----------------------- | -------- | ----------- |
+| `dataConnectorName`       | string                  | true     |             |
+| `dataConnectorObjectType` | string                  | true     |             |
+| `fieldMapping`            | [undefined](#undefined) | false    |             |
 
 ### ObjectTypeV1
 
 Definition of a user-defined Open DD object type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `fields` | [[ObjectFieldDefinition](#objectfielddefinition)] | true | The list of fields defined for this object type. |
-| `globalIdFields` | [string] | false | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
-| `graphql` | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false | Configuration for how this object type should appear in the GraphQL schema. |
-| `description` | string | false | The description of the object. Gets added to the description of the object's definition in the graphql schema. |
-| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)] | false | Mapping of this object type to corresponding object types in various data connectors. |
+| Name                       | Type                                                                     | Required | Description                                                                                                                                                                                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`                     | string                                                                   | true     | The name to give this object type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.                                                                                                                                                      |
+| `fields`                   | [[ObjectFieldDefinition](#objectfielddefinition)]                        | true     | The list of fields defined for this object type.                                                                                                                                                                                                                                                 |
+| `globalIdFields`           | [string]                                                                 | false    | The subset of fields that uniquely identify this object in the domain. Setting this property will automatically implement the GraphQL Relay Node interface for this object type and add an `id` global ID field. If setting this property, there must not be a field named `id` already present. |
+| `graphql`                  | [ObjectTypeGraphQLConfiguration](#objecttypegraphqlconfiguration) / null | false    | Configuration for how this object type should appear in the GraphQL schema.                                                                                                                                                                                                                      |
+| `description`              | string                                                                   | false    | The description of the object. Gets added to the description of the object's definition in the graphql schema.                                                                                                                                                                                   |
+| `dataConnectorTypeMapping` | [[DataConnectorTypeMapping](#dataconnectortypemapping)]                  | false    | Mapping of this object type to corresponding object types in various data connectors.                                                                                                                                                                                                            |
 
- **Example**
+**Example**
 
 ```yaml
 name: Author
@@ -1940,105 +1859,93 @@ dataConnectorTypeMapping:
           name: id
 ```
 
-
 ### ArgumentDefinition
 
 The definition of an argument for a field, command, or model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true |  |
-| `type` | string | true |  |
-| `description` | string | false |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `name`        | string | true     |             |
+| `type`        | string | true     |             |
+| `description` | string | false    |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | string | No |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `<customKey>` | string | false    |             |
 
 ### ModelSource
 
 Description of how a model maps to a particular data connector
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true | The name of the data connector backing this model. |
-| `collection` | string | true | The collection in the data connector that backs this model. |
-| `argumentMapping` | [undefined](#undefined) | false |  |
+| Name                | Type                    | Required | Description                                                 |
+| ------------------- | ----------------------- | -------- | ----------------------------------------------------------- |
+| `dataConnectorName` | string                  | true     | The name of the data connector backing this model.          |
+| `collection`        | string                  | true     | The collection in the data connector that backs this model. |
+| `argumentMapping`   | [undefined](#undefined) | false    |                                                             |
 
- **Example**
+**Example**
 
 ```yaml
 dataConnectorName: data_connector
 collection: articles
 ```
 
+### undefined
+
+| Name        | Type    | Required | Description |
+| ----------- | ------- | -------- | ----------- |
+| `enableAll` | boolean | true     |             |
 
 ### undefined
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `enableAll` | boolean | true |  |
+| Name             | Type     | Required | Description |
+| ---------------- | -------- | -------- | ----------- |
+| `enableSpecific` | [string] | true     |             |
 
+### EnableAllOrSpecific
 
-
-### undefined
-
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `enableSpecific` | [string] | true |  |
-
-
+[undefined](#undefined) / [undefined](#undefined)
 
 ### OrderableField
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-| `orderByDirections` | [undefined](#undefined) / [undefined](#undefined) | true |  |
-
-
+| Name                | Type                                        | Required | Description |
+| ------------------- | ------------------------------------------- | -------- | ----------- |
+| `fieldName`         | string                                      | true     |             |
+| `orderByDirections` | [EnableAllOrSpecific](#enableallorspecific) | true     |             |
 
 ### SelectUniqueGraphQlDefinition
 
 The definition of the GraphQL API for selecting a unique row/object from a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `queryRootField` | string | true | The name of the query root field for this API. |
-| `uniqueIdentifier` | [string] | true | A set of fields which can uniquely identify a row/object in the model. |
-| `description` | string | false | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
-
-
+| Name               | Type     | Required | Description                                                                                                                                                             |
+| ------------------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryRootField`   | string   | true     | The name of the query root field for this API.                                                                                                                          |
+| `uniqueIdentifier` | [string] | true     | A set of fields which can uniquely identify a row/object in the model.                                                                                                  |
+| `description`      | string   | false    | The description of the select unique graphql definition of the model. Gets added to the description of the select unique root field of the model in the graphql schema. |
 
 ### SelectManyGraphQlDefinition
 
 The definition of the GraphQL API for selecting rows from a model.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `queryRootField` | string | true | The name of the query root field for this API. |
-| `description` | string | false | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
-
-
+| Name             | Type   | Required | Description                                                                                                                                                         |
+| ---------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryRootField` | string | true     | The name of the query root field for this API.                                                                                                                      |
+| `description`    | string | false    | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
 
 ### ModelGraphQlDefinition
 
 The definition of how a model appears in the GraphQL API.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `selectUniques` | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)] | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany` | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType` | string / null | false | The type name of the input type used to hold the arguments of the model. |
-| `orderByExpressionType` | string / null | false | The type name of the order by expression input type. |
+| Name                    | Type                                                               | Required | Description                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectUniques`         | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)]  | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany`            | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType`    | string / null                                                      | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
+| `orderByExpressionType` | string / null                                                      | false    | The type name of the order by expression input type.                                                                                           |
 
- **Example**
+**Example**
 
 ```yaml
 selectUniques:
@@ -2052,24 +1959,24 @@ selectMany:
 orderByExpressionType: Article_Order_By
 ```
 
-
 ### ModelV1
 
-The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
+more CRUD operations.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the data model. |
-| `objectType` | string | true | The type of the objects of which this model is a collection. |
-| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
-| `arguments` | [[ArgumentDefinition](#argumentdefinition)] | false | A list of arguments accepted by this model. Defaults to no arguments. |
-| `source` | [ModelSource](#modelsource) / null | false | The source configuration for this model. |
-| `filterExpressionType` | string / null | false | The boolean expression type that should be used to perform filtering on this model. |
-| `orderableFields` | [[OrderableField](#orderablefield)] | true | A list of fields that can be used to order the objects in this model. |
-| `graphql` | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false | Configuration for how this model should appear in the GraphQL schema. |
-| `description` | string | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+| Name                   | Type                                                     | Required | Description                                                                                     |
+| ---------------------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `name`                 | string                                                   | true     | The name of the data model.                                                                     |
+| `objectType`           | string                                                   | true     | The type of the objects of which this model is a collection.                                    |
+| `globalIdSource`       | boolean                                                  | false    | Whether this model should be used as the global ID source for all objects of its type.          |
+| `arguments`            | [[ArgumentDefinition](#argumentdefinition)]              | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
+| `source`               | [ModelSource](#modelsource) / null                       | false    | The source configuration for this model.                                                        |
+| `filterExpressionType` | string / null                                            | false    | The boolean expression type that should be used to perform filtering on this model.             |
+| `orderableFields`      | [[OrderableField](#orderablefield)]                      | true     | A list of fields that can be used to order the objects in this model.                           |
+| `graphql`              | [ModelGraphQlDefinition](#modelgraphqldefinition) / null | false    | Configuration for how this model should appear in the GraphQL schema.                           |
+| `description`          | string                                                   | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: Articles
@@ -2104,44 +2011,43 @@ graphql:
 description: Description for the model Articles
 ```
 
-
 ### Function
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `function` | string | true |  |
-
-
+| Name       | Type   | Required | Description |
+| ---------- | ------ | -------- | ----------- |
+| `function` | string | true     |             |
 
 ### Procedure
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `procedure` | string | true |  |
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `procedure` | string | true     |             |
 
+### DataConnectorCommand
 
+The function/procedure in the data connector that backs this command.
+
+[Function](#function) / [Procedure](#procedure)
 
 ### undefined
 
 Mapping from command argument names to data connector table argument names.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | string | No |  |
-
-
+| Name          | Type   | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `<customKey>` | string | false    |             |
 
 ### CommandSource
 
 Description of how a command maps to a particular data connector
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true | The name of the data connector backing this command. |
-| `dataConnectorCommand` | [Function](#function) / [Procedure](#procedure) | true | The function/procedure in the data connector that backs this command. |
-| `argumentMapping` | [undefined](#undefined) | false | Mapping from command argument names to data connector table argument names. |
+| Name                   | Type                                          | Required | Description                                                                 |
+| ---------------------- | --------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `dataConnectorName`    | string                                        | true     | The name of the data connector backing this command.                        |
+| `dataConnectorCommand` | [DataConnectorCommand](#dataconnectorcommand) | true     | The function/procedure in the data connector that backs this command.       |
+| `argumentMapping`      | [undefined](#undefined)                       | false    | Mapping from command argument names to data connector table argument names. |
 
- **Example**
+**Example**
 
 ```yaml
 dataConnectorName: data_connector
@@ -2150,38 +2056,37 @@ dataConnectorCommand:
 argumentMapping: {}
 ```
 
-
 ### CommandGraphQlDefinition
 
 The definition of how a command should appear in the GraphQL API.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `rootFieldName` | string | true | The name of the graphql root field to use for this command. |
-| `rootFieldKind` | string | true | Whether to put this command in the Query or Mutation root of the GraphQL API. |
+| Name            | Type   | Required | Description                                                                   |
+| --------------- | ------ | -------- | ----------------------------------------------------------------------------- |
+| `rootFieldName` | string | true     | The name of the graphql root field to use for this command.                   |
+| `rootFieldKind` | string | true     | Whether to put this command in the Query or Mutation root of the GraphQL API. |
 
- **Example**
+**Example**
 
 ```yaml
 rootFieldName: getLatestArticle
 rootFieldKind: Query
 ```
 
-
 ### CommandV1
 
-Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD.
+Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The
+semantics of a command are opaque to OpenDD.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the command. |
-| `outputType` | string | true | The return type of the command. |
-| `arguments` | [[ArgumentDefinition](#argumentdefinition)] | false | The list of arguments accepted by this command. Defaults to no arguments. |
-| `source` | [CommandSource](#commandsource) / null | false | The source configuration for this command. |
-| `graphql` | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false | Configuration for how this command should appear in the GraphQL schema. |
-| `description` | string | false | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
+| Name          | Type                                                         | Required | Description                                                                                                      |
+| ------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                       | true     | The name of the command.                                                                                         |
+| `outputType`  | string                                                       | true     | The return type of the command.                                                                                  |
+| `arguments`   | [[ArgumentDefinition](#argumentdefinition)]                  | false    | The list of arguments accepted by this command. Defaults to no arguments.                                        |
+| `source`      | [CommandSource](#commandsource) / null                       | false    | The source configuration for this command.                                                                       |
+| `graphql`     | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false    | Configuration for how this command should appear in the GraphQL schema.                                          |
+| `description` | string                                                       | false    | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
 
- **Example**
+**Example**
 
 ```yaml
 name: get_latest_article
@@ -2198,27 +2103,24 @@ graphql:
 description: Get the latest article
 ```
 
-
 ### TypeOutputPermission
 
 Permissions for a type for a particular role when used in an output context.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `allowedFields` | [string] | true | Fields of the type that are accessible for a role |
-
-
+| Name            | Type     | Required | Description                                       |
+| --------------- | -------- | -------- | ------------------------------------------------- |
+| `allowedFields` | [string] | true     | Fields of the type that are accessible for a role |
 
 ### TypePermission
 
 Defines permissions for a particular role for a type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `output` | [TypeOutputPermission](#typeoutputpermission) / null | false | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
+| Name     | Type                                                 | Required | Description                                                                                                                                   |
+| -------- | ---------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | string                                               | true     | The role for which permissions are being defined.                                                                                             |
+| `output` | [TypeOutputPermission](#typeoutputpermission) / null | false    | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
 
- **Example**
+**Example**
 
 ```yaml
 role: user
@@ -2228,17 +2130,16 @@ output:
     - author_id
 ```
 
-
 ### TypePermissionsV1
 
 Definition of permissions for an OpenDD type.
 
-| Name | Type | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string | true | The name of the type for which permissions are being defined. Must be an object type. |
-| `permissions` | [[TypePermission](#typepermission)] | true | A list of type permissions, one for each role. |
+| Name          | Type                                | Required | Description                                                                           |
+| ------------- | ----------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `typeName`    | string                              | true     | The name of the type for which permissions are being defined. Must be an object type. |
+| `permissions` | [[TypePermission](#typepermission)] | true     | A list of type permissions, one for each role.                                        |
 
- **Example**
+**Example**
 
 ```yaml
 typeName: article
