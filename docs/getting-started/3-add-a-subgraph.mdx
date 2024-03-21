@@ -45,7 +45,7 @@ The CLI should respond that the subgraph was successfully created.
 Since this is a PostgreSQL database, we can add a connector manifest using the following CLI command:
 
 ```bash
-ddn add connector-manifest chinook_connector --subgraph chinook --hub-connector hasura/postgres:v0.5.0 --type cloud
+ddn add connector-manifest chinook_connector --subgraph chinook --hub-connector hasura/postgres:v0.5.0 --type local
 ```
 
 :::info What's a connector manifest?
@@ -71,8 +71,7 @@ As before, we'll also need to track these tables.
 **After** the build is complete, head into `/chinook/chinook_connector.hml` and run the `track all` command using VS
 Code's command palette.
 
-You can bring this up by pressing `Shift+Ctrl+P` on Linux or Windows and `Shift+Cmd+P` on macOS. Be sure to select
-`chinook_connector` and `Default` from the options that appear from the palette's dropdown menu:
+Be sure to select `chinook_connector` and `Default` from the options that appear from the palette's dropdown menu:
 
 <Thumbnail src="/img/get-started/trackAllFromChinook.gif" alt="Tracking chinook models" width="1000px" />
 
@@ -84,10 +83,9 @@ source will be available in your API:
 ## Step 5: Create relationships across subgraphs
 
 Finally, we'll create a relationship between entities in our different subgraphs. Our Chinook data source is a
-music-based dataset that contains a type called `Artist`. We have a `favorite_artist` colum on our `users` table in the
-`app` subgraph.
+music-based dataset that contains a type called `Artist`. We have a `favorite_artist` colum on our `app_users` table.
 
-In `/app/app_connector/models/users.hml`, let's add the following relationship:
+In `/app/app_connector/models/Users.hml`, let's add the following relationship:
 
 ```yaml
 ---
@@ -95,7 +93,7 @@ kind: Relationship
 version: v1
 definition:
   name: user_to_favorite_artist
-  source: users
+  source: Users
   target:
     model:
       subgraph: chinook
@@ -121,7 +119,7 @@ We can then run the following query and see that — rightly so — everyone's f
 
 ```graphql
 query MyQuery {
-  users {
+  app_users {
     name
     user_to_favorite_artist {
       Name

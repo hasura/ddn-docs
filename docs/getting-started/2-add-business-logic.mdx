@@ -60,7 +60,7 @@ We can use this in our API by running the following query, **assuming we removed
 
 ```graphql
 query MyQuery {
-  hello(name: "Hasura")
+  app_hello(name: "Hasura")
 }
 ```
 
@@ -69,7 +69,7 @@ Which should return:
 ```JSON
 {
   "data": {
-    "hello": "hello Hasura"
+    "app_hello": "hello Hasura"
   }
 }
 ```
@@ -94,7 +94,7 @@ Now, if we re-run our query, we should see nearly the same message...just with a
 ```JSON
 {
   "data": {
-    "hello": "Hello, Hasura! 👋"
+    "app_hello": "Hello, Hasura! 👋"
   }
 }
 ```
@@ -209,7 +209,7 @@ After modifying the `functions.ts` file, re-run the same query in your API and y
 ```json
 {
   "data": {
-    "scoldUser": "DON'T DO THAT, SEAN!"
+    "app_scoldUser": "DON'T DO THAT, SEAN!"
   }
 }
 ```
@@ -220,7 +220,7 @@ It would be nice to call this function as part of a larger query for a user. We 
 between our commands and models. That means we can call `scoldUser` directly on Sean from our API without requiring
 additional queries, and — if we'd like — can even return other related data.
 
-Find the `users.hml` file in `/app_connector/models` and add a new entry at the bottom of the file by adding `---` and
+Find the `Users.hml` file in `/app_connector/models` and add a new entry at the bottom of the file by adding `---` and
 hitting `ENTER`.
 
 Once you hit enter, you should see Hasura's LSP kick in and provide you with the variety of options of new metadata
@@ -238,7 +238,7 @@ kind: Relationship
 version: v1
 definition:
   name: scold_user
-  source: users
+  source: Users
   target:
     command:
       name: scoldUser
@@ -256,7 +256,7 @@ can directly call your TypeScript function from your API based on your user's ID
 
 ```graphql
 query MyQuery {
-  users(where: { id: { _eq: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb" } }) {
+  app_users(where: { id: { _eq: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb" } }) {
     scold_user
   }
 }
@@ -267,9 +267,9 @@ And the response is:
 ```JSON
 {
   "data": {
-    "users": [
+    "app_users": [
       {
-        "scold_user": "DON'T DO THAT, SEAN!"
+        "app_scold_user": "DON'T DO THAT, SEAN!"
       }
     ]
   }

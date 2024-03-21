@@ -60,10 +60,16 @@ You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura 
 have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
 [Neon](https://neon.tech).
 
-:::info Don't want to set up a database?
+Additionally, we've provisioned a few read-only databases for you to use for this guide if you'd like. The connection
+strings are available later in the third step.
 
-We've provisioned a few read-only databases for you to use for this guide if you'd like. The connection strings are
-available later in the guide.
+:::info Ensure Docker is running
+
+We'll utilize a local development workflow to iteratively test our connectors and update our project's configuration;
+this requires the Docker daemon running in the background. Before proceeding, ensure the daemon is up.
+
+If you're on a Unix or Linux machine that requires `sudo` when running Docker, in the next step, prefix `ddn dev` with
+`sudo ddn dev`.
 
 :::
 
@@ -192,26 +198,10 @@ INF env file .local.yaml updated
 INF Data connector app_connector set up successfully
 ```
 
-### Step 3.4: Track tables and relationships
-
-When we enter our connection string, the CLI will introspect our data source and ask us if we'd like to track all of our
-tables and relationships; we'll select `y` as this will automatically write our metadata for us! 🎉
-
-:::danger HEY!
-
-NOT YET READY VIA CLI — IF YOU'RE FOLLOWING ALONG FOR TESTING, TRACK THINGS VIA THE VS CODE EXTENSION ONCE YOU RUN DDN
-DEV
-
-:::
-
-```bash
-TODO when above is complete
-```
-
 At this point, the CLI will ask us if we want to connect another data source. For now, we don't, so type `n` and hit
 `ENTER`.
 
-### Step 3.5: Add the TypeScript Connector
+### Step 3.4: Add the TypeScript Connector
 
 We won't use this until later in the guide, but we can go ahead and add the Node.js Lambda connector to incorporate our
 own custom business logic into our API. When prompted, type `y` and hit `ENTER`. Then, let's name this connector
@@ -222,48 +212,11 @@ own custom business logic into our API. When prompted, type `y` and hit `ENTER`.
 ? What do you want to name your hasura/nodejs:v1.0.0 connector? (app_connector) app_functions
 ```
 
-:::info Ensure Docker is running
-
-We'll utilize a local development workflow to iteratively test our TypeScript connector and update our project's
-configuration; this requires the Docker daemon running in the background. Before proceeding, ensure the daemon is up.
-
-If you're on a Unix or Linux machine that requires `sudo` when running Docker, in the next step, prefix `ddn dev` with
-`sudo ddn dev`.
-
-:::
-
-Finally, the CLI will configure our TypeScript connector and let us know we're ready to go!
-
-```bash
-INF Adding connector manifest: ddn add connector-manifest app_functions --type local --hub hasura/nodejs:v1.0.0 --subgraph app
-INF Setting env vars
-INF env file .local.yaml updated
-INF Data connector app_functions set up successfully
-INF Your DDN project is all set up
-INF Run 'cd my-first-supergraph && ddn dev' to build your GraphQL API.
-```
-
-:::tip Now would be a good time to git init
-
-If you wish to use Git for version control and want to create a starting point to which you can rewind, run the
-following at this point:
-
-```bash
-git init .
-git add .
-git commit -m "init supergraph"
-```
-
-:::
+Finally, the CLI will configure our TypeScript connector and then launch [`dev` mode](/cli/commands/dev.mdx)!
 
 ## Step 4: Build your GraphQL API
 
-If we run the command from the output of the previous step, we'll see the CLI creates our first build, displays the URL
-for our project's Console, and watches for changes 🎉
-
-```bash
-cd my-first-supergraph && ddn dev
-```
+We'll see the CLI creates our first build, displays the URL for our project's Console, and watches for changes 🎉
 
 ```bash
 INF Preparing project...
@@ -306,6 +259,15 @@ INF Doing a supergraph build...
 +---------------+--------------------------------------------------------------------+
 ```
 
+Additionally, the CLI **automatically** tracked the tables and functions present in our two connectors!
+
+```bash
+ GENERATE      Model CartItems
+    MODIFIED      (+9 more)
+         ADD    Model for collection carts, connector app_connector
+# More below...
+```
+
 :::info What's a build?
 
 <details>
@@ -337,16 +299,74 @@ to create your own query or write it manually:
 
 ```graphql
 query OrdersQuery {
-  orders {
+  app_orders {
     id
     status
     delivery_date
-    user {
+  }
+}
+```
+
+</details>
+
+:::tip Now would be a good time to git init
+
+If you wish to use Git for version control and want to create a starting point to which you can rewind, run the
+following at this point in a new tab of your terminal:
+
+```bash
+git init .
+git add .
+git commit -m "init supergraph"
+```
+
+:::
+
+## Step 6: Track relationships
+
+When we tracked the tables from our PostgreSQL database, the CLI imported them as
+[**models**](/supergraph-modeling/models.mdx). Models, defined in metadata, tell our GraphQL API how to expose
+collections from our data sources.
+
+Using our extension — fueled by [LSP](https://microsoft.github.io/language-server-protocol/), our underlying language
+server — let's track the different relationships in our source and have our API updated automatically.
+
+In our browser, let's select the auto-select latest build option. This will ensure we're always seeing the latest build
+generated by the `dev` command:
+
+<Thumbnail src="/img/get-started/autoselectconsole.gif" alt="Execute a query" width="1000px" />
+
+Next, let's open the project in VS Code. You can open a new tab in your terminal and run the following if `code` is in
+your PATH:
+
+```bash
+cd my-first-supergraph && code .
+```
+
+If we navigate to the `/app/app_connector/app_connector.hml` file, we can track all the relationships present in our
+data source. Hold down `Ctrl`+`Shift`+`P` (`Cmd`+`Shift`+`P` on macOS) to bring up the command palette. Then, start
+typing `hasura track all` and select the first option.
+
+We'll then choose `app_connector` and `Default`. This will add the relationship objects in our metadata to files where
+the models are kept, keeping our metadata neat and organized.
+
+<Thumbnail src="/img/get-started/trackallvscode.gif" alt="Execute a query" width="1000px" />
+
+If we head back to our browser, we should see the newest build that was generated by the CLI. We can then run the
+following query to retrieve related information:
+
+```graphql
+query OrdersQuery {
+  app_orders {
+    id
+    status
+    delivery_date
+    User {
       id
       name
       email
     }
-    product {
+    Product {
       id
       name
     }
@@ -354,20 +374,25 @@ query OrdersQuery {
 }
 ```
 
-</details>
-
-## Step 6: Add permissions
-
-When we tracked the tables from our PostgreSQL database, the CLI imported them as
-[**models**](/supergraph-modeling/models.mdx). Models, defined in metadata, tell our GraphQL API how to expose
-collections from our data sources.
+## Step 7: Add permissions
 
 For our `users` model, we want to introduce an authorization concept we call
 [**permissions**](/supergraph-modeling/permissions.mdx). This allows you to control which models are accessible to which
 users — via a **model permission** — and which fields can be returned using **type permissions**.
 
-In just a few lines — and with the assistance of LSP, our underlying language server — we can declaratively restrict
-access so that a user is only able to see a limited set of their own data.
+Presently, if we run the following query, we'll see all users' information returned:
+
+```graphql
+query UsersQuery {
+  app_users {
+    id
+    name
+  }
+}
+```
+
+In just a few lines — and with the assistance of LSP — we can declaratively restrict access so that a user is only able
+to see a limited set of their own data.
 
 As you can see below, when we start typing `role`, LSP kicks in and assists us with creating the following permission
 which checks the `x-hasura-user-id` header to only return a specific user's information. We're triggering the
@@ -375,15 +400,15 @@ auto-complete options using `TAB` and `CTRL+SPACE`:
 
 <Thumbnail src="/img/get-started/modelPermissions.gif" alt="Execute a query" width="1000px" />
 
-Open your project directory in VS Code. Find the `/app/app_connector/models/users.hml` file. Then, with the guidance of
-LSP, let's make our `ModelPermissions` object look like the metadata below in our `users.hml` file:
+Find the `/app/app_connector/models/Users.hml` file. Then, with the guidance of LSP, let's make our `ModelPermissions`
+object look like the metadata below in our `Users.hml` file:
 
 ```yaml
 ---
 kind: ModelPermissions
 version: v1
 definition:
-  modelName: users
+  modelName: Users
   permissions:
     - role: admin
       select:
@@ -440,8 +465,8 @@ When our build is ready, we can add the following headers in our project's Conso
 | `x-hasura-role`    | `user`                                 |
 | `x-hasura-user-id` | `7cf0a66c-65b7-11ed-b904-fb49f034fbbb` |
 
-Hasura will parse these values and apply our permissions, returning only Sean's data and only the fields he access to
-under the `user` role:
+If we re-run the same query as before, Hasura will parse these values and apply our permissions, returning only Sean's
+data and only the fields he access to under the `user` role:
 
 <Thumbnail
   src="/img/get-started/0.0.1_console_query-with-permissions.png"
@@ -457,6 +482,8 @@ Remove the two headers we just added.
 
 ## What just happened?
 
+### Project configuration
+
 When you ran the `quickstart` command, the CLI created a new project for you on Hasura DDN. It also scaffolded out all
 the necessary configuration and metadata in your project's directory:
 
@@ -469,7 +496,14 @@ the necessary configuration and metadata in your project's directory:
 
 You can learn more about project structure by visiting our [CI/CD section](/ci-cd/overview.mdx).
 
-You also added a simple-to-use-but-powerful set of permissions to your `user` `type`, restricting users to only viewing
+### Relationships
+
+We instantly added all foreign-key relationships from our data source to our API. This unlocks the potential for rich,
+deeply-nested queries that reach across different models in our API.
+
+### Permissions
+
+You also added a simple-to-use-but-powerful set of permissions to your `User` `type`, restricting users to only viewing
 their own data and only what you want them to see. You can learn more about
 [permissions here](/supergraph-modeling/permissions.mdx).
 
