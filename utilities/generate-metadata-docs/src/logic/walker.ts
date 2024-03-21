@@ -49,7 +49,7 @@ function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition
   });
 
   if (refObject !== undefined) {
-    return { ...metadataObject, ...refObject };
+    return simplifyMetadataDefinition({ ...metadataObject, ...refObject });
   } else {
     console.warn('Ref not found: ', ref);
   }
@@ -60,20 +60,20 @@ function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSON
   if (metadataObject?.allOf?.length === 1) {
     const { allOf, ...strippedSchema } = metadataObject;
     simplifiedSchema = {
-      ...strippedSchema,
       ...simplifyMetadataDefinition(allOf[0]),
+      ...strippedSchema,
     };
   } else if (metadataObject?.oneOf?.length === 1) {
     const { oneOf, ...strippedSchema } = metadataObject;
     simplifiedSchema = {
-      ...strippedSchema,
       ...simplifyMetadataDefinition(oneOf[0]),
+      ...strippedSchema,
     };
   } else if (metadataObject?.anyOf?.length === 1) {
     const { anyOf, ...strippedSchema } = metadataObject;
     simplifiedSchema = {
-      ...strippedSchema,
       ...simplifyMetadataDefinition(anyOf[0]),
+      ...strippedSchema,
     };
   }
   return simplifiedSchema;
@@ -120,8 +120,6 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
 
   if (metadataObject.$ref) {
     metadataObject = handleRef(metadataObject);
-    // TODO: investigate. the following should solve the undefined issue, but leads to objects not being outputted instead
-    // metadataObject = simplifyMetadataDefinition(metadataObject);
   }
 
   if (!metadataObject) {
