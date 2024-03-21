@@ -4,6 +4,7 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import styles from './index.module.css';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
@@ -28,7 +29,9 @@ function HomepageHeader() {
             Docs Wiki
           </Link>
         </div>
-        <img src={"/img/hasuras.png"} alt="Hasuras Image" />
+        <div className={"flex justify-center"}>
+          <img src={useBaseUrl('/img/hasuras.png')} alt="Hasuras Image"/>
+        </div>
       </div>
     </header>
   );
