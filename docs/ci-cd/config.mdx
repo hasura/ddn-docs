@@ -28,7 +28,7 @@ four types of files:
 | File type              | Required     | Description                                                                                                                |
 | ---------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | `hasura.yaml`          | Yes          | The main configuration file.                                                                                               |
-| `.local.yaml`          | Yes          | A file that stores environment variables and pertinent information for connectors.                                         |
+| `*.env.yaml`           | Yes          | A file that stores environment variables and pertinent information for connectors and a supergraph manifest.               |
 | `*.supergraph.yaml`    | Yes          | Build manifest file(s) for a project.                                                                                      |
 | `*.hml`                | User-defined | Hasura metadata files for a project.                                                                                       |
 | `<SUBGRAPH_DIRECTORY>` | Yes          | A directory, containing all the necessary configuration and metadata files, for a corresponding subgraph within a project. |
@@ -45,27 +45,29 @@ without any `hml` files representing entities in your data sources.
 This is the entry point to a Hasura project.
 
 ```yaml
-version: 1
+version: v1
 project: <PROJECT_NAME>
 
 supergraphManifests:
-  - base.supergraph.hml
+  rootPath: "."
+  resources:
+    - "/*.hml"
 
-defaultSupergraphManifest: base.supergraph.hml
+defaultSupergraphManifest: base
 ```
 
 The `version` section is used to specify the version of the configuration file. The `project` field is used to specify
 the project name.
 
 The `hasura.yaml` file also contains a `supergraphManifests` section. This section is used to specify the various
-[manifest files](#supergraph-manifests) associated with the project. As you can see from this example, we only have one
-manifest, `base.supergraph.hml` which is also identified as the default to use when creating a new build. **The `base`
-profile is required for a project.**
+[manifest files](#supergraph-manifests) associated with the project. As you can see from this example, `base` is
+intended to use all nested `hml` files as resources in a build and is also identified as the default to use when
+creating a new build. **The `base` profile is required for a project.**
 
-### .local.yaml
+### \*.env.yaml
 
 This file is used to store environment variables and pertinent information for connectors. The CLI will handle this file
-for you, but you can also manually edit it if you need to.
+for you, but you can also manually edit it if you need to. The CLI generates a `base.env.yaml` for you by default.
 
 ### Supergraph manifests {#supergraph-manifests}
 
@@ -78,21 +80,20 @@ By default, the included `base.supergraph.hml` file is populated with the follow
 kind: SupergraphManifest
 version: v1
 definition:
-  environment: dev
   name: base
-  mode: replace
-  envfile: .local.yaml
+  environment: dev
+  envfile: base.env.yaml
   supergraph:
+    rootPath: supergraph
     resources:
-      - supergraph/**/*.hml
+      - "*.hml"
   subgraphs:
     - name: app
+      rootPath: app
       resources:
-        - app/**/*.hml
-      connectors:
-        app_connector:
-          path: app/app_connector
-          manifestFile: app_connector.build.hml
+        - "*.hml"
+        - "!app_connector/connector/*"
+        - app_connector/connector/app_connector.build.hml
 ```
 
 ### Supergraph
@@ -126,20 +127,23 @@ subgraph:
 
 ```bash
 └── <CONNECTOR_NAME>
-    ├── builds
-    │   ├── configuration.json
-    │   ├── schema.json
-    │   └── <CONNECTOR_NAME>.build.hml
-    └── <CONNECTOR_NAME>.hml
+│   ├── <CONNECTOR_NAME>-types.hml
+│   ├── <CONNECTOR_NAME>.hml
+│   ├── connector
+│   │   ├── <CONNECTOR_NAME>.build.hml
+│   │   ├── configuration.json
+│   │   └── schema.json
+│   └── models
 ```
 
-| File/Folder                  | Description                                                                        |
-| ---------------------------- | ---------------------------------------------------------------------------------- |
-| `builds`                     | The directory containing the build artifacts for the connector.                    |
-| `/builds/configuration.json` | The configuration file for the connector.                                          |
-| `/builds/schema.json`        | The schema file for the connector.                                                 |
-| `<CONNECTOR_NAME>.build.hml` | The build manifest for the connector.                                              |
-| `<CONNECTOR_NAME>.hml`       | The metadata file for the connector based on the introspection of the data source. |
+| File/Folder                            | Description                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------- |
+| `<CONNECTOR_NAME>`                     | The directory containing the build artifacts for the connector.                    |
+| `<CONNECTOR_NAME>-types.html`          | The metadata file for the connector's types.                                       |
+| `<CONNECTOR_NAME>.hml`                 | The metadata file for the connector based on the introspection of the data source. |
+| `<CONNECTOR_NAME>/configuration.json`  | The configuration file for the connector.                                          |
+| `<CONNECTOR_NAME>/schema.json`         | The schema file for the connector.                                                 |
+| `connector/<CONNECTOR_NAME>.build.hml` | The build manifest for the connector.                                              |
 
 ## Basic configuration
 
@@ -154,19 +158,13 @@ folder with the following structure:
 
 ```bash
 <PROJECT_DIRECTORY>
-├── app
-│   └── app_connector
-│       ├── app_connector.hml
-│       └── builds
-│           ├── app_connector.build.hml
-│           ├── configuration.json
-│           └── schema.json
-├── base.supergraph.hml
-├── hasura.yaml
-└── supergraph
-    ├── auth-config.hml
-    ├── compatibility-config.hml
-    └── graphql-config.hml
+├── app_connector
+│   ├── app_connector-types.hml
+│   ├── app_connector.hml
+│   ├── connector
+│   │   ├── app_connector.build.hml
+│   │   ├── configuration.json
+│   │   └── schema.json
 ```
 
 ## Advanced configuration
