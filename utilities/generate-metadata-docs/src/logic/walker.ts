@@ -168,7 +168,11 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleObject(metadataObject);
   }
 
-  if (metadataObject.oneOf || metadataObject.allOf || metadataObject.anyOf) {
+  if (metadataObject.anyOf && isExternallyTaggedNullable(metadataObject)) {
+    typeDefinition = handleExternallyTaggedNullable(metadataObject);
+  } else if (metadataObject.oneOf && isExternallyTaggedOneOf(metadataObject)) {
+    typeDefinition = handleExternallyTaggedOneOf(metadataObject);
+  } else if (metadataObject.oneOf || metadataObject.allOf || metadataObject.anyOf) {
     typeDefinition = handleAllOfAnyOfOneOf(metadataObject);
   }
 
@@ -249,14 +253,6 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
 }
 
 function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
-  if (isExternallyTaggedNullable(metadataObject)) {
-    const objectRefs = metadataObject.anyOf.map(option => {
-      return handleSchemaDefinition(option);
-    });
-
-    return objectRefs.join(` / `);
-  }
-
   const title = getTitle(metadataObject);
 
   let markdown = '';
@@ -265,22 +261,42 @@ function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
-  if (isExternallyTaggedOneOf(metadataObject)) {
-    markdown += '\nMust have exactly one of the following fields:\n\n';
-    markdown += `| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
-    metadataObject.oneOf.forEach(sub_object => {
-      let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
-      const propertyType = handleSchemaDefinition(propertySchema);
-      const requiredProp = false;
-      markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
-    });
-  } else {
-    const objectRefs = (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).map(option => {
-      return handleSchemaDefinition(option);
-    });
+  const objectRefs = (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).map(option => {
+    return handleSchemaDefinition(option);
+  });
 
-    markdown += objectRefs.join(` / `);
-  }
+  markdown += objectRefs.join(` / `);
+
+  markdownArray.push(markdown);
+
+  return getRefLink(metadataObject);
+}
+
+function handleExternallyTaggedNullable(metadataObject: JSONSchema7Definition): string {
+  const objectRefs = metadataObject.anyOf.map(option => {
+    return handleSchemaDefinition(option);
+  });
+
+  return objectRefs.join(` / `);
+}
+
+function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): string {
+  const title = getTitle(metadataObject);
+
+  let markdown = '';
+
+  markdown += `\n### ${title}\n\n`;
+
+  if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
+
+  markdown += '\nMust have exactly one of the following fields:\n\n';
+  markdown += `| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
+  metadataObject.oneOf.forEach(sub_object => {
+    let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
+    const propertyType = handleSchemaDefinition(propertySchema);
+    const requiredProp = false;
+    markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
+  });
 
   markdownArray.push(markdown);
 
