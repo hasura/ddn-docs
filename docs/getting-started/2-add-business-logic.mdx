@@ -113,33 +113,12 @@ export function scoldUser(userId: string) {
 }
 ```
 
-We need to make sure our connector is aware of this function by tracking it. If we look inside our `app_functions.hml`
-file, we'll see the key-value pair with a warning for our new function. If we hover over the warning line, we can use
-code actions (quick fix) to track the new function and add it to our API:
-
-<Thumbnail src="/img/get-started/trackScoldUser.gif" alt="Track scoldUser command" width="1000px" />
-
-:::info Storing tracked functions
-
-After selecting this code action, the extension will ask you where you'd like to save the metadata for `scoldUser()`.
-Choose the `Default` option to store it in its own file for ease and organization. This will create a new file in
-`commands` called `scoldUser.hml`.
-
-:::
-
-:::danger HEY!
-
-NOT YET READY VIA CLI — IF YOU'RE FOLLOWING ALONG FOR TESTING, KILL DEV MODE AND RESTART IT TO HAVE THE NEW COMMAND BE
-AVAILABLE IN YOUR API
-
-:::
-
 This will trigger a rebuild of our connector and our new function will instantly be available in our API. We can test it
 by running the following query:
 
 ```graphql
-query MyQuery {
-  scoldUser(userId: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb")
+query ScoldUserQuery {
+  app_ScoldUser(userId: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb")
 }
 ```
 
@@ -150,10 +129,10 @@ query MyQuery {
 The TypeScript connector acts like any NodeJS project; this means you can use all the packages you're already familiar
 with. Let's add the `pg` package so we can directly interact with our database.
 
-Run the following from the root of the project:
+In an available terminal tab, run the following from the root of the project:
 
 ```bash
-cd ./app/app_functions/builds
+cd ./app/app_functions/connector
 ```
 
 Then, let's install the `pg` package and its types:
@@ -209,7 +188,7 @@ After modifying the `functions.ts` file, re-run the same query in your API and y
 ```json
 {
   "data": {
-    "app_scoldUser": "DON'T DO THAT, SEAN!"
+    "app_ScoldUser": "DON'T DO THAT, SEAN!"
   }
 }
 ```
@@ -217,7 +196,7 @@ After modifying the `functions.ts` file, re-run the same query in your API and y
 ## Step 5: Create a relationship from a command to a model
 
 It would be nice to call this function as part of a larger query for a user. We can create relationships **directly**
-between our commands and models. That means we can call `scoldUser` directly on Sean from our API without requiring
+between our commands and models. That means we can call `ScoldUser` directly on Sean from our API without requiring
 additional queries, and — if we'd like — can even return other related data.
 
 Find the `Users.hml` file in `/app_connector/models` and add a new entry at the bottom of the file by adding `---` and
@@ -241,7 +220,7 @@ definition:
   source: Users
   target:
     command:
-      name: scoldUser
+      name: ScoldUser
   mapping:
     - source:
         fieldPath:
@@ -281,8 +260,8 @@ And the response is:
 Of course, we don't want _any_ user accessing this command from the API. Just as we did earlier with the `users` model,
 with commands we can also declaratively restrict access to specific roles using permissions.
 
-Find the `scoldUser.hml` file in `/app/app_functions/commands` and let's use the LSP to help us create a permission.
-Within this file, you'll see `CommandPermissions` for `scoldUser` command. There's already a permissions array with the
+Find the `ScoldUser.hml` file in `/app/app_functions/commands` and let's use the LSP to help us create a permission.
+Within this file, you'll see `CommandPermissions` for `ScoldUser` command. There's already a permissions array with the
 role of `admin` enabled by default.
 
 <Thumbnail
@@ -298,7 +277,7 @@ Let's add a new item to the array for a `user` role and disallow execution:
 kind: CommandPermissions
 version: v1
 definition:
-  commandName: scoldUser
+  commandName: ScoldUser
   permissions:
     - role: admin
       allowExecution: true
