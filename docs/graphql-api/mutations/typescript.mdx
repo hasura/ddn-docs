@@ -59,7 +59,7 @@ type User = {
  * @param user The user to insert into the database. Expects a name, email, and password.
  * @returns The user that was inserted into the database.
  */
-export async function insertUser(user: User): Promise<User> {
+export async function insertUser(user: User): Promise<Omit<User, "password">> {
   // Get your database connection string.
   // NB!! Use env vars for this in production NB!!
   const connectionString = "postgresql://username:password@localhost:5432/mydb";
@@ -97,7 +97,7 @@ This:
 - takes in a user's name, email, and password
 - hashes their password
 - inserts into the `users` table in the database.
-- returns the inserted user.
+- returns the inserted user without password.
 
 We're using the [`pg` PostgreSQL client](https://www.npmjs.com/package/pg) to connect to the database and run the query
 and `bcrypt` to hash the password, but since this is a Node.js Lambda function, you can use any combination of Node.js
@@ -105,10 +105,14 @@ libraries you want.
 
 After you've tracked the function and created a new build, you can use the function in your GraphQL API:
 
-<Thumbnail
-  src="/img/graphql-api/mutations/0.1.1_console_insert-user-mutation.png"
-  alt="Insert user mutation using CQS"
-  className="no-shadow overview-img"
-/>
+[//]: # (<Thumbnail)
+
+[//]: # (  src="/img/graphql-api/mutations/0.1.1_console_insert-user-mutation.png")
+
+[//]: # (  alt="Insert user mutation using CQS")
+
+[//]: # (  className="no-shadow overview-img")
+
+[//]: # (/>)
 
 You can then repeat this process to scale your mutations independently.
