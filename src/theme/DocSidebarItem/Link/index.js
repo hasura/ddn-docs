@@ -1,12 +1,12 @@
 import React from 'react';
 import clsx from 'clsx';
-import { ThemeClassNames } from '@docusaurus/theme-common';
-import { isActiveSidebarItem } from '@docusaurus/theme-common/internal';
+import {ThemeClassNames} from '@docusaurus/theme-common';
+import {isActiveSidebarItem} from '@docusaurus/theme-common/internal';
 import Link from '@docusaurus/Link';
 import isInternalUrl from '@docusaurus/isInternalUrl';
+import IconExternalLink from '@theme/Icon/ExternalLink';
 import styles from './styles.module.css';
 import { addIconsToLabel } from '../utils';
-
 export default function DocSidebarItemLink({
   item,
   onItemClick,
@@ -15,7 +15,7 @@ export default function DocSidebarItemLink({
   index,
   ...props
 }) {
-  const { href, label, className, autoAddBaseUrl } = item;
+  const {href, label, className, autoAddBaseUrl} = item;
   const isActive = isActiveSidebarItem(item, activePath);
   const isInternalLink = isInternalUrl(href);
 
@@ -28,32 +28,26 @@ export default function DocSidebarItemLink({
         ThemeClassNames.docs.docSidebarItemLinkLevel(level),
         'menu__list-item',
         className,
-        styles[`sidebar_link_wrapper`]
       )}
-      key={label}
-    >
-      {className !== 'sidebar_heading' ? (
-        <Link
-          className={clsx(
-            'menu__link',
-            !isInternalLink && styles.menuExternalLink,
-            {
-              'menu__link--active': isActive,
-            }
-          )}
-          autoAddBaseUrl={autoAddBaseUrl}
-          aria-current={isActive ? 'page' : undefined}
-          to={href}
-          {...(isInternalLink && {
-            onClick: onItemClick ? () => onItemClick(item) : undefined,
-          })}
-          {...props}
-        >
-          {labelWithIcons}
-        </Link>
-      ) : (
-        <>{labelWithIcons}</>
-      )}
+      key={label}>
+      <Link
+        className={clsx(
+          'menu__link',
+          !isInternalLink && styles.menuExternalLink,
+          {
+            'menu__link--active': isActive,
+          },
+        )}
+        autoAddBaseUrl={autoAddBaseUrl}
+        aria-current={isActive ? 'page' : undefined}
+        to={href}
+        {...(isInternalLink && {
+          onClick: onItemClick ? () => onItemClick(item) : undefined,
+        })}
+        {...props}>
+        {labelWithIcons}
+        {/*{!isInternalLink && <IconExternalLink />}*/}
+      </Link>
     </li>
   );
 }
