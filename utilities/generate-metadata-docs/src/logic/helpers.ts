@@ -1,4 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
+import { JSONSchema7Definition } from '../entities/types';
+import { returnMarkdown } from './walker';
+import { parentSchema } from '../entities/objects';
 
 /**
  * Some descriptions have new-line characters which can cause rendering issues inside of md tables.
@@ -14,22 +17,8 @@ export function removeNewLineCharacter(text: string) {
  * as all metadata objects need `kind` and `version` fields, this allows us to front-load the object's definition and skip
  * the "redundancy" of these two fields while also not duplicating content (description of the object).
  */
-export function isV1Content(metadataObject: any): boolean {
-  if (metadataObject.title?.includes('V1')) {
-    return true;
-  }
-  return false;
-}
-
-/**
- * This function allows us to identify and isolate a particular metadata object based on its title.
- * This works for top-level metadata objects (E.g., Model, Command, TypePermissions)
- */
-export function getMetadataObject(schemaObject: any, objectTitle: string): object | void {
-  const metadataObject = schemaObject.find((option: any) => option.title === objectTitle);
-  if (metadataObject) {
-    return metadataObject;
-  }
+export function isV1Content(metadataObject: JSONSchema7Definition): boolean {
+  return !!metadataObject.title?.includes('V1');
 }
 
 /**
@@ -54,12 +43,171 @@ export function updateMarkdown(filePath: string, newMetadataMarkdown: string): b
   }
 }
 
+export function generatePageMarkdown(fileName: string, metadataObjectTitles: string[]) {
+  let pageMarkdown = '';
+
+  metadataObjectTitles.map(metadataObjectTitle => {
+    const metadataObjectSchema = findSchemaDefinitionByTitle(parentSchema, metadataObjectTitle);
+    if (metadataObjectSchema) {
+      pageMarkdown += returnMarkdown(metadataObjectSchema);
+    } else {
+      console.warn('Schema not found for: ', metadataObjectTitle);
+    }
+  });
+
+  updateMarkdown(`./md_samples/${fileName}`, pageMarkdown);
+}
+
 /**
- * Checks for whether or not a type is a simple scalar — if it is, we don't need
- * a reference so we return false.
+ * This function allows us to identify and isolate a particular metadata object based on its title.
+ * This works for top-level metadata objects (E.g., Model, Command, TypePermissions)
+ * Currently only handles anyOf, allOf, oneOf elements in schemaDefinitions
  */
-export function isTypeSimpleScalar(objectType: string): boolean {
-  const scalars = [`string`, `number`];
-  scalars.includes(objectType) && true;
-  return false;
+export function findSchemaDefinitionByTitle(schema: JSONSchema7Definition, objectTitle: string): JSONSchema7Definition {
+  let definition: JSONSchema7Definition;
+
+  parentSchema.anyOf.forEach(sub_schema => {
+    if (sub_schema.definitions[objectTitle]) definition = sub_schema.definitions[objectTitle];
+  });
+  return definition;
+
+  // TODO: fix
+  // if (!schema) {
+  //   return;
+  // }
+  //
+  // if (schema.title === objectTitle) {
+  //   return schema;
+  // }
+  //
+  // if (!schema.type) {
+  //   for (let potentialSchema of [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])]) {
+  //     if (potentialSchema.$ref) {
+  //       potentialSchema = handleRef(potentialSchema);
+  //     }
+  //     const foundSchema = findSchemaDefinitionByTitle(potentialSchema, objectTitle);
+  //     if (foundSchema) {
+  //       return foundSchema;
+  //     }
+  //   }
+  // }
+}
+
+export function getType(metadataObject: JSONSchema7Definition): string | void {
+  if (metadataObject.type) {
+    if (Array.isArray(metadataObject.type)) {
+      return metadataObject.type[0];
+    } else {
+      return metadataObject.type;
+    }
+  }
+}
+
+export function getArrayItemType(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
+  return Array.isArray(metadataObject.items) ? metadataObject.items[0] : metadataObject.items;
+}
+
+export function getTitle(metadataObject: JSONSchema7Definition): string {
+  return metadataObject.title || getParsedRef(metadataObject.$ref);
+}
+
+// For formatting heading tags
+export function formatLink(linkText: string): string {
+  if (linkText) {
+    return linkText.toLowerCase().replace(' ', '-');
+  }
+}
+
+export function getRefLink(metadataObject: JSONSchema7Definition): string {
+  return `[${getTitle(metadataObject)}](#${formatLink(getTitle(metadataObject))})`;
+}
+
+export function getParsedRef(ref: string): string {
+  return ref?.split('/')?.pop();
+}
+
+export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
+  const ref = metadataObject.$ref;
+
+  const refPath = ref.split('/');
+  let refObject = parentSchema;
+  refPath.forEach(path => {
+    if (path !== '#') {
+      refObject = refObject?.[path];
+    }
+  });
+
+  if (refObject !== undefined) {
+    return simplifyMetadataDefinition({ ...metadataObject, ...refObject });
+  } else {
+    console.warn('Ref not found: ', ref);
+  }
+}
+
+export function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
+  let simplifiedSchema = metadataObject;
+  if (metadataObject?.allOf?.length === 1) {
+    const { allOf, ...strippedSchema } = metadataObject;
+    simplifiedSchema = {
+      ...simplifyMetadataDefinition(allOf[0]),
+      ...strippedSchema,
+    };
+  } else if (metadataObject?.oneOf?.length === 1) {
+    const { oneOf, ...strippedSchema } = metadataObject;
+    simplifiedSchema = {
+      ...simplifyMetadataDefinition(oneOf[0]),
+      ...strippedSchema,
+    };
+  } else if (metadataObject?.anyOf?.length === 1) {
+    const { anyOf, ...strippedSchema } = metadataObject;
+    simplifiedSchema = {
+      ...simplifyMetadataDefinition(anyOf[0]),
+      ...strippedSchema,
+    };
+  }
+  return simplifiedSchema;
+}
+
+export function isScalarType(metadataObject: JSONSchema7Definition): boolean {
+  const type = getType(metadataObject);
+
+  const scalarTypes = [`string`, `number`, `integer`, `null`, `boolean`];
+
+  return type && scalarTypes.includes(type);
+}
+
+export function isNullType(metadataObject: JSONSchema7Definition): boolean {
+  const type = getType(metadataObject);
+
+  return type === 'null';
+}
+
+// Checks if the given metadataObject is a `oneOf` with each variant being discriminated
+// by the presence of a particular field and the variant specific fields nested
+// within.
+export function isExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): boolean {
+  if (metadataObject.oneOf) {
+    return (
+      metadataObject.oneOf.length > 1 &&
+      metadataObject.oneOf.every(sub_object => {
+        let result =
+          sub_object.properties &&
+          Object.keys(sub_object.properties).length === 1 &&
+          sub_object.required &&
+          Object.keys(sub_object.required).length === 1;
+        return result;
+      })
+    );
+  } else {
+    return false;
+  }
+}
+
+// Checks if the given object is `anyOf` either null or a metadataObject
+export function isExternallyTaggedNullable(metadataObject: JSONSchema7Definition): boolean {
+  return (
+    metadataObject.anyOf &&
+    metadataObject.anyOf.length === 2 &&
+    metadataObject.anyOf.some(sub_object => isNullType(sub_object))
+  );
 }

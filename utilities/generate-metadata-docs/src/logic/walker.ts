@@ -1,115 +1,23 @@
-import { readFileSync } from 'fs';
-import { JSONSchema7, JSONSchema7Definition } from '../entities';
 import jsYaml from 'js-yaml';
-
-const parentSchema: JSONSchema7 = JSON.parse(readFileSync('./schema.json', 'utf8'));
+import { JSONSchema7Definition } from '../entities/types';
+import {
+  getArrayItemType,
+  getRefLink,
+  getTitle,
+  getType,
+  handleRef,
+  isExternallyTaggedNullable,
+  isExternallyTaggedOneOf,
+  isScalarType,
+  simplifyMetadataDefinition,
+} from './helpers';
+import { parentSchema } from '../entities/objects';
 
 let markdownArray: string[] = [];
 
 let visitedRefs: Record<string, any> = {};
 
-function getType(metadataObject: JSONSchema7Definition): string | void {
-  if (metadataObject.type) {
-    if (Array.isArray(metadataObject.type)) {
-      return metadataObject.type[0];
-    } else {
-      return metadataObject.type;
-    }
-  }
-}
-
-function getTitle(metadataObject: JSONSchema7Definition): string {
-  return metadataObject.title || getParsedRef(metadataObject.$ref);
-}
-
-// For formatting heading tags
-function formatLink(linkText: string): string {
-  if (linkText) {
-    return linkText.toLowerCase().replace(' ', '-');
-  }
-}
-
-function getRefLink(metadataObject: JSONSchema7Definition): string {
-  return `[${getTitle(metadataObject)}](#${formatLink(getTitle(metadataObject))})`;
-}
-
-function getParsedRef(ref: string): string {
-  return ref?.split('/')?.pop();
-}
-
-function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
-  const ref = metadataObject.$ref;
-
-  const refPath = ref.split('/');
-  let refObject = parentSchema;
-  refPath.forEach(path => {
-    if (path !== '#') {
-      refObject = refObject?.[path];
-    }
-  });
-
-  if (refObject !== undefined) {
-    return simplifyMetadataDefinition({ ...metadataObject, ...refObject });
-  } else {
-    console.warn('Ref not found: ', ref);
-  }
-}
-
-function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
-  let simplifiedSchema = metadataObject;
-  if (metadataObject?.allOf?.length === 1) {
-    const { allOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = {
-      ...simplifyMetadataDefinition(allOf[0]),
-      ...strippedSchema,
-    };
-  } else if (metadataObject?.oneOf?.length === 1) {
-    const { oneOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = {
-      ...simplifyMetadataDefinition(oneOf[0]),
-      ...strippedSchema,
-    };
-  } else if (metadataObject?.anyOf?.length === 1) {
-    const { anyOf, ...strippedSchema } = metadataObject;
-    simplifiedSchema = {
-      ...simplifyMetadataDefinition(anyOf[0]),
-      ...strippedSchema,
-    };
-  }
-  return simplifiedSchema;
-}
-
-// Checks if the given metadataObject is a `oneOf` with each variant being discriminated
-// by the presence of a particular field and the variant specific fields nested
-// within.
-function isExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): boolean {
-  if (metadataObject.oneOf) {
-    return (
-      metadataObject.oneOf.length > 1 &&
-      metadataObject.oneOf.every(sub_object => {
-        let result =
-          sub_object.properties &&
-          Object.keys(sub_object.properties).length === 1 &&
-          sub_object.required &&
-          Object.keys(sub_object.required).length === 1;
-        return result;
-      })
-    );
-  } else {
-    return false;
-  }
-}
-
-// Checks if the given object is `anyOf` either null or a metadataObject
-function isExternallyTaggedNullable(metadataObject: JSONSchema7Definition): boolean {
-  return (
-    metadataObject.anyOf &&
-    metadataObject.anyOf.length === 2 &&
-    metadataObject.anyOf.some(sub_object => sub_object.type === 'null')
-  );
-}
-
-export function returnMarkdown(metadataObject: JSONSchema7): string {
+export function returnMarkdown(metadataObject: JSONSchema7Definition): string {
   handleSchemaDefinition(metadataObject);
 
   return markdownArray.reverse().join('\n\n');
@@ -151,8 +59,7 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleEnum(metadataObject);
   }
 
-  const scalarTypes = [`string`, `number`, `integer`, `null`, `boolean`];
-  if (type && scalarTypes.includes(type)) {
+  if (isScalarType(metadataObject)) {
     typeDefinition = handleScalars(metadataObject);
   }
 
@@ -196,8 +103,7 @@ function handleEnum(metadataObject: JSONSchema7Definition): string {
 
 function handleScalars(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
-  const scalarTypes = [`string`, `number`, `integer`, `null`, `boolean`];
-  if (type && scalarTypes.includes(type)) {
+  if (type && isScalarType(metadataObject)) {
     return type;
   }
 }
@@ -205,7 +111,7 @@ function handleScalars(metadataObject: JSONSchema7Definition): string {
 function handleArrayType(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type === 'array') {
-    const itemType = Array.isArray(metadataObject.items) ? metadataObject.items[0] : metadataObject.items;
+    const itemType = getArrayItemType(metadataObject);
     return `[${handleSchemaDefinition(itemType)}]`;
   }
 }
