@@ -86,6 +86,444 @@ Must have exactly one of the following fields:
 | `function`  | string | false    |             |
 | `procedure` | string | false    |             |
 
+### ObjectBooleanExpressionTypeV1
+
+Definition of a type representing a boolean expression on an Open DD object type.
+
+| Name                      | Type                                                                                                       | Required | Description                                                                                                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                    | string                                                                                                     | true     | The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `objectType`              | string                                                                                                     | true     | The name of the object type that this boolean expression applies to.                                                                                           |
+| `dataConnectorName`       | string                                                                                                     | true     | The data connector this boolean expression type is based on.                                                                                                   |
+| `dataConnectorObjectType` | string                                                                                                     | true     | The object type in the data connector's schema this boolean expression type is based on.                                                                       |
+| `comparableFields`        | [[ComparableField](#comparablefield)]                                                                      | true     | The list of fields of the object type that can be used for comparison when evaluating this boolean expression.                                                 |
+| `graphql`                 | [ObjectBooleanExpressionTypeGraphQlConfiguration](#objectbooleanexpressiontypegraphqlconfiguration) / null | false    | Configuration for how this object type should appear in the GraphQL schema.                                                                                    |
+
+**Example**
+
+```yaml
+name: AuthorBoolExp
+objectType: Author
+dataConnectorName: my_db
+dataConnectorObjectType: author
+comparableFields:
+  - fieldName: article_id
+    operators:
+      enableAll: true
+  - fieldName: title
+    operators:
+      enableAll: true
+  - fieldName: author_id
+    operators:
+      enableAll: true
+graphql:
+  typeName: Author_bool_exp
+```
+
+### ObjectBooleanExpressionTypeGraphQlConfiguration
+
+GraphQL configuration of an Open DD boolean expression type.
+
+| Name       | Type   | Required | Description                                                                          |
+| ---------- | ------ | -------- | ------------------------------------------------------------------------------------ |
+| `typeName` | string | true     | The name to use for the GraphQL type representation of this boolean expression type. |
+
+### ComparableField
+
+| Name        | Type                                        | Required | Description |
+| ----------- | ------------------------------------------- | -------- | ----------- |
+| `fieldName` | string                                      | true     |             |
+| `operators` | [EnableAllOrSpecific](#enableallorspecific) | true     |             |
+
+### EnableAllOrSpecific
+
+Must have exactly one of the following fields:
+
+| Name             | Type     | Required | Description |
+| ---------------- | -------- | -------- | ----------- |
+| `enableAll`      | boolean  | false    |             |
+| `enableSpecific` | [string] | false    |             |
+
+### ScalarTypeV1
+
+Definition of a user-defined scalar type that that has opaque semantics.
+
+| Name          | Type                                                                     | Required | Description                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                                   | true     | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
+| `graphql`     | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false    | Configuration for how this scalar type should appear in the GraphQL schema.                                                                 |
+| `description` | string                                                                   | false    | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema.                             |
+
+**Example**
+
+```yaml
+name: CustomString
+graphql:
+  typeName: CustomString
+description: A custom string type
+```
+
+### ScalarTypeGraphQLConfiguration
+
+GraphQL configuration of an Open DD scalar type
+
+| Name       | Type   | Required | Description                                          |
+| ---------- | ------ | -------- | ---------------------------------------------------- |
+| `typeName` | string | true     | The name of the GraphQl type to use for this scalar. |
+
+### AuthConfigV1
+
+Definition of the authentication configuration used by the API server.
+
+| Name                   | Type                              | Required | Description |
+| ---------------------- | --------------------------------- | -------- | ----------- |
+| `allowRoleEmulationBy` | string / null                     | false    |             |
+| `mode`                 | [AuthModeConfig](#authmodeconfig) | true     |             |
+
+### AuthModeConfig
+
+The configuration for the authentication mode to use - webhook or JWT.
+
+Must have exactly one of the following fields:
+
+| Name      | Type                              | Required | Description |
+| --------- | --------------------------------- | -------- | ----------- |
+| `webhook` | [AuthHookConfig](#authhookconfig) | false    |             |
+| `jwt`     | [JWTConfig](#jwtconfig)           | false    |             |
+
+### JWTConfig
+
+JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
+
+| Name            | Type                                  | Required | Description                                                                                                           |
+| --------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `audience`      | [string]                              | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer`        | string                                | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
+| `allowedSkew`   | integer                               | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
+| `claimsConfig`  | [JWTClaimsConfig](#jwtclaimsconfig)   | true     | Claims config. Either specified via `claims_mappings` or `claims_namespace_path`                                      |
+| `tokenLocation` | [JWTTokenLocation](#jwttokenlocation) | true     | Source of the JWT authentication token.                                                                               |
+| `key`           | [JWTKey](#jwtkey)                     | true     | Mode according to which the JWT auth is configured.                                                                   |
+
+**Example**
+
+```yaml
+audience: null
+issuer: null
+allowedSkew: null
+claimsConfig:
+  namespace:
+    claimsFormat: Json
+    location: /https:~1~1hasura.io~1jwt~1claims
+tokenLocation:
+  type: BearerAuthorization
+key:
+  fixed:
+    algorithm: HS256
+    key:
+      value: token
+```
+
+### JWTKey
+
+JWT key configuration according to which the incoming JWT will be decoded.
+
+Must have exactly one of the following fields:
+
+| Name         | Type                          | Required | Description |
+| ------------ | ----------------------------- | -------- | ----------- |
+| `fixed`      | [JWTKeyConfig](#jwtkeyconfig) | false    |             |
+| `jwkFromUrl` | string                        | false    |             |
+
+### JWTKeyConfig
+
+JWT Secret config according to which the incoming JWT will be decoded.
+
+| Name        | Type                                  | Required | Description                           |
+| ----------- | ------------------------------------- | -------- | ------------------------------------- |
+| `algorithm` | [JWTAlgorithm](#jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
+| `key`       | [EnvironmentValue](#environmentvalue) | true     | The key to use for decoding the JWT.  |
+
+### EnvironmentValue
+
+Either a literal string or a reference to a Hasura secret
+
+Must have exactly one of the following fields:
+
+| Name           | Type   | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `value`        | string | false    |             |
+| `valueFromEnv` | string | false    |             |
+
+### JWTAlgorithm
+
+The algorithm used to decode the JWT.
+
+string / string / string / string / string / string / string / string / string / string / string / string
+
+### JWTTokenLocation
+
+Source of the Authorization token
+
+[undefined](#undefined) / [JWTCookieLocation](#jwtcookielocation) / [JWTHeaderLocation](#jwtheaderlocation)
+
+### JWTHeaderLocation
+
+Custom header from where the header should be parsed from.
+
+| Name   | Type   | Required | Description |
+| ------ | ------ | -------- | ----------- |
+| `type` | string | true     |             |
+| `name` | string | true     |             |
+
+### JWTCookieLocation
+
+Get the token from the Cookie header under the specificied cookie name.
+
+| Name   | Type   | Required | Description |
+| ------ | ------ | -------- | ----------- |
+| `type` | string | true     |             |
+| `name` | string | true     |             |
+
+### undefined
+
+Get the bearer token from the `Authorization` header.
+
+| Name   | Type   | Required | Description |
+| ------ | ------ | -------- | ----------- |
+| `type` | string | true     |             |
+
+### JWTClaimsConfig
+
+Config to describe how/where the engine should look for the claims within the decoded token.
+
+Must have exactly one of the following fields:
+
+| Name        | Type                                      | Required | Description |
+| ----------- | ----------------------------------------- | -------- | ----------- |
+| `locations` | [JWTClaimsMap](#jwtclaimsmap)             | false    |             |
+| `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false    |             |
+
+### JWTClaimsNamespace
+
+Used when all of the Hasura claims are present in a single object within the decoded JWT.
+
+| Name           | Type                                | Required | Description                                                    |
+| -------------- | ----------------------------------- | -------- | -------------------------------------------------------------- |
+| `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true     | Format in which the Hasura claims will be present.             |
+| `location`     | string                              | true     | Pointer to lookup the Hasura claims within the decoded claims. |
+
+### JWTClaimsFormat
+
+Format in which the Hasura claims will be present.
+
+string / string
+
+### JWTClaimsMap
+
+Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON
+pointer within the decoded JWT and optionally a default value.
+
+| Name                     | Type                                            | Required | Description                                                      |
+| ------------------------ | ----------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `x-hasura-default-role`  | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
+| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
+
+### JWTClaimsMappingEntry
+
+JSON pointer to lookup the default role within the decoded JWT.
+
+Must have exactly one of the following fields:
+
+| Name      | Type                                                    | Required | Description |
+| --------- | ------------------------------------------------------- | -------- | ----------- |
+| `literal` | string                                                  | false    |             |
+| `path`    | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false    |             |
+
+### JWTClaimsMappingPathEntry
+
+| Name      | Type          | Required | Description                                                                                 |
+| --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `path`    | string        | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
+| `default` | string / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
+
+### AuthHookConfig
+
+The configuration of the authentication webhook.
+
+| Name     | Type   | Required | Description                                                      |
+| -------- | ------ | -------- | ---------------------------------------------------------------- |
+| `url`    | string | true     | The URL of the authentication webhook.                           |
+| `method` | string | true     | The HTTP method to be used to make the request to the auth hook. |
+
+**Example**
+
+```yaml
+url: http://auth_hook:3050/validate-request
+method: Post
+```
+
+### ArgumentsInputGraphqlConfig
+
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `fieldName` | string | true     |             |
+
+### LimitInputGraphqlConfig
+
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `fieldName` | string | true     |             |
+
+### OffsetInputGraphqlConfig
+
+| Name        | Type   | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `fieldName` | string | true     |             |
+
+### FilterInputOperatorNames
+
+| Name     | Type   | Required | Description |
+| -------- | ------ | -------- | ----------- |
+| `and`    | string | true     |             |
+| `or`     | string | true     |             |
+| `not`    | string | true     |             |
+| `isNull` | string | true     |             |
+
+### FilterInputGraphqlConfig
+
+| Name            | Type                                                  | Required | Description |
+| --------------- | ----------------------------------------------------- | -------- | ----------- |
+| `fieldName`     | string                                                | true     |             |
+| `operatorNames` | [FilterInputOperatorNames](#filterinputoperatornames) | true     |             |
+
+### OrderByDirectionValues
+
+| Name   | Type   | Required | Description |
+| ------ | ------ | -------- | ----------- |
+| `asc`  | string | true     |             |
+| `desc` | string | true     |             |
+
+### OrderByEnumTypeName
+
+| Name         | Type     | Required | Description |
+| ------------ | -------- | -------- | ----------- |
+| `directions` | [string] | true     |             |
+| `typeName`   | string   | true     |             |
+
+### OrderByInputGraphqlConfig
+
+| Name                  | Type                                              | Required | Description |
+| --------------------- | ------------------------------------------------- | -------- | ----------- |
+| `fieldName`           | string                                            | true     |             |
+| `enumDirectionValues` | [OrderByDirectionValues](#orderbydirectionvalues) | true     |             |
+| `enumTypeNames`       | [[OrderByEnumTypeName](#orderbyenumtypename)]     | true     |             |
+
+### QueryGraphqlConfig
+
+| Name                    | Type                                                               | Required | Description |
+| ----------------------- | ------------------------------------------------------------------ | -------- | ----------- |
+| `rootOperationTypeName` | string                                                             | true     |             |
+| `argumentsInput`        | [ArgumentsInputGraphqlConfig](#argumentsinputgraphqlconfig) / null | false    |             |
+| `limitInput`            | [LimitInputGraphqlConfig](#limitinputgraphqlconfig) / null         | false    |             |
+| `offsetInput`           | [OffsetInputGraphqlConfig](#offsetinputgraphqlconfig) / null       | false    |             |
+| `filterInput`           | [FilterInputGraphqlConfig](#filterinputgraphqlconfig) / null       | false    |             |
+| `orderByInput`          | [OrderByInputGraphqlConfig](#orderbyinputgraphqlconfig) / null     | false    |             |
+
+### MutationGraphqlConfig
+
+| Name                    | Type   | Required | Description |
+| ----------------------- | ------ | -------- | ----------- |
+| `rootOperationTypeName` | string | true     |             |
+
+### GraphqlApolloFederationConfig
+
+| Name               | Type    | Required | Description |
+| ------------------ | ------- | -------- | ----------- |
+| `enableRootFields` | boolean | true     |             |
+
+### GraphqlConfigV1
+
+| Name               | Type                                                                   | Required | Description |
+| ------------------ | ---------------------------------------------------------------------- | -------- | ----------- |
+| `query`            | [QueryGraphqlConfig](#querygraphqlconfig)                              | true     |             |
+| `mutation`         | [MutationGraphqlConfig](#mutationgraphqlconfig)                        | true     |             |
+| `apolloFederation` | [GraphqlApolloFederationConfig](#graphqlapollofederationconfig) / null | false    |             |
+
+### Deprecated
+
+OpenDd configuration to indicate whether an object type field, relationship, model root field or command root field is
+deprecated.
+
+| Name     | Type   | Required | Description                 |
+| -------- | ------ | -------- | --------------------------- |
+| `reason` | string | false    | The reason for deprecation. |
+
+### ObjectFieldDefinition
+
+The definition of a field in a user-defined object type.
+
+| Name          | Type                             | Required | Description                                                                                                                                                   |
+| ------------- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                           | true     | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.         |
+| `type`        | string                           | true     | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string                           | false    | The description of this field. Gets added to the description of the field's definition in the graphql schema.                                                 |
+| `deprecated`  | [Deprecated](#deprecated) / null | false    | Whether this field is deprecated. If set, the deprecation status is added to the field's graphql schema.                                                      |
+
+### ApolloFederationObjectKey
+
+| Name     | Type     | Required | Description |
+| -------- | -------- | -------- | ----------- |
+| `fields` | [string] | true     |             |
+
+### ObjectApolloFederationConfig
+
+| Name   | Type                                                      | Required | Description |
+| ------ | --------------------------------------------------------- | -------- | ----------- |
+| `keys` | [[ApolloFederationObjectKey](#apollofederationobjectkey)] | true     |             |
+
+### ObjectTypeGraphQLConfiguration
+
+GraphQL configuration of an Open DD object type.
+
+| Name               | Type                                                                 | Required | Description                                                                                             |
+| ------------------ | -------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `typeName`         | string / null                                                        | false    | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName`    | string / null                                                        | false    | The name to use for the GraphQL type representation of this object type when used in an input context.  |
+| `apolloFederation` | [ObjectApolloFederationConfig](#objectapollofederationconfig) / null | false    | Configuration for exposing apollo federation related types and directives.                              |
+
+### ColumnFieldMapping
+
+The target column in a data connector object that a source field maps to.
+
+| Name   | Type   | Required | Description                   |
+| ------ | ------ | -------- | ----------------------------- |
+| `name` | string | true     | The name of the target column |
+
+### ObjectFieldMapping
+
+Source field directly maps to some column in the data connector.
+
+| Name     | Type                                      | Required | Description |
+| -------- | ----------------------------------------- | -------- | ----------- |
+| `column` | [ColumnFieldMapping](#columnfieldmapping) | true     |             |
+
+### undefined
+
+| Name          | Type                                      | Required | Description |
+| ------------- | ----------------------------------------- | -------- | ----------- |
+| `<customKey>` | [ObjectFieldMapping](#objectfieldmapping) | false    |             |
+
+### DataConnectorTypeMapping
+
+This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data
+connector.
+
+| Name                      | Type                    | Required | Description |
+| ------------------------- | ----------------------- | -------- | ----------- |
+| `dataConnectorName`       | string                  | true     |             |
+| `dataConnectorObjectType` | string                  | true     |             |
+| `fieldMapping`            | [undefined](#undefined) | false    |             |
+
 ### ObjectTypeV1
 
 Definition of a user-defined Open DD object type.
@@ -127,366 +565,6 @@ dataConnectorTypeMapping:
           name: id
 ```
 
-### DataConnectorTypeMapping
-
-This defines the mapping of the fields of an object type to the corresponding columns of an object type in a data
-connector.
-
-| Name                      | Type                    | Required | Description |
-| ------------------------- | ----------------------- | -------- | ----------- |
-| `dataConnectorName`       | string                  | true     |             |
-| `dataConnectorObjectType` | string                  | true     |             |
-| `fieldMapping`            | [undefined](#undefined) | false    |             |
-
-### undefined
-
-| Name          | Type                                      | Required | Description |
-| ------------- | ----------------------------------------- | -------- | ----------- |
-| `<customKey>` | [ObjectFieldMapping](#objectfieldmapping) | false    |             |
-
-### ObjectFieldMapping
-
-Source field directly maps to some column in the data connector.
-
-| Name     | Type                                      | Required | Description |
-| -------- | ----------------------------------------- | -------- | ----------- |
-| `column` | [ColumnFieldMapping](#columnfieldmapping) | true     |             |
-
-### ColumnFieldMapping
-
-The target column in a data connector object that a source field maps to.
-
-| Name   | Type   | Required | Description                   |
-| ------ | ------ | -------- | ----------------------------- |
-| `name` | string | true     | The name of the target column |
-
-### ObjectTypeGraphQLConfiguration
-
-GraphQL configuration of an Open DD object type.
-
-| Name            | Type          | Required | Description                                                                                             |
-| --------------- | ------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `typeName`      | string / null | false    | The name to use for the GraphQL type representation of this object type when used in an output context. |
-| `inputTypeName` | string / null | false    | The name to use for the GraphQL type representation of this object type when used in an input context.  |
-
-### ObjectFieldDefinition
-
-The definition of a field in a user-defined object type.
-
-| Name          | Type                             | Required | Description                                                                                                                                                   |
-| ------------- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`        | string                           | true     | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.         |
-| `type`        | string                           | true     | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
-| `description` | string                           | false    | The description of this field. Gets added to the description of the field's definition in the graphql schema.                                                 |
-| `deprecated`  | [Deprecated](#deprecated) / null | false    | Whether this field is deprecated. If set, the deprecation status is added to the field's graphql schema.                                                      |
-
-### Deprecated
-
-OpenDd configuration to indicate whether an object type field, relationship, model root field or command root field is
-deprecated.
-
-| Name     | Type   | Required | Description                 |
-| -------- | ------ | -------- | --------------------------- |
-| `reason` | string | false    | The reason for deprecation. |
-
-### GraphqlConfigV1
-
-| Name       | Type                                            | Required | Description |
-| ---------- | ----------------------------------------------- | -------- | ----------- |
-| `query`    | [QueryGraphqlConfig](#querygraphqlconfig)       | true     |             |
-| `mutation` | [MutationGraphqlConfig](#mutationgraphqlconfig) | true     |             |
-
-### MutationGraphqlConfig
-
-| Name                    | Type   | Required | Description |
-| ----------------------- | ------ | -------- | ----------- |
-| `rootOperationTypeName` | string | true     |             |
-
-### QueryGraphqlConfig
-
-| Name                    | Type                                                               | Required | Description |
-| ----------------------- | ------------------------------------------------------------------ | -------- | ----------- |
-| `rootOperationTypeName` | string                                                             | true     |             |
-| `argumentsInput`        | [ArgumentsInputGraphqlConfig](#argumentsinputgraphqlconfig) / null | false    |             |
-| `limitInput`            | [LimitInputGraphqlConfig](#limitinputgraphqlconfig) / null         | false    |             |
-| `offsetInput`           | [OffsetInputGraphqlConfig](#offsetinputgraphqlconfig) / null       | false    |             |
-| `filterInput`           | [FilterInputGraphqlConfig](#filterinputgraphqlconfig) / null       | false    |             |
-| `orderByInput`          | [OrderByInputGraphqlConfig](#orderbyinputgraphqlconfig) / null     | false    |             |
-
-### OrderByInputGraphqlConfig
-
-| Name                  | Type                                              | Required | Description |
-| --------------------- | ------------------------------------------------- | -------- | ----------- |
-| `fieldName`           | string                                            | true     |             |
-| `enumDirectionValues` | [OrderByDirectionValues](#orderbydirectionvalues) | true     |             |
-| `enumTypeNames`       | [[OrderByEnumTypeName](#orderbyenumtypename)]     | true     |             |
-
-### OrderByEnumTypeName
-
-| Name         | Type     | Required | Description |
-| ------------ | -------- | -------- | ----------- |
-| `directions` | [string] | true     |             |
-| `typeName`   | string   | true     |             |
-
-### OrderByDirectionValues
-
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `asc`  | string | true     |             |
-| `desc` | string | true     |             |
-
-### FilterInputGraphqlConfig
-
-| Name            | Type                                                  | Required | Description |
-| --------------- | ----------------------------------------------------- | -------- | ----------- |
-| `fieldName`     | string                                                | true     |             |
-| `operatorNames` | [FilterInputOperatorNames](#filterinputoperatornames) | true     |             |
-
-### FilterInputOperatorNames
-
-| Name     | Type   | Required | Description |
-| -------- | ------ | -------- | ----------- |
-| `and`    | string | true     |             |
-| `or`     | string | true     |             |
-| `not`    | string | true     |             |
-| `isNull` | string | true     |             |
-
-### OffsetInputGraphqlConfig
-
-| Name        | Type   | Required | Description |
-| ----------- | ------ | -------- | ----------- |
-| `fieldName` | string | true     |             |
-
-### LimitInputGraphqlConfig
-
-| Name        | Type   | Required | Description |
-| ----------- | ------ | -------- | ----------- |
-| `fieldName` | string | true     |             |
-
-### ArgumentsInputGraphqlConfig
-
-| Name        | Type   | Required | Description |
-| ----------- | ------ | -------- | ----------- |
-| `fieldName` | string | true     |             |
-
-### AuthHookConfig
-
-The configuration of the authentication webhook.
-
-| Name     | Type   | Required | Description                                                      |
-| -------- | ------ | -------- | ---------------------------------------------------------------- |
-| `url`    | string | true     | The URL of the authentication webhook.                           |
-| `method` | string | true     | The HTTP method to be used to make the request to the auth hook. |
-
-**Example**
-
-```yaml
-url: http://auth_hook:3050/validate-request
-method: Post
-```
-
-### JWTClaimsMappingPathEntry
-
-| Name      | Type          | Required | Description                                                                                 |
-| --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `path`    | string        | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
-| `default` | string / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
-
-### JWTClaimsMappingEntry
-
-JSON pointer to lookup the default role within the decoded JWT.
-
-Must have exactly one of the following fields:
-
-| Name      | Type                                                    | Required | Description |
-| --------- | ------------------------------------------------------- | -------- | ----------- |
-| `literal` | string                                                  | false    |             |
-| `path`    | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false    |             |
-
-### JWTClaimsMap
-
-Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON
-pointer within the decoded JWT and optionally a default value.
-
-| Name                     | Type                                            | Required | Description                                                      |
-| ------------------------ | ----------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| `x-hasura-default-role`  | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
-| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
-
-### JWTClaimsFormat
-
-Format in which the Hasura claims will be present.
-
-string / string
-
-### JWTClaimsNamespace
-
-Used when all of the Hasura claims are present in a single object within the decoded JWT.
-
-| Name           | Type                                | Required | Description                                                    |
-| -------------- | ----------------------------------- | -------- | -------------------------------------------------------------- |
-| `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true     | Format in which the Hasura claims will be present.             |
-| `location`     | string                              | true     | Pointer to lookup the Hasura claims within the decoded claims. |
-
-### JWTClaimsConfig
-
-Config to describe how/where the engine should look for the claims within the decoded token.
-
-Must have exactly one of the following fields:
-
-| Name        | Type                                      | Required | Description |
-| ----------- | ----------------------------------------- | -------- | ----------- |
-| `locations` | [JWTClaimsMap](#jwtclaimsmap)             | false    |             |
-| `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false    |             |
-
-### undefined
-
-Get the bearer token from the `Authorization` header.
-
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `type` | string | true     |             |
-
-### JWTCookieLocation
-
-Get the token from the Cookie header under the specificied cookie name.
-
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `type` | string | true     |             |
-| `name` | string | true     |             |
-
-### JWTHeaderLocation
-
-Custom header from where the header should be parsed from.
-
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `type` | string | true     |             |
-| `name` | string | true     |             |
-
-### JWTTokenLocation
-
-Source of the Authorization token
-
-[undefined](#undefined) / [JWTCookieLocation](#jwtcookielocation) / [JWTHeaderLocation](#jwtheaderlocation)
-
-### JWTAlgorithm
-
-The algorithm used to decode the JWT.
-
-string / string / string / string / string / string / string / string / string / string / string / string
-
-### EnvironmentValue
-
-Either a literal string or a reference to a Hasura secret
-
-Must have exactly one of the following fields:
-
-| Name           | Type   | Required | Description |
-| -------------- | ------ | -------- | ----------- |
-| `value`        | string | false    |             |
-| `valueFromEnv` | string | false    |             |
-
-### JWTKeyConfig
-
-JWT Secret config according to which the incoming JWT will be decoded.
-
-| Name        | Type                                  | Required | Description                           |
-| ----------- | ------------------------------------- | -------- | ------------------------------------- |
-| `algorithm` | [JWTAlgorithm](#jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
-| `key`       | [EnvironmentValue](#environmentvalue) | true     | The key to use for decoding the JWT.  |
-
-### JWTKey
-
-JWT key configuration according to which the incoming JWT will be decoded.
-
-Must have exactly one of the following fields:
-
-| Name         | Type                          | Required | Description |
-| ------------ | ----------------------------- | -------- | ----------- |
-| `fixed`      | [JWTKeyConfig](#jwtkeyconfig) | false    |             |
-| `jwkFromUrl` | string                        | false    |             |
-
-### JWTConfig
-
-JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
-
-| Name            | Type                                  | Required | Description                                                                                                           |
-| --------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `audience`      | [string]                              | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
-| `issuer`        | string                                | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
-| `allowedSkew`   | integer                               | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
-| `claimsConfig`  | [JWTClaimsConfig](#jwtclaimsconfig)   | true     | Claims config. Either specified via `claims_mappings` or `claims_namespace_path`                                      |
-| `tokenLocation` | [JWTTokenLocation](#jwttokenlocation) | true     | Source of the JWT authentication token.                                                                               |
-| `key`           | [JWTKey](#jwtkey)                     | true     | Mode according to which the JWT auth is configured.                                                                   |
-
-**Example**
-
-```yaml
-audience: null
-issuer: null
-allowedSkew: null
-claimsConfig:
-  namespace:
-    claimsFormat: Json
-    location: /https:~1~1hasura.io~1jwt~1claims
-tokenLocation:
-  type: BearerAuthorization
-key:
-  fixed:
-    algorithm: HS256
-    key:
-      value: token
-```
-
-### AuthModeConfig
-
-The configuration for the authentication mode to use - webhook or JWT.
-
-Must have exactly one of the following fields:
-
-| Name      | Type                              | Required | Description |
-| --------- | --------------------------------- | -------- | ----------- |
-| `webhook` | [AuthHookConfig](#authhookconfig) | false    |             |
-| `jwt`     | [JWTConfig](#jwtconfig)           | false    |             |
-
-### AuthConfigV1
-
-Definition of the authentication configuration used by the API server.
-
-| Name                   | Type                              | Required | Description |
-| ---------------------- | --------------------------------- | -------- | ----------- |
-| `allowRoleEmulationBy` | string / null                     | false    |             |
-| `mode`                 | [AuthModeConfig](#authmodeconfig) | true     |             |
-
-### ScalarTypeGraphQLConfiguration
-
-GraphQL configuration of an Open DD scalar type
-
-| Name       | Type   | Required | Description                                          |
-| ---------- | ------ | -------- | ---------------------------------------------------- |
-| `typeName` | string | true     | The name of the GraphQl type to use for this scalar. |
-
-### ScalarTypeV1
-
-Definition of a user-defined scalar type that that has opaque semantics.
-
-| Name          | Type                                                                     | Required | Description                                                                                                                                 |
-| ------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`        | string                                                                   | true     | The name to give this scalar type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `graphql`     | [ScalarTypeGraphQLConfiguration](#scalartypegraphqlconfiguration) / null | false    | Configuration for how this scalar type should appear in the GraphQL schema.                                                                 |
-| `description` | string                                                                   | false    | The description of this scalar. Gets added to the description of the scalar's definition in the graphql schema.                             |
-
-**Example**
-
-```yaml
-name: CustomString
-graphql:
-  typeName: CustomString
-description: A custom string type
-```
-
 ### ArgumentDefinition
 
 The definition of an argument for a field, command, or model.
@@ -520,15 +598,6 @@ dataConnectorName: data_connector
 collection: articles
 ```
 
-### EnableAllOrSpecific
-
-Must have exactly one of the following fields:
-
-| Name             | Type     | Required | Description |
-| ---------------- | -------- | -------- | ----------- |
-| `enableAll`      | boolean  | false    |             |
-| `enableSpecific` | [string] | false    |             |
-
 ### OrderableField
 
 | Name                | Type                                        | Required | Description |
@@ -557,16 +626,23 @@ The definition of the GraphQL API for selecting rows from a model.
 | `description`    | string                           | false    | The description of the select many graphql definition of the model. Gets added to the description of the select many root field of the model in the graphql schema. |
 | `deprecated`     | [Deprecated](#deprecated) / null | false    | Whether this select many query field is deprecated. If set, the deprecation status is added to the select many root field's graphql schema.                         |
 
+### ModelApolloFederationConfiguration
+
+| Name           | Type    | Required | Description                                                                                   |
+| -------------- | ------- | -------- | --------------------------------------------------------------------------------------------- |
+| `entitySource` | boolean | true     | Whether this model should be used as the source for fetching \_entity for object of its type. |
+
 ### ModelGraphQlDefinition
 
 The definition of how a model appears in the GraphQL API.
 
-| Name                    | Type                                                               | Required | Description                                                                                                                                    |
-| ----------------------- | ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `selectUniques`         | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)]  | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany`            | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType`    | string / null                                                      | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
-| `orderByExpressionType` | string / null                                                      | false    | The type name of the order by expression input type.                                                                                           |
+| Name                    | Type                                                                             | Required | Description                                                                                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectUniques`         | [[SelectUniqueGraphQlDefinition](#selectuniquegraphqldefinition)]                | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany`            | [SelectManyGraphQlDefinition](#selectmanygraphqldefinition) / null               | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType`    | string / null                                                                    | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
+| `orderByExpressionType` | string / null                                                                    | false    | The type name of the order by expression input type.                                                                                           |
+| `apolloFederation`      | [ModelApolloFederationConfiguration](#modelapollofederationconfiguration) / null | false    | Apollo Federation configuration                                                                                                                |
 
 **Example**
 
@@ -631,5 +707,7 @@ graphql:
     queryRootField: ArticleMany
     description: Description for the select many ArticleMany
   orderByExpressionType: Article_Order_By
+  apolloFederation:
+    entitySource: true
 description: Description for the model Articles
 ```

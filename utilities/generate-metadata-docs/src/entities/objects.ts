@@ -13,7 +13,7 @@ export const topLevelSupergraphObjects = {
 };
 
 export const topLevelSubgraphObjects = {
-  'types.mdx': ['ScalarTypeV1', 'ObjectTypeV1', 'ObjectTypeBooleanExpressionV1'],
+  'types.mdx': ['ScalarTypeV1', 'ObjectTypeV1', 'ObjectBooleanExpressionTypeV1'],
   'models.mdx': ['ModelV1'],
   'commands.mdx': ['CommandV1'],
   'relationships.mdx': ['RelationshipV1'],
