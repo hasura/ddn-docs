@@ -14,7 +14,9 @@ const config: Config = {
 
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: process.env.CF_PAGES === '1'
+    ? '/'
+    : '/docs/3.0',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -24,6 +26,7 @@ const config: Config = {
   staticDirectories: ['static', 'public'],
 
   onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
@@ -57,7 +60,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x alpha',
+              label: 'v3.x beta',
               badge: true,
             },
           },
@@ -106,7 +109,7 @@ const config: Config = {
   ],
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/og-social-card.jpg',
     algolia: {
       appId: '7M3BTIV34B',
       // Public API key: it is safe to commit it
@@ -120,8 +123,9 @@ const config: Config = {
     navbar: {
       title: '',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'Hasura Logo',
         src: 'img/logo-dark.svg',
+        href: '/index',
         srcDark: '/img/logo-light.svg',
       },
       items: [
