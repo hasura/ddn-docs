@@ -4,9 +4,9 @@
 
 Definition of the authentication configuration used by the API server.
 
-| Name                   | Type                              | Required | Description |
+| Key                    | Schema                            | Required | Description |
 | ---------------------- | --------------------------------- | -------- | ----------- |
-| `allowRoleEmulationBy` | string / null                     | false    |             |
+| `allowRoleEmulationBy` | `string` / `null`                 | false    |             |
 | `mode`                 | [AuthModeConfig](#authmodeconfig) | true     |             |
 
 ### AuthModeConfig
@@ -15,7 +15,7 @@ The configuration for the authentication mode to use - webhook or JWT.
 
 Must have exactly one of the following fields:
 
-| Name      | Type                              | Required | Description |
+| Key       | Schema                            | Required | Description |
 | --------- | --------------------------------- | -------- | ----------- |
 | `webhook` | [AuthHookConfig](#authhookconfig) | false    |             |
 | `jwt`     | [JWTConfig](#jwtconfig)           | false    |             |
@@ -24,11 +24,11 @@ Must have exactly one of the following fields:
 
 JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
 
-| Name            | Type                                  | Required | Description                                                                                                           |
+| Key             | Schema                                | Required | Description                                                                                                           |
 | --------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `audience`      | [string]                              | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
-| `issuer`        | string                                | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
-| `allowedSkew`   | integer                               | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
+| `audience`      | [`string`]                            | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer`        | `string`                              | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
+| `allowedSkew`   | `integer`                             | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
 | `claimsConfig`  | [JWTClaimsConfig](#jwtclaimsconfig)   | true     | Claims config. Either specified via `claims_mappings` or `claims_namespace_path`                                      |
 | `tokenLocation` | [JWTTokenLocation](#jwttokenlocation) | true     | Source of the JWT authentication token.                                                                               |
 | `key`           | [JWTKey](#jwtkey)                     | true     | Mode according to which the JWT auth is configured.                                                                   |
@@ -58,16 +58,16 @@ JWT key configuration according to which the incoming JWT will be decoded.
 
 Must have exactly one of the following fields:
 
-| Name         | Type                          | Required | Description |
+| Key          | Schema                        | Required | Description |
 | ------------ | ----------------------------- | -------- | ----------- |
 | `fixed`      | [JWTKeyConfig](#jwtkeyconfig) | false    |             |
-| `jwkFromUrl` | string                        | false    |             |
+| `jwkFromUrl` | `string`                      | false    |             |
 
 ### JWTKeyConfig
 
 JWT Secret config according to which the incoming JWT will be decoded.
 
-| Name        | Type                                  | Required | Description                           |
+| Key         | Schema                                | Required | Description                           |
 | ----------- | ------------------------------------- | -------- | ------------------------------------- |
 | `algorithm` | [JWTAlgorithm](#jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
 | `key`       | [EnvironmentValue](#environmentvalue) | true     | The key to use for decoding the JWT.  |
@@ -78,10 +78,10 @@ Either a literal string or a reference to a Hasura secret
 
 Must have exactly one of the following fields:
 
-| Name           | Type   | Required | Description |
-| -------------- | ------ | -------- | ----------- |
-| `value`        | string | false    |             |
-| `valueFromEnv` | string | false    |             |
+| Key            | Schema   | Required | Description |
+| -------------- | -------- | -------- | ----------- |
+| `value`        | `string` | false    |             |
+| `valueFromEnv` | `string` | false    |             |
 
 ### JWTAlgorithm
 
@@ -99,25 +99,25 @@ Source of the Authorization token
 
 Custom header from where the header should be parsed from.
 
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `type` | Header | true     |             |
-| `name` | string | true     |             |
+| Key    | Schema   | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `type` | Header   | true     |             |
+| `name` | `string` | true     |             |
 
 ### JWTCookieLocation
 
 Get the token from the Cookie header under the specificied cookie name.
 
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `type` | Cookie | true     |             |
-| `name` | string | true     |             |
+| Key    | Schema   | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `type` | Cookie   | true     |             |
+| `name` | `string` | true     |             |
 
 ### undefined
 
 Get the bearer token from the `Authorization` header.
 
-| Name   | Type                | Required | Description |
+| Key    | Schema              | Required | Description |
 | ------ | ------------------- | -------- | ----------- |
 | `type` | BearerAuthorization | true     |             |
 
@@ -127,7 +127,7 @@ Config to describe how/where the engine should look for the claims within the de
 
 Must have exactly one of the following fields:
 
-| Name        | Type                                      | Required | Description |
+| Key         | Schema                                    | Required | Description |
 | ----------- | ----------------------------------------- | -------- | ----------- |
 | `locations` | [JWTClaimsMap](#jwtclaimsmap)             | false    |             |
 | `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false    |             |
@@ -136,10 +136,10 @@ Must have exactly one of the following fields:
 
 Used when all of the Hasura claims are present in a single object within the decoded JWT.
 
-| Name           | Type                                | Required | Description                                                    |
+| Key            | Schema                              | Required | Description                                                    |
 | -------------- | ----------------------------------- | -------- | -------------------------------------------------------------- |
 | `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true     | Format in which the Hasura claims will be present.             |
-| `location`     | string                              | true     | Pointer to lookup the Hasura claims within the decoded claims. |
+| `location`     | `string`                            | true     | Pointer to lookup the Hasura claims within the decoded claims. |
 
 ### JWTClaimsFormat
 
@@ -152,7 +152,7 @@ Json / StringifiedJson
 Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON
 pointer within the decoded JWT and optionally a default value.
 
-| Name                     | Type                                            | Required | Description                                                      |
+| Key                      | Schema                                          | Required | Description                                                      |
 | ------------------------ | ----------------------------------------------- | -------- | ---------------------------------------------------------------- |
 | `x-hasura-default-role`  | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
 | `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
@@ -163,25 +163,25 @@ JSON pointer to lookup the default role within the decoded JWT.
 
 Must have exactly one of the following fields:
 
-| Name      | Type                                                    | Required | Description |
+| Key       | Schema                                                  | Required | Description |
 | --------- | ------------------------------------------------------- | -------- | ----------- |
-| `literal` | string                                                  | false    |             |
+| `literal` | `string`                                                | false    |             |
 | `path`    | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false    |             |
 
 ### JWTClaimsMappingPathEntry
 
-| Name      | Type          | Required | Description                                                                                 |
-| --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `path`    | string        | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
-| `default` | string / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
+| Key       | Schema            | Required | Description                                                                                 |
+| --------- | ----------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `path`    | `string`          | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
+| `default` | `string` / `null` | false    | Default value to be used when no value is found when looking up the value using the `path`. |
 
 ### AuthHookConfig
 
 The configuration of the authentication webhook.
 
-| Name     | Type       | Required | Description                                                      |
+| Key      | Schema     | Required | Description                                                      |
 | -------- | ---------- | -------- | ---------------------------------------------------------------- |
-| `url`    | string     | true     | The URL of the authentication webhook.                           |
+| `url`    | `string`   | true     | The URL of the authentication webhook.                           |
 | `method` | Get / Post | true     | The HTTP method to be used to make the request to the auth hook. |
 
 **Example**
@@ -193,98 +193,98 @@ method: Post
 
 ### GraphqlConfigV1
 
-| Name               | Type                                                                   | Required | Description |
-| ------------------ | ---------------------------------------------------------------------- | -------- | ----------- |
-| `query`            | [QueryGraphqlConfig](#querygraphqlconfig)                              | true     |             |
-| `mutation`         | [MutationGraphqlConfig](#mutationgraphqlconfig)                        | true     |             |
-| `apolloFederation` | [GraphqlApolloFederationConfig](#graphqlapollofederationconfig) / null | false    |             |
+| Key                | Schema                                                                   | Required | Description |
+| ------------------ | ------------------------------------------------------------------------ | -------- | ----------- |
+| `query`            | [QueryGraphqlConfig](#querygraphqlconfig)                                | true     |             |
+| `mutation`         | [MutationGraphqlConfig](#mutationgraphqlconfig)                          | true     |             |
+| `apolloFederation` | [GraphqlApolloFederationConfig](#graphqlapollofederationconfig) / `null` | false    |             |
 
 ### GraphqlApolloFederationConfig
 
-| Name               | Type    | Required | Description |
-| ------------------ | ------- | -------- | ----------- |
-| `enableRootFields` | boolean | true     |             |
+| Key                | Schema    | Required | Description |
+| ------------------ | --------- | -------- | ----------- |
+| `enableRootFields` | `boolean` | true     |             |
 
 ### MutationGraphqlConfig
 
-| Name                    | Type   | Required | Description |
-| ----------------------- | ------ | -------- | ----------- |
-| `rootOperationTypeName` | string | true     |             |
+| Key                     | Schema   | Required | Description |
+| ----------------------- | -------- | -------- | ----------- |
+| `rootOperationTypeName` | `string` | true     |             |
 
 ### QueryGraphqlConfig
 
-| Name                    | Type                                                               | Required | Description |
-| ----------------------- | ------------------------------------------------------------------ | -------- | ----------- |
-| `rootOperationTypeName` | string                                                             | true     |             |
-| `argumentsInput`        | [ArgumentsInputGraphqlConfig](#argumentsinputgraphqlconfig) / null | false    |             |
-| `limitInput`            | [LimitInputGraphqlConfig](#limitinputgraphqlconfig) / null         | false    |             |
-| `offsetInput`           | [OffsetInputGraphqlConfig](#offsetinputgraphqlconfig) / null       | false    |             |
-| `filterInput`           | [FilterInputGraphqlConfig](#filterinputgraphqlconfig) / null       | false    |             |
-| `orderByInput`          | [OrderByInputGraphqlConfig](#orderbyinputgraphqlconfig) / null     | false    |             |
+| Key                     | Schema                                                               | Required | Description |
+| ----------------------- | -------------------------------------------------------------------- | -------- | ----------- |
+| `rootOperationTypeName` | `string`                                                             | true     |             |
+| `argumentsInput`        | [ArgumentsInputGraphqlConfig](#argumentsinputgraphqlconfig) / `null` | false    |             |
+| `limitInput`            | [LimitInputGraphqlConfig](#limitinputgraphqlconfig) / `null`         | false    |             |
+| `offsetInput`           | [OffsetInputGraphqlConfig](#offsetinputgraphqlconfig) / `null`       | false    |             |
+| `filterInput`           | [FilterInputGraphqlConfig](#filterinputgraphqlconfig) / `null`       | false    |             |
+| `orderByInput`          | [OrderByInputGraphqlConfig](#orderbyinputgraphqlconfig) / `null`     | false    |             |
 
 ### OrderByInputGraphqlConfig
 
-| Name                  | Type                                              | Required | Description |
+| Key                   | Schema                                            | Required | Description |
 | --------------------- | ------------------------------------------------- | -------- | ----------- |
-| `fieldName`           | string                                            | true     |             |
+| `fieldName`           | `string`                                          | true     |             |
 | `enumDirectionValues` | [OrderByDirectionValues](#orderbydirectionvalues) | true     |             |
 | `enumTypeNames`       | [[OrderByEnumTypeName](#orderbyenumtypename)]     | true     |             |
 
 ### OrderByEnumTypeName
 
-| Name         | Type         | Required | Description |
+| Key          | Schema       | Required | Description |
 | ------------ | ------------ | -------- | ----------- |
 | `directions` | [Asc / Desc] | true     |             |
-| `typeName`   | string       | true     |             |
+| `typeName`   | `string`     | true     |             |
 
 ### OrderByDirectionValues
 
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `asc`  | string | true     |             |
-| `desc` | string | true     |             |
+| Key    | Schema   | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `asc`  | `string` | true     |             |
+| `desc` | `string` | true     |             |
 
 ### FilterInputGraphqlConfig
 
-| Name            | Type                                                  | Required | Description |
+| Key             | Schema                                                | Required | Description |
 | --------------- | ----------------------------------------------------- | -------- | ----------- |
-| `fieldName`     | string                                                | true     |             |
+| `fieldName`     | `string`                                              | true     |             |
 | `operatorNames` | [FilterInputOperatorNames](#filterinputoperatornames) | true     |             |
 
 ### FilterInputOperatorNames
 
-| Name     | Type   | Required | Description |
-| -------- | ------ | -------- | ----------- |
-| `and`    | string | true     |             |
-| `or`     | string | true     |             |
-| `not`    | string | true     |             |
-| `isNull` | string | true     |             |
+| Key      | Schema   | Required | Description |
+| -------- | -------- | -------- | ----------- |
+| `and`    | `string` | true     |             |
+| `or`     | `string` | true     |             |
+| `not`    | `string` | true     |             |
+| `isNull` | `string` | true     |             |
 
 ### OffsetInputGraphqlConfig
 
-| Name        | Type   | Required | Description |
-| ----------- | ------ | -------- | ----------- |
-| `fieldName` | string | true     |             |
+| Key         | Schema   | Required | Description |
+| ----------- | -------- | -------- | ----------- |
+| `fieldName` | `string` | true     |             |
 
 ### LimitInputGraphqlConfig
 
-| Name        | Type   | Required | Description |
-| ----------- | ------ | -------- | ----------- |
-| `fieldName` | string | true     |             |
+| Key         | Schema   | Required | Description |
+| ----------- | -------- | -------- | ----------- |
+| `fieldName` | `string` | true     |             |
 
 ### ArgumentsInputGraphqlConfig
 
-| Name        | Type   | Required | Description |
-| ----------- | ------ | -------- | ----------- |
-| `fieldName` | string | true     |             |
+| Key         | Schema   | Required | Description |
+| ----------- | -------- | -------- | ----------- |
+| `fieldName` | `string` | true     |             |
 
 ### AuthHookConfig
 
 The configuration of the authentication webhook.
 
-| Name     | Type       | Required | Description                                                      |
+| Key      | Schema     | Required | Description                                                      |
 | -------- | ---------- | -------- | ---------------------------------------------------------------- |
-| `url`    | string     | true     | The URL of the authentication webhook.                           |
+| `url`    | `string`   | true     | The URL of the authentication webhook.                           |
 | `method` | Get / Post | true     | The HTTP method to be used to make the request to the auth hook. |
 
 **Example**
@@ -296,10 +296,10 @@ method: Post
 
 ### JWTClaimsMappingPathEntry
 
-| Name      | Type          | Required | Description                                                                                 |
-| --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `path`    | string        | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
-| `default` | string / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
+| Key       | Schema            | Required | Description                                                                                 |
+| --------- | ----------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `path`    | `string`          | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
+| `default` | `string` / `null` | false    | Default value to be used when no value is found when looking up the value using the `path`. |
 
 ### JWTClaimsMappingEntry
 
@@ -307,9 +307,9 @@ JSON pointer to lookup the default role within the decoded JWT.
 
 Must have exactly one of the following fields:
 
-| Name      | Type                                                    | Required | Description |
+| Key       | Schema                                                  | Required | Description |
 | --------- | ------------------------------------------------------- | -------- | ----------- |
-| `literal` | string                                                  | false    |             |
+| `literal` | `string`                                                | false    |             |
 | `path`    | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false    |             |
 
 ### JWTClaimsMap
@@ -317,7 +317,7 @@ Must have exactly one of the following fields:
 Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON
 pointer within the decoded JWT and optionally a default value.
 
-| Name                     | Type                                            | Required | Description                                                      |
+| Key                      | Schema                                          | Required | Description                                                      |
 | ------------------------ | ----------------------------------------------- | -------- | ---------------------------------------------------------------- |
 | `x-hasura-default-role`  | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
 | `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
@@ -332,10 +332,10 @@ Json / StringifiedJson
 
 Used when all of the Hasura claims are present in a single object within the decoded JWT.
 
-| Name           | Type                                | Required | Description                                                    |
+| Key            | Schema                              | Required | Description                                                    |
 | -------------- | ----------------------------------- | -------- | -------------------------------------------------------------- |
 | `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true     | Format in which the Hasura claims will be present.             |
-| `location`     | string                              | true     | Pointer to lookup the Hasura claims within the decoded claims. |
+| `location`     | `string`                            | true     | Pointer to lookup the Hasura claims within the decoded claims. |
 
 ### JWTClaimsConfig
 
@@ -343,7 +343,7 @@ Config to describe how/where the engine should look for the claims within the de
 
 Must have exactly one of the following fields:
 
-| Name        | Type                                      | Required | Description |
+| Key         | Schema                                    | Required | Description |
 | ----------- | ----------------------------------------- | -------- | ----------- |
 | `locations` | [JWTClaimsMap](#jwtclaimsmap)             | false    |             |
 | `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false    |             |
@@ -352,7 +352,7 @@ Must have exactly one of the following fields:
 
 Get the bearer token from the `Authorization` header.
 
-| Name   | Type                | Required | Description |
+| Key    | Schema              | Required | Description |
 | ------ | ------------------- | -------- | ----------- |
 | `type` | BearerAuthorization | true     |             |
 
@@ -360,19 +360,19 @@ Get the bearer token from the `Authorization` header.
 
 Get the token from the Cookie header under the specificied cookie name.
 
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `type` | Cookie | true     |             |
-| `name` | string | true     |             |
+| Key    | Schema   | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `type` | Cookie   | true     |             |
+| `name` | `string` | true     |             |
 
 ### JWTHeaderLocation
 
 Custom header from where the header should be parsed from.
 
-| Name   | Type   | Required | Description |
-| ------ | ------ | -------- | ----------- |
-| `type` | Header | true     |             |
-| `name` | string | true     |             |
+| Key    | Schema   | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `type` | Header   | true     |             |
+| `name` | `string` | true     |             |
 
 ### JWTTokenLocation
 
@@ -392,16 +392,16 @@ Either a literal string or a reference to a Hasura secret
 
 Must have exactly one of the following fields:
 
-| Name           | Type   | Required | Description |
-| -------------- | ------ | -------- | ----------- |
-| `value`        | string | false    |             |
-| `valueFromEnv` | string | false    |             |
+| Key            | Schema   | Required | Description |
+| -------------- | -------- | -------- | ----------- |
+| `value`        | `string` | false    |             |
+| `valueFromEnv` | `string` | false    |             |
 
 ### JWTKeyConfig
 
 JWT Secret config according to which the incoming JWT will be decoded.
 
-| Name        | Type                                  | Required | Description                           |
+| Key         | Schema                                | Required | Description                           |
 | ----------- | ------------------------------------- | -------- | ------------------------------------- |
 | `algorithm` | [JWTAlgorithm](#jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
 | `key`       | [EnvironmentValue](#environmentvalue) | true     | The key to use for decoding the JWT.  |
@@ -412,20 +412,20 @@ JWT key configuration according to which the incoming JWT will be decoded.
 
 Must have exactly one of the following fields:
 
-| Name         | Type                          | Required | Description |
+| Key          | Schema                        | Required | Description |
 | ------------ | ----------------------------- | -------- | ----------- |
 | `fixed`      | [JWTKeyConfig](#jwtkeyconfig) | false    |             |
-| `jwkFromUrl` | string                        | false    |             |
+| `jwkFromUrl` | `string`                      | false    |             |
 
 ### JWTConfig
 
 JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
 
-| Name            | Type                                  | Required | Description                                                                                                           |
+| Key             | Schema                                | Required | Description                                                                                                           |
 | --------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `audience`      | [string]                              | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
-| `issuer`        | string                                | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
-| `allowedSkew`   | integer                               | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
+| `audience`      | [`string`]                            | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer`        | `string`                              | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
+| `allowedSkew`   | `integer`                             | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
 | `claimsConfig`  | [JWTClaimsConfig](#jwtclaimsconfig)   | true     | Claims config. Either specified via `claims_mappings` or `claims_namespace_path`                                      |
 | `tokenLocation` | [JWTTokenLocation](#jwttokenlocation) | true     | Source of the JWT authentication token.                                                                               |
 | `key`           | [JWTKey](#jwtkey)                     | true     | Mode according to which the JWT auth is configured.                                                                   |
@@ -455,7 +455,7 @@ The configuration for the authentication mode to use - webhook or JWT.
 
 Must have exactly one of the following fields:
 
-| Name      | Type                              | Required | Description |
+| Key       | Schema                            | Required | Description |
 | --------- | --------------------------------- | -------- | ----------- |
 | `webhook` | [AuthHookConfig](#authhookconfig) | false    |             |
 | `jwt`     | [JWTConfig](#jwtconfig)           | false    |             |
@@ -464,7 +464,7 @@ Must have exactly one of the following fields:
 
 Definition of the authentication configuration used by the API server.
 
-| Name                   | Type                              | Required | Description |
+| Key                    | Schema                            | Required | Description |
 | ---------------------- | --------------------------------- | -------- | ----------- |
-| `allowRoleEmulationBy` | string / null                     | false    |             |
+| `allowRoleEmulationBy` | `string` / `null`                 | false    |             |
 | `mode`                 | [AuthModeConfig](#authmodeconfig) | true     |             |

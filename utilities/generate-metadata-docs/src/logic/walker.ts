@@ -91,7 +91,7 @@ function handleEnum(metadataObject: JSONSchema7Definition): string {
 function handleScalars(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type && isScalarType(metadataObject)) {
-    return type;
+    return `\`${type}\``;
   }
 }
 
@@ -114,7 +114,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
 
     if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
-    markdown += `| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
+    markdown += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
 
     if (metadataObject.properties) {
       for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
@@ -181,7 +181,7 @@ function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): str
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
   markdown += '\nMust have exactly one of the following fields:\n\n';
-  markdown += `| Name | Type | Required | Description |\n|-----|-----|-----|-----|\n`;
+  markdown += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
   metadataObject.oneOf.forEach(sub_object => {
     let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
     const propertyType = handleSchemaDefinition(propertySchema);
