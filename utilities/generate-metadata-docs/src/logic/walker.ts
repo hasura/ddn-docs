@@ -2,6 +2,7 @@ import jsYaml from 'js-yaml';
 import { JSONSchema7Definition } from '../entities/types';
 import {
   getArrayItemType,
+  getDescription,
   getRefLink,
   getTitle,
   getType,
@@ -120,16 +121,14 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
       for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
         const propertyType = handleSchemaDefinition(propertySchema);
         const requiredProp = metadataObject.required ? metadataObject.required.includes(propertyKey) : false;
-        markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${
-          propertySchema.description || ''
-        } |\n`;
+        markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
       }
     }
 
     if (metadataObject.additionalProperties) {
       const propertySchema = metadataObject.additionalProperties;
       const propertyType = handleSchemaDefinition(propertySchema);
-      markdown += `| \`<customKey>\` | ${propertyType} | false | ${propertySchema.description || ''} |\n`;
+      markdown += `| \`<customKey>\` | ${propertyType} | false | ${getDescription(propertySchema)} |\n`;
     }
 
     if (metadataObject.examples) {
@@ -186,7 +185,7 @@ function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): str
     let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
     const propertyType = handleSchemaDefinition(propertySchema);
     const requiredProp = false;
-    markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${propertySchema.description || ''} |\n`;
+    markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
   });
 
   markdownArray.push(markdown);

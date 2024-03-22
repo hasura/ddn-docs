@@ -111,6 +111,10 @@ export function getTitle(metadataObject: JSONSchema7Definition): string {
   return metadataObject.title || getParsedRef(metadataObject.$ref);
 }
 
+export function getDescription(metadataObject: JSONSchema7Definition): string {
+  return metadataObject.description ? removeNewLineCharacter(metadataObject.description) : '';
+}
+
 // For formatting heading tags
 export function formatLink(linkText: string): string {
   if (linkText) {
