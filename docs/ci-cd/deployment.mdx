@@ -56,6 +56,7 @@ named files in the root of your directory:
 
 ```bash
 ├── app
+├── base.env.yaml
 ├── base.supergraph.hml
 ├── hasura.yaml
 # highlight-start
@@ -74,23 +75,22 @@ The content for each can follow this format wherein you can specify the environm
 kind: SupergraphManifest
 version: v1
 definition:
+  name: base
   # highlight-start
   environment: prod
   # highlight-end
-  name: base
-  mode: replace
-  envfile: .local.yaml
+  envfile: base.env.yaml
   supergraph:
+    rootPath: supergraph
     resources:
-      - supergraph/**/*.hml
+      - "*.hml"
   subgraphs:
     - name: app
+      rootPath: app
       resources:
-        - app/**/*.hml
-      connectors:
-        app_connector:
-          path: app/app_connector
-          manifestFile: app_connector.build.hml
+        - "*.hml"
+        - "!app_connector/connector/*"
+        - app_connector/connector/app_connector.build.hml
 ```
 
 #### Step 3: Reference supergraph manifests in `hasura.yaml`
