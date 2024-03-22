@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-sidebar_label: CQS via the TypeScript Connector
+sidebar_label: Typescript
 description: "Explore how to mutate data using the TypeScript data connector."
 keywords:
   - hasura
@@ -14,90 +14,104 @@ keywords:
 
 import Thumbnail from "@site/src/components/Thumbnail";
 
-# CQS via the TypeScript Connector
+# Mutations via the TypeScript Connector
 
 ## Introduction
 
-**Command Query Separation (CQS) is a pattern that separates read and write operations for a data store.** This pattern
-is useful when you want to scale read and write operations independently.
+We can use the [Node.js Lambda Connector](https://github.com/hasura/ndc-nodejs-lambda) to write custom mutations in
+TypeScript with Node.js. This allows us to write mutations and custom business logic for our mutations and scale read
+and write operations separately. This pattern is known as **Command Query Separation (CQS)**.
 
-You can do this by delegating mutation responsibilities to the
-[TypeScript connector](https://hasura.io/connectors/typescript-deno). The TypeScript connector is a custom connector
-that allows you to write custom logic in TypeScript. You can use this connector to write custom mutations that can be
-used to mutate data in the database.
+## Prerequisites
 
-:::info Prerequisites
-
-If you've never used the TypeScript connector, we recommend you to go through the
-[quickstart](/getting-started/overview.mdx). Additionally, at the very least, check out the docs for the
-[TypeScript Connector](https://github.com/hasura/ndc-typescript-deno) to learn more about how to add it to your Hasura
-project. From here on, we'll assume you have a working TypeScript connector in your project.
-
-:::
+If you've never used Hasura DDN, we recommend that you first go through the [quickstart](/local-dev.mdx).
+Additionally, you will need to follow the guide in the [README.md](https://github.com/hasura/ndc-nodejs-lambda) of the
+repo for the [Node.js Lambda Connector](https://github.com/hasura/ndc-nodejs-lambda) to learn more about how to add it
+to your Hasura project. From here on, we'll assume you have a working TypeScript connector in your project. 😊
 
 ## Adding a custom mutation
 
-Inside the `index.ts` of any of your subgraphs, you can add a custom mutation. For example, let's say you want to add a
-custom mutation to create a user in a PostgreSQL table on your `default` subgraph. You can do this by adding the
-following code to the `index.ts` file of `default`:
+Inside the `functions.ts` file of your Node.js Lambda connector, you can add a custom mutation.
+
+For example, let's say you want to add a custom mutation to create a user in a PostgreSQL table on your `default`
+subgraph and also hash their password before storing it
+
+You can do this by adding the following code to the `functions.ts` file:
 
 ```typescript
-import { Client } from "https://deno.land/x/postgres/mod.ts";
-import { load } from "https://deno.land/std@0.210.0/dotenv/mod.ts";
+import { Client } from 'pg';
+import bcrypt from 'bcrypt';
 
-// Define the User type
+// Define the User type using TypeScript
+// Note: For plain JavaScript, you can omit the type definition
+// Or if using TypeScript, you can define it in a separate `.d.ts` file
 type User = {
   name: string;
   email: string;
+  password: string; // Add a password field to the User type
 };
 
 /**
- * Inserts a user into the database and returns the inserted user
+ * Inserts a user into the database and returns the inserted user.
+ * Hash password for secure storage.
  *
- * @param user The user to insert into the database. Expects a name and email.
+ * @param user The user to insert into the database. Expects a name, email, and password.
  * @returns The user that was inserted into the database.
  */
-export async function insertUser(user: User): Promise<User> {
-  // Get the database connection string from the environment
-  const env = await load();
-  // This is the connection string for the database in a scoped .env file in the **same** directory
-  // as this file.
-  const connectionString: string = env["PG_DB_URL"];
+export async function insertUser(user: User): Promise<Omit<User, "password">> {
+  // Get your database connection string.
+  // NB!! Use env vars for this in production NB!!
+  const connectionString = "postgresql://username:password@localhost:5432/mydb";
 
-  // Create the client to connect to the database
-  const client = new Client(connectionString);
+  const client = new Client({
+    connectionString,
+  });
   await client.connect();
 
-  const result = await client.queryArray`
-    INSERT INTO users (name, email)
-    VALUES (${user.name}, ${user.email})
-    RETURNING *
-  `;
+  // Hash the user's password before storing it
+  const saltRounds = 10; // Pretty decent number of rounds
+  const hashedPassword = await bcrypt.hash(user.password, saltRounds);
+
+  const result = await client.query(
+    `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *`,
+    [user.name, user.email, hashedPassword] // Use the hashed password here
+  );
 
   const rows = result.rows.map((row) => ({
-    id: row[0] as string,
-    name: row[1] as string,
-    email: row[2] as string,
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    // Do not return the password field for security reasons
   }));
 
   await client.end();
 
   return rows[0];
 }
+
 ```
 
-This creates a function called `insertUser` that takes in a user and inserts it into the `users` table in the database.
-It then returns the inserted user.
+This:
+- creates a function called `insertUser`
+- takes in a user's name, email, and password
+- hashes their password
+- inserts into the `users` table in the database.
+- returns the inserted user without password.
 
-We're using the [PostgreSQL client](https://deno.land/x/postgres) to connect to the database and run the query. You can
-use any client you want to connect to the database.
+We're using the [`pg` PostgreSQL client](https://www.npmjs.com/package/pg) to connect to the database and run the query
+and `bcrypt` to hash the password, but since this is a Node.js Lambda function, you can use any combination of Node.js
+libraries you want.
 
 After you've tracked the function and created a new build, you can use the function in your GraphQL API:
 
-<Thumbnail
-  src="/img/graphql-api/mutations/0.1.1_console_insert-user-mutation.png"
-  alt="Insert user mutation using CQS"
-  className="no-shadow overview-img"
-/>
+[//]: # (<Thumbnail)
+
+[//]: # (  src="/img/graphql-api/mutations/0.1.1_console_insert-user-mutation.png")
+
+[//]: # (  alt="Insert user mutation using CQS")
+
+[//]: # (  className="no-shadow overview-img")
+
+[//]: # (/>)
 
 You can then repeat this process to scale your mutations independently.

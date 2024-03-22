@@ -26,6 +26,7 @@ const config: Config = {
   staticDirectories: ['static', 'public'],
 
   onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
@@ -59,7 +60,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x alpha',
+              label: 'v3.x beta',
               badge: true,
             },
           },
