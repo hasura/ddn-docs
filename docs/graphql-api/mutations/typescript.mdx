@@ -33,8 +33,8 @@ to your Hasura project. From here on, we'll assume you have a working TypeScript
 
 Inside the `functions.ts` file of your Node.js Lambda connector, you can add a custom mutation.
 
-For example, let's say you want to add a custom mutation to create a user in a PostgreSQL table on your `default`
-subgraph and also hash their password before storing it
+For example, let's say you want to add a custom mutation to create a user in a PostgreSQL table on your default `app`
+subgraph and also hash their password before storing it.
 
 You can do this by adding the following code to the `functions.ts` file:
 
@@ -43,8 +43,6 @@ import { Client } from "pg";
 import bcrypt from "bcrypt";
 
 // Define the User type using TypeScript
-// Note: For plain JavaScript, you can omit the type definition
-// Or if using TypeScript, you can define it in a separate `.d.ts` file
 type User = {
   name: string;
   email: string;
@@ -92,17 +90,17 @@ export async function insertUser(user: User): Promise<Omit<User, "password">> {
 
 This:
 
-- creates a function called `insertUser`
-- takes in a user's name, email, and password
-- hashes their password
+- creates a function called `insertUser`.
+- takes in a user's name, email, and password.
+- hashes their password.
 - inserts into the `users` table in the database.
 - returns the inserted user without password.
 
 We're using the [`pg` PostgreSQL client](https://www.npmjs.com/package/pg) to connect to the database and run the query
-and `bcrypt` to hash the password, but since this is a Node.js Lambda function, you can use any combination of Node.js
-libraries you want.
+and [`bcrypt` to hash the password](https://www.npmjs.com/package/bcrypt), but since this is a Node.js Lambda function,
+you can use any combination of Node.js libraries you want.
 
-After you've tracked the function and created a new build, you can use the function in your GraphQL API:
+After you've tracked the function and created a new build, you can use the function in your GraphQL API.
 
 [//]: # "<Thumbnail"
 [//]: # '  src="/img/graphql-api/mutations/0.1.1_console_insert-user-mutation.png"'

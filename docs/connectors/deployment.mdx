@@ -37,11 +37,17 @@ ddn add connector-manifest <connector-name> --subgraph <subgraph-name> --hub-con
 | `<connector_name_and_version>` | The name and version of the connector from the Connector Hub. |
 | `--type`                       | The type of connector. In this case, it's `cloud`.            |
 
-You'll then need to add the connection URI for your connector's data source in the `.local.yaml` file for the project:
+You'll then need to add the connection URI for your connector's data source in the `base.env.yaml` file for the project:
 
 ```yaml
 <SUBGRAPH_NAME>_<CONNECTOR_NAME>_CONNECTION_URI: <CONNECTION_URI>
 ```
+
+:::info Some connectors don't require any connection URIs
+
+An example of this would be the Node.js Lambda TypeScript connector.
+
+:::
 
 ### Step 2: Build and deploy the connector
 
@@ -51,46 +57,3 @@ the previous step:
 ```bash
 ddn build connector <connector-name> --subgraph <subgraph-name>
 ```
-
-## Test a connector locally
-
-Both verified and non-verified connectors can be built and served locally for testing. This enables rapid feedback loops
-as you don't have to worry about deploying to any external infrastructure.
-
-### Step 1: Create a new connector manifest
-
-```bash
-ddn add connector-manifest <connector-name> --subgraph <subgraph-name> --hub-connector <connector_name_and_version> --type local
-```
-
-| Argument                       | Description                                                   |
-| ------------------------------ | ------------------------------------------------------------- |
-| `<connector-name>`             | Whatever name you would like to assign to this connector.     |
-| `<subgraph-name>`              | The name of the subgraph to which the connector belongs.      |
-| `<connector_name_and_version>` | The name and version of the connector from the Connector Hub. |
-| `--type`                       | The type of connector. In this case, it's `local`.            |
-
-You'll then need to add the connection URI for your connector's data source in the `.local.yaml` file for the project:
-
-```yaml
-<SUBGRAPH_NAME>_<CONNECTOR_NAME>_CONNECTION_URI: <CONNECTION_URI>
-```
-
-### Step 2: Build and serve the connector
-
-You can then build and serve your connector using the following command with the appropriate values from the previous
-step:
-
-```bash
-ddn build connector <connector-name> --subgraph <subgraph-name>
-```
-
-:::info deploying to your own infrastructure
-
-If you'd prefer to deploy a connector to your own infrastructure, you can follow the steps for
-[local testing](#test-a-connector-locally). This generates a Docker image which you can then deploy and build anywhere
-Docker containers can be hosted.
-
-In your manifest, simply update the `type` to `endpoints` and pass in the address of the hosted service.
-
-:::
