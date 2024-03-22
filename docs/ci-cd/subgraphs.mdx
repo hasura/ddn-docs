@@ -29,27 +29,38 @@ metadata objects. Subgraphs introduces the notion of a module system for your Ha
 A project can have a collection of subgraphs and the project becomes the 'union' of metadata objects across all
 subgraphs of the project. Each subgraph can then be accessed and updated independently.
 
-A build profile file with subgraphs looks something like the following:
+A manifest file with subgraphs looks something like the following:
 
 ```yaml
-version: 2
-spec:
-  environment: staging
+kind: SupergraphManifest
+version: v1
+definition:
+  environment: dev
+  name: base
   mode: replace
+  envfile: .local.yaml
   supergraph:
     resources:
-      - supergraph/*
+      - supergraph/**/*.hml
   # highlight-start
   subgraphs:
-    - name: default
+    - name: app
       resources:
-        - subgraphs/default/**/*.hml
-    - name: billing
+        - app/**/*.hml
+      connectors:
+        app_connector:
+          path: app/app_connector
+          manifestFile: app_connector.build.hml
+        app_functions:
+          path: app/app_functions
+          manifestFile: app_functions.build.hml
+    - name: user_experience
       resources:
-        - subgraphs/fulfillment/**/*.hml
-    - name: stripe
-      resources:
-        - subgraphs/stripe/**/*.hml
+        - user_experience/**/*.hml
+      connectors:
+        user_experience_connector:
+          path: user_experience/user_experience_connector
+          manifestFile: user_experience_connector.build.hml
   # highlight-end
 ```
 
@@ -60,19 +71,22 @@ spec:
 You can create a subgraph for a project on Hasura DDN using the CLI:
 
 ```bash
-hasura3 subgraph create -n <SUBGRAPH_NAME>
+ddn create subgraph <SUBGRAPH_NAME>
 ```
 
-Within the `subgraphs` directory of your local project, create a directory with the name of the subgraph. For example,
-if you created a subgraph named `billing`, then create a directory named `billing` within the `subgraphs` directory. You
-can use the `default` subgraph as a template for your subgraph.
+This will create the subgraph on Hasura DDN, but you'll need to add a connector manifest to create the local subgraph
+directory. To do so, run the following command:
+
+```bash
+ddn add connector-manifest <NAME_FOR_CONNECTOR> --subgraph <SUBGRAPH_NAME_FROM_PREVIOUS_STEP> --hub-connector <NAME_OF_CONNECTOR> --type <LOCAL_OR_CLOUD>
+```
 
 ### Manage
 
 You can easily list all the available subgraphs for a project using the CLI:
 
 ```bash
-hasura3 subgraph list
+ddn get subgraph
 ```
 
 You can connect new data sources, add new types, etc. to a subgraph. Any files you add to the subgraph directory will be
@@ -83,7 +97,7 @@ picked up by the metadata build and associated with the subgraph.
 Delete a subgraph by running:
 
 ```bash
-hasura3 subgraph delete -n <SUBGRAPH_NAME>
+ddn delete subgraph <SUBGRAPH_NAME>
 ```
 
 ## Ownership Rules
