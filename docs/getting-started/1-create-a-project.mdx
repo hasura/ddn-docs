@@ -49,27 +49,20 @@ it available as an API on Hasura DDN.
    projects and deployments.
 2. **Install the [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)** —
    with support for other editors coming soon!
-3. **Install [Docker](https://docs.docker.com/get-docker/)** — for locally-running connectors during development.
-4. Have a PostgreSQL database — for supplying data to your API.
-5. **For users on Windows, we recommend utilizing
-   [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.4) for this tutorial.
-   The tutorial commands are based on Unix/Linux syntax. However, PowerShell on Windows supports these commands through
-   aliases, allowing you to use Unix/Linux-style commands directly on Windows.**
+3. Have a PostgreSQL database — for supplying data to your API.
 
-You can connect a local PostgreSQL database to Hasura DDN using the new [Hasura CLI](/cli/overview.mdx). If you don't
-have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
+If you don't have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
 [Neon](https://neon.tech).
 
 Additionally, we've provisioned a few read-only databases for you to use for this guide if you'd like. The connection
 strings are available later in the third step.
 
-:::info Ensure Docker is running
+:::info Powershell is recommended for Windows users
 
-We'll utilize a local development workflow to iteratively test our connectors and update our project's configuration;
-this requires the Docker daemon running in the background. Before proceeding, ensure the daemon is up.
-
-If you're on a Unix or Linux machine that requires `sudo` when running Docker, in the next step, prefix `ddn dev` with
-`sudo ddn dev`.
+For users on Windows, we recommend utilizing
+[Powershell](https://learn.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.4) for this tutorial. The
+tutorial commands are based on Unix/Linux syntax. However, PowerShell on Windows supports these commands through
+aliases, allowing you to use Unix/Linux-style commands directly on Windows.
 
 :::
 
@@ -145,10 +138,10 @@ provided options:
 ```bash
 ? We have the following data connectors available. Choose one as per your data source:  [Use arrows to move, type to filter]
 # highlight-start
-> hasura/postgres:v0.4.1
+> hasura/postgres:<VERSION>
 # highlight-end
-  hasura/sendgrid:v0.5.0
-  hasura/turso:v0.0.1
+  hasura/sendgrid:<VERSION>
+  hasura/turso:<VERSION>
 ```
 
 The CLI will add the PostgreSQL connector configuration to our project; we'll use the default name of `app_connector`,
@@ -173,28 +166,16 @@ A music-platform themed dataset.
 postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
 ```
 
-A database filled with a number of functions.
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
-```
-
   </details>
 
 :::
 
-:::info Want to use a local DB?
-
-You can create a [Secure Connect tunnel](/ci-cd/tunnels.mdx) to connect to a locally running PostgreSQL instance.
-
-:::
-
-The CLI will update the `.local.yaml` file in the project's directory with our connection string and let us know if our
-connector has been set up successfully:
+The CLI will update the `base.env.yaml` file in the project's directory with our connection string and let us know if
+our connector has been set up successfully:
 
 ```bash
 INF Setting env vars
-INF env file .local.yaml updated
+INF env file base.env.yaml updated
 INF Data connector app_connector set up successfully
 ```
 
@@ -234,7 +215,7 @@ INF Waiting for deployment with ID "d2c96069-8dc6-452f-9b12-84896535492b" to go 
 INF Connectors built and running successfully
 INF Updating ConnectorLink for connector "app_connector" in subgraph app
 INF Updating URL...
-INF env file .local.yaml updated
+INF env file base.env.yaml updated
 INF Connector Link updated...
 INF Doing a supergraph build...
 ◑+---------------+--------------------------------------------------------------------+
@@ -495,6 +476,12 @@ the necessary configuration and metadata in your project's directory:
 ```
 
 You can learn more about project structure by visiting our [CI/CD section](/ci-cd/overview.mdx).
+
+### Connector deployment
+
+This happened automatically! When the CLI ran `ddn dev` after configuring your project, your
+[connectors were deployed](/connectors/overview.mdx) automatically to Hasura DDN. Hasura can host these for you or you
+can deploy them on your own infrastructure.
 
 ### Relationships
 
