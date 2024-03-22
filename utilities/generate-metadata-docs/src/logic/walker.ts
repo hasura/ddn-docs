@@ -11,7 +11,6 @@ import {
   isScalarType,
   simplifyMetadataDefinition,
 } from './helpers';
-import { parentSchema } from '../entities/objects';
 
 let markdownArray: string[] = [];
 
@@ -49,31 +48,19 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
 
   const type = getType(metadataObject);
 
-  // Deal with const
   if (metadataObject.const) {
     typeDefinition = handleConst(metadataObject);
-  }
-
-  // Deal with enum
-  if (metadataObject.enum) {
+  } else if (metadataObject.enum) {
     typeDefinition = handleEnum(metadataObject);
-  }
-
-  if (isScalarType(metadataObject)) {
+  } else if (isScalarType(metadataObject)) {
     typeDefinition = handleScalars(metadataObject);
-  }
-
-  // Deal with items
-  if (type === 'array') {
+  } else if (type === 'array') {
+    // Deal with items
     typeDefinition = handleArrayType(metadataObject);
-  }
-
-  // Deal with properties / additionalProperties
-  if (type === 'object') {
+  } else if (type === 'object') {
+    // Deal with properties / additionalProperties
     typeDefinition = handleObject(metadataObject);
-  }
-
-  if (metadataObject.anyOf && isExternallyTaggedNullable(metadataObject)) {
+  } else if (metadataObject.anyOf && isExternallyTaggedNullable(metadataObject)) {
     typeDefinition = handleExternallyTaggedNullable(metadataObject);
   } else if (metadataObject.oneOf && isExternallyTaggedOneOf(metadataObject)) {
     typeDefinition = handleExternallyTaggedOneOf(metadataObject);
