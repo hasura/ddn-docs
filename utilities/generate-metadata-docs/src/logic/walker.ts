@@ -3,6 +3,7 @@ import { JSONSchema7Definition } from '../entities/types';
 import {
   getArrayItemType,
   getDescription,
+  getExamples,
   getRefLink,
   getTitle,
   getType,
@@ -134,7 +135,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
     }
 
     if (metadataObject.examples) {
-      markdown += `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**${metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``)}`;
+      markdown += getExamples(metadataObject);
     }
 
     markdownArray.push(markdown);
@@ -161,6 +162,10 @@ function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
     const valueType = handleSchemaDefinition(option);
     markdown += `| ${valueType} | ${getDescription(option)} |\n`;
   });
+
+  if (metadataObject.examples) {
+    markdown += getExamples(metadataObject);
+  }
 
   markdownArray.push(markdown);
 
@@ -192,6 +197,10 @@ function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): str
     const requiredProp = false;
     markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
   });
+
+  if (metadataObject.examples) {
+    markdown += getExamples(metadataObject);
+  }
 
   markdownArray.push(markdown);
 

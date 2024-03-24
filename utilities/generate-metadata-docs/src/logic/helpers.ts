@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { JSONSchema7Definition } from '../entities/types';
 import { returnMarkdown } from './walker';
 import { parentSchema } from '../entities/objects';
+import jsYaml from 'js-yaml';
 
 /**
  * Some descriptions have new-line characters which can cause rendering issues inside of md tables.
@@ -113,6 +114,15 @@ export function getTitle(metadataObject: JSONSchema7Definition): string {
 
 export function getDescription(metadataObject: JSONSchema7Definition): string {
   return metadataObject.description ? removeNewLineCharacter(metadataObject.description) : '';
+}
+
+export function getExamples(metadataObject: JSONSchema7Definition): string {
+  let examples = '';
+  if (metadataObject.examples) {
+    examples = `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**${metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``)}`;
+  }
+
+  return examples;
 }
 
 // For formatting heading tags
