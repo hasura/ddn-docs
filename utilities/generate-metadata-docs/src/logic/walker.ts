@@ -134,7 +134,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
     }
 
     if (metadataObject.examples) {
-      markdown += `\n **Examples:**${metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``)}`;
+      markdown += `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**${metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``)}`;
     }
 
     markdownArray.push(markdown);
