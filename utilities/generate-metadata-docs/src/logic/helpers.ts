@@ -131,11 +131,9 @@ export function getParsedRef(ref: string): string {
 }
 
 export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
-  const ref = metadataObject.$ref;
-
   const { $ref, ...strippedSchema } = metadataObject;
 
-  const refPath = ref?.split('/');
+  const refPath = $ref.split('/');
   let refObject = parentSchema;
   refPath.forEach(path => {
     if (path !== '#') {
@@ -150,7 +148,7 @@ export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Def
     }
     return refObject;
   } else {
-    console.warn('Ref not found: ', ref);
+    console.warn('Ref not found: ', $ref);
   }
 }
 
