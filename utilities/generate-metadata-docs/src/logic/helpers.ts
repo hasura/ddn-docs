@@ -55,7 +55,7 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
     }
   });
 
-  updateMarkdown(`../../docs/supergraph-modeling/${fileName}`, pageMarkdown);
+  updateMarkdown(`../../docs/supergraph-modeling/${fileName}.mdx`, pageMarkdown);
 }
 
 /**
@@ -64,33 +64,33 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
  * Currently only handles anyOf, allOf, oneOf elements in schemaDefinitions
  */
 export function findSchemaDefinitionByTitle(schema: JSONSchema7Definition, objectTitle: string): JSONSchema7Definition {
-  let definition: JSONSchema7Definition;
+  if (!schema) {
+    return;
+  }
 
-  parentSchema.anyOf.forEach(sub_schema => {
-    if (sub_schema.definitions[objectTitle]) definition = sub_schema.definitions[objectTitle];
-  });
-  return definition;
+  schema = simplifyMetadataDefinition(schema);
+  if (schema.$ref) {
+    schema = handleRef(schema);
+  }
 
-  // TODO: fix
-  // if (!schema) {
-  //   return;
-  // }
-  //
-  // if (schema.title === objectTitle) {
-  //   return schema;
-  // }
-  //
-  // if (!schema.type) {
-  //   for (let potentialSchema of [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])]) {
-  //     if (potentialSchema.$ref) {
-  //       potentialSchema = handleRef(potentialSchema);
-  //     }
-  //     const foundSchema = findSchemaDefinitionByTitle(potentialSchema, objectTitle);
-  //     if (foundSchema) {
-  //       return foundSchema;
-  //     }
-  //   }
-  // }
+  if (schema.title === objectTitle) {
+    return schema;
+  }
+
+  for (let potentialSchema of [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])]) {
+    if (potentialSchema.$ref) {
+      potentialSchema = handleRef(potentialSchema);
+    }
+  }
+
+  if (!schema.type) {
+    for (let potentialSchema of [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])]) {
+      const foundSchema = findSchemaDefinitionByTitle(potentialSchema, objectTitle);
+      if (foundSchema) {
+        return foundSchema;
+      }
+    }
+  }
 }
 
 export function getType(metadataObject: JSONSchema7Definition): string | void {
@@ -133,7 +133,9 @@ export function getParsedRef(ref: string): string {
 export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Definition {
   const ref = metadataObject.$ref;
 
-  const refPath = ref.split('/');
+  const { $ref, ...strippedSchema } = metadataObject;
+
+  const refPath = ref?.split('/');
   let refObject = parentSchema;
   refPath.forEach(path => {
     if (path !== '#') {
@@ -142,7 +144,11 @@ export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Def
   });
 
   if (refObject !== undefined) {
-    return simplifyMetadataDefinition({ ...metadataObject, ...refObject });
+    refObject = simplifyMetadataDefinition({ ...refObject, ...strippedSchema });
+    if (refObject.$ref) {
+      refObject = handleRef(refObject);
+    }
+    return refObject;
   } else {
     console.warn('Ref not found: ', ref);
   }

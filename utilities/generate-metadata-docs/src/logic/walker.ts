@@ -12,19 +12,20 @@ import {
   isScalarType,
   simplifyMetadataDefinition,
 } from './helpers';
+import { topLevelRefs } from '../entities/objects';
 
 let markdownArray: string[] = [];
 
-let visitedRefs: Record<string, any> = {};
+let visitedRefs = topLevelRefs;
 
 export function returnMarkdown(metadataObject: JSONSchema7Definition): string {
-  handleSchemaDefinition(metadataObject);
+  handleSchemaDefinition(metadataObject, true);
 
   return markdownArray.reverse().join('\n\n');
 }
 
 // generate Schema markdownArray and return reference of Schema
-export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): string {
+export function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
   metadataObject = simplifyMetadataDefinition(metadataObject);
 
   if (metadataObject.$ref) {
@@ -39,11 +40,11 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
 
   const refTitle = getTitle(metadataObject);
 
-  if (refTitle && Object.keys(visitedRefs).includes(refTitle)) {
+  if (refTitle && Object.keys(visitedRefs).includes(refTitle) && !isSource) {
     return visitedRefs[refTitle];
   }
 
-  if (refTitle) {
+  if (refTitle && !isSource) {
     //hack: add to visited refs early to avoid infinite loops. the actual value is set at the end of the fn.
     visitedRefs[refTitle] = getRefLink(metadataObject);
   }
@@ -70,7 +71,7 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleAllOfAnyOfOneOf(metadataObject);
   }
 
-  if (refTitle) {
+  if (refTitle && !isSource) {
     // set visited ref to typeDefinition
     visitedRefs[refTitle] = typeDefinition;
   }

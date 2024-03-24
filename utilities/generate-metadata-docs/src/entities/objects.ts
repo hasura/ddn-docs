@@ -8,29 +8,30 @@ import { readFileSync } from 'fs';
 
 export const parentSchema: JSONSchema7Definition = JSON.parse(readFileSync('./schema.json', 'utf8'));
 
-export const topLevelSupergraphObjects = {
-  'supergraph.mdx': ['CompatibilityConfig', 'AuthConfigV1', 'GraphqlConfigV1'],
+export const topLevelRefs: Record<string, string> = {
+  CompatibilityConfig: 'supergraph',
+  AuthConfig: 'supergraph',
+  GraphqlConfig: 'supergraph',
+  ScalarType: 'types',
+  ObjectType: 'types',
+  ObjectBooleanExpressionType: 'types',
+  Model: 'models',
+  Command: 'commands',
+  Relationship: 'relationships',
+  TypePermissions: 'permissions',
+  ModelPermissions: 'permissions',
+  CommandPermissions: 'permissions',
+  DataConnectorLink: 'data-connectors',
+  DataConnectorScalarRepresentation: 'data-connectors',
+  SupergraphManifest: 'build-manifests',
+  ConnectorManifest: 'build-manifests',
 };
 
-export const topLevelSubgraphObjects = {
-  'types.mdx': ['ScalarTypeV1', 'ObjectTypeV1', 'ObjectBooleanExpressionTypeV1'],
-  'models.mdx': ['ModelV1'],
-  'commands.mdx': ['CommandV1'],
-  'relationships.mdx': ['RelationshipV1'],
-  'permissions.mdx': ['TypePermissionsV1', 'ModelPermissionsV1', 'CommandPermissionsV1'],
-  'data-connectors.mdx': ['DataConnectorLinkV1', 'DataConnectorScalarRepresentationV1'],
-};
+export const fileToObjectsMapping: Record<string, string[]> = {};
+for (const [metadataObject, file] of Object.entries(topLevelRefs)) {
+  if (!fileToObjectsMapping[file]) {
+    fileToObjectsMapping[file] = [];
+  }
 
-export const topLevelCliManifestObjects = {
-  'build-manifests.mdx': ['SupergraphManifestDefinition', 'ConnectorManifestDefinition'],
-};
-
-export const topLevelOpenDDObjects = {
-  ...topLevelSupergraphObjects,
-  ...topLevelSubgraphObjects,
-};
-
-export const topLevelMetadataObjects = {
-  ...topLevelOpenDDObjects,
-  ...topLevelCliManifestObjects,
-};
+  fileToObjectsMapping[file].push(metadataObject);
+}

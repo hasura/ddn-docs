@@ -37,6 +37,18 @@ following fields:
 ## Metadata structure
 
 
+### Model
+
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Model` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ModelV1](#modelv1) | true |  |
+
+
+
 ### ModelV1
 
 The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
@@ -187,6 +199,18 @@ The definition of an argument for a field, command, or model.
 
 
 
+### ObjectType
+
+Definition of a user-defined Open DD object type.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ObjectType` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ObjectTypeV1](#objecttypev1) | true |  |
+
+
+
 ### ObjectTypeV1
 
 Definition of a user-defined Open DD object type.
@@ -303,315 +327,40 @@ OpenDd configuration to indicate whether an object type field, relationship, mod
 
 
 
-### GraphqlConfigV1
+### AuthConfig
+
+Definition of the authentication configuration used by the API server.
 
 | Key | Schema | Required | Description |
 |-----|-----|-----|-----|
-| `query` | [QueryGraphqlConfig](#querygraphqlconfig) | true |  |
-| `mutation` | [MutationGraphqlConfig](#mutationgraphqlconfig) | true |  |
+| `kind` | `AuthConfig` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [AuthConfigV1](#authconfigv1) | true |  |
 
 
 
-### MutationGraphqlConfig
+### AuthConfigV1
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `rootOperationTypeName` | string | true |  |
-
-
-
-### QueryGraphqlConfig
+Definition of the authentication configuration used by the API server.
 
 | Key | Schema | Required | Description |
 |-----|-----|-----|-----|
-| `rootOperationTypeName` | string | true |  |
-| `argumentsInput` | [ArgumentsInputGraphqlConfig](#argumentsinputgraphqlconfig) / null | false |  |
-| `limitInput` | [LimitInputGraphqlConfig](#limitinputgraphqlconfig) / null | false |  |
-| `offsetInput` | [OffsetInputGraphqlConfig](#offsetinputgraphqlconfig) / null | false |  |
-| `filterInput` | [FilterInputGraphqlConfig](#filterinputgraphqlconfig) / null | false |  |
-| `orderByInput` | [OrderByInputGraphqlConfig](#orderbyinputgraphqlconfig) / null | false |  |
+| `allowRoleEmulationBy` | string / null | false |  |
+| `mode` | [AuthModeConfig](#authmodeconfig) | true |  |
 
 
 
-### OrderByInputGraphqlConfig
+### AuthModeConfig
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-| `enumDirectionValues` | [OrderByDirectionValues](#orderbydirectionvalues) | true |  |
-| `enumTypeNames` | [[OrderByEnumTypeName](#orderbyenumtypename)] | true |  |
-
-
-
-### OrderByEnumTypeName
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `directions` | [`Asc` / `Desc`] | true |  |
-| `typeName` | string | true |  |
-
-
-
-### OrderByDirectionValues
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `asc` | string | true |  |
-| `desc` | string | true |  |
-
-
-
-### FilterInputGraphqlConfig
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-| `operatorNames` | [FilterInputOperatorNames](#filterinputoperatornames) | true |  |
-
-
-
-### FilterInputOperatorNames
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `and` | string | true |  |
-| `or` | string | true |  |
-| `not` | string | true |  |
-| `isNull` | string | true |  |
-
-
-
-### OffsetInputGraphqlConfig
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-
-
-
-### LimitInputGraphqlConfig
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-
-
-
-### ArgumentsInputGraphqlConfig
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-
-
-
-### AuthHookConfig
-
-The configuration of the authentication webhook.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `url` | string | true | The URL of the authentication webhook. |
-| `method` | `Get` / `Post` | true | The HTTP method to be used to make the request to the auth hook. |
-
- **Examples:**
-
-```yaml
-url: http://auth_hook:3050/validate-request
-method: Post
-```
-
-
-### JWTClaimsMappingPathEntry
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `path` | string | true | JSON pointer to find the particular claim in the decoded JWT token. |
-| `default` | string / null | false | Default value to be used when no value is found when looking up the value using the `path`. |
-
-
-
-### JWTClaimsMappingEntry
-
-JSON pointer to lookup the default role within the decoded JWT.
+The configuration for the authentication mode to use - webhook or JWT.
 
 
 **Must have exactly one of the following fields:**
 
 | Key | Schema | Required | Description |
 |-----|-----|-----|-----|
-| `literal` | string | false |  |
-| `path` | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false |  |
-
-
-
-### JWTClaimsMap
-
-Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `x-hasura-default-role` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true | JSON pointer to lookup the default role within the decoded JWT. |
-| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true | JSON pointer to lookup the allowed roles within the decoded JWT. |
-
-
-
-### JWTClaimsFormat
-
-Format in which the Hasura claims will be present.
-
-
-**One of the following values:**
-
-| Value | Description |
-|-----|-----|
-| `Json` | Claims will be in the JSON format. |
-| `StringifiedJson` | Claims will be in the Stringified JSON format. |
-
-
-
-### JWTClaimsNamespace
-
-Used when all of the Hasura claims are present in a single object within the decoded JWT.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true | Format in which the Hasura claims will be present. |
-| `location` | string | true | Pointer to lookup the Hasura claims within the decoded claims. |
-
-
-
-### JWTClaimsConfig
-
-Config to describe how/where the engine should look for the claims within the decoded token.
-
-
-**Must have exactly one of the following fields:**
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `locations` | [JWTClaimsMap](#jwtclaimsmap) | false |  |
-| `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false |  |
-
-
-
-### undefined
-
-Get the bearer token from the `Authorization` header.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `type` | `BearerAuthorization` | true |  |
-
-
-
-### JWTCookieLocation
-
-Get the token from the Cookie header under the specificied cookie name.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `type` | `Cookie` | true |  |
-| `name` | string | true |  |
-
-
-
-### JWTHeaderLocation
-
-Custom header from where the header should be parsed from.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `type` | `Header` | true |  |
-| `name` | string | true |  |
-
-
-
-### undefined
-
-Get the bearer token from the `Authorization` header.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `type` | `BearerAuthorization` | true |  |
-
-
-
-### JWTTokenLocation
-
-Source of the Authorization token
-
-
-**One of the following values:**
-
-| Value | Description |
-|-----|-----|
-| [undefined](#undefined) | Get the bearer token from the `Authorization` header. |
-| [JWTCookieLocation](#jwtcookielocation) | Get the token from the Cookie header under the specificied cookie name. |
-| [JWTHeaderLocation](#jwtheaderlocation) | Custom header from where the header should be parsed from. |
-
-
-
-### JWTAlgorithm
-
-The algorithm used to decode the JWT.
-
-
-**One of the following values:**
-
-| Value | Description |
-|-----|-----|
-| `HS256` | HMAC using SHA-256 |
-| `HS384` | HMAC using SHA-384 |
-| `HS512` | HMAC using SHA-512 |
-| `ES256` | ECDSA using SHA-256 |
-| `ES384` | ECDSA using SHA-384 |
-| `RS256` | RSASSA-PKCS1-v1_5 using SHA-256 |
-| `RS384` | RSASSA-PKCS1-v1_5 using SHA-384 |
-| `RS512` | RSASSA-PKCS1-v1_5 using SHA-512 |
-| `PS256` | RSASSA-PSS using SHA-256 |
-| `PS384` | RSASSA-PSS using SHA-384 |
-| `PS512` | RSASSA-PSS using SHA-512 |
-| `EdDSA` | Edwards-curve Digital Signature Algorithm (EdDSA) |
-
-
-
-### EnvironmentValue
-
-Either a literal string or a reference to a Hasura secret
-
-
-**Must have exactly one of the following fields:**
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `value` | string | false |  |
-| `valueFromEnv` | string | false |  |
-
-
-
-### JWTKeyConfig
-
-JWT Secret config according to which the incoming JWT will be decoded.
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `algorithm` | [JWTAlgorithm](#jwtalgorithm) | true | The algorithm used to decode the JWT. |
-| `key` | [EnvironmentValue](#environmentvalue) | true | The key to use for decoding the JWT. |
-
-
-
-### JWTKey
-
-JWT key configuration according to which the incoming JWT will be decoded.
-
-
-**Must have exactly one of the following fields:**
-
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `fixed` | [JWTKeyConfig](#jwtkeyconfig) | false |  |
-| `jwkFromUrl` | string | false |  |
+| `webhook` | [AuthHookConfig](#authhookconfig) | false |  |
+| `jwt` | [JWTConfig](#jwtconfig) | false |  |
 
 
 
@@ -648,28 +397,214 @@ key:
 ```
 
 
-### AuthModeConfig
+### JWTKey
 
-The configuration for the authentication mode to use - webhook or JWT.
+Mode according to which the JWT auth is configured.
 
 
 **Must have exactly one of the following fields:**
 
 | Key | Schema | Required | Description |
 |-----|-----|-----|-----|
-| `webhook` | [AuthHookConfig](#authhookconfig) | false |  |
-| `jwt` | [JWTConfig](#jwtconfig) | false |  |
+| `fixed` | [JWTKeyConfig](#jwtkeyconfig) | false |  |
+| `jwkFromUrl` | string | false |  |
 
 
 
-### AuthConfigV1
+### JWTKeyConfig
 
-Definition of the authentication configuration used by the API server.
+JWT Secret config according to which the incoming JWT will be decoded.
 
 | Key | Schema | Required | Description |
 |-----|-----|-----|-----|
-| `allowRoleEmulationBy` | string / null | false |  |
-| `mode` | [AuthModeConfig](#authmodeconfig) | true |  |
+| `algorithm` | [JWTAlgorithm](#jwtalgorithm) | true | The algorithm used to decode the JWT. |
+| `key` | [EnvironmentValue](#environmentvalue) | true | The key to use for decoding the JWT. |
+
+
+
+### EnvironmentValue
+
+The key to use for decoding the JWT.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `value` | string | false |  |
+| `valueFromEnv` | string | false |  |
+
+
+
+### JWTAlgorithm
+
+The algorithm used to decode the JWT.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| `HS256` | HMAC using SHA-256 |
+| `HS384` | HMAC using SHA-384 |
+| `HS512` | HMAC using SHA-512 |
+| `ES256` | ECDSA using SHA-256 |
+| `ES384` | ECDSA using SHA-384 |
+| `RS256` | RSASSA-PKCS1-v1_5 using SHA-256 |
+| `RS384` | RSASSA-PKCS1-v1_5 using SHA-384 |
+| `RS512` | RSASSA-PKCS1-v1_5 using SHA-512 |
+| `PS256` | RSASSA-PSS using SHA-256 |
+| `PS384` | RSASSA-PSS using SHA-384 |
+| `PS512` | RSASSA-PSS using SHA-512 |
+| `EdDSA` | Edwards-curve Digital Signature Algorithm (EdDSA) |
+
+
+
+### JWTTokenLocation
+
+Source of the JWT authentication token.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [undefined](#undefined) | Get the bearer token from the `Authorization` header. |
+| [JWTCookieLocation](#jwtcookielocation) | Get the token from the Cookie header under the specificied cookie name. |
+| [JWTHeaderLocation](#jwtheaderlocation) | Custom header from where the header should be parsed from. |
+
+
+
+### JWTHeaderLocation
+
+Custom header from where the header should be parsed from.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `type` | `Header` | true |  |
+| `name` | string | true |  |
+
+
+
+### JWTCookieLocation
+
+Get the token from the Cookie header under the specificied cookie name.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `type` | `Cookie` | true |  |
+| `name` | string | true |  |
+
+
+
+### undefined
+
+Get the bearer token from the `Authorization` header.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `type` | `BearerAuthorization` | true |  |
+
+
+
+### JWTClaimsConfig
+
+Claims config. Either specified via `claims_mappings` or `claims_namespace_path`
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `locations` | [JWTClaimsMap](#jwtclaimsmap) | false |  |
+| `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false |  |
+
+
+
+### JWTClaimsNamespace
+
+Used when all of the Hasura claims are present in a single object within the decoded JWT.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true | Format in which the Hasura claims will be present. |
+| `location` | string | true | Pointer to lookup the Hasura claims within the decoded claims. |
+
+
+
+### JWTClaimsFormat
+
+Format in which the Hasura claims will be present.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| `Json` | Claims will be in the JSON format. |
+| `StringifiedJson` | Claims will be in the Stringified JSON format. |
+
+
+
+### JWTClaimsMap
+
+Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `x-hasura-default-role` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true | JSON pointer to lookup the default role within the decoded JWT. |
+| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true | JSON pointer to lookup the allowed roles within the decoded JWT. |
+
+
+
+### JWTClaimsMappingEntry
+
+JSON pointer to lookup the default role within the decoded JWT.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `literal` | string | false |  |
+| `path` | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false |  |
+
+
+
+### JWTClaimsMappingPathEntry
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `path` | string | true | JSON pointer to find the particular claim in the decoded JWT token. |
+| `default` | string / null | false | Default value to be used when no value is found when looking up the value using the `path`. |
+
+
+
+### AuthHookConfig
+
+The configuration of the authentication webhook.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `url` | string | true | The URL of the authentication webhook. |
+| `method` | `Get` / `Post` | true | The HTTP method to be used to make the request to the auth hook. |
+
+ **Examples:**
+
+```yaml
+url: http://auth_hook:3050/validate-request
+method: Post
+```
+
+
+### CompatibilityConfig
+
+The compatibility configuration of the Hasura metadata.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `CompatibilityConfig` | true |  |
+| `date` | string | true | Any backwards incompatible changes made to Hasura DDN after this date won't impact the metadata. |
 
 
 
@@ -701,6 +636,18 @@ graphql:
   typeName: CustomString
 description: A custom string type
 ```
+
+
+### ScalarType
+
+Definition of a user-defined scalar type that that has opaque semantics.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ScalarType` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ScalarTypeV1](#scalartypev1) | true |  |
+
 
 
 ### EnableAllOrSpecific
@@ -767,3 +714,14 @@ comparableFields:
 graphql:
   typeName: Author_bool_exp
 ```
+
+
+### ObjectBooleanExpressionType
+
+Definition of a type representing a boolean expression on an Open DD object type.
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ObjectBooleanExpressionType` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ObjectBooleanExpressionTypeV1](#objectbooleanexpressiontypev1) | true |  |

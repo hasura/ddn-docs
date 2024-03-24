@@ -1,9 +1,9 @@
-import { topLevelMetadataObjects } from './entities/objects';
 import { generatePageMarkdown } from './logic/helpers';
+import { fileToObjectsMapping, parentSchema } from './entities/objects';
 
 async function main() {
   // generate markdown for metadata objects
-  for (const [fileName, metadataObjectTitles] of Object.entries(topLevelMetadataObjects)) {
+  for (const [fileName, metadataObjectTitles] of Object.entries(fileToObjectsMapping)) {
     generatePageMarkdown(fileName, metadataObjectTitles);
   }
 }
