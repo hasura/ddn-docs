@@ -23,6 +23,7 @@ export function returnMarkdown(metadataObject: JSONSchema7Definition): string {
   return markdownArray.reverse().join('\n\n');
 }
 
+// generate Schema markdownArray and return reference of Schema
 export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): string {
   metadataObject = simplifyMetadataDefinition(metadataObject);
 
@@ -132,7 +133,7 @@ function handleObject(metadataObject: JSONSchema7Definition): string {
     }
 
     if (metadataObject.examples) {
-      markdown += `\n **Example**\n\n\`\`\`yaml\n${jsYaml.dump(metadataObject.examples[0])}\`\`\``;
+      markdown += `\n **Examples:**${metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``)}`;
     }
 
     markdownArray.push(markdown);
@@ -150,10 +151,6 @@ function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
   markdown += `\n### ${title}\n\n`;
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
-
-  const objectRefs = (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).map(option => {
-    return handleSchemaDefinition(option);
-  });
 
   markdown += '\n**One of the following values:**\n\n';
 

@@ -166,5 +166,5 @@ export interface JSONSchema7 {
   default?: JSONSchema7Type | undefined;
   readOnly?: boolean | undefined;
   writeOnly?: boolean | undefined;
-  examples?: JSONSchema7Type | undefined;
+  examples?: any[] | undefined;
 }
