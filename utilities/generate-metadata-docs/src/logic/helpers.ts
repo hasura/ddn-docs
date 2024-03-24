@@ -55,7 +55,7 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
     }
   });
 
-  updateMarkdown(`./md_samples/${fileName}`, pageMarkdown);
+  updateMarkdown(`../../docs/supergraph-modeling/${fileName}`, pageMarkdown);
 }
 
 /**

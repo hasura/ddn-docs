@@ -8,7 +8,7 @@ import {
   getType,
   handleRef,
   isExternallyTaggedNullable,
-  isExternallyTaggedOneOf,
+  isExternallyTaggedOneOf, isNullType,
   isScalarType,
   simplifyMetadataDefinition,
 } from './helpers';
@@ -53,6 +53,8 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleConst(metadataObject);
   } else if (metadataObject.enum) {
     typeDefinition = handleEnum(metadataObject);
+  } else if (isNullType(metadataObject)) {
+    typeDefinition = handleNull(metadataObject);
   } else if (isScalarType(metadataObject)) {
     typeDefinition = handleScalars(metadataObject);
   } else if (type === 'array') {
@@ -79,20 +81,27 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
 
 function handleConst(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.const) {
-    return metadataObject.const.toString();
+    return `\`${metadataObject.const.toString()}\``;
   }
 }
 
 function handleEnum(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.enum) {
-    return metadataObject.enum.join(' / ');
+    return metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
+  }
+}
+
+function handleNull(metadataObject: JSONSchema7Definition): string {
+  const type = getType(metadataObject);
+  if (type && isNullType(metadataObject)) {
+    return '`null`';
   }
 }
 
 function handleScalars(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type && isScalarType(metadataObject)) {
-    return `\`${type}\``;
+    return type;
   }
 }
 
@@ -155,7 +164,14 @@ function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
     return handleSchemaDefinition(option);
   });
 
-  markdown += objectRefs.join(` / `);
+  markdown += '\n**One of the following values:**\n\n';
+
+  markdown += `| Value | Description |\n|-----|-----|\n`;
+
+  (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).forEach(option => {
+    const valueType = handleSchemaDefinition(option);
+    markdown += `| ${valueType} | ${getDescription(option)} |\n`;
+  });
 
   markdownArray.push(markdown);
 
@@ -179,7 +195,7 @@ function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): str
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
-  markdown += '\nMust have exactly one of the following fields:\n\n';
+  markdown += '\n**Must have exactly one of the following fields:**\n\n';
   markdown += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
   metadataObject.oneOf.forEach(sub_object => {
     let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];

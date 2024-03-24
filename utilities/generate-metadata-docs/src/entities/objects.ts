@@ -21,13 +21,13 @@ export const topLevelSubgraphObjects = {
   'data-connectors.mdx': ['DataConnectorLinkV1', 'DataConnectorScalarRepresentationV1'],
 };
 
+export const topLevelCliManifestObjects = {
+  'build-manifests.mdx': ['SupergraphManifestDefinition', 'ConnectorManifestDefinition'],
+};
+
 export const topLevelOpenDDObjects = {
   ...topLevelSupergraphObjects,
   ...topLevelSubgraphObjects,
-};
-
-export const topLevelCliManifestObjects = {
-  'cli-manifests.mdx': ['SupergraphManifestDefinition', 'ConnectorManifestDefinition'],
 };
 
 export const topLevelMetadataObjects = {

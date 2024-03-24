@@ -746,16 +746,6 @@
             },
             "mutation": {
               "$ref": "#/anyOf/0/definitions/MutationGraphqlConfig"
-            },
-            "apolloFederation": {
-              "anyOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/GraphqlApolloFederationConfig"
-                },
-                {
-                  "type": "null"
-                }
-              ]
             }
           },
           "additionalProperties": false
@@ -962,18 +952,6 @@
           "properties": {
             "rootOperationTypeName": {
               "type": "string"
-            }
-          },
-          "additionalProperties": false
-        },
-        "GraphqlApolloFederationConfig": {
-          "$id": "https://hasura.io/jsonschemas/metadata/GraphqlApolloFederationConfig",
-          "title": "GraphqlApolloFederationConfig",
-          "type": "object",
-          "required": ["enableRootFields"],
-          "properties": {
-            "enableRootFields": {
-              "type": "boolean"
             }
           },
           "additionalProperties": false
@@ -2132,17 +2110,6 @@
                   "type": "null"
                 }
               ]
-            },
-            "apolloFederation": {
-              "description": "Configuration for exposing apollo federation related types and directives.",
-              "anyOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/ObjectApolloFederationConfig"
-                },
-                {
-                  "type": "null"
-                }
-              ]
             }
           },
           "additionalProperties": false
@@ -2151,36 +2118,6 @@
           "$id": "https://hasura.io/jsonschemas/metadata/GraphQlTypeName",
           "title": "GraphQlTypeName",
           "type": "string"
-        },
-        "ObjectApolloFederationConfig": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ObjectApolloFederationConfig",
-          "title": "ObjectApolloFederationConfig",
-          "type": "object",
-          "required": ["keys"],
-          "properties": {
-            "keys": {
-              "type": "array",
-              "items": {
-                "$ref": "#/anyOf/0/definitions/ApolloFederationObjectKey"
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        "ApolloFederationObjectKey": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ApolloFederationObjectKey",
-          "title": "ApolloFederationObjectKey",
-          "type": "object",
-          "required": ["fields"],
-          "properties": {
-            "fields": {
-              "type": "array",
-              "items": {
-                "$ref": "#/anyOf/0/definitions/FieldName"
-              }
-            }
-          },
-          "additionalProperties": false
         },
         "DataConnectorTypeMapping": {
           "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorTypeMapping",
@@ -2583,10 +2520,7 @@
                   "queryRootField": "ArticleMany",
                   "description": "Description for the select many ArticleMany"
                 },
-                "orderByExpressionType": "Article_Order_By",
-                "apolloFederation": {
-                  "entitySource": true
-                }
+                "orderByExpressionType": "Article_Order_By"
               },
               "description": "Description for the model Articles"
             }
@@ -2849,17 +2783,6 @@
                   "type": "null"
                 }
               ]
-            },
-            "apolloFederation": {
-              "description": "Apollo Federation configuration",
-              "anyOf": [
-                {
-                  "$ref": "#/anyOf/0/definitions/ModelApolloFederationConfiguration"
-                },
-                {
-                  "type": "null"
-                }
-              ]
             }
           },
           "additionalProperties": false
@@ -2939,19 +2862,6 @@
                   "type": "null"
                 }
               ]
-            }
-          },
-          "additionalProperties": false
-        },
-        "ModelApolloFederationConfiguration": {
-          "$id": "https://hasura.io/jsonschemas/metadata/ModelApolloFederationConfiguration",
-          "title": "ModelApolloFederationConfiguration",
-          "type": "object",
-          "required": ["entitySource"],
-          "properties": {
-            "entitySource": {
-              "description": "Whether this model should be used as the source for fetching _entity for object of its type.",
-              "type": "boolean"
             }
           },
           "additionalProperties": false
@@ -4131,64 +4041,18 @@
                       "type": "string",
                       "description": "Path to the YAML file containing environment variables."
                     },
-                    "supergraph": {
-                      "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/Supergraph",
-                      "description": "Details about the resources of the supergraph."
-                    },
                     "subgraphs": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/anyOf/1/definitions/CliSupergraphObject/anyOf/0/definitions/Subgraph"
+                        "type": "string"
                       },
-                      "description": "Details about the resources of subgraphs.",
+                      "description": "Names of subgraphs to be considered.",
                       "minItems": 1
                     }
                   },
-                  "required": ["name", "environment", "supergraph", "subgraphs"],
+                  "required": ["name", "environment", "subgraphs"],
                   "additionalProperties": false,
                   "description": "Details of how to build the Supergraph."
-                },
-                "Supergraph": {
-                  "type": "object",
-                  "properties": {
-                    "rootPath": {
-                      "type": "string",
-                      "description": "Path to the directory containing supergraph resources"
-                    },
-                    "resources": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "description": "Patterns to select the supergraph resources"
-                    }
-                  },
-                  "required": ["rootPath", "resources"],
-                  "additionalProperties": false,
-                  "description": "Details about the resources of the supergraph."
-                },
-                "Subgraph": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Name of the subgraph."
-                    },
-                    "rootPath": {
-                      "type": "string",
-                      "description": "Path to the directory containing this subgraph's resources"
-                    },
-                    "resources": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "description": "Patterns to select the subgraph resources"
-                    }
-                  },
-                  "required": ["name", "rootPath", "resources"],
-                  "additionalProperties": false,
-                  "description": "Details about the resources of subgraphs."
                 }
               }
             }
@@ -4209,23 +4073,40 @@
                   "type": "string",
                   "const": "v1"
                 },
+                "spec": {
+                  "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorManifestSpec",
+                  "description": "Connector Manifest Spec"
+                },
                 "definition": {
                   "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorManifestDefinition",
                   "description": "Connector Manifest Definition"
                 }
               },
-              "required": ["kind", "version", "definition"],
+              "required": ["kind", "version", "spec", "definition"],
               "additionalProperties": false,
               "description": "Defines the configuration used to build the connector.",
               "title": "ConnectorManifest",
               "definitions": {
+                "ConnectorManifestSpec": {
+                  "type": "object",
+                  "properties": {
+                    "supergraphManifests": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "List of SupergraphManifests this ConnectorManifest is a part of.",
+                      "minItems": 1
+                    }
+                  },
+                  "required": ["supergraphManifests"],
+                  "additionalProperties": false,
+                  "description": "Connector Manifest Spec"
+                },
                 "ConnectorManifestDefinition": {
                   "anyOf": [
                     {
                       "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/CloudConnectorManifestDefinition"
-                    },
-                    {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/LocalConnectorManifestDefinition"
                     },
                     {
                       "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/EndpointConnectorManifestDefinition"
@@ -4300,7 +4181,7 @@
                       "description": "Environment variables for the connector build."
                     }
                   },
-                  "required": ["region", "mode", "context", "env"],
+                  "required": ["context", "env"],
                   "additionalProperties": false,
                   "description": "Details about the cloud deployments for the connector."
                 },
@@ -4344,56 +4225,6 @@
                   "additionalProperties": false,
                   "description": "Load Env var value from the provided Env vars to the command."
                 },
-                "LocalConnectorManifestDefinition": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Name of the connector."
-                    },
-                    "type": {
-                      "type": "string",
-                      "const": "local",
-                      "description": "Deployment type of the connector."
-                    },
-                    "tunnel": {
-                      "type": "boolean",
-                      "description": "Expose connector via a tunnel."
-                    },
-                    "connector": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/ConnectorType",
-                      "description": "Type of connector."
-                    },
-                    "deployments": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/LocalDeployment"
-                      },
-                      "description": "Details about the local deployment for the connector.",
-                      "minItems": 1,
-                      "maxItems": 1
-                    }
-                  },
-                  "required": ["name", "type", "tunnel", "connector", "deployments"],
-                  "additionalProperties": false,
-                  "description": "Details about the local deployment for the connector."
-                },
-                "LocalDeployment": {
-                  "type": "object",
-                  "properties": {
-                    "context": {
-                      "type": "string",
-                      "description": "Path of the connector context directory."
-                    },
-                    "env": {
-                      "$ref": "#/anyOf/1/definitions/CliSubgraphObject/anyOf/0/definitions/Envs",
-                      "description": "Environment variables for the connector build."
-                    }
-                  },
-                  "required": ["context", "env"],
-                  "additionalProperties": false,
-                  "description": "Details about the local deployment for the connector."
-                },
                 "EndpointConnectorManifestDefinition": {
                   "type": "object",
                   "properties": {
@@ -4405,10 +4236,6 @@
                       "type": "string",
                       "const": "endpoints",
                       "description": "Deployment type of the connector."
-                    },
-                    "tunnel": {
-                      "type": "boolean",
-                      "description": "Expose connector via a tunnel."
                     },
                     "deployments": {
                       "type": "array",
