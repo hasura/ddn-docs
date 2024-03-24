@@ -8,7 +8,7 @@ import {
   getType,
   handleRef,
   isExternallyTaggedNullable,
-  isExternallyTaggedOneOf, isNullType,
+  isExternallyTaggedOneOf,
   isScalarType,
   simplifyMetadataDefinition,
 } from './helpers';
@@ -53,8 +53,6 @@ export function handleSchemaDefinition(metadataObject: JSONSchema7Definition): s
     typeDefinition = handleConst(metadataObject);
   } else if (metadataObject.enum) {
     typeDefinition = handleEnum(metadataObject);
-  } else if (isNullType(metadataObject)) {
-    typeDefinition = handleNull(metadataObject);
   } else if (isScalarType(metadataObject)) {
     typeDefinition = handleScalars(metadataObject);
   } else if (type === 'array') {
@@ -88,13 +86,6 @@ function handleConst(metadataObject: JSONSchema7Definition): string {
 function handleEnum(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.enum) {
     return metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
-  }
-}
-
-function handleNull(metadataObject: JSONSchema7Definition): string {
-  const type = getType(metadataObject);
-  if (type && isNullType(metadataObject)) {
-    return '`null`';
   }
 }
 
