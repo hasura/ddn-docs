@@ -193,7 +193,18 @@ function handleExternallyTaggedNullable(metadataObject: JSONSchema7Definition): 
     return handleSchemaDefinition(option);
   });
 
-  return objectRefs.join(` / `);
+  const value = objectRefs.join(` / `);
+
+  const title = getTitle(metadataObject);
+  if (title) {
+    const markdownValue = `\n**Value:** ${value}`;
+    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+    markdownArray.push(markdown);
+
+    return getRefLink(metadataObject);
+  } else {
+    return value;
+  }
 }
 
 function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): string {
