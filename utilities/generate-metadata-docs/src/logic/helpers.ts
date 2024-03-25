@@ -61,8 +61,6 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
 
 /**
  * This function allows us to identify and isolate a particular metadata object based on its title.
- * This works for top-level metadata objects (E.g., Model, Command, TypePermissions)
- * Currently only handles anyOf, allOf, oneOf elements in schemaDefinitions
  */
 export function findSchemaDefinitionByTitle(schema: JSONSchema7Definition, objectTitle: string): JSONSchema7Definition {
   if (!schema) {
@@ -78,58 +76,23 @@ export function findSchemaDefinitionByTitle(schema: JSONSchema7Definition, objec
     return schema;
   }
 
-  for (let potentialSchema of [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])]) {
-    if (potentialSchema.$ref) {
-      potentialSchema = handleRef(potentialSchema);
-    }
+  let potentialSchemas: JSONSchema7Definition[] = [];
+  if (!schema.type) {
+    potentialSchemas = [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])];
+  } else if (schema.type === 'object') {
+    // TODO: fix infinite loop
+    // potentialSchemas = schema.properties ? Object.values(schema.properties) : [schema.additionalProperties];
+  } else if (schema.type === 'array') {
+    potentialSchemas = [getArrayItemType(schema)];
   }
 
-  if (!schema.type) {
-    for (let potentialSchema of [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])]) {
-      const foundSchema = findSchemaDefinitionByTitle(potentialSchema, objectTitle);
-      if (foundSchema) {
-        return foundSchema;
-      }
+  for (let potentialSchema of potentialSchemas) {
+    const foundSchema = findSchemaDefinitionByTitle(potentialSchema, objectTitle);
+    if (foundSchema) {
+      return foundSchema;
     }
   }
 }
-
-// export function findSchemaDefinitionByTitle(schema: JSONSchema7Definition, objectTitle: string): JSONSchema7Definition {
-//   if (!schema) {
-//     return;
-//   }
-//
-//   schema = simplifyMetadataDefinition(schema);
-//   if (schema.$ref) {
-//     schema = handleRef(schema);
-//   }
-//
-//   if (schema.title === objectTitle) {
-//     return schema;
-//   }
-//
-//   let visitedRefs = [];
-//   let potentialSchemas: JSONSchema7Definition[] = [];
-//   if (!schema.type) {
-//     potentialSchemas = [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])];
-//   } else if (schema.type === 'object') {
-//     potentialSchemas = schema.properties ? Object.values(schema.properties) : [schema.additionalProperties];
-//   } else if (schema.type === 'array') {
-//     potentialSchemas = [getArrayItemType(schema)];
-//   }
-//
-//   for (let potentialSchema of potentialSchemas) {
-//     if (visitedRefs.includes(potentialSchema.title))
-//       continue;
-//     else
-//       visitedRefs.push(potentialSchema.title)
-//
-//     const foundSchema = findSchemaDefinitionByTitle(potentialSchema, objectTitle);
-//     if (foundSchema) {
-//       return foundSchema;
-//     }
-//   }
-// }
 
 export function getType(metadataObject: JSONSchema7Definition): string | void {
   if (metadataObject.type) {
