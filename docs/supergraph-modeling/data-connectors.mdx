@@ -48,7 +48,7 @@ Definition of a data connector - version 1.
 
 | Key       | Schema                                                | Required | Description                                                                                                                                                    |
 | --------- | ----------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`    | string                                                | true     | The name of the data connector.                                                                                                                                |
+| `name`    | [DataConnectorName](#dataconnectorname)               | true     | The name of the data connector.                                                                                                                                |
 | `url`     | [DataConnectorUrlV1](#dataconnectorurlv1)             | true     | The url(s) to access the data connector.                                                                                                                       |
 | `headers` | [undefined](#undefined)                               | false    | Key value map of HTTP headers to be sent with each request to the data connector.                                                                              |
 | `schema`  | [SchemaAndCapabilitiesV01](#schemaandcapabilitiesv01) | true     | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
@@ -490,7 +490,7 @@ The representation of a data connector scalar in terms of Open DD types
 
 | Key                       | Schema                                                                                     | Required | Description                                                                                 |
 | ------------------------- | ------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------- |
-| `dataConnectorName`       | string                                                                                     | true     | The name of the data connector that this scalar type comes from.                            |
+| `dataConnectorName`       | [DataConnectorName](#dataconnectorname)                                                    | true     | The name of the data connector that this scalar type comes from.                            |
 | `dataConnectorScalarType` | string                                                                                     | true     | The name of the scalar type coming from the data connector.                                 |
 | `representation`          | [undefined](#undefined)                                                                    | true     | The name of the Open DD type that this data connector scalar type should be represented as. |
 | `graphql`                 | [DataConnectorScalarGraphQLConfiguration](#dataconnectorscalargraphqlconfiguration) / null | false    | Configuration for how this scalar's operators should appear in the GraphQL schema.          |
@@ -509,9 +509,9 @@ graphql:
 
 GraphQL configuration of a data connector scalar
 
-| Key                            | Schema        | Required | Description |
-| ------------------------------ | ------------- | -------- | ----------- |
-| `comparisonExpressionTypeName` | string / null | false    |             |
+| Key                            | Schema                                     | Required | Description |
+| ------------------------------ | ------------------------------------------ | -------- | ----------- |
+| `comparisonExpressionTypeName` | [GraphQlTypeName](#graphqltypename) / null | false    |             |
 
 #### undefined
 
@@ -519,7 +519,13 @@ The name of the Open DD type that this data connector scalar type should be repr
 
 **One of the following values:**
 
-| Value                                         | Description |
-| --------------------------------------------- | ----------- |
-| `ID` / `Int` / `Float` / `Boolean` / `String` |             |
-| string                                        |             |
+| Value                             | Description |
+| --------------------------------- | ----------- |
+| [InbuiltType](#inbuilttype)       |             |
+| [CustomTypeName](#customtypename) |             |
+
+#### InbuiltType
+
+An inbuilt primitive OpenDD type.
+
+**Value:** `ID` / `Int` / `Float` / `Boolean` / `String`

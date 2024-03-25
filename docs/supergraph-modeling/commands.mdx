@@ -64,8 +64,8 @@ semantics of a command are opaque to OpenDD.
 
 | Key           | Schema                                                       | Required | Description                                                                                                      |
 | ------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
-| `name`        | string                                                       | true     | The name of the command.                                                                                         |
-| `outputType`  | string                                                       | true     | The return type of the command.                                                                                  |
+| `name`        | [CommandName](#commandname)                                  | true     | The name of the command.                                                                                         |
+| `outputType`  | [TypeReference](#typereference)                              | true     | The return type of the command.                                                                                  |
 | `arguments`   | [[ArgumentDefinition](#argumentdefinition)]                  | false    | The list of arguments accepted by this command. Defaults to no arguments.                                        |
 | `source`      | [CommandSource](#commandsource) / null                       | false    | The source configuration for this command.                                                                       |
 | `graphql`     | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false    | Configuration for how this command should appear in the GraphQL schema.                                          |
@@ -92,11 +92,11 @@ description: Get the latest article
 
 The definition of how a command should appear in the GraphQL API.
 
-| Key             | Schema                           | Required | Description                                                                                                            |
-| --------------- | -------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `rootFieldName` | string                           | true     | The name of the graphql root field to use for this command.                                                            |
-| `rootFieldKind` | `Query` / `Mutation`             | true     | Whether to put this command in the Query or Mutation root of the GraphQL API.                                          |
-| `deprecated`    | [Deprecated](#deprecated) / null | false    | Whether this command root field is deprecated. If set, this will be added to the graphql schema as a deprecated field. |
+| Key             | Schema                                        | Required | Description                                                                                                            |
+| --------------- | --------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `rootFieldName` | [GraphQlFieldName](#graphqlfieldname)         | true     | The name of the graphql root field to use for this command.                                                            |
+| `rootFieldKind` | [GraphQlRootFieldKind](#graphqlrootfieldkind) | true     | Whether to put this command in the Query or Mutation root of the GraphQL API.                                          |
+| `deprecated`    | [Deprecated](#deprecated) / null              | false    | Whether this command root field is deprecated. If set, this will be added to the graphql schema as a deprecated field. |
 
 **Example:**
 
@@ -105,13 +105,19 @@ rootFieldName: getLatestArticle
 rootFieldKind: Query
 ```
 
+#### GraphQlRootFieldKind
+
+Whether to put this command in the Query or Mutation root of the GraphQL API.
+
+**Value:** `Query` / `Mutation`
+
 #### CommandSource
 
 Description of how a command maps to a particular data connector
 
 | Key                    | Schema                                        | Required | Description                                                                 |
 | ---------------------- | --------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| `dataConnectorName`    | string                                        | true     | The name of the data connector backing this command.                        |
+| `dataConnectorName`    | [DataConnectorName](#dataconnectorname)       | true     | The name of the data connector backing this command.                        |
 | `dataConnectorCommand` | [DataConnectorCommand](#dataconnectorcommand) | true     | The function/procedure in the data connector that backs this command.       |
 | `argumentMapping`      | [undefined](#undefined)                       | false    | Mapping from command argument names to data connector table argument names. |
 
@@ -142,3 +148,9 @@ The function/procedure in the data connector that backs this command.
 | ----------- | ------ | -------- | ----------- |
 | `function`  | string | false    |             |
 | `procedure` | string | false    |             |
+
+#### CommandName
+
+The name of a command.
+
+**Value:** string

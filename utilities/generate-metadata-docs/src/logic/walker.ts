@@ -1,5 +1,6 @@
 import { JSONSchema7Definition } from '../entities/types';
 import {
+  generateSchemaObjectMarkdown,
   getArrayItemType,
   getDescription,
   getExamples,
@@ -84,20 +85,53 @@ function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource:
 
 function handleConst(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.const) {
-    return `\`${metadataObject.const.toString()}\``;
+    const value = `\`${metadataObject.const.toString()}\``;
+
+    const title = getTitle(metadataObject);
+    if (title) {
+      const markdownValue = `\n**Value:** ${value}`;
+      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+      markdownArray.push(markdown);
+
+      return getRefLink(metadataObject);
+    } else {
+      return value;
+    }
   }
 }
 
 function handleEnum(metadataObject: JSONSchema7Definition): string {
   if (metadataObject.enum) {
-    return metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
+    const value = metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
+
+    const title = getTitle(metadataObject);
+    if (title) {
+      const markdownValue = `\n**Value:** ${value}`;
+      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+      markdownArray.push(markdown);
+
+      return getRefLink(metadataObject);
+    } else {
+      return value;
+    }
   }
 }
 
 function handleScalars(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type && isScalarType(metadataObject)) {
-    return type;
+    const value = type;
+
+    const title = getTitle(metadataObject);
+    if (title) {
+      const markdownValue = `\n**Value:** ${value}`;
+      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+      markdownArray.push(markdown);
+
+      return getRefLink(metadataObject);
+    } else {
+      return value;
+    }
   }
 }
 
@@ -112,33 +146,24 @@ function handleArrayType(metadataObject: JSONSchema7Definition): string {
 function handleObject(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
   const type = getType(metadataObject);
   if (type === 'object') {
-    const title = getTitle(metadataObject);
-
-    let markdown = '';
-
-    markdown += `\n${isSource ? '###' : '####'} ${title}\n\n`;
-
-    if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
-
-    markdown += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
+    let markdownValue = '';
+    markdownValue += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
 
     if (metadataObject.properties) {
       for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
         const propertyType = handleSchemaDefinition(propertySchema);
         const requiredProp = metadataObject.required ? metadataObject.required.includes(propertyKey) : false;
-        markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
+        markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
       }
     }
 
     if (metadataObject.additionalProperties) {
       const propertySchema = metadataObject.additionalProperties;
       const propertyType = handleSchemaDefinition(propertySchema);
-      markdown += `| \`<customKey>\` | ${propertyType} | false | ${getDescription(propertySchema)} |\n`;
+      markdownValue += `| \`<customKey>\` | ${propertyType} | false | ${getDescription(propertySchema)} |\n`;
     }
 
-    if (metadataObject.examples) {
-      markdown += getExamples(metadataObject);
-    }
+    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, isSource);
 
     markdownArray.push(markdown);
 
@@ -148,26 +173,15 @@ function handleObject(metadataObject: JSONSchema7Definition, isSource: boolean =
 }
 
 function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
-  const title = getTitle(metadataObject);
-
-  let markdown = '';
-
-  markdown += `\n#### ${title}\n\n`;
-
-  if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
-
-  markdown += '\n**One of the following values:**\n\n';
-
-  markdown += `| Value | Description |\n|-----|-----|\n`;
-
+  let markdownValue = '';
+  markdownValue += '\n**One of the following values:**\n\n';
+  markdownValue += `| Value | Description |\n|-----|-----|\n`;
   (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).forEach(option => {
     const valueType = handleSchemaDefinition(option);
-    markdown += `| ${valueType} | ${getDescription(option)} |\n`;
+    markdownValue += `| ${valueType} | ${getDescription(option)} |\n`;
   });
 
-  if (metadataObject.examples) {
-    markdown += getExamples(metadataObject);
-  }
+  const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
 
   markdownArray.push(markdown);
 
@@ -183,26 +197,17 @@ function handleExternallyTaggedNullable(metadataObject: JSONSchema7Definition): 
 }
 
 function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): string {
-  const title = getTitle(metadataObject);
-
-  let markdown = '';
-
-  markdown += `\n#### ${title}\n\n`;
-
-  if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
-
-  markdown += '\n**Must have exactly one of the following fields:**\n\n';
-  markdown += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
+  let markdownValue = '';
+  markdownValue += '\n**Must have exactly one of the following fields:**\n\n';
+  markdownValue += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
   metadataObject.oneOf.forEach(sub_object => {
     let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
     const propertyType = handleSchemaDefinition(propertySchema);
     const requiredProp = false;
-    markdown += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
+    markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
   });
 
-  if (metadataObject.examples) {
-    markdown += getExamples(metadataObject);
-  }
+  const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
 
   markdownArray.push(markdown);
 

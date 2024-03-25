@@ -59,6 +59,27 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
   updateMarkdown(`../../docs/supergraph-modeling/${fileName}.mdx`, pageMarkdown);
 }
 
+export function generateSchemaObjectMarkdown(
+  metadataObject: JSONSchema7Definition,
+  value: string,
+  isSource: boolean = false
+): string {
+  let markdown = '';
+
+  const title = getTitle(metadataObject);
+  markdown += `\n${isSource ? '###' : '####'} ${title}\n\n`;
+
+  if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
+
+  markdown += value;
+
+  if (metadataObject.examples) {
+    markdown += getExamples(metadataObject);
+  }
+
+  return markdown;
+}
+
 /**
  * This function allows us to identify and isolate a particular metadata object based on its title.
  */
