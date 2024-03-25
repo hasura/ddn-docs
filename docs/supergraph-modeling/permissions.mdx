@@ -37,29 +37,26 @@ The following types of permissions can be defined:
 
 ## Metadata structure
 
-
 ### TypePermissions
 
 Definition of permissions for an OpenDD type.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `TypePermissions` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [TypePermissionsV1](#typepermissionsv1) | true |  |
-
-
+| Key          | Schema                                  | Required | Description |
+| ------------ | --------------------------------------- | -------- | ----------- |
+| `kind`       | `TypePermissions`                       | true     |             |
+| `version`    | `v1`                                    | true     |             |
+| `definition` | [TypePermissionsV1](#typepermissionsv1) | true     |             |
 
 #### TypePermissionsV1
 
 Definition of permissions for an OpenDD type.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `typeName` | string | true | The name of the type for which permissions are being defined. Must be an object type. |
-| `permissions` | [[TypePermission](#typepermission)] | true | A list of type permissions, one for each role. |
+| Key           | Schema                              | Required | Description                                                                           |
+| ------------- | ----------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `typeName`    | string                              | true     | The name of the type for which permissions are being defined. Must be an object type. |
+| `permissions` | [[TypePermission](#typepermission)] | true     | A list of type permissions, one for each role.                                        |
 
- **Example:**
+**Example:**
 
 ```yaml
 typeName: article
@@ -77,17 +74,16 @@ permissions:
         - author_id
 ```
 
-
 #### TypePermission
 
 Defines permissions for a particular role for a type.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `output` | [TypeOutputPermission](#typeoutputpermission) / null | false | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
+| Key      | Schema                                               | Required | Description                                                                                                                                   |
+| -------- | ---------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | string                                               | true     | The role for which permissions are being defined.                                                                                             |
+| `output` | [TypeOutputPermission](#typeoutputpermission) / null | false    | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
 
- **Example:**
+**Example:**
 
 ```yaml
 role: user
@@ -97,37 +93,34 @@ output:
     - author_id
 ```
 
-
 #### TypeOutputPermission
 
 Permissions for a type for a particular role when used in an output context.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `allowedFields` | [string] | true | Fields of the type that are accessible for a role |
+| Key             | Schema   | Required | Description                                       |
+| --------------- | -------- | -------- | ------------------------------------------------- |
+| `allowedFields` | [string] | true     | Fields of the type that are accessible for a role |
 
 ### ModelPermissions
 
 Definition of permissions for an OpenDD model.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `ModelPermissions` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [ModelPermissionsV1](#modelpermissionsv1) | true |  |
-
-
+| Key          | Schema                                    | Required | Description |
+| ------------ | ----------------------------------------- | -------- | ----------- |
+| `kind`       | `ModelPermissions`                        | true     |             |
+| `version`    | `v1`                                      | true     |             |
+| `definition` | [ModelPermissionsV1](#modelpermissionsv1) | true     |             |
 
 #### ModelPermissionsV1
 
 Definition of permissions for an OpenDD model.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `modelName` | string | true | The name of the model for which permissions are being defined. |
-| `permissions` | [[ModelPermission](#modelpermission)] | true | A list of model permissions, one for each role. |
+| Key           | Schema                                | Required | Description                                                    |
+| ------------- | ------------------------------------- | -------- | -------------------------------------------------------------- |
+| `modelName`   | string                                | true     | The name of the model for which permissions are being defined. |
+| `permissions` | [[ModelPermission](#modelpermission)] | true     | A list of model permissions, one for each role.                |
 
- **Example:**
+**Example:**
 
 ```yaml
 modelName: Articles
@@ -145,17 +138,16 @@ permissions:
             sessionVariable: x-hasura-user-id
 ```
 
-
 #### ModelPermission
 
 Defines the permissions for an OpenDD model.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `select` | [SelectPermission](#selectpermission) / null | false | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
+| Key      | Schema                                       | Required | Description                                                                                                               |
+| -------- | -------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | string                                       | true     | The role for which permissions are being defined.                                                                         |
+| `select` | [SelectPermission](#selectpermission) / null | false    | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
 
- **Example:**
+**Example:**
 
 ```yaml
 role: user
@@ -172,46 +164,40 @@ select:
         literal: true
 ```
 
-
 #### SelectPermission
 
 Defines the permissions for selecting a model for a role.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `filter` | null / [ModelPredicate](#modelpredicate) | true | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
-| `argumentPresets` | [[ArgumentPreset](#argumentpreset)] | false | Preset values for arguments for this role |
-
-
+| Key               | Schema                                   | Required | Description                                                                                        |
+| ----------------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `filter`          | null / [ModelPredicate](#modelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
+| `argumentPresets` | [[ArgumentPreset](#argumentpreset)]      | false    | Preset values for arguments for this role                                                          |
 
 #### ArgumentPreset
 
 Preset value for an argument
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `argument` | string | true | Argument name for preset |
-| `value` | [ValueExpression](#valueexpression) | true | Value for preset |
-
-
+| Key        | Schema                              | Required | Description              |
+| ---------- | ----------------------------------- | -------- | ------------------------ |
+| `argument` | string                              | true     | Argument name for preset |
+| `value`    | [ValueExpression](#valueexpression) | true     | Value for preset         |
 
 #### ModelPredicate
 
 A predicate that can be used to restrict the objects returned when querying a model.
 
-
 **Must have exactly one of the following fields:**
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | false |  |
-| `fieldIsNull` | [undefined](#undefined) | false |  |
-| `relationship` | [RelationshipPredicate](#relationshippredicate) | false |  |
-| `and` | [[ModelPredicate](#modelpredicate)] | false |  |
-| `or` | [[ModelPredicate](#modelpredicate)] | false |  |
-| `not` | [ModelPredicate](#modelpredicate) | false |  |
+| Key               | Schema                                                | Required | Description |
+| ----------------- | ----------------------------------------------------- | -------- | ----------- |
+| `fieldComparison` | [FieldComparisonPredicate](#fieldcomparisonpredicate) | false    |             |
+| `fieldIsNull`     | [undefined](#undefined)                               | false    |             |
+| `relationship`    | [RelationshipPredicate](#relationshippredicate)       | false    |             |
+| `and`             | [[ModelPredicate](#modelpredicate)]                   | false    |             |
+| `or`              | [[ModelPredicate](#modelpredicate)]                   | false    |             |
+| `not`             | [ModelPredicate](#modelpredicate)                     | false    |             |
 
- **Example:**
+**Example:**
 
 ```yaml
 fieldComparison:
@@ -221,58 +207,51 @@ fieldComparison:
     sessionVariable: x-hasura-user-id
 ```
 
-
 #### RelationshipPredicate
 
 Relationship predicate filters objects of a source model based on a predicate on the related model.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the relationship of the object type of the model to follow. |
-| `predicate` | [ModelPredicate](#modelpredicate) / null | false | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
-
-
+| Key         | Schema                                   | Required | Description                                                                                                                                                   |
+| ----------- | ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`      | string                                   | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
+| `predicate` | [ModelPredicate](#modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
 #### undefined
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true |  |
-
-
+| Key     | Schema | Required | Description |
+| ------- | ------ | -------- | ----------- |
+| `field` | string | true     |             |
 
 #### FieldComparisonPredicate
 
 Field comparision predicate filters objects based on a field value.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `field` | string | true | The field name of the object type of the model to compare. |
-| `operator` | string | true | The name of the operator to use for comparison. |
-| `value` | [ValueExpression](#valueexpression) | true | The value expression to compare against. |
+| Key        | Schema                              | Required | Description                                                |
+| ---------- | ----------------------------------- | -------- | ---------------------------------------------------------- |
+| `field`    | string                              | true     | The field name of the object type of the model to compare. |
+| `operator` | string                              | true     | The name of the operator to use for comparison.            |
+| `value`    | [ValueExpression](#valueexpression) | true     | The value expression to compare against.                   |
 
 ### CommandPermissions
 
 Definition of permissions for an OpenDD command.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `CommandPermissions` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [CommandPermissionsV1](#commandpermissionsv1) | true |  |
-
-
+| Key          | Schema                                        | Required | Description |
+| ------------ | --------------------------------------------- | -------- | ----------- |
+| `kind`       | `CommandPermissions`                          | true     |             |
+| `version`    | `v1`                                          | true     |             |
+| `definition` | [CommandPermissionsV1](#commandpermissionsv1) | true     |             |
 
 #### CommandPermissionsV1
 
 Definition of permissions for an OpenDD command.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `commandName` | string | true | The name of the command for which permissions are being defined. |
-| `permissions` | [[CommandPermission](#commandpermission)] | true | A list of command permissions, one for each role. |
+| Key           | Schema                                    | Required | Description                                                      |
+| ------------- | ----------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `commandName` | string                                    | true     | The name of the command for which permissions are being defined. |
+| `permissions` | [[CommandPermission](#commandpermission)] | true     | A list of command permissions, one for each role.                |
 
- **Example:**
+**Example:**
 
 ```yaml
 commandName: get_article_by_id
@@ -283,18 +262,17 @@ permissions:
     allowExecution: true
 ```
 
-
 #### CommandPermission
 
 Defines the permissions for a role for a command.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `role` | string | true | The role for which permissions are being defined. |
-| `allowExecution` | boolean | true | Whether the command is executable by the role. |
-| `argumentPresets` | [[ArgumentPreset](#argumentpreset)] | false | Preset values for arguments for this role |
+| Key               | Schema                              | Required | Description                                       |
+| ----------------- | ----------------------------------- | -------- | ------------------------------------------------- |
+| `role`            | string                              | true     | The role for which permissions are being defined. |
+| `allowExecution`  | boolean                             | true     | Whether the command is executable by the role.    |
+| `argumentPresets` | [[ArgumentPreset](#argumentpreset)] | false    | Preset values for arguments for this role         |
 
- **Example:**
+**Example:**
 
 ```yaml
 role: user

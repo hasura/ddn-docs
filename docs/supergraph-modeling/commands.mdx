@@ -46,33 +46,32 @@ As relationships are a querying construct, **only functions** can be used in rel
 
 ## Metadata structure
 
-
 ### Command
 
-The definition of a command. A command is a user-defined operation which can take arguments and returns an output. The semantics of a command are opaque to the Open DD specification.
+The definition of a command. A command is a user-defined operation which can take arguments and returns an output. The
+semantics of a command are opaque to the Open DD specification.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `Command` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [CommandV1](#commandv1) | true |  |
-
-
+| Key          | Schema                  | Required | Description |
+| ------------ | ----------------------- | -------- | ----------- |
+| `kind`       | `Command`               | true     |             |
+| `version`    | `v1`                    | true     |             |
+| `definition` | [CommandV1](#commandv1) | true     |             |
 
 #### CommandV1
 
-Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD.
+Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The
+semantics of a command are opaque to OpenDD.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `name` | string | true | The name of the command. |
-| `outputType` | string | true | The return type of the command. |
-| `arguments` | [[ArgumentDefinition](#argumentdefinition)] | false | The list of arguments accepted by this command. Defaults to no arguments. |
-| `source` | [CommandSource](#commandsource) / null | false | The source configuration for this command. |
-| `graphql` | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false | Configuration for how this command should appear in the GraphQL schema. |
-| `description` | string | false | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
+| Key           | Schema                                                       | Required | Description                                                                                                      |
+| ------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                                                       | true     | The name of the command.                                                                                         |
+| `outputType`  | string                                                       | true     | The return type of the command.                                                                                  |
+| `arguments`   | [[ArgumentDefinition](#argumentdefinition)]                  | false    | The list of arguments accepted by this command. Defaults to no arguments.                                        |
+| `source`      | [CommandSource](#commandsource) / null                       | false    | The source configuration for this command.                                                                       |
+| `graphql`     | [CommandGraphQlDefinition](#commandgraphqldefinition) / null | false    | Configuration for how this command should appear in the GraphQL schema.                                          |
+| `description` | string                                                       | false    | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
 
- **Example:**
+**Example:**
 
 ```yaml
 name: get_latest_article
@@ -89,36 +88,34 @@ graphql:
 description: Get the latest article
 ```
 
-
 #### CommandGraphQlDefinition
 
 The definition of how a command should appear in the GraphQL API.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `rootFieldName` | string | true | The name of the graphql root field to use for this command. |
-| `rootFieldKind` | `Query` / `Mutation` | true | Whether to put this command in the Query or Mutation root of the GraphQL API. |
-| `deprecated` | [Deprecated](#deprecated) / null | false | Whether this command root field is deprecated. If set, this will be added to the graphql schema as a deprecated field. |
+| Key             | Schema                           | Required | Description                                                                                                            |
+| --------------- | -------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `rootFieldName` | string                           | true     | The name of the graphql root field to use for this command.                                                            |
+| `rootFieldKind` | `Query` / `Mutation`             | true     | Whether to put this command in the Query or Mutation root of the GraphQL API.                                          |
+| `deprecated`    | [Deprecated](#deprecated) / null | false    | Whether this command root field is deprecated. If set, this will be added to the graphql schema as a deprecated field. |
 
- **Example:**
+**Example:**
 
 ```yaml
 rootFieldName: getLatestArticle
 rootFieldKind: Query
 ```
 
-
 #### CommandSource
 
 Description of how a command maps to a particular data connector
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `dataConnectorName` | string | true | The name of the data connector backing this command. |
-| `dataConnectorCommand` | [DataConnectorCommand](#dataconnectorcommand) | true | The function/procedure in the data connector that backs this command. |
-| `argumentMapping` | [undefined](#undefined) | false | Mapping from command argument names to data connector table argument names. |
+| Key                    | Schema                                        | Required | Description                                                                 |
+| ---------------------- | --------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `dataConnectorName`    | string                                        | true     | The name of the data connector backing this command.                        |
+| `dataConnectorCommand` | [DataConnectorCommand](#dataconnectorcommand) | true     | The function/procedure in the data connector that backs this command.       |
+| `argumentMapping`      | [undefined](#undefined)                       | false    | Mapping from command argument names to data connector table argument names. |
 
- **Example:**
+**Example:**
 
 ```yaml
 dataConnectorName: data_connector
@@ -127,25 +124,21 @@ dataConnectorCommand:
 argumentMapping: {}
 ```
 
-
 #### undefined
 
 Mapping from command argument names to data connector table argument names.
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `<customKey>` | string | false |  |
-
-
+| Key           | Schema | Required | Description |
+| ------------- | ------ | -------- | ----------- |
+| `<customKey>` | string | false    |             |
 
 #### DataConnectorCommand
 
 The function/procedure in the data connector that backs this command.
 
-
 **Must have exactly one of the following fields:**
 
-| Key | Schema | Required | Description |
-|-----|-----|-----|-----|
-| `function` | string | false |  |
-| `procedure` | string | false |  |
+| Key         | Schema | Required | Description |
+| ----------- | ------ | -------- | ----------- |
+| `function`  | string | false    |             |
+| `procedure` | string | false    |             |

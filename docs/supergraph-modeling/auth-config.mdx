@@ -1,0 +1,241 @@
+---
+sidebar_label: AuthConfig
+seoFrontMatterUpdated: true
+toc_max_heading_level: 4
+sidebar_position: 9
+---
+
+# AuthConfig
+
+## Introduction
+
+AuthConfig defines how to authenticate API requests
+
+## Metadata structure
+
+### AuthConfig
+
+Definition of the authentication configuration used by the API server.
+
+| Key          | Schema                        | Required | Description |
+| ------------ | ----------------------------- | -------- | ----------- |
+| `kind`       | `AuthConfig`                  | true     |             |
+| `version`    | `v1`                          | true     |             |
+| `definition` | [AuthConfigV1](#authconfigv1) | true     |             |
+
+#### AuthConfigV1
+
+Definition of the authentication configuration used by the API server.
+
+| Key                    | Schema                            | Required | Description |
+| ---------------------- | --------------------------------- | -------- | ----------- |
+| `allowRoleEmulationBy` | string / null                     | false    |             |
+| `mode`                 | [AuthModeConfig](#authmodeconfig) | true     |             |
+
+#### AuthModeConfig
+
+The configuration for the authentication mode to use - webhook or JWT.
+
+**Must have exactly one of the following fields:**
+
+| Key       | Schema                            | Required | Description |
+| --------- | --------------------------------- | -------- | ----------- |
+| `webhook` | [AuthHookConfig](#authhookconfig) | false    |             |
+| `jwt`     | [JWTConfig](#jwtconfig)           | false    |             |
+
+#### JWTConfig
+
+JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
+
+| Key             | Schema                                | Required | Description                                                                                                           |
+| --------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `audience`      | [string]                              | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer`        | string                                | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
+| `allowedSkew`   | integer                               | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
+| `claimsConfig`  | [JWTClaimsConfig](#jwtclaimsconfig)   | true     | Claims config. Either specified via `claims_mappings` or `claims_namespace_path`                                      |
+| `tokenLocation` | [JWTTokenLocation](#jwttokenlocation) | true     | Source of the JWT authentication token.                                                                               |
+| `key`           | [JWTKey](#jwtkey)                     | true     | Mode according to which the JWT auth is configured.                                                                   |
+
+**Example:**
+
+```yaml
+audience: null
+issuer: null
+allowedSkew: null
+claimsConfig:
+  namespace:
+    claimsFormat: Json
+    location: /https:~1~1hasura.io~1jwt~1claims
+tokenLocation:
+  type: BearerAuthorization
+key:
+  fixed:
+    algorithm: HS256
+    key:
+      value: token
+```
+
+#### JWTKey
+
+JWT key configuration according to which the incoming JWT will be decoded.
+
+**Must have exactly one of the following fields:**
+
+| Key          | Schema                        | Required | Description |
+| ------------ | ----------------------------- | -------- | ----------- |
+| `fixed`      | [JWTKeyConfig](#jwtkeyconfig) | false    |             |
+| `jwkFromUrl` | string                        | false    |             |
+
+#### JWTKeyConfig
+
+JWT Secret config according to which the incoming JWT will be decoded.
+
+| Key         | Schema                                | Required | Description                           |
+| ----------- | ------------------------------------- | -------- | ------------------------------------- |
+| `algorithm` | [JWTAlgorithm](#jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
+| `key`       | [EnvironmentValue](#environmentvalue) | true     | The key to use for decoding the JWT.  |
+
+#### EnvironmentValue
+
+Either a literal string or a reference to a Hasura secret
+
+**Must have exactly one of the following fields:**
+
+| Key            | Schema | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `value`        | string | false    |             |
+| `valueFromEnv` | string | false    |             |
+
+#### JWTAlgorithm
+
+The algorithm used to decode the JWT.
+
+**One of the following values:**
+
+| Value   | Description                                       |
+| ------- | ------------------------------------------------- |
+| `HS256` | HMAC using SHA-256                                |
+| `HS384` | HMAC using SHA-384                                |
+| `HS512` | HMAC using SHA-512                                |
+| `ES256` | ECDSA using SHA-256                               |
+| `ES384` | ECDSA using SHA-384                               |
+| `RS256` | RSASSA-PKCS1-v1_5 using SHA-256                   |
+| `RS384` | RSASSA-PKCS1-v1_5 using SHA-384                   |
+| `RS512` | RSASSA-PKCS1-v1_5 using SHA-512                   |
+| `PS256` | RSASSA-PSS using SHA-256                          |
+| `PS384` | RSASSA-PSS using SHA-384                          |
+| `PS512` | RSASSA-PSS using SHA-512                          |
+| `EdDSA` | Edwards-curve Digital Signature Algorithm (EdDSA) |
+
+#### JWTTokenLocation
+
+Source of the Authorization token
+
+**One of the following values:**
+
+| Value                                   | Description                                                             |
+| --------------------------------------- | ----------------------------------------------------------------------- |
+| [undefined](#undefined)                 | Get the bearer token from the `Authorization` header.                   |
+| [JWTCookieLocation](#jwtcookielocation) | Get the token from the Cookie header under the specificied cookie name. |
+| [JWTHeaderLocation](#jwtheaderlocation) | Custom header from where the header should be parsed from.              |
+
+#### JWTHeaderLocation
+
+Custom header from where the header should be parsed from.
+
+| Key    | Schema   | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `type` | `Header` | true     |             |
+| `name` | string   | true     |             |
+
+#### JWTCookieLocation
+
+Get the token from the Cookie header under the specificied cookie name.
+
+| Key    | Schema   | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `type` | `Cookie` | true     |             |
+| `name` | string   | true     |             |
+
+#### undefined
+
+Get the bearer token from the `Authorization` header.
+
+| Key    | Schema                | Required | Description |
+| ------ | --------------------- | -------- | ----------- |
+| `type` | `BearerAuthorization` | true     |             |
+
+#### JWTClaimsConfig
+
+Config to describe how/where the engine should look for the claims within the decoded token.
+
+**Must have exactly one of the following fields:**
+
+| Key         | Schema                                    | Required | Description |
+| ----------- | ----------------------------------------- | -------- | ----------- |
+| `locations` | [JWTClaimsMap](#jwtclaimsmap)             | false    |             |
+| `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false    |             |
+
+#### JWTClaimsNamespace
+
+Used when all of the Hasura claims are present in a single object within the decoded JWT.
+
+| Key            | Schema                              | Required | Description                                                    |
+| -------------- | ----------------------------------- | -------- | -------------------------------------------------------------- |
+| `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true     | Format in which the Hasura claims will be present.             |
+| `location`     | string                              | true     | Pointer to lookup the Hasura claims within the decoded claims. |
+
+#### JWTClaimsFormat
+
+Format in which the Hasura claims will be present.
+
+**One of the following values:**
+
+| Value             | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| `Json`            | Claims will be in the JSON format.             |
+| `StringifiedJson` | Claims will be in the Stringified JSON format. |
+
+#### JWTClaimsMap
+
+Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON
+pointer within the decoded JWT and optionally a default value.
+
+| Key                      | Schema                                          | Required | Description                                                      |
+| ------------------------ | ----------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `x-hasura-default-role`  | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
+| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
+
+#### JWTClaimsMappingEntry
+
+JSON pointer to lookup the default role within the decoded JWT.
+
+**Must have exactly one of the following fields:**
+
+| Key       | Schema                                                  | Required | Description |
+| --------- | ------------------------------------------------------- | -------- | ----------- |
+| `literal` | string                                                  | false    |             |
+| `path`    | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false    |             |
+
+#### JWTClaimsMappingPathEntry
+
+| Key       | Schema        | Required | Description                                                                                 |
+| --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `path`    | string        | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
+| `default` | string / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
+
+#### AuthHookConfig
+
+The configuration of the authentication webhook.
+
+| Key      | Schema         | Required | Description                                                      |
+| -------- | -------------- | -------- | ---------------------------------------------------------------- |
+| `url`    | string         | true     | The URL of the authentication webhook.                           |
+| `method` | `Get` / `Post` | true     | The HTTP method to be used to make the request to the auth hook. |
+
+**Example:**
+
+```yaml
+url: http://auth_hook:3050/validate-request
+method: Post
+```

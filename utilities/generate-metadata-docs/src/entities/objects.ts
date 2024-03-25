@@ -10,8 +10,8 @@ export const parentSchema: JSONSchema7Definition = JSON.parse(readFileSync('./sc
 
 export const topLevelMetadataObjects: Record<string, string> = {
   CompatibilityConfig: 'supergraph',
-  AuthConfig: 'supergraph',
-  GraphqlConfig: 'supergraph',
+  AuthConfig: 'auth-config',
+  GraphqlConfig: 'graphql-config',
   ScalarType: 'types',
   ObjectType: 'types',
   ObjectBooleanExpressionType: 'types',
