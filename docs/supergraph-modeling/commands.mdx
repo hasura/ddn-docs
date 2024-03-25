@@ -23,26 +23,61 @@ toc_max_heading_level: 4
 
 ## Introduction
 
-Commands are backed by **functions** or **procedures** declared in a `DataConnector` allowing you to execute business
-logic directly from your GraphQL API. You can use them to validate, process, or enrich some data, call another API, or
-log a user in. As an example, with commands you can connect to a REST endpoint which can be your own custom server, a
-public API, or a serverless function.
+Commands are backed by **functions** or **procedures** declared in a
+[`DataConnectorLink`](/supergraph-modeling/data-connectors.mdx) allowing you to execute business logic directly from
+your GraphQL API. You can use them to validate, process or enrich data, call another API, or even log a user in.
 
-### Functions
+Commands are the metadata representation of these functions or procedures. As an example, if we have a TypeScript
+function connected using the [Node.js Lambda connector](https://github.com/hasura/ndc-nodejs-lambda):
+
+```typescript
+/**
+ * @readonly Exposes the function as an NDC function (the function should only query data without making modifications)
+ */
+export function hello(name?: string) {
+  return `hello ${name ?? "world"}`;
+}
+```
+
+It would be represented in our metadata as the following command:
+
+```yaml
+---
+kind: Command
+version: v1
+definition:
+  name: Hello
+  outputType: String!
+  arguments:
+    - name: name
+      type: String
+  source:
+    dataConnectorName: <connector_name>
+    dataConnectorCommand:
+      function: hello
+  graphql:
+    rootFieldName: app_hello
+    rootFieldKind: Query
+```
+
+:::info Automatically track commands
+
+When using `ddn dev`, the CLI will automatically track functions in your `functions.ts` file as commands after
+generating their [types](/supergraph-modeling/types.mdx). However, you can also use define these commands manually in
+your metadata.
+
+Check out the custom [business logic section](#) for guidance on how to add functions and procedures using the Node.js
+Lambda connector.
+
+:::
+
+### Functions vs. Procedures
 
 Functions are used for **read** operations. They will not modify the data in the database. They can only be used to
-retrieve data.
-
-### Procedures
+retrieve data. As relationships are a querying construct, **only functions** can be used in relationships.
 
 Procedures are used for **write** operations. They can modify the data in the database. They can be used to create,
 update, or delete data.
-
-:::info Using commands in relationships
-
-As relationships are a querying construct, **only functions** can be used in relationships.
-
-:::
 
 ## Metadata structure
 
