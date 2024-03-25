@@ -1,5 +1,5 @@
-import { findSchemaDefinitionByTitle, generatePageMarkdown } from './logic/helpers';
-import { fileToObjectsMapping, parentSchema } from './entities/objects';
+import { generatePageMarkdown } from './logic/helpers';
+import { fileToObjectsMapping } from './entities/objects';
 
 async function main() {
   // generate markdown for metadata objects
