@@ -108,7 +108,17 @@ function handleArrayType(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type === 'array') {
     const itemType = getArrayItemType(metadataObject);
-    return `[${handleSchemaDefinition(itemType)}]`;
+    const value = `[${handleSchemaDefinition(itemType)}]`;
+
+    const title = getTitle(metadataObject);
+    if (title) {
+      const markdown = generateScalarMarkdown(metadataObject, value);
+      markdownArray.push(markdown);
+
+      return getRefLink(metadataObject);
+    } else {
+      return value;
+    }
   }
 }
 
