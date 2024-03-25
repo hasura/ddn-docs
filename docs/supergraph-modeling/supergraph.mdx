@@ -37,7 +37,7 @@ Definition of the authentication configuration used by the API server.
 
 
 
-### AuthConfigV1
+#### AuthConfigV1
 
 Definition of the authentication configuration used by the API server.
 
@@ -48,7 +48,7 @@ Definition of the authentication configuration used by the API server.
 
 
 
-### AuthModeConfig
+#### AuthModeConfig
 
 The configuration for the authentication mode to use - webhook or JWT.
 
@@ -62,7 +62,7 @@ The configuration for the authentication mode to use - webhook or JWT.
 
 
 
-### JWTConfig
+#### JWTConfig
 
 JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
 
@@ -95,9 +95,9 @@ key:
 ```
 
 
-### JWTKey
+#### JWTKey
 
-Mode according to which the JWT auth is configured.
+JWT key configuration according to which the incoming JWT will be decoded.
 
 
 **Must have exactly one of the following fields:**
@@ -109,7 +109,7 @@ Mode according to which the JWT auth is configured.
 
 
 
-### JWTKeyConfig
+#### JWTKeyConfig
 
 JWT Secret config according to which the incoming JWT will be decoded.
 
@@ -120,9 +120,9 @@ JWT Secret config according to which the incoming JWT will be decoded.
 
 
 
-### EnvironmentValue
+#### EnvironmentValue
 
-The key to use for decoding the JWT.
+Either a literal string or a reference to a Hasura secret
 
 
 **Must have exactly one of the following fields:**
@@ -134,7 +134,7 @@ The key to use for decoding the JWT.
 
 
 
-### JWTAlgorithm
+#### JWTAlgorithm
 
 The algorithm used to decode the JWT.
 
@@ -158,9 +158,9 @@ The algorithm used to decode the JWT.
 
 
 
-### JWTTokenLocation
+#### JWTTokenLocation
 
-Source of the JWT authentication token.
+Source of the Authorization token
 
 
 **One of the following values:**
@@ -173,7 +173,7 @@ Source of the JWT authentication token.
 
 
 
-### JWTHeaderLocation
+#### JWTHeaderLocation
 
 Custom header from where the header should be parsed from.
 
@@ -184,7 +184,7 @@ Custom header from where the header should be parsed from.
 
 
 
-### JWTCookieLocation
+#### JWTCookieLocation
 
 Get the token from the Cookie header under the specificied cookie name.
 
@@ -195,7 +195,7 @@ Get the token from the Cookie header under the specificied cookie name.
 
 
 
-### undefined
+#### undefined
 
 Get the bearer token from the `Authorization` header.
 
@@ -205,9 +205,9 @@ Get the bearer token from the `Authorization` header.
 
 
 
-### JWTClaimsConfig
+#### JWTClaimsConfig
 
-Claims config. Either specified via `claims_mappings` or `claims_namespace_path`
+Config to describe how/where the engine should look for the claims within the decoded token.
 
 
 **Must have exactly one of the following fields:**
@@ -219,7 +219,7 @@ Claims config. Either specified via `claims_mappings` or `claims_namespace_path`
 
 
 
-### JWTClaimsNamespace
+#### JWTClaimsNamespace
 
 Used when all of the Hasura claims are present in a single object within the decoded JWT.
 
@@ -230,7 +230,7 @@ Used when all of the Hasura claims are present in a single object within the dec
 
 
 
-### JWTClaimsFormat
+#### JWTClaimsFormat
 
 Format in which the Hasura claims will be present.
 
@@ -244,7 +244,7 @@ Format in which the Hasura claims will be present.
 
 
 
-### JWTClaimsMap
+#### JWTClaimsMap
 
 Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT and optionally a default value.
 
@@ -255,7 +255,7 @@ Can be used when Hasura claims are not all present in the single object, but ind
 
 
 
-### JWTClaimsMappingEntry
+#### JWTClaimsMappingEntry
 
 JSON pointer to lookup the default role within the decoded JWT.
 
@@ -269,7 +269,7 @@ JSON pointer to lookup the default role within the decoded JWT.
 
 
 
-### JWTClaimsMappingPathEntry
+#### JWTClaimsMappingPathEntry
 
 | Key | Schema | Required | Description |
 |-----|-----|-----|-----|
@@ -278,7 +278,7 @@ JSON pointer to lookup the default role within the decoded JWT.
 
 
 
-### AuthHookConfig
+#### AuthHookConfig
 
 The configuration of the authentication webhook.
 
@@ -293,3 +293,112 @@ The configuration of the authentication webhook.
 url: http://auth_hook:3050/validate-request
 method: Post
 ```
+### GraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `GraphqlConfig` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [GraphqlConfigV1](#graphqlconfigv1) | true |  |
+
+
+
+#### GraphqlConfigV1
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `query` | [QueryGraphqlConfig](#querygraphqlconfig) | true |  |
+| `mutation` | [MutationGraphqlConfig](#mutationgraphqlconfig) | true |  |
+
+
+
+#### MutationGraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `rootOperationTypeName` | string | true |  |
+
+
+
+#### QueryGraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `rootOperationTypeName` | string | true |  |
+| `argumentsInput` | [ArgumentsInputGraphqlConfig](#argumentsinputgraphqlconfig) / null | false |  |
+| `limitInput` | [LimitInputGraphqlConfig](#limitinputgraphqlconfig) / null | false |  |
+| `offsetInput` | [OffsetInputGraphqlConfig](#offsetinputgraphqlconfig) / null | false |  |
+| `filterInput` | [FilterInputGraphqlConfig](#filterinputgraphqlconfig) / null | false |  |
+| `orderByInput` | [OrderByInputGraphqlConfig](#orderbyinputgraphqlconfig) / null | false |  |
+
+
+
+#### OrderByInputGraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | string | true |  |
+| `enumDirectionValues` | [OrderByDirectionValues](#orderbydirectionvalues) | true |  |
+| `enumTypeNames` | [[OrderByEnumTypeName](#orderbyenumtypename)] | true |  |
+
+
+
+#### OrderByEnumTypeName
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `directions` | [`Asc` / `Desc`] | true |  |
+| `typeName` | string | true |  |
+
+
+
+#### OrderByDirectionValues
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `asc` | string | true |  |
+| `desc` | string | true |  |
+
+
+
+#### FilterInputGraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | string | true |  |
+| `operatorNames` | [FilterInputOperatorNames](#filterinputoperatornames) | true |  |
+
+
+
+#### FilterInputOperatorNames
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `and` | string | true |  |
+| `or` | string | true |  |
+| `not` | string | true |  |
+| `isNull` | string | true |  |
+
+
+
+#### OffsetInputGraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | string | true |  |
+
+
+
+#### LimitInputGraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | string | true |  |
+
+
+
+#### ArgumentsInputGraphqlConfig
+
+| Key | Schema | Required | Description |
+|-----|-----|-----|-----|
+| `fieldName` | string | true |  |

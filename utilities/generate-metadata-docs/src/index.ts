@@ -1,4 +1,4 @@
-import { generatePageMarkdown } from './logic/helpers';
+import { findSchemaDefinitionByTitle, generatePageMarkdown } from './logic/helpers';
 import { fileToObjectsMapping, parentSchema } from './entities/objects';
 
 async function main() {

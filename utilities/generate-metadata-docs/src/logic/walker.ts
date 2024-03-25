@@ -65,7 +65,7 @@ function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource:
     typeDefinition = handleArrayType(metadataObject);
   } else if (type === 'object') {
     // Deal with properties / additionalProperties
-    typeDefinition = handleObject(metadataObject);
+    typeDefinition = handleObject(metadataObject, isSource);
   } else if (metadataObject.anyOf && isExternallyTaggedNullable(metadataObject)) {
     typeDefinition = handleExternallyTaggedNullable(metadataObject);
   } else if (metadataObject.oneOf && isExternallyTaggedOneOf(metadataObject)) {
@@ -109,14 +109,14 @@ function handleArrayType(metadataObject: JSONSchema7Definition): string {
   }
 }
 
-function handleObject(metadataObject: JSONSchema7Definition): string {
+function handleObject(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
   const type = getType(metadataObject);
   if (type === 'object') {
     const title = getTitle(metadataObject);
 
     let markdown = '';
 
-    markdown += `\n### ${title}\n\n`;
+    markdown += `\n${isSource ? '###' : '####'} ${title}\n\n`;
 
     if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
@@ -152,7 +152,7 @@ function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {
 
   let markdown = '';
 
-  markdown += `\n### ${title}\n\n`;
+  markdown += `\n#### ${title}\n\n`;
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
@@ -187,7 +187,7 @@ function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): str
 
   let markdown = '';
 
-  markdown += `\n### ${title}\n\n`;
+  markdown += `\n#### ${title}\n\n`;
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 

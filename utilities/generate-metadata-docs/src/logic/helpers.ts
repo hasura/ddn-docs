@@ -152,7 +152,7 @@ export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Def
   });
 
   if (refObject !== undefined) {
-    refObject = simplifyMetadataDefinition({ ...refObject, ...strippedSchema });
+    refObject = simplifyMetadataDefinition({ ...strippedSchema, ...refObject });
     if (refObject.$ref) {
       refObject = handleRef(refObject);
     }
@@ -167,20 +167,20 @@ export function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition
   if (metadataObject?.allOf?.length === 1) {
     const { allOf, ...strippedSchema } = metadataObject;
     simplifiedSchema = {
-      ...simplifyMetadataDefinition(allOf[0]),
       ...strippedSchema,
+      ...simplifyMetadataDefinition(allOf[0]),
     };
   } else if (metadataObject?.oneOf?.length === 1) {
     const { oneOf, ...strippedSchema } = metadataObject;
     simplifiedSchema = {
-      ...simplifyMetadataDefinition(oneOf[0]),
       ...strippedSchema,
+      ...simplifyMetadataDefinition(oneOf[0]),
     };
   } else if (metadataObject?.anyOf?.length === 1) {
     const { anyOf, ...strippedSchema } = metadataObject;
     simplifiedSchema = {
-      ...simplifyMetadataDefinition(anyOf[0]),
       ...strippedSchema,
+      ...simplifyMetadataDefinition(anyOf[0]),
     };
   }
   return simplifiedSchema;
