@@ -94,6 +94,43 @@ export function findSchemaDefinitionByTitle(schema: JSONSchema7Definition, objec
   }
 }
 
+// export function findSchemaDefinitionByTitle(schema: JSONSchema7Definition, objectTitle: string): JSONSchema7Definition {
+//   if (!schema) {
+//     return;
+//   }
+//
+//   schema = simplifyMetadataDefinition(schema);
+//   if (schema.$ref) {
+//     schema = handleRef(schema);
+//   }
+//
+//   if (schema.title === objectTitle) {
+//     return schema;
+//   }
+//
+//   let visitedRefs = [];
+//   let potentialSchemas: JSONSchema7Definition[] = [];
+//   if (!schema.type) {
+//     potentialSchemas = [...(schema.allOf || []), ...(schema.oneOf || []), ...(schema.anyOf || [])];
+//   } else if (schema.type === 'object') {
+//     potentialSchemas = schema.properties ? Object.values(schema.properties) : [schema.additionalProperties];
+//   } else if (schema.type === 'array') {
+//     potentialSchemas = [getArrayItemType(schema)];
+//   }
+//
+//   for (let potentialSchema of potentialSchemas) {
+//     if (visitedRefs.includes(potentialSchema.title))
+//       continue;
+//     else
+//       visitedRefs.push(potentialSchema.title)
+//
+//     const foundSchema = findSchemaDefinitionByTitle(potentialSchema, objectTitle);
+//     if (foundSchema) {
+//       return foundSchema;
+//     }
+//   }
+// }
+
 export function getType(metadataObject: JSONSchema7Definition): string | void {
   if (metadataObject.type) {
     if (Array.isArray(metadataObject.type)) {

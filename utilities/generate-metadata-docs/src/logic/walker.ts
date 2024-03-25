@@ -1,4 +1,3 @@
-import jsYaml from 'js-yaml';
 import { JSONSchema7Definition } from '../entities/types';
 import {
   getArrayItemType,
@@ -13,20 +12,23 @@ import {
   isScalarType,
   simplifyMetadataDefinition,
 } from './helpers';
-import { topLevelRefs } from '../entities/objects';
+import { topLevelMetadataRefs } from '../entities/objects';
 
 let markdownArray: string[] = [];
-
-let visitedRefs = topLevelRefs;
+let visitedRefs = topLevelMetadataRefs;
 
 export function returnMarkdown(metadataObject: JSONSchema7Definition): string {
+  // reset base values
+  markdownArray = [];
+  visitedRefs = topLevelMetadataRefs;
+
   handleSchemaDefinition(metadataObject, true);
 
   return markdownArray.reverse().join('\n\n');
 }
 
 // generate Schema markdownArray and return reference of Schema
-export function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
+function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
   metadataObject = simplifyMetadataDefinition(metadataObject);
 
   if (metadataObject.$ref) {

@@ -8,7 +8,7 @@ import { readFileSync } from 'fs';
 
 export const parentSchema: JSONSchema7Definition = JSON.parse(readFileSync('./schema.json', 'utf8'));
 
-export const topLevelRefs: Record<string, string> = {
+export const topLevelMetadataObjects: Record<string, string> = {
   CompatibilityConfig: 'supergraph',
   AuthConfig: 'supergraph',
   GraphqlConfig: 'supergraph',
@@ -27,8 +27,13 @@ export const topLevelRefs: Record<string, string> = {
   ConnectorManifest: 'build-manifests',
 };
 
+export const topLevelMetadataRefs: Record<string, string> = {};
+for (const [metadataObject, file] of Object.entries(topLevelMetadataObjects)) {
+  topLevelMetadataRefs[metadataObject] = `[${metadataObject}](${`${file}#${metadataObject}`.toLowerCase()})`;
+}
+
 export const fileToObjectsMapping: Record<string, string[]> = {};
-for (const [metadataObject, file] of Object.entries(topLevelRefs)) {
+for (const [metadataObject, file] of Object.entries(topLevelMetadataObjects)) {
   if (!fileToObjectsMapping[file]) {
     fileToObjectsMapping[file] = [];
   }
