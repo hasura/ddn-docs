@@ -27,7 +27,7 @@ export function isV1Content(metadataObject: JSONSchema7Definition): boolean {
  * ☝️ This string is used as our target and we wipe everything on the page after it and replace
  * it with the updated markdown.
  */
-export function updateMarkdown(filePath: string, newMetadataMarkdown: string): boolean {
+export function updatePageMarkdown(filePath: string, newMetadataMarkdown: string): boolean {
   try {
     const existingContents = readFileSync(filePath, 'utf-8');
 
@@ -56,12 +56,12 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
     }
   });
 
-  updateMarkdown(`../../docs/supergraph-modeling/${fileName}.mdx`, pageMarkdown);
+  updatePageMarkdown(`../../docs/supergraph-modeling/${fileName}.mdx`, pageMarkdown);
 }
 
 export function generateSchemaObjectMarkdown(
   metadataObject: JSONSchema7Definition,
-  value: string,
+  markdownValue: string,
   isSource: boolean = false
 ): string {
   let markdown = '';
@@ -71,13 +71,22 @@ export function generateSchemaObjectMarkdown(
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
-  markdown += value;
+  markdown += markdownValue;
 
   if (metadataObject.examples) {
     markdown += getExamples(metadataObject);
   }
 
   return markdown;
+}
+
+export function generateScalarMarkdown(
+  metadataObject: JSONSchema7Definition,
+  scalarValue: string,
+  isSource: boolean = false
+): string {
+  const markdownValue = `\n**Value:** ${scalarValue}`;
+  return generateSchemaObjectMarkdown(metadataObject, markdownValue, isSource);
 }
 
 /**

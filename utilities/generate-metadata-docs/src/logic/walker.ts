@@ -1,9 +1,9 @@
 import { JSONSchema7Definition } from '../entities/types';
 import {
+  generateScalarMarkdown,
   generateSchemaObjectMarkdown,
   getArrayItemType,
   getDescription,
-  getExamples,
   getRefLink,
   getTitle,
   getType,
@@ -55,11 +55,8 @@ function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource:
 
   const type = getType(metadataObject);
 
-  if (metadataObject.const) {
-    typeDefinition = handleConst(metadataObject);
-  } else if (metadataObject.enum) {
-    typeDefinition = handleEnum(metadataObject);
-  } else if (isScalarType(metadataObject)) {
+  if (isScalarType(metadataObject)) {
+    // Deal with const, enum, type (scalars)
     typeDefinition = handleScalars(metadataObject);
   } else if (type === 'array') {
     // Deal with items
@@ -83,49 +80,21 @@ function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource:
   return typeDefinition;
 }
 
-function handleConst(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.const) {
-    const value = `\`${metadataObject.const.toString()}\``;
-
-    const title = getTitle(metadataObject);
-    if (title) {
-      const markdownValue = `\n**Value:** ${value}`;
-      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
-      markdownArray.push(markdown);
-
-      return getRefLink(metadataObject);
-    } else {
-      return value;
-    }
-  }
-}
-
-function handleEnum(metadataObject: JSONSchema7Definition): string {
-  if (metadataObject.enum) {
-    const value = metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
-
-    const title = getTitle(metadataObject);
-    if (title) {
-      const markdownValue = `\n**Value:** ${value}`;
-      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
-      markdownArray.push(markdown);
-
-      return getRefLink(metadataObject);
-    } else {
-      return value;
-    }
-  }
-}
-
 function handleScalars(metadataObject: JSONSchema7Definition): string {
   const type = getType(metadataObject);
   if (type && isScalarType(metadataObject)) {
-    const value = type;
+    let value: string;
+    if (metadataObject.const) {
+      value = `\`${metadataObject.const.toString()}\``;
+    } else if (metadataObject.enum) {
+      value = metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
+    } else {
+      value = type;
+    }
 
     const title = getTitle(metadataObject);
     if (title) {
-      const markdownValue = `\n**Value:** ${value}`;
-      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+      const markdown = generateScalarMarkdown(metadataObject, value);
       markdownArray.push(markdown);
 
       return getRefLink(metadataObject);
@@ -197,8 +166,7 @@ function handleExternallyTaggedNullable(metadataObject: JSONSchema7Definition): 
 
   const title = getTitle(metadataObject);
   if (title) {
-    const markdownValue = `\n**Value:** ${value}`;
-    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+    const markdown = generateScalarMarkdown(metadataObject, value);
     markdownArray.push(markdown);
 
     return getRefLink(metadataObject);
