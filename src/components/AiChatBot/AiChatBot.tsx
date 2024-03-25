@@ -4,6 +4,8 @@ import './styles.css';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { CloseIcon, RespondingIconGray, SparklesIcon } from '@site/src/components/AiChatBot/icons';
 import { useLocalStorage } from 'usehooks-ts'
+import profilePic from '@site/static/img/docs-bot-profile-pic.webp';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Message {
   userMessage: string;
@@ -24,7 +26,7 @@ interface Query {
 const initialMessages: Message[] = [
   {
     userMessage: '',
-    botResponse: "Hi! I'm HasuraAI, the docs chatbot.",
+    botResponse: "Hi! I'm DocsBot, the Hasura docs AI chatbot.",
   },
   {
     userMessage: '',
@@ -48,6 +50,8 @@ export function AiChatBot() {
   const [isResponding, setIsResponding] = useState<boolean>(false)
   // Manage the text input
   const [input, setInput] = useState<string>('');
+  // Manage the message thread ID
+  const [messageThreadId, setMessageThreadId] = useLocalStorage<String>(`hasuraV${customFields.hasuraVersion}ThreadId`, uuidv4())
   // Manage the historical messages
   const [messages, setMessages] = useLocalStorage<Message[]>(`hasuraV${customFields.hasuraVersion}BotMessages`, initialMessages);
   // Manage the current message
@@ -183,7 +187,7 @@ export function AiChatBot() {
     }
 
     if (ws) {
-      const toSend = JSON.stringify({ previousMessages: messages, currentUserInput: input });
+      const toSend = JSON.stringify({ previousMessages: messages, currentUserInput: input, messageThreadId });
       setCurrentMessage({ userMessage: input, botResponse: '' });
       setInput('');
       ws.send(toSend);
@@ -191,6 +195,8 @@ export function AiChatBot() {
     }
 
   };
+
+  const baseUrl = useDocusaurusContext().siteConfig.baseUrl;
 
   return (
     <div className="chat-popup">
@@ -207,12 +213,13 @@ export function AiChatBot() {
         <div className="chat-window">
           <div className="info-bar">
             <div className={"bot-name-pic-container"}>
-              <div className="bot-name">HasuraAI</div>
-              <img src={process.env.NODE_ENV === 'development' ? "/img/hasura-ai-profile-pic.png" : "/docs/3.0/img/hasura-ai-profile-pic.png"} height={30} width={30} className="bot-pic"/>
+              <div className="bot-name">DocsBot</div>
+              <img src={profilePic} height={30} width={30} className="bot-pic"/>
             </div>
             <button className="clear-button" onClick={() => {
               setMessages(initialMessages)
               setCurrentMessage({ userMessage: '', botResponse: '' });
+              setMessageThreadId(uuidv4());
             }}>Clear</button>
           </div>
           <div className="messages-container" onScroll={handleScroll} ref={scrollDiv}>
