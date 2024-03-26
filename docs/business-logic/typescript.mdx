@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-sidebar_label: Custom Business Logic via TypeScript
+sidebar_label: TypeScript
 description: "Explore how to mutate data using the TypeScript data connector."
 keywords:
   - hasura
@@ -22,7 +22,7 @@ The [Node.js Lambda Connector](https://github.com/hasura/ndc-nodejs-lambda) can 
 custom business logic directly into your supergraph.
 
 This can be used to enrich data returned to clients, or to write custom mutations in TypeScript with Node.js using a
-pattern known as **Command Query Separation (CQS)**.
+pattern known as [**Command Query Separation (CQS)**](https://en.wikipedia.org/wiki/Command%E2%80%93query_separation).
 
 :::info Prerequisites
 
@@ -36,11 +36,13 @@ If you've never used Hasura DDN, we recommend that you first go through the [qui
 TypeScript functions exported from a file in the [Node.js Lambda Connector](https://github.com/hasura/ndc-nodejs-lambda)
 will then be available from your Hasura DDN GraphQL API in the form of either **functions** or **procedures**.
 
-In Hasura DDN, **functions** are used for read operations. They will not modify the data in the database and can only be
+In Hasura metadata, **functions** are used for read operations. They will not modify the data in the database and can only be
 used to retrieve data.
 
 Conversely, **procedures** are used for write operations. They can modify the data in the database and can be used to
 create, update, or delete data.
+
+The distinction is important in metadata because it allows the system to know what types to expect for arguments and return values. 
 
 ## Add the TypeScript connector to a project
 
@@ -74,7 +76,7 @@ We can then run the following command to build and deploy our connector to Hasur
 ddn dev
 ```
 
-With the development server running, we can iterate on our files locally with each save triggering a new build which is
+With the development server running, we can iterate on our files locally with each file save triggering a new build which is
 visible on our project's console.
 
 ### Add a function
@@ -91,9 +93,9 @@ export function hello(name?: string) {
 }
 ```
 
-You can add another function by writing valid TypeScript. If `ddn dev` is running, the change will automatically be
+You can add another function simply by exporting a valid TypeScript function. If `ddn dev` is running, the change will automatically be
 picked up the CLI, the associated metadata for the command will be generated, and you will be able to use your function
-by name in GraphQL API.
+by name in the GraphQL API.
 
 :::info Each function or procedure has tracked metadata
 
