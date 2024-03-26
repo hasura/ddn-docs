@@ -18,258 +18,375 @@ keywords:
   - access management
 seoFrontMatterUpdated: true
 ---
+
 import Thumbnail from "@site/src/components/Thumbnail";
 
 # Permissions
 
 ## Introduction
 
-You can define permissions, (also known as access control or authorization rules) on [object types](./types.mdx),
-[models](./models.mdx) and [commands](./commands.mdx) in your data domain.
+Access control rules are essential for securing your data and ensuring that only authorized users can access it. In
+Hasura, these are referred to as **permissions**. You can use permissions to control access to certain rows or columns
+in your database, or to restrict access to certain operations or fields in your GraphQL API.
 
 The following types of permissions can be defined:
 
-- `TypePermissions` define which fields are allowed to be accessed by a role. Defining permissions on output types is
-  useful, as certain fields may be sensitive and should only be accessible to particular roles.
-- `ModelPermissions` define which objects or rows within a model are allowed to be accessed by a role.
-- `CommandPermissions` defines whether the command is executable by a role.
+| Type               | Description                                                                       |
+| ------------------ | --------------------------------------------------------------------------------- |
+| TypePermissions    | Define which fields are allowed to be accessed by a role on an output type.       |
+| ModelPermissions   | Define which objects or rows within a model are allowed to be accessed by a role. |
+| CommandPermissions | Define whether the command is executable by a role.                               |
 
-## Type permissions {#type-permissions}
+:::info LSP-assisted authoring
 
-A type permission will need the type and the role(s) for which the permission should be defined. For each role, you will
-need to define the fields accessible for that role.
+Permissions are written in your various HML files. If you're using a compatible editor (such as VS Code with the
+[Hasura extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)), LSP-assisted authoring will
+help you write permissions more efficiently. LSP will provide you with auto-completion, syntax highlighting, and error
+checking as you write your permissions.
 
-### Metadata Structure
+:::
+
+## Metadata structure
+
+### TypePermissions {#typepermissions-typepermissions}
+
+Definition of permissions for an OpenDD type.
+
+| Key          | Value                                                   | Required | Description |
+| ------------ | ------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `TypePermissions`                                       | true     |             |
+| `version`    | `v1`                                                    | true     |             |
+| `definition` | [TypePermissionsV1](#typepermissions-typepermissionsv1) | true     |             |
+
+#### TypePermissionsV1 {#typepermissions-typepermissionsv1}
+
+Definition of permissions for an OpenDD type.
+
+| Key           | Value                                               | Required | Description                                                                           |
+| ------------- | --------------------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `typeName`    | [CustomTypeName](#typepermissions-customtypename)   | true     | The name of the type for which permissions are being defined. Must be an object type. |
+| `permissions` | [[TypePermission](#typepermissions-typepermission)] | true     | A list of type permissions, one for each role.                                        |
+
+**Example:**
 
 ```yaml
-kind: TypePermissions
-version: v1
-definition:
-  typeName: <TypeName>
-  permissions: <TypePermission>
-```
-
-| Field         | Type                                         | Required | Description                                                   |
-| ------------- | -------------------------------------------- | -------- | ------------------------------------------------------------- |
-| `typeName`    | [`TypeName`](/supergraph-modeling/types.mdx) | true     | The name of the type for which permissions are to be defined. |
-| `permissions` | [`[TypePermission]`](#typepermission)        | true     | The permissions object for this type, one for each role.      |
-
-#### TypePermission
-
-```yaml
+typeName: article
 permissions:
-  - role: <RoleName>
-    output: <OutputPermission>
+  - role: admin
+    output:
+      allowedFields:
+        - article_id
+        - author_id
+        - title
+  - role: user
+    output:
+      allowedFields:
+        - article_id
+        - author_id
 ```
 
-| Field    | Type                                    | Required | Description                                                   |
-| -------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
-| `role`   | `String`                                | true     | The name of the role for which permissions are to be defined. |
-| `output` | [`OutputPermission`](#outputpermission) | true     | The type output permission for the role.                      |
+#### TypePermission {#typepermissions-typepermission}
 
-#### OutputPermission
+Defines permissions for a particular role for a type.
+
+| Key      | Value                                                                | Required | Description                                                                                                                                   |
+| -------- | -------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | [Role](#typepermissions-role)                                        | true     | The role for which permissions are being defined.                                                                                             |
+| `output` | [TypeOutputPermission](#typepermissions-typeoutputpermission) / null | false    | Permissions for this role when this type is used in an output context. If null, this type is inaccessible for this role in an output context. |
+
+**Example:**
 
 ```yaml
+role: user
 output:
   allowedFields:
-    - <field1>
-    - <field2>
+    - article_id
+    - author_id
 ```
 
-| Field           | Type       | Required | Description                                     |
-| --------------- | ---------- | -------- | ----------------------------------------------- |
-| `allowedFields` | `[String]` | true     | List of fields that are accessible to the role. |
+#### TypeOutputPermission {#typepermissions-typeoutputpermission}
 
-### Examples
+Permissions for a type for a particular role when used in an output context.
 
-To define permissions on an output type `article` for `admin` and `user` role:
+| Key             | Value                                     | Required | Description                                       |
+| --------------- | ----------------------------------------- | -------- | ------------------------------------------------- |
+| `allowedFields` | [[FieldName](#typepermissions-fieldname)] | true     | Fields of the type that are accessible for a role |
 
-```yaml
-kind: TypePermissions
-version: v1
-definition:
-  typeName: article
-  permissions:
-    - role: admin
-      output:
-        allowedFields:
-          - id
-          - title
-          - author_id
-    - role: user
-      output:
-        allowedFields:
-          - id
-          - title
-```
+#### FieldName {#typepermissions-fieldname}
 
-:::info Types are inaccessible when undefined for a role
+The name of a field in a user-defined object type.
 
-If a role doesn't define any permissions for this type, then none of its fields would be accessible to that role.
+**Value:** string
 
-:::
+#### Role {#typepermissions-role}
 
-## Model Permissions {#model-permissions}
+The role for which permissions are being defined.
 
-A model permission will need the model name and the role(s) for which the permission should be defined. For each role,
-you will need to define an optional filter expression. Objects (or rows/documents) that satisfy this filter predicate
-will be returned for that role.
+**Value:** string
 
-### Metadata Structure
+#### CustomTypeName {#typepermissions-customtypename}
 
-```yaml
-kind: ModelPermissions
-version: v1
-definition:
-  modelName: <ModelName>
-  permissions: <ModelPermission>
-```
+The name of a user-defined type.
 
-| Field       | Type                                    | Required | Description                                                    |
-| ----------- | --------------------------------------- | -------- | -------------------------------------------------------------- |
-| modelName   | `String`                                | true     | The name of the model for which permissions are to be defined. |
-| permissions | [`[ModelPermission]`](#modelpermission) | true     | The permissions object for this model, one for each role.      |
+**Value:** string
 
-#### ModelPermission
+### ModelPermissions {#modelpermissions-modelpermissions}
+
+Definition of permissions for an OpenDD model.
+
+| Key          | Value                                                      | Required | Description |
+| ------------ | ---------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `ModelPermissions`                                         | true     |             |
+| `version`    | `v1`                                                       | true     |             |
+| `definition` | [ModelPermissionsV1](#modelpermissions-modelpermissionsv1) | true     |             |
+
+#### ModelPermissionsV1 {#modelpermissions-modelpermissionsv1}
+
+Definition of permissions for an OpenDD model.
+
+| Key           | Value                                                  | Required | Description                                                    |
+| ------------- | ------------------------------------------------------ | -------- | -------------------------------------------------------------- |
+| `modelName`   | [ModelName](#modelpermissions-modelname)               | true     | The name of the model for which permissions are being defined. |
+| `permissions` | [[ModelPermission](#modelpermissions-modelpermission)] | true     | A list of model permissions, one for each role.                |
+
+**Example:**
 
 ```yaml
+modelName: Articles
 permissions:
-  - role: <RoleName>
-    select: <SelectPermission>
+  - role: admin
+    select:
+      filter: null
+  - role: user
+    select:
+      filter:
+        fieldComparison:
+          field: author_id
+          operator: _eq
+          value:
+            sessionVariable: x-hasura-user-id
 ```
 
-| Field    | Type                                    | Required | Description                                                   |
-| -------- | --------------------------------------- | -------- | ------------------------------------------------------------- |
-| `role`   | `String`                                | true     | The name of the role for which permissions are to be defined. |
-| `select` | [`SelectPermission`](#selectpermission) | true     | The model select permission for the role.                     |
+#### ModelPermission {#modelpermissions-modelpermission}
 
-#### SelectPermission
+Defines the permissions for an OpenDD model.
+
+| Key      | Value                                                         | Required | Description                                                                                                               |
+| -------- | ------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `role`   | [Role](#modelpermissions-role)                                | true     | The role for which permissions are being defined.                                                                         |
+| `select` | [SelectPermission](#modelpermissions-selectpermission) / null | false    | The permissions for selecting from this model for this role. If this is null, the role is not allowed to query the model. |
+
+**Example:**
 
 ```yaml
+role: user
 select:
-  filter: <ModelPredicate>
+  filter:
+    fieldComparison:
+      field: author_id
+      operator: _eq
+      value:
+        sessionVariable: x-hasura-user-id
+  argument_presets:
+    - field: likes_dogs
+      value:
+        literal: true
 ```
 
-| Field  | Type                                                   | Required | Description                                                                                                                                                                                                                                                    |
-| ------ | ------------------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| filter | [`ModelPredicate`](./common-syntax.mdx#modelpredicate) | false    | Optional predicate to satisfy. This predicate can use operators supported by the model’s data connector. If the filter is missing then all rows are accessible. If the filter is present, then only the rows satisfying this filter expression are accessible. |
+#### SelectPermission {#modelpermissions-selectpermission}
 
-### Examples
+Defines the permissions for selecting a model for a role.
 
-Below, we're creating a set of `ModelPermissions` on the `Album` model for the
-roles `admin`, `user_1`, and `user_2`. The `Album` model has a object
-relationship with `Artist` model named as `Artist`. The `Artist` model has a `ModelPermission`
-defined for `user_3` role which allows access to all `Artist` rows.
+| Key               | Value                                                     | Required | Description                                                                                        |
+| ----------------- | --------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `filter`          | null / [ModelPredicate](#modelpermissions-modelpredicate) | true     | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
+| `argumentPresets` | [[ArgumentPreset](#modelpermissions-argumentpreset)]      | false    | Preset values for arguments for this role                                                          |
 
-As the `select` object for `admin` role is empty, it will return all rows.
+#### ArgumentPreset {#modelpermissions-argumentpreset}
 
-The `user_1` role's `select` object has a filter predicate that will return rows where the `author_id` field is equal to
-the `x-hasura-user-id` session variable.
+Preset value for an argument
 
-The `user_2` role's `select` object has a filter predicate that will return rows where the `title` field is like the
-string `Functional`.
+| Key        | Value                                                | Required | Description              |
+| ---------- | ---------------------------------------------------- | -------- | ------------------------ |
+| `argument` | [ArgumentName](#modelpermissions-argumentname)       | true     | Argument name for preset |
+| `value`    | [ValueExpression](#modelpermissions-valueexpression) | true     | Value for preset         |
 
-The `user_3` role's `select` object has a filter predicate that will return rows
-where the `article_id` field from the `Article` relations  is equal to the
-`x-hasura-article-id` session variable.
+#### ArgumentName {#modelpermissions-argumentname}
 
-<Thumbnail src="/img/permissions/album-artist-er.png" alt="Album Artist ER diagram" width="50%"/>
+Argument name for preset
+
+**Value:** string
+
+#### ModelPredicate {#modelpermissions-modelpredicate}
+
+A predicate that can be used to restrict the objects returned when querying a model.
+
+**Must have exactly one of the following fields:**
+
+| Key               | Value                                                                  | Required | Description |
+| ----------------- | ---------------------------------------------------------------------- | -------- | ----------- |
+| `fieldComparison` | [FieldComparisonPredicate](#modelpermissions-fieldcomparisonpredicate) | false    |             |
+| `fieldIsNull`     | [FieldIsNull](#modelpermissions-fieldisnull)                           | false    |             |
+| `relationship`    | [RelationshipPredicate](#modelpermissions-relationshippredicate)       | false    |             |
+| `and`             | [[ModelPredicate](#modelpermissions-modelpredicate)]                   | false    |             |
+| `or`              | [[ModelPredicate](#modelpermissions-modelpredicate)]                   | false    |             |
+| `not`             | [ModelPredicate](#modelpermissions-modelpredicate)                     | false    |             |
+
+**Example:**
 
 ```yaml
-kind: ModelPermissions
-version: v1
-definition:
-  modelName: Album
-  permissions:
-    - role: admin
-      select:
-        filter:
-    - role: user_1
-      select:
-        filter:
-          fieldComparison:
-            field: AlbumId
-            operator: _eq
-            value:
-              sessionVariable: x-hasura-user-id
-    - role: user_2
-      select:
-        filter:
-          and:
-            - fieldComparison:
-                field: Title
-                operator: _like
-                value:
-                  literal: "%Functional%"
-    - role: user_3
-      select:
-        filter:
-          relationship:
-            name: Artist
-            predicate:
-              fieldComparison:
-                field: ArtistId
-                operator: _eq
-                value:
-                  sessionVariable: x-hasura-artist-id
+fieldComparison:
+  field: author_id
+  operator: _eq
+  value:
+    sessionVariable: x-hasura-user-id
 ```
 
-:::info Models are inaccessible when undefined for a role
+#### RelationshipPredicate {#modelpermissions-relationshippredicate}
 
-If a role doesn't define any permissions for this model, then the model won't be selectable for that role.
+Relationship predicate filters objects of a source model based on a predicate on the related model.
 
-:::
+| Key         | Value                                                     | Required | Description                                                                                                                                                   |
+| ----------- | --------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`      | [RelationshipName](#modelpermissions-relationshipname)    | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
+| `predicate` | [ModelPredicate](#modelpermissions-modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
 
-## Command permissions {#command-permissions}
+#### RelationshipName {#modelpermissions-relationshipname}
 
-A command permission will need the command name and the role(s) for which the permission should be defined.
+The name of the GraphQL relationship field.
 
-### Metadata structure
+**Value:** string
+
+#### FieldIsNull {#modelpermissions-fieldisnull}
+
+| Key     | Value                                    | Required | Description |
+| ------- | ---------------------------------------- | -------- | ----------- |
+| `field` | [FieldName](#modelpermissions-fieldname) | true     |             |
+
+#### FieldComparisonPredicate {#modelpermissions-fieldcomparisonpredicate}
+
+Field comparision predicate filters objects based on a field value.
+
+| Key        | Value                                                | Required | Description                                                |
+| ---------- | ---------------------------------------------------- | -------- | ---------------------------------------------------------- |
+| `field`    | [FieldName](#modelpermissions-fieldname)             | true     | The field name of the object type of the model to compare. |
+| `operator` | string                                               | true     | The name of the operator to use for comparison.            |
+| `value`    | [ValueExpression](#modelpermissions-valueexpression) | true     | The value expression to compare against.                   |
+
+#### ValueExpression {#modelpermissions-valueexpression}
+
+An expression which evaluates to a value that can be used in permissions.
+
+**Must have exactly one of the following fields:**
+
+| Key               | Value  | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
+
+#### FieldName {#modelpermissions-fieldname}
+
+The name of a field in a user-defined object type.
+
+**Value:** string
+
+#### Role {#modelpermissions-role}
+
+The role for which permissions are being defined.
+
+**Value:** string
+
+#### ModelName {#modelpermissions-modelname}
+
+The name of data model.
+
+**Value:** string
+
+### CommandPermissions {#commandpermissions-commandpermissions}
+
+Definition of permissions for an OpenDD command.
+
+| Key          | Value                                                            | Required | Description |
+| ------------ | ---------------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `CommandPermissions`                                             | true     |             |
+| `version`    | `v1`                                                             | true     |             |
+| `definition` | [CommandPermissionsV1](#commandpermissions-commandpermissionsv1) | true     |             |
+
+#### CommandPermissionsV1 {#commandpermissions-commandpermissionsv1}
+
+Definition of permissions for an OpenDD command.
+
+| Key           | Value                                                        | Required | Description                                                      |
+| ------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------- |
+| `commandName` | [CommandName](#commandpermissions-commandname)               | true     | The name of the command for which permissions are being defined. |
+| `permissions` | [[CommandPermission](#commandpermissions-commandpermission)] | true     | A list of command permissions, one for each role.                |
+
+**Example:**
 
 ```yaml
-kind: CommandPermissions
-version: v1
-definition:
-  commandName: <CommandName>
-  permissions: <CommandPermission>
-```
-
-| Field         | Type                                        | Required | Description                                                      |
-| ------------- | ------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| `commandName` | `String`                                    | true     | The name of the command for which permissions are to be defined. |
-| `permissions` | [`[CommandPermission]`](#commandpermission) | true     | The permissions object for this command, one for each role.      |
-
-#### CommandPermission
-
-```yaml
+commandName: get_article_by_id
 permissions:
-  - role: <RoleName>
-    allowExecution: <Boolean>
+  - role: admin
+    allowExecution: true
+  - role: user
+    allowExecution: true
 ```
 
-| Field            | Type      | Required | Description                                                   |
-| ---------------- | --------- | -------- | ------------------------------------------------------------- |
-| `role`           | `String`  | true     | The name of the role for which permissions are to be defined. |
-| `allowExecution` | `Boolean` | true     | Is the execution of the command allowed for the role          |
+#### CommandPermission {#commandpermissions-commandpermission}
 
-### Examples
+Defines the permissions for a role for a command.
 
-To define permissions on a command with name `get_article_by_id` for `admin` and `user` role:
+| Key               | Value                                                  | Required | Description                                       |
+| ----------------- | ------------------------------------------------------ | -------- | ------------------------------------------------- |
+| `role`            | [Role](#commandpermissions-role)                       | true     | The role for which permissions are being defined. |
+| `allowExecution`  | boolean                                                | true     | Whether the command is executable by the role.    |
+| `argumentPresets` | [[ArgumentPreset](#commandpermissions-argumentpreset)] | false    | Preset values for arguments for this role         |
+
+**Example:**
 
 ```yaml
-kind: CommandPermissions
-version: v1
-definition:
-  commandName: get_article_by_id
-  permissions:
-    - role: admin
-      allowExecution: true
-    - role: user
-      allowExecution: false
+role: user
+allowExecution: true
+argumentPresets:
+  - argument: user_id
+    value:
+      session_variable: x-hasura-user_id
 ```
 
-:::info Commands are inaccessible when undefined for a role
+#### ArgumentPreset {#commandpermissions-argumentpreset}
 
-If a role doesn't define any permissions for this command, then it won't be executable by that role.
+Preset value for an argument
 
-:::
+| Key        | Value                                                  | Required | Description              |
+| ---------- | ------------------------------------------------------ | -------- | ------------------------ |
+| `argument` | [ArgumentName](#commandpermissions-argumentname)       | true     | Argument name for preset |
+| `value`    | [ValueExpression](#commandpermissions-valueexpression) | true     | Value for preset         |
+
+#### ValueExpression {#commandpermissions-valueexpression}
+
+An expression which evaluates to a value that can be used in permissions.
+
+**Must have exactly one of the following fields:**
+
+| Key               | Value  | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
+
+#### ArgumentName {#commandpermissions-argumentname}
+
+Argument name for preset
+
+**Value:** string
+
+#### Role {#commandpermissions-role}
+
+The role for which permissions are being defined.
+
+**Value:** string
+
+#### CommandName {#commandpermissions-commandname}
+
+The name of a command.
+
+**Value:** string

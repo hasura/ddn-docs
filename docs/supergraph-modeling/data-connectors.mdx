@@ -6,7 +6,7 @@ description:
   GraphQL API and more by specifying a connector URL and schema. Increase flexibility and efficiency by defining schema
   types, leveraging atomic builds, and implementing structured data model configuration."
 keywords:
-  - hasura opendd
+  - hasura
   - data connector url
   - data connector headers
   - data connector schema
@@ -23,324 +23,146 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-A data connector is a way to specify where your data comes from and how it can be used. It can connect to various types
-of data sources, like SQL databases, NoSQL databases, REST APIs, GraphQL APIs, files, and more.
+A DataConnectorLink is a way to specify where your data comes from and how it can be used. It can connect to various
+types of data sources, like SQL databases, NoSQL databases, REST APIs, GraphQL APIs, files, and more.
 
-You can declare a data connector and use it in your [model's](/supergraph-modeling/models.mdx) configuration by
-[referencing it with the `source`](/supergraph-modeling/models.mdx#source) property, which connects that model to the
-respective data connector.
+The DataConnectorLink uses the [ConnectorManifest](/supergraph-modeling/build-manifests.mdx) it's associated with to
+introspect the respective data source and generate a schema that can be used to query and mutate the data.
 
-## DataConnector
+:::info Generate DataConnectorLink using the CLI
 
-To create a data connector object, you will need to define an object with `kind: DataConnector` and `version: v1`. The
-object `definition` should include four fields: `name`, `url`, `headers` and `schema`.
+When you run the [`add connector-manifest` command](#), the CLI generates a DataConnectorLink for you. Upon the
+connector's first build, the schema is introspected and the DataConnectorLink is updated with the schema according to
+the data source.
+
+:::
+
+## Metadata structure
+
+### DataConnectorLink {#dataconnectorlink-dataconnectorlink}
+
+Definition of a data connector, used to bring in sources of data and connect them to OpenDD models and commands.
+
+| Key          | Value                                                         | Required | Description |
+| ------------ | ------------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `DataConnectorLink`                                           | true     |             |
+| `version`    | `v1`                                                          | true     |             |
+| `definition` | [DataConnectorLinkV1](#dataconnectorlink-dataconnectorlinkv1) | true     |             |
+
+#### DataConnectorLinkV1 {#dataconnectorlink-dataconnectorlinkv1}
+
+Definition of a data connector - version 1.
+
+| Key       | Value                                                                   | Required | Description                                                                                                                                                    |
+| --------- | ----------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`    | String                                                                  | true     | The name of the data connector.                                                                                                                                |
+| `url`     | Object                                                                  | true     | The url(s) to access the data connector.                                                                                                                       |
+| `headers` | Object                                                                  | false    | Key value map of HTTP headers to be sent with each request to the data connector.                                                                              |
+| `schema`  | [SchemaAndCapabilitiesV01](#dataconnectorlink-schemaandcapabilitiesv01) | true     | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
+
+**Example:**
 
 ```yaml
-kind: DataConnector
-version: v2
-definition:
-  name: <DataConnectorName>
-  url: <DataConnectorURL>
-  headers: <DataConnectorHeaders>
-  schema: <SchemaResponse>
-```
-
-| Field     | Type                                            | Required | Description                                                                                                                            |
-| --------- | ----------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`    | `String`                                        | true     | Name of the Data Connector.                                                                                                            |
-| `url`     | [`DataConnectorURL`](#dataconnectorurl)         | true     | URL to access the data connector.                                                                                                      |
-| `headers` | [`DataConnectorHeaders`](#dataconnectorheaders) | true     | Request headers to pass on to the data connector.                                                                                      |
-| `schema`  | [`SchemaResponse`](#schemaresponse)             | true     | The schema response from the data connector. This includes `scalar_types`, `object_type`, `collections`, `functions` and `procedures`. |
-
-### DataConnectorURL
-
-`DataConnectorURL` is an object that either defines a single URL for the data connector or separate read/write URLs for
-the data connector. For example, it can take either of the following
-
-```yaml
+name: data_connector
 url:
-  singleUrl: <URL as Secret>
-```
-
-```yaml
-url:
-  read: <URL as Secret>
-  write: <URL as Secret>
-```
-
-The [secret syntax](./common-syntax.mdx#secret) should be used for URLs.
-
-Read/Write URLs are used to access the appropriate data connector based on the GraphQL operation type. For example, if
-the operation type is `Query` or `Subscription`, then the `read` URL will be used to access the data connector.
-Similarly, for a `Mutation` operation, the `write` URL will be used.
-
-### DataConnectorHeaders
-
-`DataConnectorHeaders` is an object that defines the headers to be forwarded to the data connector when making requests.
-The keys of this object are header names and the values are the header values in the
-[secret syntax](./common-syntax.mdx#secret). E.g., if a bearer authorization token needs to be forwarded, the headers
-field would be:
-
-```yaml
-headers:
-  Authorization:
-    value: Bearer <token>
-```
-
-or if the header is coming from a secret:
-
-```
-headers:
-  Authorization:
-    stringValueFromSecret: <secret name>
-```
-
-### SchemaResponse
-
-`SchemaResponse` is an object that defines the types, schema, functions, etc. of the data connector. This is usually
-provided by the `/schema` endpoint of the data connector. It contains the following fields:
-
-```yaml
+  singleUrl:
+    value: http://data_connector:8100
+headers: {}
 schema:
-  scalar_types: <ScalarTypes>
-  object_types: <ObjectTypes>
-  collections: <Collections>
-  functions: <Functions>
-  procedures: <Procedures>
-```
-
-The structure and detailed documentation of these fields can be found
-[here](https://hasura.github.io/ndc-spec/specification/schema/index.html).
-
-### Example
-
-In this example, we'll create a data connector for the Chinook data set. The Chinook data set is a sample database that
-represents a digital media store, including tables for artists, albums, tracks, and more. Each object we reference above
-is present in the complete example below:
-
-```yaml
-kind: DataConnector
-version: v2
-definition:
-  name: my_data_connector
-  url:
-    singleUrl:
-      value: http://localhost:8080
+  version: v0.1
   schema:
-    scalar_types:
-      String:
-        aggregate_functions: {}
-        comparison_operators:
-          like:
-            argument_type:
-              type: named
-              name: String
-        update_operators: {}
-      Int:
-        aggregate_functions:
-          min:
-            result_type:
-              type: nullable
-              underlying_type:
-                type: named
-                name: Int
-          max:
-            result_type:
-              type: nullable
-              underlying_type:
-                type: named
-                name: Int
-        comparison_operators: {}
-        update_operators: {}
-    object_types:
-      Artist:
-        description: An artist
-        fields:
-          ArtistId:
-            description: The artist's primary key
-            arguments: {}
-            type:
-              type: named
-              name: Int
-          Name:
-            description: The artist's name
-            arguments: {}
-            type:
-              type: named
-              name: String
-      Album:
-        description: An album
-        fields:
-          AlbumId:
-            description: The album's primary key
-            arguments: {}
-            type:
-              type: named
-              name: Int
-          Title:
-            description: The album's title
-            arguments: {}
-            type:
-              type: named
-              name: String
-          ArtistId:
-            description: The album's artist ID
-            arguments: {}
-            type:
-              type: named
-              name: Int
-      Track:
-        description: A track
-        fields:
-          TrackId:
-            description: The track's primary key
-            arguments: {}
-            type:
-              type: named
-              name: Int
-          Name:
-            description: The track's name
-            arguments: {}
-            type:
-              type: named
-              name: String
-          AlbumId:
-            description: The track's album ID
-            arguments: {}
-            type:
-              type: named
-              name: Int
-      artist_below_id:
-        description: An artist
-        fields:
-          ArtistId:
-            description: The artist's primary key
-            arguments:
-              id:
-                description: The cyling id
-                type:
-                  type: named
-                  name: Int
-            type:
-              type: named
-              name: Int
-          Name:
-            description: The artist's name
-            arguments: {}
-            type:
-              type: named
-              name: String
-    collections:
-      - name: Artist
-        description: A collection of artists
-        arguments: {}
-        type: Artist
-        deletable: false
-        uniqueness_constraints:
-          ArtistById:
-            unique_columns:
-              - ArtistId
-        foreign_keys: {}
-      - name: Album
-        description: A collection of albums
-        arguments: {}
-        type: Album
-        deletable: false
-        uniqueness_constraints:
-          AlbumById:
-            unique_columns:
-              - AlbumId
-        foreign_keys: {}
-      - name: Track
-        description: A collection of tracks
-        arguments: {}
-        type: Track
-        deletable: false
-        uniqueness_constraints:
-          TrackById:
-            unique_columns:
-              - TrackId
-        foreign_keys: {}
-      - name: artist_below_id
-        description: A collection of artists below a certain id
-        arguments:
-          id:
-            description: The ceiling id
-            type:
-              type: named
-              name: Int
-        type: Artist
-        deletable: false
-        uniqueness_constraints: {}
-        foreign_keys: {}
+    scalar_types: {}
+    object_types: {}
+    collections: []
     functions: []
     procedures: []
+  capabilities:
+    version: 0.1.0
+    capabilities:
+      query:
+        variables: {}
+      mutation: {}
 ```
 
-## HasuraHubDataConnector {#hasura-hub-data-connector}
+#### SchemaAndCapabilitiesV01 {#dataconnectorlink-schemaandcapabilitiesv01}
 
-Instead of deploying your own data connector, Hasura metadata also allows you to directly configure and use one of the
-standard data connectors from the [Connector Hub](https://hasura.io/connectors/).
+The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema
+of the data connector is not looked up.
 
-### Metadata Object
+| Key            | Value                                                                                      | Required | Description |
+| -------------- | ------------------------------------------------------------------------------------------ | -------- | ----------- |
+| `version`      | `v0.1`                                                                                     | true     |             |
+| `schema`       | [Schema Response](https://hasura.github.io/ndc-spec/specification/schema/index.html)       | true     |             |
+| `capabilities` | [Capabilities Response](https://hasura.github.io/ndc-spec/specification/capabilities.html) | true     |             |
 
-To configure a HasuraHubDataConnector, you will need to add the following metadata object:
+### DataConnectorScalarRepresentation {#dataconnectorscalarrepresentation-dataconnectorscalarrepresentation}
+
+The representation of a data connector scalar in terms of Open DD types
+
+| Key          | Value                                                                                                         | Required | Description |
+| ------------ | ------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `DataConnectorScalarRepresentation`                                                                           | true     |             |
+| `version`    | `v1`                                                                                                          | true     |             |
+| `definition` | [DataConnectorScalarRepresentationV1](#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1) | true     |             |
+
+#### DataConnectorScalarRepresentationV1 {#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1}
+
+The representation of a data connector scalar in terms of Open DD types
+
+| Key                       | Value                                                                                                                        | Required | Description                                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `dataConnectorName`       | [DataConnectorName](#dataconnectorscalarrepresentation-dataconnectorname)                                                    | true     | The name of the data connector that this scalar type comes from.                            |
+| `dataConnectorScalarType` | string                                                                                                                       | true     | The name of the scalar type coming from the data connector.                                 |
+| `representation`          | [Representation](#dataconnectorscalarrepresentation-representation)                                                          | true     | The name of the Open DD type that this data connector scalar type should be represented as. |
+| `graphql`                 | [DataConnectorScalarGraphQLConfiguration](#dataconnectorscalarrepresentation-dataconnectorscalargraphqlconfiguration) / null | false    | Configuration for how this scalar's operators should appear in the GraphQL schema.          |
+
+**Example:**
 
 ```yaml
-kind: HasuraHubDataConnector
-version: v1
-definition:
-  name: <DataConnectorName>
-  connectorId: <HasuraHubConnectorId>
-  connectorConfiguration: <ConnectorConfigurations>
+dataConnectorName: data_connector
+dataConnectorScalarType: varchar
+representation: String
+graphql:
+  comparisonExpressionTypeName: String_Comparison_Exp
 ```
 
-| Field                    | Type                                                  | Required | Description                                                                                                |
-| ------------------------ | ----------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
-| `name`                   | `String`                                              | true     | Name of the Data Connector.                                                                                |
-| `connectorId`            | `String`                                              | true     | The Connector Hub ID of the connector to configure. Currently, only `hasura/postgres` is supported.        |
-| `connectorConfiguration` | [[`ConnectorConfiguration`](#connectorConfiguration)] | true     | The configurations to deploy the connector, one for every region that the connector should be deployed in. |
+#### DataConnectorScalarGraphQLConfiguration {#dataconnectorscalarrepresentation-dataconnectorscalargraphqlconfiguration}
 
-#### ConnectorConfiguration {#connectorConfiguration}
+GraphQL configuration of a data connector scalar
 
-ConnectorConfiguration defines the configuration to deploy a connector in a particular region. Typically, you want to
-deploy the connector in a region that's closest to your database. The NDC schemas for deployments across all regions
-must be identical.
+| Key                            | Value                                                                        | Required | Description |
+| ------------------------------ | ---------------------------------------------------------------------------- | -------- | ----------- |
+| `comparisonExpressionTypeName` | [GraphQlTypeName](#dataconnectorscalarrepresentation-graphqltypename) / null | false    |             |
 
-The structure of ConnectorConfiguration is as follows:
+#### GraphQlTypeName {#dataconnectorscalarrepresentation-graphqltypename}
 
-```yaml
-region: <String>
-mode: <ReadOnly / ReadWrite / WriteOnly>
-configuration: <Connector specific configuration>
-```
+**Value:** string
 
-| Field                    | Type     | Required | Description                                                             |
-| ------------------------ | -------- | -------- | ----------------------------------------------------------------------- |
-| `region`                 | `String` | true     | Name of the cloud region. Eg: gcp-asia-south1                           |
-| `mode`                   | `String` | true     | Whether this connector should support reads only, writes only, or both. |
-| `connectorConfiguration` | `Any`    | true     | The configuration specific to the connector ID you chose from the Hub.  |
+#### Representation {#dataconnectorscalarrepresentation-representation}
 
-### Example
+The name of the Open DD type that this data connector scalar type should be represented as.
 
-In this example we are configuring a postgres data connector using a postgres database URL in a single region.
+**One of the following values:**
 
-```yaml
-kind: HasuraHubDataConnector
-version: v1
-definition:
-  name: foo
-  connectorId: hasura/postgres
-  connectorConfiguration:
-    - region: gcp-asia-south1
-      mode: ReadWrite
-      configuration:
-        version: 1
-        connectionUri:
-          uri:
-            value: postgres://username:password@database-host/database_name
-        metadata: <...>
-```
+| Value                                                               | Description |
+| ------------------------------------------------------------------- | ----------- |
+| [InbuiltType](#dataconnectorscalarrepresentation-inbuilttype)       |             |
+| [CustomTypeName](#dataconnectorscalarrepresentation-customtypename) |             |
 
-After populating the URL, typically, the rest of configuration will be automatically authored through tooling (eg:
-Hasura VSCode extension).
+#### CustomTypeName {#dataconnectorscalarrepresentation-customtypename}
+
+The name of a user-defined type.
+
+**Value:** string
+
+#### InbuiltType {#dataconnectorscalarrepresentation-inbuilttype}
+
+An inbuilt primitive OpenDD type.
+
+**Value:** `ID` / `Int` / `Float` / `Boolean` / `String`
+
+#### DataConnectorName {#dataconnectorscalarrepresentation-dataconnectorname}
+
+The name of a data connector.
+
+**Value:** string
