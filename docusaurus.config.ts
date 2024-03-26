@@ -14,9 +14,7 @@ const config: Config = {
 
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: process.env.CF_PAGES === '1'
-    ? '/'
-    : '/docs/3.0',
+  baseUrl: process.env.CF_PAGES === '1' ? '/' : '/docs/3.0',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -60,7 +58,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x beta',
+              label: 'v3.x alpha',
               badge: true,
             },
           },
@@ -74,7 +72,7 @@ const config: Config = {
         },
         blog: false,
         googleTagManager: {
-            containerId: 'GTM-PF5MQ2Z',
+          containerId: 'GTM-PF5MQ2Z',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -97,11 +95,11 @@ const config: Config = {
     ],
     async function tailwind(context, options) {
       return {
-        name: "docusaurus-tailwindcss",
+        name: 'docusaurus-tailwindcss',
         configurePostCss(postcssOptions) {
           // Appends TailwindCSS and AutoPrefixer.
-          postcssOptions.plugins.push(require("tailwindcss"));
-          postcssOptions.plugins.push(require("autoprefixer"));
+          postcssOptions.plugins.push(require('tailwindcss'));
+          postcssOptions.plugins.push(require('autoprefixer'));
           return postcssOptions;
         },
       };
