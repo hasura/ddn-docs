@@ -30,12 +30,11 @@ You can define permissions (also known as access control or authorization rules)
 
 There are three forms of permissions:
 
-- [**Type Permissions**](#type-permissions): Define which fields within a `ScalarType` or `ObjectType` can be accessed
-  by a particular role.
-- [**Model Permissions**](#model-permissions): Define which rows within a [model](/supergraph-modeling/models.mdx) can
-  be accessed by a specific role.
-- [**Command Permissions**](#command-permissions): Define which [commands](/supergraph-modeling/commands.mdx) can be
-  executed by a given role.
+- **Type Permissions**: Define which fields within a [`ScalarType` or `ObjectType`](/supergraph-modeling/types.mdx) can
+  be accessed by a particular role.
+- **Model Permissions**: Define which rows within a [model](/supergraph-modeling/models.mdx) can be accessed by a
+  specific role.
+- **Command Permissions**: Define which [commands](/supergraph-modeling/commands.mdx) can be executed by a given role.
 
 A role comes into existence when it is defined in one of these three ways.
 
@@ -47,102 +46,10 @@ built-in, default, super-user `admin` role in Hasura DDN. You can however set up
 Hasura's roles and permissions are implemented at the Hasura Engine layer. They have no direct relationship to any data
 source users and roles.
 
-## Type Permissions {#type-permissions}
+## Examples
 
-You can specify which fields of a `ScalarType` or `ObjectType` are accessible to specific roles.
-
-### Example
-
-To define permissions on an output type `product` for `admin` and `customer` roles:
-
-```yaml
-kind: TypePermissions
-version: v1
-definition:
-  typeName: product
-  permissions:
-    - role: admin
-      output:
-        allowedFields:
-          - id
-          - name
-          - price
-          - manufacturer_id
-    - role: customer
-      output:
-        allowedFields:
-          - id
-          - name
-          - price
-```
-
-:::info No access for undefined roles
-
-If a role doesn't have any permissions defined for a type, it won't have access to it.
-
-:::
-
-## Model Permissions {#model-permissions}
-
-You can control which rows or objects within a model a role can access. The syntax for this filter check, known as a
-`FieldComparison` `ModelPredicate`, is available when
-[modeling your supergraph](/supergraph-modeling/supergraph.mdx#modelpredicate).
-
-### Example
-
-The following defines permissions for the `Users` model:
-
-```yaml
-kind: ModelPermissions
-version: v1
-definition:
-  modelName: Users
-  permissions:
-    - role: admin
-      select:
-        filter:
-    - role: customer
-      select:
-      filter:
-        fieldComparison:
-          field: id
-          operator: _eq
-          value:
-            sessionVariable: x-hasura-user-id
-```
-
-In the above example, the `admin` role has no restrictions on the `Users` model. The `customer` role can only access the
-row where the `id` field matches the `x-hasura-user-id` session variable ie: themselves.
-
-## Command Permissions
-
-Command permissions determine which roles can execute specific commands by defining one boolean value of
-`allowExecution` for each role.
-
-### Example
-
-For a command named `send_abandoned_cart_email`, the permissions might look like:
-
-```yaml
-kind: CommandPermissions
-version: v1
-definition:
-  commandName: send_abandoned_cart_email
-  permissions:
-    - role: admin
-      allowExecution: true
-    - role: customer
-      allowExecution: false
-```
-
-In the above example the `admin` role can execute the `send_abandoned_cart_email` command, but the `customer` role
-cannot.
-
-:::info No access for undefined roles
-
-If a role doesn't have any permissions defined for a command, it won't have the ability to execute that command.
-
-:::
+For examples of authorization permissions in metadata, see the [permissions page](/supergraph-modeling/permissions.mdx)
+in the Supergraph modeling section.
 
 ## Testing Permissions
 

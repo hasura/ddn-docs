@@ -1,7 +1,9 @@
 ---
 sidebar_position: 4
 sidebar_label: Environments
-description: "Learn about Hasura’s environments feature that boosts collaboration and project organization. Discover how to utilize environments with builds to manage metadata for ‘development’ or ‘production’."
+description:
+  "Learn about Hasura’s environments feature that boosts collaboration and project organization. Discover how to utilize
+  environments with builds to manage metadata for ‘development’ or ‘production’."
 keywords:
   - multicloud environments
   - graphql environment
@@ -24,8 +26,8 @@ Environments allow you to organize your [project](/ci-cd/projects.mdx) metadata 
 different stages of your development lifecycle. You can create environments for `development`, `staging`, and
 `production` and then use them to create different builds for each environment.
 
-Once you've created an environment you can then use it to create different builds by configuring a build profile file
-for it. You'll then be able to access this environment's applied build via a different API endpoint.
+There is no limit to the number of environments you can have; this makes it easy create an environment for each member
+of your team to create their own.
 
 ## Environment lifecycle
 
@@ -34,7 +36,7 @@ for it. You'll then be able to access this environment's applied build via a dif
 You can create a new environment on Hasura DDN using the CLI by running:
 
 ```bash
-hasura3 environment create --name <ENVIRONMENT_NAME>
+ddn create environment <ENVIRONMENT_NAME>
 ```
 
 The CLI will return a response specifying the fully-qualified domain name of the environment, such as:
@@ -52,41 +54,49 @@ builds for that environment.
 
 ### Manage
 
-Once you've created an environment, you can then use it to create different builds by configuring a build profile file
-to reference the environment name under the `environments` key:
+Once you've created an environment, you can then use it to create different builds by configuring a manifest file to
+reference the environment name under the `environments` key:
 
 ```yaml
-# build-profile-staging.yaml
-version: 2
-spec:
-  # highlight-start
+# stage.supergraph.hml
+kind: SupergraphManifest
+version: v1
+definition:
   environment: staging
-  # highlight-end
+  name: stage
   mode: replace
+  envfile: base.env.yaml
   supergraph:
     resources:
-      - supergraph-staging/*
+      - supergraph/**/*.hml
   subgraphs:
-    - name: default
+    - name: app
       resources:
-        - "subgraphs/staging/**/*.hml"
+        - app/**/*.hml
+      connectors:
+        app_connector:
+          path: app/app_connector
+          manifestFile: app_connector.build.hml
+        app_functions:
+          path: app/app_functions
+          manifestFile: app_functions.build.hml
 ```
 
 In the example above, the `staging` environment, which would have been created in the previous step, is used for the
 build.
 
-We can title this file `build-profile-staging.yaml` and then reference it in the `hasura.yaml` file as an item in the
-array of `buildProfiles`:
+We can title this file `stage.supergraph.hml` and then reference it in the `hasura.yaml` file as an item in the array of
+`supergraphManifests`:
 
 ```yaml
 version: 1
-project: secure-catfish-9299
+project: <PROJECT_NAME>
 
-buildProfiles:
-  - build-profile.yaml
-  - build-profile-staging.yaml
+supergraphManifests:
+  - base.supergraph.hml
+  - stage.supergraph.hml
 
-defaultBuildProfile: build-profile.yaml
+defaultSupergraphManifest: base.supergraph.hml
 ```
 
 ### Delete
@@ -94,5 +104,5 @@ defaultBuildProfile: build-profile.yaml
 You can delete an environment using the CLI by running:
 
 ```bash
-hasura3 environment delete --name <ENVIRONMENT_NAME>
+ddn delete environment <ENVIRONMENT_NAME>
 ```

@@ -1,0 +1,59 @@
+---
+description: "Master the deployment of a data connector for Hasura software with our comprehensive guide."
+sidebar_position: 4
+keywords:
+  - deploy data connector
+  - hasura api
+  - hasura deployment
+  - http connectors
+  - integrated connectors
+  - hasura cli
+  - cloud provider
+  - data source
+  - api querying
+  - secure APIs
+seoFrontMatterUpdated: true
+---
+
+# Deploy a Data Connector
+
+## Deploy a connector to Hasura DDN
+
+You can deploy any [verified connector](/connectors/hub.mdx#verifying-your-connector) available on the
+[Connector Hub](https://hasura.io/connectors) to Hasura DDN using the CLI.
+
+### Step 1: Create a new connector manifest
+
+To create a new connector manifest, run the following in a project directory:
+
+```bash
+ddn add connector-manifest <connector-name> --subgraph <subgraph-name> --hub-connector <connector_name_and_version> --type cloud
+```
+
+| Argument                       | Description                                                   |
+| ------------------------------ | ------------------------------------------------------------- |
+| `<connector-name>`             | Whatever name you would like to assign to this connector.     |
+| `<subgraph-name>`              | The name of the subgraph to which the connector belongs.      |
+| `<connector_name_and_version>` | The name and version of the connector from the Connector Hub. |
+| `--type`                       | The type of connector. In this case, it's `cloud`.            |
+
+You'll then need to add the connection URI for your connector's data source in the `base.env.yaml` file for the project:
+
+```yaml
+<SUBGRAPH_NAME>_<CONNECTOR_NAME>_CONNECTION_URI: <CONNECTION_URI>
+```
+
+:::info Some connectors don't require any connection URIs
+
+An example of this would be the Node.js Lambda TypeScript connector.
+
+:::
+
+### Step 2: Build and deploy the connector
+
+You can then build and deploy your connector to Hasura DDN using the following command with the appropriate values from
+the previous step:
+
+```bash
+ddn build connector <connector-name> --subgraph <subgraph-name>
+```

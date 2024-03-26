@@ -1,7 +1,10 @@
 ---
 sidebar_position: 6
 sidebar_label: Builds
-description: "Learn about Hasura Data Delivery Network's (DDN) build management. Understand how to create, apply, and delete builds associated with your projects, the importance of the build lifecycle, and testing your API. Also, discover how to leverage Hasura CLI commands for smoother transitions from development to production."
+description:
+  "Learn about Hasura Data Delivery Network's (DDN) build management. Understand how to create, apply, and delete builds
+  associated with your projects, the importance of the build lifecycle, and testing your API. Also, discover how to
+  leverage Hasura CLI commands for smoother transitions from development to production."
 keywords:
   - hasura ddn
   - builds management
@@ -26,7 +29,7 @@ Builds are created for a specific [**environment**](/ci-cd/environments.mdx) and
 project's API.
 
 While there can be many builds for an environment, only one can be **applied** at a time to an environment. The applied
-build is the one that is currently serving your API from your project's endpoint.
+build is the one that is currently serving your API from an environment's endpoint.
 
 ## Build lifecycle
 
@@ -36,47 +39,49 @@ To create a build, you'll first need a [**project**](/ci-cd/projects.mdx). After
 following command:
 
 ```bash
-hasura3 build create
+ddn build supergraph
 ```
 
 The CLI will return information about your build:
 
 ```text
-+---------------+---------------------------------------------------------------+
-| Build ID      | baa7f15d-5364-4cfd-b94c-8d2a8a51e6e2                          |
-+---------------+---------------------------------------------------------------+
-| Build Version | b6370d7d56                                                    |
-+---------------+---------------------------------------------------------------+
-| Build URL     | https://secure-catfish-9299-b6370d7d56.ddn.hasura.app/graphql |
-+---------------+---------------------------------------------------------------+
-| Project Id    | fc2d7717-e1f8-4213-9132-6a70f78b6026                          |
-+---------------+---------------------------------------------------------------+
-| Console Url   | https://console.hasura.io/project/secure-catfish-9299/graphql |
-+---------------+---------------------------------------------------------------+
-| FQDN          | secure-catfish-9299-b6370d7d56.ddn.hasura.app                 |
-+---------------+---------------------------------------------------------------+
-| Environment   | default                                                       |
-+---------------+---------------------------------------------------------------+
-| Description   |                                                               |
-+---------------+---------------------------------------------------------------+
++---------------+------------------------------------------------------------------+
+| Build ID      | 7af001cc-5fdd-4638-aa23-96c49cd45d42                             |
++---------------+------------------------------------------------------------------+
+| Build Version | 606b3d797d                                                       |
++---------------+------------------------------------------------------------------+
+| Build URL     | https://stunning-eagle-6335-dev-606b3d797d.ddn.hasura.me/graphql |
++---------------+------------------------------------------------------------------+
+| Project Id    | 3172bf76-1d6f-4869-9ee2-7147b964cc5e                             |
++---------------+------------------------------------------------------------------+
+| Console Url   | https://console.hasura.com/project/stunning-eagle-6335/graphql   |
++---------------+------------------------------------------------------------------+
+| FQDN          | stunning-eagle-6335-dev-606b3d797d.ddn.hasura.me                 |
++---------------+------------------------------------------------------------------+
+| Environment   | dev                                                              |
++---------------+------------------------------------------------------------------+
+| Description   |                                                                  |
++---------------+------------------------------------------------------------------+
 ```
 
-By default, the build will be created using the build profile you've identified as the default for your project in your
-`hasura.yaml` file. You can override this by specifying a different profile using the `--profile` flag:
+#### Overriding the default manifest
+
+By default, the build will be created using the manifest you've identified as the default for your project in your
+`hasura.yaml` file. You can override this by specifying a different manifest using the `--supergraph-manifest` flag:
 
 ```bash
-hasura3 build create --profile <BUILD_PROFILE_FILE>
+ddn build supergraph --supergraph-manifest <MANIFEST_FILE>
 ```
 
-At this point, you can interact with and test your API using the GraphQL API Endpoint and Console URL returned by the
+At this point, you can interact with and test your API using the GraphQL API endpoint and Console URL returned by the
 CLI.
 
 ### Apply
 
-When you are happy with your build, you can apply it to a project's environment using the following command:
+When you are happy with your build, you can apply it to an environment using the following command:
 
 ```bash
-hasura3 build apply --version <BUILD_VERSION>
+ddn apply supergraph-build <build-version>
 ```
 
 The CLI will return the API endpoint for your supergraph:
@@ -92,7 +97,7 @@ The CLI will return the API endpoint for your supergraph:
 Builds can be individually deleted using the following command:
 
 ```bash
-hasura3 build delete --version <BUILD_VERSION>
+ddn delete supergraph-build --version <BUILD_VERSION>
 ```
 
 All builds for a project are deleted when a [project is deleted](/ci-cd/projects.mdx#delete).

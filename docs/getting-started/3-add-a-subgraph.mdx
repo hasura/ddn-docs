@@ -1,0 +1,142 @@
+---
+title: Add another subgraph
+sidebar_label: "III: Add another subgraph"
+sidebar_position: 4
+description: "Learn how to add subgraphs to your existing supergraph."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+  - subgraph
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Add another Subgraph
+
+## Introduction
+
+Our supergraph wouldn't be much of a supergraph with only a single subgraph. As we said in
+[the overview](/getting-started/overview), it's convenient, but not required, to organize subgraph metadata files around
+data domains / data sources.
+
+Ideally, for organizations, the team responsible for a set of data sources **owns** a specific subgraph and is
+responsible for authoring and maintaining it.
+
+## Step 1: Stop dev mode
+
+Before we add the subgraph, we'll first need to stop `dev` mode in the CLI. In the terminal tab in which this is
+running, press `CTRL+C`.
+
+## Step 2: Add the new subgraph
+
+Using the same tab, while we're still in the project directory, we'll add a second subgraph using the following command:
+
+```bash
+ddn create subgraph chinook
+```
+
+The CLI should respond that the subgraph was successfully created.
+
+## Step 3: Connect a new data source
+
+Since this is a PostgreSQL database, we can add a connector manifest using the following CLI command:
+
+```bash
+ddn add connector-manifest chinook_connector --subgraph chinook --hub-connector hasura/postgres:v0.5.0 --type cloud
+```
+
+:::info What's a connector manifest?
+
+A [connector manifest](/ci-cd/projects.mdx) is the file which contains the details of the connector's configuration.
+This tells Hasura DDN what capabilities of the connector has and how to build your connector for your data source.
+
+:::
+
+Then, in our `base.env.yaml` in the root of the project, we can add the new subgraph and connection string:
+
+```yaml
+chinook:
+  CHINOOK_CHINOOK_CONNECTOR_CONNECTION_URI: postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
+```
+
+We can then run `ddn dev` to generate a new build, introspect our Chinook data source, and watch for changes.
+
+## Step 4: Track tables from our new source
+
+As before, we'll also need to track these tables.
+
+**After** the build is complete, head into `/chinook/chinook_connector.hml` and run the `track all` command using VS
+Code's command palette.
+
+Be sure to select `chinook_connector` and `Default` from the options that appear from the palette's dropdown menu:
+
+<Thumbnail src="/img/get-started/trackAllFromChinook.gif" alt="Tracking chinook models" width="1000px" />
+
+When you run this command and make your selections, the CLI will automatically generate a new build and the Chinook data
+source will be available in your API:
+
+<Thumbnail src="/img/get-started/0.0.1_console_chinook-api.png" alt="Chinook in API" width="1000px" />
+
+## Step 5: Create relationships across subgraphs
+
+Finally, we'll create a relationship between entities in our different subgraphs. Our Chinook data source is a
+music-based dataset that contains a type called `Artist`. We have a `favorite_artist` colum on our `app_users` table.
+
+In `/app/app_connector/models/Users.hml`, let's add the following relationship:
+
+```yaml
+---
+kind: Relationship
+version: v1
+definition:
+  name: user_to_favorite_artist
+  source: Users
+  target:
+    model:
+      subgraph: chinook
+      name: Artist
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: favorite_artist
+      target:
+        modelField:
+          - fieldName: ArtistId
+```
+
+:::tip Remember, you can use LSP to assist in authoring metadata
+
+While you can copy and paste the value above, don't forget that LSP is available to assist you when writing your own
+relationships, permissions, and any other metadata-authoring tasks you'll need to complete.
+
+:::
+
+We can then run the following query and see that — rightly so — everyone's favorite artist is `AC/DC` 🤘
+
+```graphql
+query MyQuery {
+  app_users {
+    name
+    user_to_favorite_artist {
+      Name
+    }
+  }
+}
+```
+
+<Thumbnail src="/img/get-started/0.0.1_console_ac-dc.png" alt="AC/DC rock-n-roll" width="1000px" />
+
+## What just happened?
+
+We created a second subgraph called `chinook` and added a completely separate data source using the `chinook_connector`.
+We then created a relationship across these subgraphs to link disparate tables and make them available via a single
+query. We can even visualize this using the console's explorer, available in the left-hand navigation.
+
+<Thumbnail src="/img/get-started/0.0.1_console_explorer.png" alt="Explorer for supergraph" width="1000px" />
+
+Check out the final page in our getting-started guide to learn how easy it is to add your own authentication platform,
+build and deploy connectors, and create rock-solid CI/CD pipelines for easy and automated deployments.

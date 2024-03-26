@@ -1,7 +1,10 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 sidebar_label: Traces
-description: "Learn how to leverage OpenTelemetry traces to track user requests across various services in the Hasura Data Delivery Network. Understand how to diagnose and debug potential failure points and monitor performance for better application management."
+description:
+  "Learn how to leverage OpenTelemetry traces to track user requests across various services in the Hasura Data Delivery
+  Network. Understand how to diagnose and debug potential failure points and monitor performance for better application
+  management."
 keywords:
   - hasura ddn
   - traces
@@ -33,6 +36,9 @@ all your API requests.
 
 ## Spans
 
+Spans represent the basic unit of work in a distributed system. They describe the operation that an individual component
+of the system is doing, such as the time taken to execute a function or a request.
+
 Every request to your GraphQL API will have a unique `trace-id` associated with it and may have the following spans:
 
 - `/graphql`
@@ -43,7 +49,9 @@ Every request to your GraphQL API will have a unique `trace-id` associated with 
       - `execute`
         - `execute_ndc_query`
           - `Execute Query`
+            - `<Connector spans>`
         - `execute_ndc_mutation`
+          - `<Connector spans>`
 
 | Span name                | Description                                                                                                                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,10 +64,20 @@ Every request to your GraphQL API will have a unique `trace-id` associated with 
 | `execute_ndc_query`      | The span responsible for executing a single ndc query. This span has an attribute `field` which describes the schema type that was executed.                                                |
 | `Execute Query`          | The span responsible for executing the generated query on the data source.                                                                                                                  |
 | `execute_ndc_mutation`   | The span responsible for executing a single ndc mutation. This span has an attribute `field` which describes the field that was executed.                                                   |
+| `<Connector spans>`      | Optional spans from connectors to which the engine sends requests.                                                                                                                          |
 
-:::info What are spans?
+### Connector spans
 
-Spans represent the basic unit of work in a distributed system. They describe the operation that an individual component
-of the system is doing, such as the time taken to execute a function or a request.
+Connectors can have internal spans that vary depending on the data source or business logic implemented. Those traces
+are exported separately from the connector and are handled automatically if the connector is deployed to DDN cloud.
+However, self-hosted connectors need to configure the variables below or connector traces will not be visible on the DDN
+console:
+
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: https://gateway.otlp.hasura.io:443
+- `OTEL_EXPORTER_OTLP_HEADERS`: `Authorization=pat <personal-access-token>`
+
+:::info Personal Access Token (PAT)
+
+You can generate a personal access token [here](https://cloud.hasura.io/account-settings/access-tokens).
 
 :::
