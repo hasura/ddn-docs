@@ -16,12 +16,16 @@ import {
 import { topLevelMetadataRefs } from '../entities/objects';
 
 let markdownArray: string[] = [];
-let visitedRefs = topLevelMetadataRefs;
+let visitedRefs = {
+  ...topLevelMetadataRefs,
+};
 
 export function returnMarkdown(metadataObject: JSONSchema7Definition): string {
   // reset base values
   markdownArray = [];
-  visitedRefs = topLevelMetadataRefs;
+  visitedRefs = {
+    ...topLevelMetadataRefs,
+  };
 
   handleSchemaDefinition(metadataObject, true);
 
