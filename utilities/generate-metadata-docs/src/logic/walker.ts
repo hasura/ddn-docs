@@ -130,7 +130,7 @@ function handleObject(metadataObject: JSONSchema7Definition, isSource: boolean =
   const type = getType(metadataObject);
   if (type === 'object') {
     let markdownValue = '';
-    markdownValue += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
+    markdownValue += `| Key | Value | Required | Description |\n|-----|-----|-----|-----|\n`;
 
     if (metadataObject.properties) {
       for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
@@ -192,7 +192,7 @@ function handleExternallyTaggedNullable(metadataObject: JSONSchema7Definition): 
 function handleExternallyTaggedOneOf(metadataObject: JSONSchema7Definition): string {
   let markdownValue = '';
   markdownValue += '\n**Must have exactly one of the following fields:**\n\n';
-  markdownValue += `| Key | Schema | Required | Description |\n|-----|-----|-----|-----|\n`;
+  markdownValue += `| Key | Value | Required | Description |\n|-----|-----|-----|-----|\n`;
   metadataObject.oneOf.forEach(sub_object => {
     let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
     const propertyType = handleSchemaDefinition(propertySchema);
