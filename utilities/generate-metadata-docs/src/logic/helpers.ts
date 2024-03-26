@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { JSONSchema7Definition } from '../entities/types';
-import { returnMarkdown } from './walker';
+import { getSchemaMarkdown } from './walker';
 import { parentSchema } from '../entities/objects';
 import jsYaml from 'js-yaml';
 
@@ -50,7 +50,7 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
   metadataObjectTitles.map(metadataObjectTitle => {
     const metadataObjectSchema = findSchemaDefinitionByTitle(parentSchema, metadataObjectTitle);
     if (metadataObjectSchema) {
-      pageMarkdown += returnMarkdown(metadataObjectSchema);
+      pageMarkdown += getSchemaMarkdown(metadataObjectSchema);
     } else {
       console.warn('Schema not found for: ', metadataObjectTitle);
     }
