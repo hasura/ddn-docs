@@ -33,48 +33,48 @@ checking as you create this object.
 
 ## Metadata structure
 
-### AuthConfig
+### AuthConfig {#authconfig-authconfig}
 
 Definition of the authentication configuration used by the API server.
 
-| Key          | Value                         | Required | Description |
-| ------------ | ----------------------------- | -------- | ----------- |
-| `kind`       | `AuthConfig`                  | true     |             |
-| `version`    | `v1`                          | true     |             |
-| `definition` | [AuthConfigV1](#authconfigv1) | true     |             |
+| Key          | Value                                    | Required | Description |
+| ------------ | ---------------------------------------- | -------- | ----------- |
+| `kind`       | `AuthConfig`                             | true     |             |
+| `version`    | `v1`                                     | true     |             |
+| `definition` | [AuthConfigV1](#authconfig-authconfigv1) | true     |             |
 
-#### AuthConfigV1
+#### AuthConfigV1 {#authconfig-authconfigv1}
 
 Definition of the authentication configuration used by the API server.
 
-| Key                    | Value                             | Required | Description |
-| ---------------------- | --------------------------------- | -------- | ----------- |
-| `allowRoleEmulationBy` | [Role](#role) / null              | false    |             |
-| `mode`                 | [AuthModeConfig](#authmodeconfig) | true     |             |
+| Key                    | Value                                        | Required | Description |
+| ---------------------- | -------------------------------------------- | -------- | ----------- |
+| `allowRoleEmulationBy` | [Role](#authconfig-role) / null              | false    |             |
+| `mode`                 | [AuthModeConfig](#authconfig-authmodeconfig) | true     |             |
 
-#### AuthModeConfig
+#### AuthModeConfig {#authconfig-authmodeconfig}
 
 The configuration for the authentication mode to use - webhook or JWT.
 
 **Must have exactly one of the following fields:**
 
-| Key       | Value                             | Required | Description |
-| --------- | --------------------------------- | -------- | ----------- |
-| `webhook` | [AuthHookConfig](#authhookconfig) | false    |             |
-| `jwt`     | [JWTConfig](#jwtconfig)           | false    |             |
+| Key       | Value                                        | Required | Description |
+| --------- | -------------------------------------------- | -------- | ----------- |
+| `webhook` | [AuthHookConfig](#authconfig-authhookconfig) | false    |             |
+| `jwt`     | [JWTConfig](#authconfig-jwtconfig)           | false    |             |
 
-#### JWTConfig
+#### JWTConfig {#authconfig-jwtconfig}
 
 JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims.
 
-| Key             | Value                                 | Required | Description                                                                                                           |
-| --------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `audience`      | [string]                              | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
-| `issuer`        | string                                | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
-| `allowedSkew`   | integer                               | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
-| `claimsConfig`  | [JWTClaimsConfig](#jwtclaimsconfig)   | true     | Claims config. Either specified via `claims_mappings` or `claims_namespace_path`                                      |
-| `tokenLocation` | [JWTTokenLocation](#jwttokenlocation) | true     | Source of the JWT authentication token.                                                                               |
-| `key`           | [JWTKey](#jwtkey)                     | true     | Mode according to which the JWT auth is configured.                                                                   |
+| Key             | Value                                            | Required | Description                                                                                                           |
+| --------------- | ------------------------------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `audience`      | [string]                                         | false    | Optional validation to check that the `aud` field is a member of the `audience` recieved, otherwise will throw error. |
+| `issuer`        | string                                           | false    | Optional validation to check that the `iss` field is a member of the `iss` received, otherwise will throw error.      |
+| `allowedSkew`   | integer                                          | false    | Allowed leeway (in seconds) to the `exp` validation to account for clock skew.                                        |
+| `claimsConfig`  | [JWTClaimsConfig](#authconfig-jwtclaimsconfig)   | true     | Claims config. Either specified via `claims_mappings` or `claims_namespace_path`                                      |
+| `tokenLocation` | [JWTTokenLocation](#authconfig-jwttokenlocation) | true     | Source of the JWT authentication token.                                                                               |
+| `key`           | [JWTKey](#authconfig-jwtkey)                     | true     | Mode according to which the JWT auth is configured.                                                                   |
 
 **Example:**
 
@@ -95,27 +95,27 @@ key:
       value: token
 ```
 
-#### JWTKey
+#### JWTKey {#authconfig-jwtkey}
 
 JWT key configuration according to which the incoming JWT will be decoded.
 
 **Must have exactly one of the following fields:**
 
-| Key          | Value                         | Required | Description |
-| ------------ | ----------------------------- | -------- | ----------- |
-| `fixed`      | [JWTKeyConfig](#jwtkeyconfig) | false    |             |
-| `jwkFromUrl` | string                        | false    |             |
+| Key          | Value                                    | Required | Description |
+| ------------ | ---------------------------------------- | -------- | ----------- |
+| `fixed`      | [JWTKeyConfig](#authconfig-jwtkeyconfig) | false    |             |
+| `jwkFromUrl` | string                                   | false    |             |
 
-#### JWTKeyConfig
+#### JWTKeyConfig {#authconfig-jwtkeyconfig}
 
 JWT Secret config according to which the incoming JWT will be decoded.
 
-| Key         | Value                                 | Required | Description                           |
-| ----------- | ------------------------------------- | -------- | ------------------------------------- |
-| `algorithm` | [JWTAlgorithm](#jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
-| `key`       | [EnvironmentValue](#environmentvalue) | true     | The key to use for decoding the JWT.  |
+| Key         | Value                                            | Required | Description                           |
+| ----------- | ------------------------------------------------ | -------- | ------------------------------------- |
+| `algorithm` | [JWTAlgorithm](#authconfig-jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
+| `key`       | [EnvironmentValue](#authconfig-environmentvalue) | true     | The key to use for decoding the JWT.  |
 
-#### EnvironmentValue
+#### EnvironmentValue {#authconfig-environmentvalue}
 
 Either a literal string or a reference to a Hasura secret
 
@@ -126,7 +126,7 @@ Either a literal string or a reference to a Hasura secret
 | `value`        | string | false    |             |
 | `valueFromEnv` | string | false    |             |
 
-#### JWTAlgorithm
+#### JWTAlgorithm {#authconfig-jwtalgorithm}
 
 The algorithm used to decode the JWT.
 
@@ -147,19 +147,19 @@ The algorithm used to decode the JWT.
 | `PS512` | RSASSA-PSS using SHA-512                          |
 | `EdDSA` | Edwards-curve Digital Signature Algorithm (EdDSA) |
 
-#### JWTTokenLocation
+#### JWTTokenLocation {#authconfig-jwttokenlocation}
 
 Source of the Authorization token
 
 **One of the following values:**
 
-| Value                                   | Description                                                             |
-| --------------------------------------- | ----------------------------------------------------------------------- |
-| [undefined](#undefined)                 | Get the bearer token from the `Authorization` header.                   |
-| [JWTCookieLocation](#jwtcookielocation) | Get the token from the Cookie header under the specificied cookie name. |
-| [JWTHeaderLocation](#jwtheaderlocation) | Custom header from where the header should be parsed from.              |
+| Value                                              | Description                                                             |
+| -------------------------------------------------- | ----------------------------------------------------------------------- |
+| [undefined](#authconfig-undefined)                 | Get the bearer token from the `Authorization` header.                   |
+| [JWTCookieLocation](#authconfig-jwtcookielocation) | Get the token from the Cookie header under the specificied cookie name. |
+| [JWTHeaderLocation](#authconfig-jwtheaderlocation) | Custom header from where the header should be parsed from.              |
 
-#### JWTHeaderLocation
+#### JWTHeaderLocation {#authconfig-jwtheaderlocation}
 
 Custom header from where the header should be parsed from.
 
@@ -168,7 +168,7 @@ Custom header from where the header should be parsed from.
 | `type` | `Header` | true     |             |
 | `name` | string   | true     |             |
 
-#### JWTCookieLocation
+#### JWTCookieLocation {#authconfig-jwtcookielocation}
 
 Get the token from the Cookie header under the specificied cookie name.
 
@@ -177,7 +177,7 @@ Get the token from the Cookie header under the specificied cookie name.
 | `type` | `Cookie` | true     |             |
 | `name` | string   | true     |             |
 
-#### undefined
+#### undefined {#authconfig-undefined}
 
 Get the bearer token from the `Authorization` header.
 
@@ -185,27 +185,27 @@ Get the bearer token from the `Authorization` header.
 | ------ | --------------------- | -------- | ----------- |
 | `type` | `BearerAuthorization` | true     |             |
 
-#### JWTClaimsConfig
+#### JWTClaimsConfig {#authconfig-jwtclaimsconfig}
 
 Config to describe how/where the engine should look for the claims within the decoded token.
 
 **Must have exactly one of the following fields:**
 
-| Key         | Value                                     | Required | Description |
-| ----------- | ----------------------------------------- | -------- | ----------- |
-| `locations` | [JWTClaimsMap](#jwtclaimsmap)             | false    |             |
-| `namespace` | [JWTClaimsNamespace](#jwtclaimsnamespace) | false    |             |
+| Key         | Value                                                | Required | Description |
+| ----------- | ---------------------------------------------------- | -------- | ----------- |
+| `locations` | [JWTClaimsMap](#authconfig-jwtclaimsmap)             | false    |             |
+| `namespace` | [JWTClaimsNamespace](#authconfig-jwtclaimsnamespace) | false    |             |
 
-#### JWTClaimsNamespace
+#### JWTClaimsNamespace {#authconfig-jwtclaimsnamespace}
 
 Used when all of the Hasura claims are present in a single object within the decoded JWT.
 
-| Key            | Value                               | Required | Description                                                    |
-| -------------- | ----------------------------------- | -------- | -------------------------------------------------------------- |
-| `claimsFormat` | [JWTClaimsFormat](#jwtclaimsformat) | true     | Format in which the Hasura claims will be present.             |
-| `location`     | string                              | true     | Pointer to lookup the Hasura claims within the decoded claims. |
+| Key            | Value                                          | Required | Description                                                    |
+| -------------- | ---------------------------------------------- | -------- | -------------------------------------------------------------- |
+| `claimsFormat` | [JWTClaimsFormat](#authconfig-jwtclaimsformat) | true     | Format in which the Hasura claims will be present.             |
+| `location`     | string                                         | true     | Pointer to lookup the Hasura claims within the decoded claims. |
 
-#### JWTClaimsFormat
+#### JWTClaimsFormat {#authconfig-jwtclaimsformat}
 
 Format in which the Hasura claims will be present.
 
@@ -216,42 +216,42 @@ Format in which the Hasura claims will be present.
 | `Json`            | Claims will be in the JSON format.             |
 | `StringifiedJson` | Claims will be in the Stringified JSON format. |
 
-#### JWTClaimsMap
+#### JWTClaimsMap {#authconfig-jwtclaimsmap}
 
 Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON
 pointer within the decoded JWT and optionally a default value.
 
-| Key                      | Value                                           | Required | Description                                                      |
-| ------------------------ | ----------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| `x-hasura-default-role`  | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
-| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
+| Key                      | Value                                                      | Required | Description                                                      |
+| ------------------------ | ---------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `x-hasura-default-role`  | [JWTClaimsMappingEntry](#authconfig-jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
+| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#authconfig-jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
 
-#### JWTClaimsMappingEntry
+#### JWTClaimsMappingEntry {#authconfig-jwtclaimsmappingentry}
 
 JSON pointer to lookup the default role within the decoded JWT.
 
 **Must have exactly one of the following fields:**
 
-| Key       | Value                                                   | Required | Description |
-| --------- | ------------------------------------------------------- | -------- | ----------- |
-| `literal` | string                                                  | false    |             |
-| `path`    | [JWTClaimsMappingPathEntry](#jwtclaimsmappingpathentry) | false    |             |
+| Key       | Value                                                              | Required | Description |
+| --------- | ------------------------------------------------------------------ | -------- | ----------- |
+| `literal` | string                                                             | false    |             |
+| `path`    | [JWTClaimsMappingPathEntry](#authconfig-jwtclaimsmappingpathentry) | false    |             |
 
-#### JWTClaimsMappingPathEntry
+#### JWTClaimsMappingPathEntry {#authconfig-jwtclaimsmappingpathentry}
 
 | Key       | Value         | Required | Description                                                                                 |
 | --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
 | `path`    | string        | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
 | `default` | string / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
 
-#### AuthHookConfig
+#### AuthHookConfig {#authconfig-authhookconfig}
 
 The configuration of the authentication webhook.
 
-| Key      | Value                             | Required | Description                                                      |
-| -------- | --------------------------------- | -------- | ---------------------------------------------------------------- |
-| `url`    | string                            | true     | The URL of the authentication webhook.                           |
-| `method` | [AuthHookMethod](#authhookmethod) | true     | The HTTP method to be used to make the request to the auth hook. |
+| Key      | Value                                        | Required | Description                                                      |
+| -------- | -------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `url`    | string                                       | true     | The URL of the authentication webhook.                           |
+| `method` | [AuthHookMethod](#authconfig-authhookmethod) | true     | The HTTP method to be used to make the request to the auth hook. |
 
 **Example:**
 
@@ -260,12 +260,12 @@ url: http://auth_hook:3050/validate-request
 method: Post
 ```
 
-#### AuthHookMethod
+#### AuthHookMethod {#authconfig-authhookmethod}
 
 The HTTP method to be used to make the request to the auth hook.
 
 **Value:** `Get` / `Post`
 
-#### Role
+#### Role {#authconfig-role}
 
 **Value:** string

@@ -39,26 +39,26 @@ the data source.
 
 ## Metadata structure
 
-### DataConnectorLink
+### DataConnectorLink {#dataconnectorlink-dataconnectorlink}
 
 Definition of a data connector, used to bring in sources of data and connect them to OpenDD models and commands.
 
-| Key          | Value                                       | Required | Description |
-| ------------ | ------------------------------------------- | -------- | ----------- |
-| `kind`       | `DataConnectorLink`                         | true     |             |
-| `version`    | `v1`                                        | true     |             |
-| `definition` | [DataConnectorLinkV1](#dataconnectorlinkv1) | true     |             |
+| Key          | Value                                                         | Required | Description |
+| ------------ | ------------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `DataConnectorLink`                                           | true     |             |
+| `version`    | `v1`                                                          | true     |             |
+| `definition` | [DataConnectorLinkV1](#dataconnectorlink-dataconnectorlinkv1) | true     |             |
 
-#### DataConnectorLinkV1
+#### DataConnectorLinkV1 {#dataconnectorlink-dataconnectorlinkv1}
 
 Definition of a data connector - version 1.
 
-| Key       | Value                                                 | Required | Description                                                                                                                                                    |
-| --------- | ----------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`    | [DataConnectorName](#dataconnectorname)               | true     | The name of the data connector.                                                                                                                                |
-| `url`     | [DataConnectorUrlV1](#dataconnectorurlv1)             | true     | The url(s) to access the data connector.                                                                                                                       |
-| `headers` | [undefined](#undefined)                               | false    | Key value map of HTTP headers to be sent with each request to the data connector.                                                                              |
-| `schema`  | [SchemaAndCapabilitiesV01](#schemaandcapabilitiesv01) | true     | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
+| Key       | Value                                                                   | Required | Description                                                                                                                                                    |
+| --------- | ----------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`    | [DataConnectorName](#dataconnectorlink-dataconnectorname)               | true     | The name of the data connector.                                                                                                                                |
+| `url`     | [DataConnectorUrlV1](#dataconnectorlink-dataconnectorurlv1)             | true     | The url(s) to access the data connector.                                                                                                                       |
+| `headers` | [undefined](#dataconnectorlink-undefined)                               | false    | Key value map of HTTP headers to be sent with each request to the data connector.                                                                              |
+| `schema`  | [SchemaAndCapabilitiesV01](#dataconnectorlink-schemaandcapabilitiesv01) | true     | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
 
 **Example:**
 
@@ -84,50 +84,42 @@ schema:
       mutation: {}
 ```
 
-#### SchemaAndCapabilitiesV01
+#### SchemaAndCapabilitiesV01 {#dataconnectorlink-schemaandcapabilitiesv01}
 
 The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema
 of the data connector is not looked up.
 
+| Key            | Value                                                             | Required | Description |
+| -------------- | ----------------------------------------------------------------- | -------- | ----------- |
+| `version`      | `v0.1`                                                            | true     |             |
+| `schema`       | [Schema Response](#dataconnectorlink-schema-response)             | true     |             |
+| `capabilities` | [Capabilities Response](#dataconnectorlink-capabilities-response) | true     |             |
+
+#### Capabilities Response {#dataconnectorlink-capabilities-response}
+
 | Key            | Value                                           | Required | Description |
 | -------------- | ----------------------------------------------- | -------- | ----------- |
-| `version`      | `v0.1`                                          | true     |             |
-| `schema`       | [Schema Response](#schema-response)             | true     |             |
-| `capabilities` | [Capabilities Response](#capabilities-response) | true     |             |
+| `version`      | string                                          | true     |             |
+| `capabilities` | [Capabilities](#dataconnectorlink-capabilities) | true     |             |
 
-#### Capabilities Response
-
-| Key            | Value                         | Required | Description |
-| -------------- | ----------------------------- | -------- | ----------- |
-| `version`      | string                        | true     |             |
-| `capabilities` | [Capabilities](#capabilities) | true     |             |
-
-#### Capabilities
+#### Capabilities {#dataconnectorlink-capabilities}
 
 Describes the features of the specification which a data connector implements.
 
-| Key             | Value                                                          | Required | Description |
-| --------------- | -------------------------------------------------------------- | -------- | ----------- |
-| `query`         | [Query Capabilities](#query-capabilities)                      | true     |             |
-| `mutation`      | [Mutation Capabilities](#mutation-capabilities)                | true     |             |
-| `relationships` | [Relationship Capabilities](#relationship-capabilities) / null | false    |             |
+| Key             | Value                                                                            | Required | Description |
+| --------------- | -------------------------------------------------------------------------------- | -------- | ----------- |
+| `query`         | [Query Capabilities](#dataconnectorlink-query-capabilities)                      | true     |             |
+| `mutation`      | [Mutation Capabilities](#dataconnectorlink-mutation-capabilities)                | true     |             |
+| `relationships` | [Relationship Capabilities](#dataconnectorlink-relationship-capabilities) / null | false    |             |
 
-#### Relationship Capabilities
+#### Relationship Capabilities {#dataconnectorlink-relationship-capabilities}
 
-| Key                    | Value                          | Required | Description                                                                          |
-| ---------------------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------ |
-| `relation_comparisons` | [undefined](#undefined) / null | false    | Does the connector support comparisons that involve related collections (ie. joins)? |
-| `order_by_aggregate`   | [undefined](#undefined) / null | false    | Does the connector support ordering by an aggregated array relationship?             |
+| Key                    | Value                                            | Required | Description                                                                          |
+| ---------------------- | ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------ |
+| `relation_comparisons` | [undefined](#dataconnectorlink-undefined) / null | false    | Does the connector support comparisons that involve related collections (ie. joins)? |
+| `order_by_aggregate`   | [undefined](#dataconnectorlink-undefined) / null | false    | Does the connector support ordering by an aggregated array relationship?             |
 
-#### undefined
-
-A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
-sub-capabilities.
-
-| Key | Value | Required | Description |
-| --- | ----- | -------- | ----------- |
-
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
 sub-capabilities.
@@ -135,14 +127,7 @@ sub-capabilities.
 | Key | Value | Required | Description |
 | --- | ----- | -------- | ----------- |
 
-#### Mutation Capabilities
-
-| Key             | Value                          | Required | Description                                                               |
-| --------------- | ------------------------------ | -------- | ------------------------------------------------------------------------- |
-| `transactional` | [undefined](#undefined) / null | false    | Does the connector support executing multiple mutations in a transaction. |
-| `explain`       | [undefined](#undefined) / null | false    | Does the connector support explaining mutations                           |
-
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
 sub-capabilities.
@@ -150,7 +135,14 @@ sub-capabilities.
 | Key | Value | Required | Description |
 | --- | ----- | -------- | ----------- |
 
-#### undefined
+#### Mutation Capabilities {#dataconnectorlink-mutation-capabilities}
+
+| Key             | Value                                            | Required | Description                                                               |
+| --------------- | ------------------------------------------------ | -------- | ------------------------------------------------------------------------- |
+| `transactional` | [undefined](#dataconnectorlink-undefined) / null | false    | Does the connector support executing multiple mutations in a transaction. |
+| `explain`       | [undefined](#dataconnectorlink-undefined) / null | false    | Does the connector support explaining mutations                           |
+
+#### undefined {#dataconnectorlink-undefined}
 
 A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
 sub-capabilities.
@@ -158,15 +150,7 @@ sub-capabilities.
 | Key | Value | Required | Description |
 | --- | ----- | -------- | ----------- |
 
-#### Query Capabilities
-
-| Key          | Value                          | Required | Description                                            |
-| ------------ | ------------------------------ | -------- | ------------------------------------------------------ |
-| `aggregates` | [undefined](#undefined) / null | false    | Does the connector support aggregate queries           |
-| `variables`  | [undefined](#undefined) / null | false    | Does the connector support queries which use variables |
-| `explain`    | [undefined](#undefined) / null | false    | Does the connector support explaining queries          |
-
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
 sub-capabilities.
@@ -174,7 +158,15 @@ sub-capabilities.
 | Key | Value | Required | Description |
 | --- | ----- | -------- | ----------- |
 
-#### undefined
+#### Query Capabilities {#dataconnectorlink-query-capabilities}
+
+| Key          | Value                                            | Required | Description                                            |
+| ------------ | ------------------------------------------------ | -------- | ------------------------------------------------------ |
+| `aggregates` | [undefined](#dataconnectorlink-undefined) / null | false    | Does the connector support aggregate queries           |
+| `variables`  | [undefined](#dataconnectorlink-undefined) / null | false    | Does the connector support queries which use variables |
+| `explain`    | [undefined](#dataconnectorlink-undefined) / null | false    | Does the connector support explaining queries          |
+
+#### undefined {#dataconnectorlink-undefined}
 
 A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
 sub-capabilities.
@@ -182,7 +174,7 @@ sub-capabilities.
 | Key | Value | Required | Description |
 | --- | ----- | -------- | ----------- |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
 sub-capabilities.
@@ -190,77 +182,85 @@ sub-capabilities.
 | Key | Value | Required | Description |
 | --- | ----- | -------- | ----------- |
 
-#### Schema Response
+#### undefined {#dataconnectorlink-undefined}
 
-| Key            | Value                                 | Required | Description                                                                                                                                         |
-| -------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scalar_types` | [undefined](#undefined)               | true     | A list of scalar types which will be used as the types of collection columns                                                                        |
-| `object_types` | [undefined](#undefined)               | true     | A list of object types which can be used as the types of arguments, or return types of procedures. Names should not overlap with scalar type names. |
-| `collections`  | [[Collection Info](#collection-info)] | true     | Collections which are available for queries                                                                                                         |
-| `functions`    | [[Function Info](#function-info)]     | true     | Functions (i.e. collections which return a single column and row)                                                                                   |
-| `procedures`   | [[Procedure Info](#procedure-info)]   | true     | Procedures which are available for execution as part of mutations                                                                                   |
+A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future
+sub-capabilities.
 
-#### Procedure Info
+| Key | Value | Required | Description |
+| --- | ----- | -------- | ----------- |
 
-| Key           | Value                   | Required | Description                                 |
-| ------------- | ----------------------- | -------- | ------------------------------------------- |
-| `name`        | string                  | true     | The name of the procedure                   |
-| `description` | string                  | false    | Column description                          |
-| `arguments`   | [undefined](#undefined) | true     | Any arguments that this collection requires |
-| `result_type` | [Type](#type)           | true     | The name of the result type                 |
+#### Schema Response {#dataconnectorlink-schema-response}
 
-#### undefined
+| Key            | Value                                                   | Required | Description                                                                                                                                         |
+| -------------- | ------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scalar_types` | [undefined](#dataconnectorlink-undefined)               | true     | A list of scalar types which will be used as the types of collection columns                                                                        |
+| `object_types` | [undefined](#dataconnectorlink-undefined)               | true     | A list of object types which can be used as the types of arguments, or return types of procedures. Names should not overlap with scalar type names. |
+| `collections`  | [[Collection Info](#dataconnectorlink-collection-info)] | true     | Collections which are available for queries                                                                                                         |
+| `functions`    | [[Function Info](#dataconnectorlink-function-info)]     | true     | Functions (i.e. collections which return a single column and row)                                                                                   |
+| `procedures`   | [[Procedure Info](#dataconnectorlink-procedure-info)]   | true     | Procedures which are available for execution as part of mutations                                                                                   |
+
+#### Procedure Info {#dataconnectorlink-procedure-info}
+
+| Key           | Value                                     | Required | Description                                 |
+| ------------- | ----------------------------------------- | -------- | ------------------------------------------- |
+| `name`        | string                                    | true     | The name of the procedure                   |
+| `description` | string                                    | false    | Column description                          |
+| `arguments`   | [undefined](#dataconnectorlink-undefined) | true     | Any arguments that this collection requires |
+| `result_type` | [Type](#dataconnectorlink-type)           | true     | The name of the result type                 |
+
+#### undefined {#dataconnectorlink-undefined}
 
 Any arguments that this collection requires
-
-| Key           | Value                           | Required | Description |
-| ------------- | ------------------------------- | -------- | ----------- |
-| `<customKey>` | [Argument Info](#argument-info) | false    |             |
-
-#### Function Info
-
-| Key           | Value                   | Required | Description                                 |
-| ------------- | ----------------------- | -------- | ------------------------------------------- |
-| `name`        | string                  | true     | The name of the function                    |
-| `description` | string                  | false    | Description of the function                 |
-| `arguments`   | [undefined](#undefined) | true     | Any arguments that this collection requires |
-| `result_type` | [Type](#type)           | true     | The name of the function's result type      |
-
-#### undefined
-
-Any arguments that this collection requires
-
-| Key           | Value                           | Required | Description |
-| ------------- | ------------------------------- | -------- | ----------- |
-| `<customKey>` | [Argument Info](#argument-info) | false    |             |
-
-#### Collection Info
-
-| Key                      | Value                   | Required | Description                                                                                                                                                        |
-| ------------------------ | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `name`                   | string                  | true     | The name of the collection Note: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database. |
-| `description`            | string                  | false    | Description of the collection                                                                                                                                      |
-| `arguments`              | [undefined](#undefined) | true     | Any arguments that this collection requires                                                                                                                        |
-| `type`                   | string                  | true     | The name of the collection's object type                                                                                                                           |
-| `uniqueness_constraints` | [undefined](#undefined) | true     | Any uniqueness constraints enforced on this collection                                                                                                             |
-| `foreign_keys`           | [undefined](#undefined) | true     | Any foreign key constraints enforced on this collection                                                                                                            |
-
-#### undefined
-
-Any foreign key constraints enforced on this collection
 
 | Key           | Value                                             | Required | Description |
 | ------------- | ------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [Foreign Key Constraint](#foreign-key constraint) | false    |             |
+| `<customKey>` | [Argument Info](#dataconnectorlink-argument-info) | false    |             |
 
-#### Foreign Key Constraint
+#### Function Info {#dataconnectorlink-function-info}
 
-| Key                  | Value                   | Required | Description                                                   |
-| -------------------- | ----------------------- | -------- | ------------------------------------------------------------- |
-| `column_mapping`     | [undefined](#undefined) | true     | The columns on which you want want to define the foreign key. |
-| `foreign_collection` | string                  | true     | The name of a collection                                      |
+| Key           | Value                                     | Required | Description                                 |
+| ------------- | ----------------------------------------- | -------- | ------------------------------------------- |
+| `name`        | string                                    | true     | The name of the function                    |
+| `description` | string                                    | false    | Description of the function                 |
+| `arguments`   | [undefined](#dataconnectorlink-undefined) | true     | Any arguments that this collection requires |
+| `result_type` | [Type](#dataconnectorlink-type)           | true     | The name of the function's result type      |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
+
+Any arguments that this collection requires
+
+| Key           | Value                                             | Required | Description |
+| ------------- | ------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Argument Info](#dataconnectorlink-argument-info) | false    |             |
+
+#### Collection Info {#dataconnectorlink-collection-info}
+
+| Key                      | Value                                     | Required | Description                                                                                                                                                        |
+| ------------------------ | ----------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`                   | string                                    | true     | The name of the collection Note: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database. |
+| `description`            | string                                    | false    | Description of the collection                                                                                                                                      |
+| `arguments`              | [undefined](#dataconnectorlink-undefined) | true     | Any arguments that this collection requires                                                                                                                        |
+| `type`                   | string                                    | true     | The name of the collection's object type                                                                                                                           |
+| `uniqueness_constraints` | [undefined](#dataconnectorlink-undefined) | true     | Any uniqueness constraints enforced on this collection                                                                                                             |
+| `foreign_keys`           | [undefined](#dataconnectorlink-undefined) | true     | Any foreign key constraints enforced on this collection                                                                                                            |
+
+#### undefined {#dataconnectorlink-undefined}
+
+Any foreign key constraints enforced on this collection
+
+| Key           | Value                                                               | Required | Description |
+| ------------- | ------------------------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Foreign Key Constraint](#dataconnectorlink-foreign-key constraint) | false    |             |
+
+#### Foreign Key Constraint {#dataconnectorlink-foreign-key constraint}
+
+| Key                  | Value                                     | Required | Description                                                   |
+| -------------------- | ----------------------------------------- | -------- | ------------------------------------------------------------- |
+| `column_mapping`     | [undefined](#dataconnectorlink-undefined) | true     | The columns on which you want want to define the foreign key. |
+| `foreign_collection` | string                                    | true     | The name of a collection                                      |
+
+#### undefined {#dataconnectorlink-undefined}
 
 The columns on which you want want to define the foreign key.
 
@@ -268,158 +268,158 @@ The columns on which you want want to define the foreign key.
 | ------------- | ------ | -------- | ----------- |
 | `<customKey>` | string | false    |             |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 Any uniqueness constraints enforced on this collection
 
-| Key           | Value                                           | Required | Description |
-| ------------- | ----------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [Uniqueness Constraint](#uniqueness-constraint) | false    |             |
+| Key           | Value                                                             | Required | Description |
+| ------------- | ----------------------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Uniqueness Constraint](#dataconnectorlink-uniqueness-constraint) | false    |             |
 
-#### Uniqueness Constraint
+#### Uniqueness Constraint {#dataconnectorlink-uniqueness-constraint}
 
 | Key              | Value    | Required | Description                                                   |
 | ---------------- | -------- | -------- | ------------------------------------------------------------- |
 | `unique_columns` | [string] | true     | A list of columns which this constraint requires to be unique |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 Any arguments that this collection requires
 
-| Key           | Value                           | Required | Description |
-| ------------- | ------------------------------- | -------- | ----------- |
-| `<customKey>` | [Argument Info](#argument-info) | false    |             |
+| Key           | Value                                             | Required | Description |
+| ------------- | ------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Argument Info](#dataconnectorlink-argument-info) | false    |             |
 
-#### Argument Info
+#### Argument Info {#dataconnectorlink-argument-info}
 
-| Key           | Value         | Required | Description                           |
-| ------------- | ------------- | -------- | ------------------------------------- |
-| `description` | string        | false    | Argument description                  |
-| `type`        | [Type](#type) | true     | The name of the type of this argument |
+| Key           | Value                           | Required | Description                           |
+| ------------- | ------------------------------- | -------- | ------------------------------------- |
+| `description` | string                          | false    | Argument description                  |
+| `type`        | [Type](#dataconnectorlink-type) | true     | The name of the type of this argument |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A list of object types which can be used as the types of arguments, or return types of procedures. Names should not
 overlap with scalar type names.
 
-| Key           | Value                       | Required | Description |
-| ------------- | --------------------------- | -------- | ----------- |
-| `<customKey>` | [Object Type](#object-type) | false    |             |
+| Key           | Value                                         | Required | Description |
+| ------------- | --------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Object Type](#dataconnectorlink-object-type) | false    |             |
 
-#### Object Type
+#### Object Type {#dataconnectorlink-object-type}
 
 The definition of an object type
 
-| Key           | Value                   | Required | Description                        |
-| ------------- | ----------------------- | -------- | ---------------------------------- |
-| `description` | string                  | false    | Description of this type           |
-| `fields`      | [undefined](#undefined) | true     | Fields defined on this object type |
+| Key           | Value                                     | Required | Description                        |
+| ------------- | ----------------------------------------- | -------- | ---------------------------------- |
+| `description` | string                                    | false    | Description of this type           |
+| `fields`      | [undefined](#dataconnectorlink-undefined) | true     | Fields defined on this object type |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 Fields defined on this object type
 
-| Key           | Value                         | Required | Description |
-| ------------- | ----------------------------- | -------- | ----------- |
-| `<customKey>` | [Object Field](#object-field) | false    |             |
+| Key           | Value                                           | Required | Description |
+| ------------- | ----------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Object Field](#dataconnectorlink-object-field) | false    |             |
 
-#### Object Field
+#### Object Field {#dataconnectorlink-object-field}
 
 The definition of an object field
 
-| Key           | Value         | Required | Description               |
-| ------------- | ------------- | -------- | ------------------------- |
-| `description` | string        | false    | Description of this field |
-| `type`        | [Type](#type) | true     | The type of this field    |
+| Key           | Value                           | Required | Description               |
+| ------------- | ------------------------------- | -------- | ------------------------- |
+| `description` | string                          | false    | Description of this field |
+| `type`        | [Type](#dataconnectorlink-type) | true     | The type of this field    |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A list of scalar types which will be used as the types of collection columns
 
-| Key           | Value                       | Required | Description |
-| ------------- | --------------------------- | -------- | ----------- |
-| `<customKey>` | [Scalar Type](#scalar-type) | false    |             |
+| Key           | Value                                         | Required | Description |
+| ------------- | --------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Scalar Type](#dataconnectorlink-scalar-type) | false    |             |
 
-#### Scalar Type
+#### Scalar Type {#dataconnectorlink-scalar-type}
 
 The definition of a scalar type, i.e. types that can be used as the types of columns.
 
-| Key                    | Value                   | Required | Description                                                                                                                                      |
-| ---------------------- | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `aggregate_functions`  | [undefined](#undefined) | true     | A map from aggregate function names to their definitions. Result type names must be defined scalar types declared in ScalarTypesCapabilities.    |
-| `comparison_operators` | [undefined](#undefined) | true     | A map from comparison operator names to their definitions. Argument type names must be defined scalar types declared in ScalarTypesCapabilities. |
+| Key                    | Value                                     | Required | Description                                                                                                                                      |
+| ---------------------- | ----------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `aggregate_functions`  | [undefined](#dataconnectorlink-undefined) | true     | A map from aggregate function names to their definitions. Result type names must be defined scalar types declared in ScalarTypesCapabilities.    |
+| `comparison_operators` | [undefined](#dataconnectorlink-undefined) | true     | A map from comparison operator names to their definitions. Argument type names must be defined scalar types declared in ScalarTypesCapabilities. |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A map from comparison operator names to their definitions. Argument type names must be defined scalar types declared in
 ScalarTypesCapabilities.
 
-| Key           | Value                                                             | Required | Description |
-| ------------- | ----------------------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [Comparison Operator Definition](#comparison-operator definition) | false    |             |
+| Key           | Value                                                                               | Required | Description |
+| ------------- | ----------------------------------------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Comparison Operator Definition](#dataconnectorlink-comparison-operator definition) | false    |             |
 
-#### Comparison Operator Definition
+#### Comparison Operator Definition {#dataconnectorlink-comparison-operator definition}
 
 The definition of a comparison operator on a scalar type
 
 **One of the following values:**
 
-| Value                   | Description |
-| ----------------------- | ----------- |
-| [undefined](#undefined) |             |
-| [undefined](#undefined) |             |
-| [undefined](#undefined) |             |
+| Value                                     | Description |
+| ----------------------------------------- | ----------- |
+| [undefined](#dataconnectorlink-undefined) |             |
+| [undefined](#dataconnectorlink-undefined) |             |
+| [undefined](#dataconnectorlink-undefined) |             |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
-| Key             | Value         | Required | Description                               |
-| --------------- | ------------- | -------- | ----------------------------------------- |
-| `type`          | `custom`      | true     |                                           |
-| `argument_type` | [Type](#type) | true     | The type of the argument to this operator |
+| Key             | Value                           | Required | Description                               |
+| --------------- | ------------------------------- | -------- | ----------------------------------------- |
+| `type`          | `custom`                        | true     |                                           |
+| `argument_type` | [Type](#dataconnectorlink-type) | true     | The type of the argument to this operator |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 | Key    | Value | Required | Description |
 | ------ | ----- | -------- | ----------- |
 | `type` | `in`  | true     |             |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 | Key    | Value   | Required | Description |
 | ------ | ------- | -------- | ----------- |
 | `type` | `equal` | true     |             |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A map from aggregate function names to their definitions. Result type names must be defined scalar types declared in
 ScalarTypesCapabilities.
 
-| Key           | Value                                                           | Required | Description |
-| ------------- | --------------------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [Aggregate Function Definition](#aggregate-function definition) | false    |             |
+| Key           | Value                                                                             | Required | Description |
+| ------------- | --------------------------------------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [Aggregate Function Definition](#dataconnectorlink-aggregate-function definition) | false    |             |
 
-#### Aggregate Function Definition
+#### Aggregate Function Definition {#dataconnectorlink-aggregate-function definition}
 
 The definition of an aggregation function on a scalar type
 
-| Key           | Value         | Required | Description                                              |
-| ------------- | ------------- | -------- | -------------------------------------------------------- |
-| `result_type` | [Type](#type) | true     | The scalar or object type of the result of this function |
+| Key           | Value                           | Required | Description                                              |
+| ------------- | ------------------------------- | -------- | -------------------------------------------------------- |
+| `result_type` | [Type](#dataconnectorlink-type) | true     | The scalar or object type of the result of this function |
 
-#### Type
+#### Type {#dataconnectorlink-type}
 
 Types track the valid representations of values as JSON
 
 **One of the following values:**
 
-| Value                   | Description                              |
-| ----------------------- | ---------------------------------------- |
-| [undefined](#undefined) | A named type                             |
-| [undefined](#undefined) | A nullable type                          |
-| [undefined](#undefined) | An array type                            |
-| [undefined](#undefined) | A predicate type for a given object type |
+| Value                                     | Description                              |
+| ----------------------------------------- | ---------------------------------------- |
+| [undefined](#dataconnectorlink-undefined) | A named type                             |
+| [undefined](#dataconnectorlink-undefined) | A nullable type                          |
+| [undefined](#dataconnectorlink-undefined) | An array type                            |
+| [undefined](#dataconnectorlink-undefined) | A predicate type for a given object type |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A predicate type for a given object type
 
@@ -428,25 +428,25 @@ A predicate type for a given object type
 | `type`             | `predicate` | true     |                      |
 | `object_type_name` | string      | true     | The object type name |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 An array type
 
-| Key            | Value         | Required | Description                           |
-| -------------- | ------------- | -------- | ------------------------------------- |
-| `type`         | `array`       | true     |                                       |
-| `element_type` | [Type](#type) | true     | The type of the elements of the array |
+| Key            | Value                           | Required | Description                           |
+| -------------- | ------------------------------- | -------- | ------------------------------------- |
+| `type`         | `array`                         | true     |                                       |
+| `element_type` | [Type](#dataconnectorlink-type) | true     | The type of the elements of the array |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A nullable type
 
-| Key               | Value         | Required | Description                                       |
-| ----------------- | ------------- | -------- | ------------------------------------------------- |
-| `type`            | `nullable`    | true     |                                                   |
-| `underlying_type` | [Type](#type) | true     | The type of the non-null inhabitants of this type |
+| Key               | Value                           | Required | Description                                       |
+| ----------------- | ------------------------------- | -------- | ------------------------------------------------- |
+| `type`            | `nullable`                      | true     |                                                   |
+| `underlying_type` | [Type](#dataconnectorlink-type) | true     | The type of the non-null inhabitants of this type |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 A named type
 
@@ -455,33 +455,33 @@ A named type
 | `type` | `named` | true     |                                                         |
 | `name` | string  | true     | The name can refer to a primitive type or a scalar type |
 
-#### undefined
+#### undefined {#dataconnectorlink-undefined}
 
 Key value map of HTTP headers to be sent with each request to the data connector.
 
-| Key           | Value                                 | Required | Description |
-| ------------- | ------------------------------------- | -------- | ----------- |
-| `<customKey>` | [EnvironmentValue](#environmentvalue) | false    |             |
+| Key           | Value                                                   | Required | Description |
+| ------------- | ------------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [EnvironmentValue](#dataconnectorlink-environmentvalue) | false    |             |
 
-#### DataConnectorUrlV1
+#### DataConnectorUrlV1 {#dataconnectorlink-dataconnectorurlv1}
 
 The url(s) to access the data connector.
 
 **Must have exactly one of the following fields:**
 
-| Key             | Value                                 | Required | Description |
-| --------------- | ------------------------------------- | -------- | ----------- |
-| `singleUrl`     | [EnvironmentValue](#environmentvalue) | false    |             |
-| `readWriteUrls` | [ReadWriteUrls](#readwriteurls)       | false    |             |
+| Key             | Value                                                   | Required | Description |
+| --------------- | ------------------------------------------------------- | -------- | ----------- |
+| `singleUrl`     | [EnvironmentValue](#dataconnectorlink-environmentvalue) | false    |             |
+| `readWriteUrls` | [ReadWriteUrls](#dataconnectorlink-readwriteurls)       | false    |             |
 
-#### ReadWriteUrls
+#### ReadWriteUrls {#dataconnectorlink-readwriteurls}
 
-| Key     | Value                                 | Required | Description |
-| ------- | ------------------------------------- | -------- | ----------- |
-| `read`  | [EnvironmentValue](#environmentvalue) | true     |             |
-| `write` | [EnvironmentValue](#environmentvalue) | true     |             |
+| Key     | Value                                                   | Required | Description |
+| ------- | ------------------------------------------------------- | -------- | ----------- |
+| `read`  | [EnvironmentValue](#dataconnectorlink-environmentvalue) | true     |             |
+| `write` | [EnvironmentValue](#dataconnectorlink-environmentvalue) | true     |             |
 
-#### EnvironmentValue
+#### EnvironmentValue {#dataconnectorlink-environmentvalue}
 
 Either a literal string or a reference to a Hasura secret
 
@@ -492,32 +492,32 @@ Either a literal string or a reference to a Hasura secret
 | `value`        | string | false    |             |
 | `valueFromEnv` | string | false    |             |
 
-#### DataConnectorName
+#### DataConnectorName {#dataconnectorlink-dataconnectorname}
 
 The name of a data connector.
 
 **Value:** string
 
-### DataConnectorScalarRepresentation
+### DataConnectorScalarRepresentation {#dataconnectorscalarrepresentation-dataconnectorscalarrepresentation}
 
 The representation of a data connector scalar in terms of Open DD types
 
-| Key          | Value                                                                       | Required | Description |
-| ------------ | --------------------------------------------------------------------------- | -------- | ----------- |
-| `kind`       | `DataConnectorScalarRepresentation`                                         | true     |             |
-| `version`    | `v1`                                                                        | true     |             |
-| `definition` | [DataConnectorScalarRepresentationV1](#dataconnectorscalarrepresentationv1) | true     |             |
+| Key          | Value                                                                                                         | Required | Description |
+| ------------ | ------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `DataConnectorScalarRepresentation`                                                                           | true     |             |
+| `version`    | `v1`                                                                                                          | true     |             |
+| `definition` | [DataConnectorScalarRepresentationV1](#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1) | true     |             |
 
-#### DataConnectorScalarRepresentationV1
+#### DataConnectorScalarRepresentationV1 {#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1}
 
 The representation of a data connector scalar in terms of Open DD types
 
-| Key                       | Value                                                                                      | Required | Description                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------- |
-| `dataConnectorName`       | [DataConnectorName](#dataconnectorname)                                                    | true     | The name of the data connector that this scalar type comes from.                            |
-| `dataConnectorScalarType` | string                                                                                     | true     | The name of the scalar type coming from the data connector.                                 |
-| `representation`          | [undefined](#undefined)                                                                    | true     | The name of the Open DD type that this data connector scalar type should be represented as. |
-| `graphql`                 | [DataConnectorScalarGraphQLConfiguration](#dataconnectorscalargraphqlconfiguration) / null | false    | Configuration for how this scalar's operators should appear in the GraphQL schema.          |
+| Key                       | Value                                                                                                                        | Required | Description                                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `dataConnectorName`       | [DataConnectorName](#dataconnectorscalarrepresentation-dataconnectorname)                                                    | true     | The name of the data connector that this scalar type comes from.                            |
+| `dataConnectorScalarType` | string                                                                                                                       | true     | The name of the scalar type coming from the data connector.                                 |
+| `representation`          | [undefined](#dataconnectorscalarrepresentation-undefined)                                                                    | true     | The name of the Open DD type that this data connector scalar type should be represented as. |
+| `graphql`                 | [DataConnectorScalarGraphQLConfiguration](#dataconnectorscalarrepresentation-dataconnectorscalargraphqlconfiguration) / null | false    | Configuration for how this scalar's operators should appear in the GraphQL schema.          |
 
 **Example:**
 
@@ -529,42 +529,42 @@ graphql:
   comparisonExpressionTypeName: String_Comparison_Exp
 ```
 
-#### DataConnectorScalarGraphQLConfiguration
+#### DataConnectorScalarGraphQLConfiguration {#dataconnectorscalarrepresentation-dataconnectorscalargraphqlconfiguration}
 
 GraphQL configuration of a data connector scalar
 
-| Key                            | Value                                      | Required | Description |
-| ------------------------------ | ------------------------------------------ | -------- | ----------- |
-| `comparisonExpressionTypeName` | [GraphQlTypeName](#graphqltypename) / null | false    |             |
+| Key                            | Value                                                                        | Required | Description |
+| ------------------------------ | ---------------------------------------------------------------------------- | -------- | ----------- |
+| `comparisonExpressionTypeName` | [GraphQlTypeName](#dataconnectorscalarrepresentation-graphqltypename) / null | false    |             |
 
-#### GraphQlTypeName
+#### GraphQlTypeName {#dataconnectorscalarrepresentation-graphqltypename}
 
 **Value:** string
 
-#### undefined
+#### undefined {#dataconnectorscalarrepresentation-undefined}
 
 The name of the Open DD type that this data connector scalar type should be represented as.
 
 **One of the following values:**
 
-| Value                             | Description |
-| --------------------------------- | ----------- |
-| [InbuiltType](#inbuilttype)       |             |
-| [CustomTypeName](#customtypename) |             |
+| Value                                                               | Description |
+| ------------------------------------------------------------------- | ----------- |
+| [InbuiltType](#dataconnectorscalarrepresentation-inbuilttype)       |             |
+| [CustomTypeName](#dataconnectorscalarrepresentation-customtypename) |             |
 
-#### CustomTypeName
+#### CustomTypeName {#dataconnectorscalarrepresentation-customtypename}
 
 The name of a user-defined type.
 
 **Value:** string
 
-#### InbuiltType
+#### InbuiltType {#dataconnectorscalarrepresentation-inbuilttype}
 
 An inbuilt primitive OpenDD type.
 
 **Value:** `ID` / `Int` / `Float` / `Boolean` / `String`
 
-#### DataConnectorName
+#### DataConnectorName {#dataconnectorscalarrepresentation-dataconnectorname}
 
 The name of a data connector.
 

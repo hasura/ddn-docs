@@ -62,12 +62,13 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
 export function generateSchemaObjectMarkdown(
   metadataObject: JSONSchema7Definition,
   markdownValue: string,
+  rootTitle: string,
   isSource: boolean = false
 ): string {
   let markdown = '';
 
   const title = getTitle(metadataObject);
-  markdown += `\n${isSource ? '###' : '####'} ${title}\n\n`;
+  markdown += `\n${isSource ? '###' : '####'} ${title} {${getRefAnchor(metadataObject, rootTitle)}}\n\n`;
 
   if (metadataObject.description) markdown += `${metadataObject.description}\n\n`;
 
@@ -83,10 +84,11 @@ export function generateSchemaObjectMarkdown(
 export function generateScalarMarkdown(
   metadataObject: JSONSchema7Definition,
   scalarValue: string,
+  rootTitle: string,
   isSource: boolean = false
 ): string {
   const markdownValue = `\n**Value:** ${scalarValue}`;
-  return generateSchemaObjectMarkdown(metadataObject, markdownValue, isSource);
+  return generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle, isSource);
 }
 
 /**
@@ -162,8 +164,12 @@ export function formatLink(linkText: string): string {
   }
 }
 
-export function getRefLink(metadataObject: JSONSchema7Definition): string {
-  return `[${getTitle(metadataObject)}](#${formatLink(getTitle(metadataObject))})`;
+export function getRefAnchor(metadataObject: JSONSchema7Definition, rootTitle: string): string {
+  return `#${formatLink(`${rootTitle}-${getTitle(metadataObject)}`)}`;
+}
+
+export function getRefLink(metadataObject: JSONSchema7Definition, rootTitle: string): string {
+  return `[${getTitle(metadataObject)}](${getRefAnchor(metadataObject, rootTitle)})`;
 }
 
 export function getParsedRef(ref: string): string {

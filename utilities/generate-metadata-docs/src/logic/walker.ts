@@ -23,6 +23,9 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
     ...topLevelMetadataRefs,
   };
 
+  // needed to generate uniq anchor tags
+  const rootTitle = getTitle(metadataObject);
+
   // generate Schema markdownArray and return reference of Schema
   function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
     metadataObject = simplifyMetadataDefinition(metadataObject);
@@ -45,7 +48,7 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
 
     if (refTitle && !isSource) {
       //hack: add to visited refs early to avoid infinite loops. the actual value is set at the end of the fn.
-      visitedRefs[refTitle] = getRefLink(metadataObject);
+      visitedRefs[refTitle] = getRefLink(metadataObject, rootTitle);
     }
 
     if (isScalarType(metadataObject)) {
@@ -87,10 +90,10 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
 
       const title = getTitle(metadataObject);
       if (title) {
-        const markdown = generateScalarMarkdown(metadataObject, value);
+        const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
         markdownArray.push(markdown);
 
-        return getRefLink(metadataObject);
+        return getRefLink(metadataObject, rootTitle);
       } else {
         return value;
       }
@@ -105,10 +108,10 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
 
       const title = getTitle(metadataObject);
       if (title) {
-        const markdown = generateScalarMarkdown(metadataObject, value);
+        const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
         markdownArray.push(markdown);
 
-        return getRefLink(metadataObject);
+        return getRefLink(metadataObject, rootTitle);
       } else {
         return value;
       }
@@ -135,11 +138,11 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
         markdownValue += `| \`<customKey>\` | ${propertyType} | false | ${getDescription(propertySchema)} |\n`;
       }
 
-      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, isSource);
+      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle, isSource);
 
       markdownArray.push(markdown);
 
-      return getRefLink(metadataObject);
+      return getRefLink(metadataObject, rootTitle);
     }
     return ``;
   }
@@ -153,11 +156,11 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
       markdownValue += `| ${valueType} | ${getDescription(option)} |\n`;
     });
 
-    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle);
 
     markdownArray.push(markdown);
 
-    return getRefLink(metadataObject);
+    return getRefLink(metadataObject, rootTitle);
   }
 
   function handleExternallyTaggedNullable(metadataObject: JSONSchema7Definition): string {
@@ -169,10 +172,10 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
 
     const title = getTitle(metadataObject);
     if (title) {
-      const markdown = generateScalarMarkdown(metadataObject, value);
+      const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
       markdownArray.push(markdown);
 
-      return getRefLink(metadataObject);
+      return getRefLink(metadataObject, rootTitle);
     } else {
       return value;
     }
@@ -189,11 +192,11 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
       markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
     });
 
-    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue);
+    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle);
 
     markdownArray.push(markdown);
 
-    return getRefLink(metadataObject);
+    return getRefLink(metadataObject, rootTitle);
   }
 
   handleSchemaDefinition(metadataObject, true);
