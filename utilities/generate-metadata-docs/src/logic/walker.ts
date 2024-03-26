@@ -10,6 +10,8 @@ import {
   handleRef,
   isExternallyTaggedNullable,
   isExternallyTaggedOneOf,
+  isArrayType,
+  isObjectType,
   isScalarType,
   simplifyMetadataDefinition,
 } from './helpers';
@@ -46,15 +48,13 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
       visitedRefs[refTitle] = getRefLink(metadataObject);
     }
 
-    const type = getType(metadataObject);
-
     if (isScalarType(metadataObject)) {
       // Deal with const, enum, type (scalars)
       typeDefinition = handleScalars(metadataObject);
-    } else if (type === 'array') {
+    } else if (isArrayType(metadataObject)) {
       // Deal with items
       typeDefinition = handleArrayType(metadataObject);
-    } else if (type === 'object') {
+    } else if (isObjectType(metadataObject)) {
       // Deal with properties / additionalProperties
       typeDefinition = handleObject(metadataObject, isSource);
     } else if (metadataObject.anyOf && isExternallyTaggedNullable(metadataObject)) {

@@ -216,6 +216,18 @@ export function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition
   return simplifiedSchema;
 }
 
+export function isObjectType(metadataObject: JSONSchema7Definition): boolean {
+  const type = getType(metadataObject);
+
+  return type && type === 'object';
+}
+
+export function isArrayType(metadataObject: JSONSchema7Definition): boolean {
+  const type = getType(metadataObject);
+
+  return type && type === 'array';
+}
+
 export function isScalarType(metadataObject: JSONSchema7Definition): boolean {
   const type = getType(metadataObject);
 
