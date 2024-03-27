@@ -1,0 +1,84 @@
+---
+sidebar_position: 4
+sidebar_label: Vector Search
+description:
+  "Vector search allows you to run vector similarity queries on your PostgreSQL database. This page explains how to
+  configure vector search in Hasura using native queries."
+keywords:
+  - native queries
+  - vector search
+  - vector
+  - similarity
+  - neighbor
+  - nearest neighbor
+  - pgvector
+seoFrontMatterUpdated: false
+---
+
+# Vector Search
+
+Vector search allows you to run vector similarity queries on your PostgreSQL database. This page explains how to
+configure vector search in Hasura using native queries.
+
+:::info Prerequisites
+
+In order to run a vector search query, you need to have a PostgreSQL database with the
+[`pgvector` extension](https://github.com/pgvector/pgvector) installed. You'll also need data in the database which has
+been vectorized using a model such as `word2vec`.
+
+:::
+
+## Example
+
+Here's an example which finds the nearest neighbor — quite literally — of two users via their addresses in a table
+called `"User"`:
+
+### Configuration
+
+```json
+"nativeQueries": {
+  "nearest_neighbor": {
+    "sql": {
+      "inline": "SELECT * FROM public.\"User\" WHERE \"UserId\" = (SELECT \"UserId\" FROM public.\"User\" ORDER BY \"Address\" <-> {{address}} LIMIT 1)"
+    },
+    "columns": {
+      "UserId": {
+        "name": "UserId",
+        "type": {
+          "scalarType": "int4"
+        }
+      },
+      "Address": {
+        "name": "Address",
+        "type": {
+          "scalarType": "varchar"
+        }
+      }
+    },
+    "arguments": {
+      "address": {
+        "name": "address",
+        "type": {
+          "scalarType": "varchar"
+        }
+      }
+    }
+  }
+}
+```
+
+This will create a query called `"nearest_neighbor"` which takes a single argument called `"address"` of type `varchar`.
+The query will return a single object with the fields `"UserId"` and `"Address"`.
+
+### Usage
+
+You can now run the query in your GraphQL API like so:
+
+```graphql
+query {
+  nearest_neighbor(address: "123 Main St") {
+    UserId
+    Address
+  }
+}
+```
