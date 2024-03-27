@@ -17,58 +17,84 @@ seoFrontMatterUpdated: false
 
 # Vector Search
 
-Vector search allows you to run vector similarity queries on your PostgreSQL database. This page explains how to
-configure vector search in Hasura using native queries.
+Vector search allows you to run queries on vector types in your PostgreSQL database. This page explains how to configure
+vector search in Hasura using native queries.
 
 :::info Prerequisites
 
 In order to run a vector search query, you need to have a PostgreSQL database with the
 [`pgvector` extension](https://github.com/pgvector/pgvector) installed. You'll also need data in the database which has
-been vectorized using a model such as `word2vec`.
+been vectorized using a [model such as `word2vec`](https://www.tensorflow.org/text/tutorials/word2vec).
 
 :::
 
 ## Example
 
-Here's an example which finds the nearest neighbor — quite literally — of two users via their addresses in a table
-called `"User"`:
+Imagine a `products` table with the following columns:
+
+| Column Name | Type      |
+| ----------- | --------- |
+| id          | uuid      |
+| name        | varchar   |
+| description | varchar   |
+| price       | int       |
+| vector      | embedding |
+
+We want to run a query that finds the ten most similar products to a given query vector. We can do this using the `<->`
+operator provided by the `pgvector` extension.
 
 ### Configuration
 
 ```json
 "nativeQueries": {
-  "nearest_neighbor": {
+  "products_vector_search": {
     "sql": {
-      "inline": "SELECT * FROM public.\"User\" WHERE \"UserId\" = (SELECT \"UserId\" FROM public.\"User\" ORDER BY \"Address\" <-> {{address}} LIMIT 1)"
+      "inline": "SELECT id, name, description, price, vector, vector <-> {{query_vector}} AS similarity FROM products"
     },
     "columns": {
-      "UserId": {
-        "name": "UserId",
+      "id": {
+        "name": "id",
         "type": {
-          "scalarType": "int4"
+          "scalarType": "uuid"
         }
       },
-      "Address": {
-        "name": "Address",
+      "name": {
+        "name": "name",
         "type": {
           "scalarType": "varchar"
+        }
+      },
+      "description": {
+        "name": "description",
+        "type": {
+          "scalarType": "varchar"
+        }
+      },
+      "price": {
+        "name": "price",
+        "type": {
+          "scalarType": "int"
+        }
+      },
+      "similarity": {
+        "name": "similarity",
+        "type": {
+          "scalarType": "float8"
         }
       }
     },
     "arguments": {
-      "address": {
-        "name": "address",
-        "type": {
-          "scalarType": "varchar"
-        }
+      "query_vector": {
+        "type": "vector"
       }
     }
   }
 }
 ```
 
-This will create a query called `"nearest_neighbor"` which takes a single argument called `"address"` of type `varchar`.
-The query will return a single object with the fields `"UserId"` and `"Address"`.
+This will create a query named `products_vector_search` which takes a `query_vector` argument and returns the `id`,
+`name`, `description`, `price`, and `similarity` columns. The `similarity` column is calculated using the `<->` operator
+provided by the `pgvector` extension.
 
 ### Usage
 
@@ -76,9 +102,17 @@ You can now run the query in your GraphQL API like so:
 
 ```graphql
 query {
-  nearest_neighbor(address: "123 Main St") {
-    UserId
-    Address
+  products_vector_search(
+    args: { query_vector: [0.5, 0.4, -0.2, ...] }
+    where: { price: { _lt: 500 } },
+    order_by: { similarity: ASC },
+    limit: 10
+  ) {
+    id
+    name
+    description
+    price
+    similarity
   }
 }
 ```
