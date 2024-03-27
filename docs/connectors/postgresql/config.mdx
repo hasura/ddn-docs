@@ -498,7 +498,9 @@ Here's an example which filters a table called `"Artist"`:
 ```yaml
 "nativeQueries": {
   "artist_below_id": {
-    "sql": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}",
+    "sql": {
+      "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
+    },
     "columns": {
       "ArtistId": {
         "name": "ArtistId",
@@ -523,11 +525,30 @@ Here's an example which filters a table called `"Artist"`:
     }
   }
 }
-
 ```
 
 This will create a query called `"artist_below_id"` which takes a single argument called `"id"` of type `int4`. The
 query will return a list of objects with the fields `"ArtistId"` and `"Name"`.
+
+Note that the SQL can be defined `inline`, and can also reference a `file` that exists in the configuration directory
+using the following structure:
+
+```yaml
+"nativeQueries": {
+  "artist_below_id": {
+    "sql": {
+      "file": "artist_below_id.sql"
+    },
+...
+```
+
+And the SQL can be written in the `artist_below_id.sql` file without escaping:
+
+```sql
+SELECT *
+  FROM public."Artist"
+ WHERE "ArtistId" < {{id}}
+```
 
 #### Mutations
 
@@ -542,7 +563,9 @@ Here's an example which inserts into a table called `"Artist"`:
 "nativeQueries": {
   "insert_artist": {
     "isProcedure": true,
-    "sql": "INSERT INTO public.\"Artist\" VALUES ({{id}}, {{name}}) RETURNING *",
+    "sql": {
+      "inline": "INSERT INTO public.\"Artist\" VALUES ({{id}}, {{name}}) RETURNING *"
+    },
     "columns": {
       "ArtistId": {
         "name": "ArtistId",
@@ -800,5 +823,5 @@ table, allowing selection of fields from the row that was deleted.
 
 This version of mutations does not support filter-based permissions.
 
-[Configuration JSON Schema]: https://github.com/hasura/ndc-postgres/blob/main/crates/tests/databases-tests/src/postgres/snapshots/databases_tests__postgres__configuration_tests__get_configuration_schema.snap
+[Configuration JSON Schema]: https://github.com/hasura/ndc-postgres/blob/main/static/schema.json
 [NDC Postgres Issue Tracker]: http://github.com/hasura/ndc-postgres/issues
