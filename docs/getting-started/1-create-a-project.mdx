@@ -1,6 +1,6 @@
 ---
 title: Create a project
-sidebar_label: "I. Create a project"
+sidebar_label: "Create a project"
 sidebar_position: 2
 description: "Learn how to create your first project, a supergraph, and see your APIs come to life with Hasura."
 keywords:
@@ -30,11 +30,11 @@ Throughout this guide, you'll be introduced to new Hasura concepts, like builds,
 :::tip What's about to happen?
 
 We'll create a **project** on Hasura DDN, which is fully defined in metadata files using a simple directory structure.
-We'll use the CLI's `quickstart` command, which is a convenient way of setting up these files using best practices, to
+We'll use the CLI's `create` command, which is a convenient way of setting up these files using best practices, to
 scaffold out our project.
 
-During this process, we'll add a **data connector** to connect to a PostgreSQL data source. Data connectors can connect
-to any data source. Connectors are available from Hasura and the community on the
+During this process, we'll add a [**data connector**](/docs/connectors/overview.mdx) to connect to a PostgreSQL data
+source. Data connectors can connect to any data source. Connectors are available from Hasura and the community on the
 [Connector Hub](https://hasura.io/connectors), or you can [write your own](/connectors/build-your-own-connector.mdx).
 
 Once a project is defined, we can use the `dev` command to continually watch for changes and build the project to make
@@ -89,75 +89,89 @@ ddn --help
 
 ## Step 3: Create a new project
 
-We'll use the `quickstart` command to create a new project. This will quickly walk us through all the necessary steps to
-create our API:
+We'll use the `create project` command to create a new project:
 
 ```bash
-ddn quickstart
+ddn create project --dir ./my-first-supergraph
 ```
 
-### Step 3.1: Choose a host
-
-We'll be prompted to choose the data delivery network on which we want to host our project:
+The CLI will respond with information about your new project, including the console URL:
 
 ```bash
-? Choose the DDN to create your project on  [Use arrows to move, type to filter]
-# highlight-start
-> Hasura DDN
-# highlight-end
-  Custom DDN
++-------------+-----------------------------------------------------+
+| Name        | <NAME>                                              |
++-------------+-----------------------------------------------------+
+| ID          | <ID>                                                |
++-------------+-----------------------------------------------------+
+| Console URL | https://console.hasura.io/project/<NAME>            |
++-------------+-----------------------------------------------------+
 ```
 
-We'll choose `Hasura DDN` as we want Hasura to host this project for us.
+Additionally, it will log some information about the [project](/docs/ci-cd/projects.mdx) that was created locally.
 
-### Step 3.2: Choose a directory
+### Step 3.1: Add a connector manifest
 
-Next, we'll be prompted to choose the directory to house this project. The CLI will create the directory for us. Let's
-call it `my-first-supergraph`:
+A [**connector manifest**](/ci-cd/projects.mdx) is the file which contains the details of the connector's configuration.
+This tells Hasura DDN what capabilities of the connector has and how to build your connector for your data source.
+
+Let's move into the project directory:
 
 ```bash
-? Choose the DDN to create your project on Hasura DDN
-# highlight-start
-? Enter the path where you want to create the Hasura project directory (./) my-first-supergraph
-# highlight-end
+cd my-first-supergraph
 ```
 
-The CLI will then return information about our newly-created project and where the local files are stored:
+Then, create a connector manifest by passing a name — in this case `app_connector` — to the `add connector-manifest`
+command:
 
 ```bash
-INF Creating project: ddn create project --dir my-first-supergraph
-INF Project <PROJECT_NAME> is created at /<CURRENT_PATH>/my-first-supergraph
+ddn add connector-manifest app_connector
 ```
 
-### Step 3.3: Connect a data source
-
-The CLI will next ask us if we want to connect a data source. Type `y` and then choose `hasura/postgres` from the
-provided options:
+The CLI will ask us if we want to add a `cloud` or `endpoints` connector. For now, we'll choose `cloud`:
 
 ```bash
-? We have the following data connectors available. Choose one as per your data source:  [Use arrows to move, type to filter]
-# highlight-start
-> hasura/postgres:<VERSION>
-# highlight-end
-  hasura/sendgrid:<VERSION>
-  hasura/turso:<VERSION>
+? type (one of cloud | endpoints . This determines how the connector will be deployed. If unsure, choose 'cloud'):
+#highlight-start
+  ▸ cloud
+#highlight-end
+    endpoints
 ```
 
-The CLI will add the PostgreSQL connector configuration to our project; we'll use the default name of `app_connector`,
-so we can simply press `ENTER` to bring up the next prompt. Once the connector is added, the CLI will ask us for the
-connection URI. If you have your own, you can provide it. Otherwise, we'll use the demo database's URI:
+The CLI will then ask us which type of connector we want to add. We'll choose `postgres`:
 
-:::info Want to use one of our read-only sample databases?
+```bash
+✔ cloud
+Use the arrow keys to navigate: ↓ ↑ → ←
+? hub-connector (name and version of connector in Hasura connector hub):
+#highlight-start
+  ▸ hasura/postgres:<VERSION>
+#highlight-end
+```
+
+The CLI will respond with information about our successfully-added connector and alert us to our next steps:
+
+```bash
+INF connector "hasura/postgres:<VERSION>" with name "app_connector" added successfully to Subgraph "app"
+INF Please add your Postgres Connection URI as the value for APP_APP_CONNECTOR_CONNECTION_URI env var in base.env.yaml file
+```
+
+Next, we can open our project in VS Code and open the `base.env.yaml` file in the root of our project. We can add the
+`APP_APP_CONNECTOR_CONNECTION_URI` environment variable referenced by the output of the CLI in our `base.env.yaml` file:
+
+```yaml
+supergraph: {}
+subgraphs:
+  app:
+    APP_APP_CONNECTOR_CONNECTION_URI: postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
+```
+
+:::info We're using the docs sample app's connection string
 
 <details>
 
-<summary> See the connection strings:</summary>
-
-The docs-sample-app is a hypothetical e-commerce database. It's what we use in all of our samples and screenshots below.
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
-```
+<summary>
+  We also have another data set available in this dropdown or, if you wish, you can add your own connection string.
+</summary>
 
 A music-platform themed dataset.
 
@@ -165,31 +179,44 @@ A music-platform themed dataset.
 postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
 ```
 
-  </details>
+</details>
 
 :::
 
-The CLI will update the `base.env.yaml` file in the project's directory with our connection string and let us know if
-our connector has been set up successfully:
+### Step 3.2: Track tables as models
+
+With our data connector configured, we'll need it to introspect our datasource to learn about the tables, their columns,
+and those columns' types. The CLI can help us with this:
 
 ```bash
-INF Setting env vars
-INF env file base.env.yaml updated
-INF Data connector app_connector set up successfully
+ddn update connector-manifest app_connector
 ```
 
-At this point, the CLI will ask us if we want to connect another data source. For now, we don't, so type `n` and hit
-`ENTER`.
-
-Finally, the CLI will let us know we can run the following command to start watching for changes and building our API:
+The CLI will respond and let us know that the data connector was update successfully. Finally, with our data connector
+configured to our datasource, we can track all of our tables as models, and build and then deploy our connector to
+Hasura DDN:
 
 ```bash
-cd my-first-supergraph && ddn dev
+ddn update connector-link app_connector --add-all-resources
 ```
+
+:::info What are models?
+
+[**Models**](/supergraph-modeling/models.mdx), defined in metadata, tell our GraphQL API how to expose collections from
+our data sources.
+
+:::
 
 ## Step 4: Build your GraphQL API
 
-We'll see the CLI creates our first build, displays the URL for our project's Console, and watches for changes 🎉
+We can use `dev` mode to watch our project and create new builds as changes are made to our metadata:
+
+```bash
+ddn dev
+```
+
+We'll see the CLI creates our first build, displays the URL for our project's Console, and continues to watch for
+changes 🎉
 
 ```bash
 INF Preparing project...
@@ -232,23 +259,14 @@ INF Doing a supergraph build...
 +---------------+--------------------------------------------------------------------+
 ```
 
-Additionally, the CLI **automatically** tracked the tables and and any foreign-key relationships in our database!
-
-```bash
- GENERATE      Model CartItems
-    MODIFIED      (+9 more)
-         ADD    Model for collection carts, connector app_connector
-# More below...
-```
-
 :::info What's a build?
 
-A [build](/ci-cd/builds.mdx) in Hasura DDN is an immutable state of your GraphQL API that represents a milestone in your
-development cycle.
+A [**build**](/ci-cd/builds.mdx) in Hasura DDN is an immutable state of your GraphQL API that represents a milestone in
+your development cycle.
 
-A project can have multiple builds for each [environment](/ci-cd/environments.mdx), and only one can be applied to an
-environment's endpoint. All builds on a project have a unique URL on Hasura DDN to access their GraphQL API which can be
-shared with other users.
+A project can have multiple builds for each [**environment**](/ci-cd/environments.mdx), and only one can be applied to
+an environment's endpoint. All builds on a project have a unique URL on Hasura DDN to access their GraphQL API which can
+be shared with other users.
 
 Builds allow you and your team to quickly iterate and experiment with your project's metadata and allow for easier
 rollbacks on production and greater collaboration during development.
@@ -263,6 +281,91 @@ to create your own query or write it manually:
 <Thumbnail src="/img/get-started/0.0.1_console-execute-query-on-build.png" alt="Execute a query" width="1000px" />
 
 :::info Using our sample db? You can use this query!
+
+```graphql
+query UsersQuery {
+  app_orders {
+    id
+    status
+    delivery_date
+  }
+}
+```
+
+:::
+
+:::tip Now would be a good time to git init
+
+If you wish to use Git for version control and want to create a starting point to which you can rewind, run the
+following at this point in a new tab of your terminal:
+
+```bash
+git init .
+git add .
+git commit -m "init supergraph"
+```
+
+:::
+
+## Step 6: Track relationships
+
+Using our extension — fueled by [LSP](https://microsoft.github.io/language-server-protocol/), our underlying language
+server — let's track the different relationships in our source and have our API updated automatically.
+
+In our browser, let's select the auto-select latest build option. This will ensure we're always seeing the latest build
+generated by the `dev` command:
+
+<Thumbnail src="/img/get-started/autoselectconsole.gif" alt="Execute a query" width="1000px" />
+
+If we navigate to the `/app/app_connector/models/Orders.hml` file, we can track all the relationships present for a
+complex, nested query to work. As you can see below, when we start typing `role`, LSP kicks in and assists us with
+creating the following relationships which connects our models. We're triggering the auto-complete options using `TAB`
+and `CTRL+SPACE`:
+
+<!-- TODO: Add gif -->
+
+The following are the required Relationship objects which you can copy and paste into this file:
+
+```yaml
+---
+kind: Relationship
+version: v1
+definition:
+  name: User
+  source: Orders
+  target:
+    model:
+      name: Users
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: user_id
+      target:
+        modelField:
+          - fieldName: id
+
+---
+kind: Relationship
+version: v1
+definition:
+  name: Product
+  source: Orders
+  target:
+    model:
+      name: Products
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: product_id
+      target:
+        modelField:
+          - fieldName: id
+```
+
+If we head back to our browser, we should see the newest build that was generated by the CLI. We can then run the
+following query to retrieve related information:
 
 ```graphql
 query OrdersQuery {
@@ -283,22 +386,7 @@ query OrdersQuery {
 }
 ```
 
-:::
-
-:::tip Now would be a good time to git init
-
-If you wish to use Git for version control and want to create a starting point to which you can rewind, run the
-following at this point in a new tab of your terminal:
-
-```bash
-git init .
-git add .
-git commit -m "init supergraph"
-```
-
-:::
-
-## Step 6: Add permissions
+## Step 7: Add permissions
 
 For our `users` model, we want to introduce an authorization concept we call
 [**permissions**](/supergraph-modeling/permissions.mdx). This allows you to control which models are accessible to which
@@ -353,6 +441,7 @@ definition:
 We can then modify the `TypePermissions` in the same file to the following:
 
 ```yaml
+---
 kind: TypePermissions
 version: v1
 definition:
@@ -405,18 +494,12 @@ data and only the fields he access to under the `user` role:
   width="1000px"
 />
 
-:::warning Before proceeding
-
-Remove the two headers we just added.
-
-:::
-
 ## What just happened?
 
 ### Project configuration
 
-When you ran the `quickstart` command, the CLI created a new project for you on Hasura DDN. It also scaffolded out all
-the necessary configuration and metadata in your project's directory:
+When you ran the `create project` command, the CLI created a new project for you on Hasura DDN. It also scaffolded out
+all the necessary configuration and metadata in your project's directory:
 
 ```text
 ├── app
@@ -429,19 +512,16 @@ You can learn more about project structure by visiting our [CI/CD section](/ci-c
 
 ### Connector deployment
 
-This happened automatically! When we ran `ddn dev` after creating our project, the
-[connector was built and deployed](/connectors/overview.mdx) automatically to Hasura DDN. Hasura can host these for you
-or you can deploy them on your own infrastructure.
+You created, configured, and deployed a PostgreSQL connector to Hasura DDN! Hasura can host these for you or you can
+deploy them on your own infrastructure.
 
 ### Relationships
 
 We instantly added all foreign-key [relationships](/supergraph-modeling/relationships.mdx) from our data source to our
-API. This unlocks the potential for rich, deeply-nested queries that reach across different models in our API.
+API using LSP. This unlocks the potential for rich, deeply-nested queries that reach across different models in our API.
 
 ### Permissions
 
-You also added a simple-to-use-but-powerful set of permissions to your `User` `type`, restricting users to only viewing
+You also added a simple-to-use-but-powerful set of permissions to your `User` type, restricting users to only viewing
 their own data and only what you want them to see. You can learn more about
 [permissions here](/supergraph-modeling/permissions.mdx).
-
-But, for now, let's keep moving and add another subgraph to our API!
