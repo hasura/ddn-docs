@@ -30,18 +30,24 @@ been vectorized using a [model such as `word2vec`](https://www.tensorflow.org/te
 
 ## Example
 
-Imagine a `products` table with the following columns:
+Imagine a `products` table like the one we use in the docs-sample-app with the following columns:
 
-| Column Name | Type      |
-| ----------- | --------- |
-| id          | uuid      |
-| name        | varchar   |
-| description | varchar   |
-| price       | int       |
-| vector      | embedding |
+| Column Name       | Type        |
+| ----------------- | ----------- |
+| id                | uuid        |
+| name              | text        |
+| description       | text        |
+| price             | int4        |
+| manufacturer_id   | uuid        |
+| category_id       | uuid        |
+| image             | text        |
+| country_of_origin | text        |
+| created_at        | timestamptz |
+| updated_at        | timestamptz |
+| vector            | vector      |
 
-We want to run a query that finds the ten most similar products to a given query vector. We can do this using the `<->`
-operator provided by the `pgvector` extension.
+We want to run a query that finds products similar to a given query vector. The query should return the `name` and order
+the results by similarity. We can do this using the `<->` operator provided by the `pgvector` extension.
 
 ### Configuration
 
@@ -49,9 +55,9 @@ operator provided by the `pgvector` extension.
 "nativeQueries": {
   "products_vector_search": {
     "sql": {
-      "inline": "SELECT id, name, description, price, vector, vector <-> {{query_vector}} AS similarity FROM products"
+      "inline": "SELECT name FROM products ORDER BY vector <-> (SELECT vector FROM products WHERE name LIKE '%{{search_term}}%') ASC OFFSET 1"
     },
-    "columns": {
+     "columns": {
       "id": {
         "name": "id",
         "type": {
@@ -61,33 +67,8 @@ operator provided by the `pgvector` extension.
       "name": {
         "name": "name",
         "type": {
-          "scalarType": "varchar"
+          "scalarType": "text"
         }
-      },
-      "description": {
-        "name": "description",
-        "type": {
-          "scalarType": "varchar"
-        }
-      },
-      "price": {
-        "name": "price",
-        "type": {
-          "scalarType": "int"
-        }
-      },
-      "similarity": {
-        "name": "similarity",
-        "type": {
-          "scalarType": "float8"
-        }
-      }
-      "vector": {
-        "name": "vector",
-        "type": {
-          "scalarType": "embedding"
-        }
-      }
     },
     "arguments": {
       "query_vector": {
@@ -98,9 +79,9 @@ operator provided by the `pgvector` extension.
 }
 ```
 
-This will create a query named `products_vector_search` which takes a `query_vector` argument and returns the `id`,
-`name`, `description`, `price`, and `similarity` columns. The `similarity` column is calculated using the `<->` operator
-provided by the `pgvector` extension.
+This will create a query named `products_vector_search` which takes a `search_term` argument and returns the `name`
+column ordered by similarity. The `similarity` column is calculated using the `<->` operator provided by the `pgvector`
+extension.
 
 ### Usage
 
@@ -108,17 +89,37 @@ You can now run the query in your GraphQL API like so:
 
 ```graphql
 query {
-  products_vector_search(
-    args: { query_vector: [0.5, 0.4, -0.2, ...] }
-    where: { price: { _lt: 500 } },
-    order_by: { similarity: ASC },
-    limit: 10
-  ) {
-    id
+  products_vector_search(args: { search_term: "CLOUD" }) {
     name
-    description
-    price
-    similarity
+  }
+}
+```
+
+Which should return:
+
+```json
+{
+  "data": {
+    "products_vector_search": [
+      {
+        "name": "Dark Furry Logo Tee"
+      },
+      {
+        "name": "The Original Tee"
+      },
+      {
+        "name": "Tee"
+      }
+      {
+        "name": "Sticker Sheet"
+      },
+      {
+        "name": "Monogram Baseball Cap"
+      },
+      {
+        "name": "Get Ship Done Mug"
+      }
+    ]
   }
 }
 ```
