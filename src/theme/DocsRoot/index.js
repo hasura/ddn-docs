@@ -5,20 +5,11 @@ import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 
 export default function DocsRootWrapper(props) {
 
-  const url = window.location.href
-
-  // show this chatbot style only on index and overview pages
-  if (!url.endsWith("/index") && !url.endsWith("/overview")) {
-    return (<>
-      <DocsRoot {...props} />
-    </>)
-  }
-
   return (
     <>
       <DocsRoot {...props} />
       <BrowserOnly fallback={<div>Loading...</div>}>
-        {() => <AiChatBot/>}
+        {() => (!window.location.href.endsWith("/index") && !window.location.href.endsWith("/overview") && !window.location.href.endsWith("/overview/")) ? null : <AiChatBot/>}
       </BrowserOnly>
     </>
   );

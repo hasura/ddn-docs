@@ -196,7 +196,7 @@ export function AiChatBot() {
 
   };
 
-  const isOnOverviewOrIndex = window.location.href.endsWith("/index") || window.location.href.endsWith("/overview")
+  const isOnOverviewOrIndex = window.location.href.endsWith("/index") || window.location.href.endsWith("/overview") || window.location.href.endsWith("/overview/")
 
   return (
     <div className={"chat-popup"}>
