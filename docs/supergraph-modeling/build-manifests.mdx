@@ -1,0 +1,71 @@
+---
+sidebar_label: Build Manifests
+description:
+  "Add as many SupergraphManifests as you need to define different configurations for building your supergraph and a
+  ConnectorManifest for each connector in your supergraph."
+seoFrontMatterUpdated: true
+toc_max_heading_level: 4
+sidebar_position: 8
+---
+
+# Build Manifests
+
+## Introduction
+
+Build manifests are used to define the configuration for building your **supergraph** or a **connector**. Written in
+YAML, these manifests are used to define the environment, subgraphs, and other configurations required to build a
+supergraph or a [connector](/connectors/overview.mdx).
+
+It's helpful to think of build manifests as a blueprint for building a supergraph or a connector.
+
+### Supergraph manifests
+
+The supergraph manifest defines the configuration used to build the supergraph. While projects are generated with a
+default manifest, you can add as many SupergraphManifests as you need to define different configurations for building
+your supergraph. A common example is creating a manifest for each [environment](/ci-cd/environments.mdx) you want to
+build your supergraph in.
+
+### Connector manifests
+
+**Each** connector in your supergraph has its own manifest. The ConnectorManifest defines the configuration used to
+build the connector. This allows you to configure the capabilities of the connector and tailor it to your needs.
+
+:::info Use the CLI to generate manifests
+
+A connector manifest can easily be generated using the CLI's [`add connector-manifest` command](#).
+
+:::
+
+## Metadata structure
+
+### SupergraphManifest {#supergraphmanifest-supergraphmanifest}
+
+Details of how to build the Supergraph.
+
+| Key          | Value                                        | Required | Description                             |
+| ------------ | -------------------------------------------- | -------- | --------------------------------------- |
+| `kind`       | `SupergraphManifest`                         | true     |                                         |
+| `version`    | `v1`                                         | true     |                                         |
+| `definition` | [Definition](#supergraphmanifest-definition) | true     | Details of how to build the Supergraph. |
+
+#### Definition {#supergraphmanifest-definition}
+
+Details of how to build the Supergraph.
+
+| Key           | Value    | Required | Description                                             |
+| ------------- | -------- | -------- | ------------------------------------------------------- |
+| `name`        | string   | true     | Name of the supergraph manifest.                        |
+| `environment` | string   | true     | The environment to create the build in.                 |
+| `envfile`     | string   | false    | Path to the YAML file containing environment variables. |
+| `subgraphs`   | [string] | true     | Names of subgraphs to be considered.                    |
+
+### ConnectorManifest {#connectormanifest-connectormanifest}
+
+Defines the configuration used to build the connector.
+
+| Key          | Value               | Required | Description                   |
+| ------------ | ------------------- | -------- | ----------------------------- |
+| `kind`       | `ConnectorManifest` | true     |                               |
+| `version`    | `v1`                | true     |                               |
+| `spec`       |                     | true     | Connector Manifest Spec       |
+| `definition` |                     | true     | Connector Manifest Definition |

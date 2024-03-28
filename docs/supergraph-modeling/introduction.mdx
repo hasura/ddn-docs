@@ -22,164 +22,30 @@ seoFrontMatterUpdated: true
 
 Hasura v3 introduces the concept of the data supergraph.
 
-The Hasura metadata defines the data models for each subgraph, including the types of the data objects, models and
-commands used to interact with the data, and access control rules on this data. This data model is then combined with
-Native Data Connector agents, which are services to communicate with the raw data sources (like a database) in order to
-serve your API.
+Your Hasura metadata describes your supergraph and its subgraphs. This metadata is used to build your supergraph, the
+connectors that link your data sources to models and commands in your API, and the various relationships and permissions
+that link together types from data sources and restrict access control using permissions within each subgraph.
 
 ## How is this different from Hasura v2 metadata?
 
-- Hasura v2 metadata was specifically designed for GraphQL and included database-level modeling constructs such as
-  Postgres tables, whereas Hasura v3 utilizes a general specification that is not coupled to GraphQL and introduces new
-  abstract constructs such as models and commands that are common across different data sources.
-- Functionally, the v2 metadata relied directly on the raw data source for information like columns and fields, whereas
-  supergraph metadata is independent of the data source. All fields and types are explicitly defined within the metadata
-  itself which eliminates the necessity for data source schema introspection at startup to generate a GraphQL schema.
-  Also, the v3 metadata is still semantically consistent even if the underlying data source has changed.
-- Compared to the v2 metadata, there is a lot more flexibility offered when configuring your GraphQL API.
+Hasura v2 metadata was specifically designed for GraphQL and included database-level modeling constructs such as
+Postgres tables, whereas Hasura v3 utilizes a general specification that is not coupled to GraphQL and introduces new
+abstract constructs such as **models** and **commands** that are common across different data sources.
 
-In this way, your data supergraph is decoupled from any underlying database, data source, or other physical layer of
-storage. This is powerful as it enables you to consistently deliver data with the same structure and authorization
+Functionally, the v2 metadata relied directly on the raw data source for information like columns and fields, whereas
+supergraph metadata is independent of the data source. All fields and types are explicitly defined within the metadata
+itself which eliminates the necessity for data source schema introspection at startup to generate a GraphQL schema.
+Also, the v3 metadata is still semantically consistent even if the underlying data source has changed.
+
+Compared to the v2 metadata, there is a lot more flexibility offered when configuring your GraphQL API.
+
+**In this way, your data supergraph is decoupled from any underlying database, data source, or other physical layer of
+storage.** This is powerful as it enables you to consistently deliver data with the same structure and authorization
 rules. This consistency remains intact even when you make significant changes, such as transitioning from MySQL to
 PostgreSQL, adopting MongoDB for read operations and MySQL for write operations, altering your transactional email
 system, or switching payment providers.
 
-## Supergraph Configuration
+## Learn more
 
-The supergraph configuration is an array of one of the following metadata objects:
-
-```yaml
-objects:
-  - kind: CompatibilityConfig
-    # ... (other properties for CompatibilityConfig)
-  - kind: AuthConfig
-    # ... (other properties for AuthConfig)
-```
-
-More details about these can be found [here](/ci-cd/config.mdx#supergraph).
-
-## Subgraph Configuration
-
-There can be any number of subgraphs in your supergraph. Each subgraph has a name and a configuration consisting of an
-array of the following metadata objects:
-
-```yaml
-name: my_subgraph
-objects:
-  - kind: HasuraHubDataConnector
-    # ... (other properties for HasuraHubDataConnector)
-  - kind: DataConnector
-    # ... (other properties for DataConnector)
-  - kind: ScalarType
-    # ... (other properties for ScalarType)
-  - kind: ObjectType
-    # ... (other properties for ObjectType)
-  - kind: DataConnectorScalarRepresentation
-    # ... (other properties for DataConnectorScalarRepresentation)
-  - kind: Model
-    # ... (other properties for Model)
-  - kind: Command
-    # ... (other properties for Command)
-  - kind: Relationship
-    # ... (other properties for Relationship)
-  - kind: TypePermissions
-    # ... (other properties for TypePermissions)
-  - kind: ModelPermissions
-    # ... (other properties for ModelPermissions)
-  - kind: CommandPermissions
-    # ... (other properties for CommandPermissions)
-```
-
-## Data Connectors
-
-The [data connector](./data-connectors.mdx) will define where the data is coming from. It can be a database, a REST API,
-a GraphQL API, etc. The data connector will use the [Native Data Connector](/connectors/overview.mdx) protocol to
-connect to the data source and fetch the data.
-
-### The DataConnector object
-
-The [`DataConnector`](./data-connectors.mdx) object describes a physical data connector that is hosted at a URL that
-Hasura can talk to for serving queries. These data connectors are self-deployed and managed outside of the Hasura
-metadata.
-
-### The HasuraHubDataConnector object {#hasura-hub-data-connector}
-
-The [`HasuraHubDataConnector`](./data-connectors.mdx#hasura-hub-data-connector) object allows you to atomically
-configure and deploy a data connector available in the [Connector Hub](https://hasura.io/connectors/) directly from the
-metadata.
-
-## Types
-
-[Types](./types.mdx) are a fundamental building block of supergraph metadata with every bit of data having a type.
-
-### The ObjectType object
-
-The [`ObjectType`](./types.mdx#object-types) object allows you to create structured object types with fields.
-
-### The ScalarType object
-
-The [`ScalarType`](./types.mdx#scalar-types) object allows you to create opaque types whose semantics are unknown to
-your supergraph.
-
-### The DataConnectorScalarRepresentation object
-
-The [`DataConnectorScalarRepresentation`](./types.mdx#scalar-type-representation) object allows you to define how a
-scalar type from a data connector (eg: varchar from postgres) is represented in your data graph.
-
-## Models
-
-[Models](./models.mdx) are the link between your data sources and the API Hasura generates. A model may be backed by a
-database table, an ad-hoc SQL query, a pre-materialized view, a custom REST or GraphQL API server, etc.
-
-### The Model object
-
-The [`Model`](./models.mdx) object represents a collection of data objects (like rows in a SQL table or documents in
-collection in a NoSQL database) of a certain [type](./types.mdx). A Model object also defines how the model and its
-types or fields map to entities in the underlying data source. It also defines how it is represented in the GraphQL API.
-
-## Commands
-
-[Commands](./commands.mdx) are the other way of accessing data within your supergraph. Commands are functions /
-procedures whose implementations are unknown to your supergraph except for their input arguments and output type.
-
-### The Command object
-
-The [Command](./commands.mdx) object defines the name of the command, the arguments to the command and the output type
-of the command. It also defines any mappings of arguments / types from your supergraph to their corresponding NDC
-versions.
-
-## Relationships
-
-[Relationships](./relationships.mdx) allow you extend [object types](./types.mdx) with related [models](./models.mdx)
-which then allows you to query nested or linked information.
-
-### The Relationship object
-
-The [`Relationship`](./relationships.mdx) object defines a relationship between a source [type](./types.mdx) and a
-target [models](./models.mdx).
-
-## Permissions
-
-You can define [permissions](./permissions.mdx), (also known as access control or authorization rules) on
-[types](./types.mdx), [models](./models.mdx) and [commands](./commands.mdx).
-
-### The TypePermissions object
-
-[`TypePermissions`](./permissions.mdx#type-permissions) define which fields are allowed to be accessed by a role.
-
-### The ModelPermissions object
-
-[`ModelPermissions`](./permissions.mdx#model-permissions) define which objects or rows within the model are allowed to
-be accessed by a role.
-
-### The CommandPermissions object
-
-[`CommandPermissions`](./permissions.mdx#command-permissions) define which commands are allowed to be executed by a
-role.
-
-## Automatic metadata generation
-
-The new Hasura DDN tooling of Console and the
-[VS Code Extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) have built-in capabilities to
-autogenerate metadata from your existing data via the GUI console or CLI terminal commands. Alternatively, you can also
-author metadata manually.
+Using the pages within this directory, you'll find explanations of the different metadata objects and examples
+illustrating how to use them.

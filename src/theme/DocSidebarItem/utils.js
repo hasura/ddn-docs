@@ -18,6 +18,7 @@ import Quickstart from '@site/static/icons/speedometer-04.svg';
 import SupergraphModeling from '@site/static/icons/cpu-chip-01.svg';
 import Faq from '@site/static/icons/help-square.svg';
 import Community from '@site/static/icons/announcement-02.svg';
+import Actions from '@site/static/icons/features/actions.svg';
 
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
@@ -82,11 +83,14 @@ export function addIconsToLabel(label, className) {
     case 'community-icon':
       icons = <Community />;
       break;
+    case 'logic-icon':
+      icons = <Actions />;
+      break;
   }
-  
+
   return (
     <div className={styles['sidebar_link_wrapper']}>
-      {icons} {label} 
+      {icons} {label}
     </div>
   );
 }
