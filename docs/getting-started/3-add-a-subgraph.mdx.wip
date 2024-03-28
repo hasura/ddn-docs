@@ -45,15 +45,8 @@ The CLI should respond that the subgraph was successfully created.
 Since this is a PostgreSQL database, we can add a connector manifest using the following CLI command:
 
 ```bash
-ddn add connector-manifest chinook_connector --subgraph chinook --hub-connector hasura/postgres:v0.5.0 --type cloud
+ddn add connector-manifest chinook_connector --subgraph chinook --hub-connector hasura/postgres:v0.5.1 --type cloud
 ```
-
-:::info What's a connector manifest?
-
-A [connector manifest](/ci-cd/projects.mdx) is the file which contains the details of the connector's configuration.
-This tells Hasura DDN what capabilities of the connector has and how to build your connector for your data source.
-
-:::
 
 Then, in our `base.env.yaml` in the root of the project, we can add the new subgraph and connection string:
 
@@ -62,23 +55,31 @@ chinook:
   CHINOOK_CHINOOK_CONNECTOR_CONNECTION_URI: postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
 ```
 
+### Step 3.2: Track tables as models
+
+With our data connector configured, we'll need it to introspect our datasource to learn about the tables, their columns,
+and those columns' types. The CLI can help us with this:
+
+```bash
+ddn update connector-manifest chinook_connector --subgraph chinook
+```
+
+The CLI will respond and let us know that the data connector was update successfully. Finally, with our data connector
+configured to our datasource, we can track all of our tables as models, and build and then deploy our connector to
+Hasura DDN:
+
+```bash
+ddn update connector-link chinook_connector --subgraph chinook --add-all-resources
+```
+
+:::info What are models?
+
+[**Models**](/supergraph-modeling/models.mdx), defined in metadata, tell our GraphQL API how to expose collections from
+our data sources.
+
+:::
+
 We can then run `ddn dev` to generate a new build, introspect our Chinook data source, and watch for changes.
-
-## Step 4: Track tables from our new source
-
-As before, we'll also need to track these tables.
-
-**After** the build is complete, head into `/chinook/chinook_connector.hml` and run the `track all` command using VS
-Code's command palette.
-
-Be sure to select `chinook_connector` and `Default` from the options that appear from the palette's dropdown menu:
-
-<Thumbnail src="/img/get-started/trackAllFromChinook.gif" alt="Tracking chinook models" width="1000px" />
-
-When you run this command and make your selections, the CLI will automatically generate a new build and the Chinook data
-source will be available in your API:
-
-<Thumbnail src="/img/get-started/0.0.1_console_chinook-api.png" alt="Chinook in API" width="1000px" />
 
 ## Step 5: Create relationships across subgraphs
 
