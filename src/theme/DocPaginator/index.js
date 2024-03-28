@@ -1,12 +1,9 @@
 import React from 'react';
 import Translate, {translate} from '@docusaurus/Translate';
 import PaginatorNavLink from '@theme/PaginatorNavLink';
-// import BrowserOnly from '@docusaurus/BrowserOnly';
-// import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 export default function DocPaginator(props) {
   const {previous, next} = props;
   return (
-    <div>
     <nav
       className="pagination-nav docusaurus-mt-lg"
       aria-label={translate({
@@ -40,9 +37,5 @@ export default function DocPaginator(props) {
         />
       )}
     </nav>
-  {/*<BrowserOnly fallback={<div>Loading...</div>}>*/}
-  {/*  {() => <AiChatBot/>}*/}
-  {/*</BrowserOnly>*/}
-  </div>
   );
 }
