@@ -27,9 +27,9 @@ seoFrontMatterUpdated: true
 
 import Thumbnail from "@site/src/components/Thumbnail";
 
-# Explaining Query Execution
+# Hasura Query Plan
 
-The Hasura v3 engine can output the GraphQL execution plan for a given query via the "explain" api.
+The Hasura v3 engine can output the GraphQL execution plan for a given query via the "explain" API.
 
 The execution plan output is represented as a tree of type [ExplainStep](#explainstep). You can also visualize the query
 plan, SQL plan, and SQL query used for each execution by clicking the `Explain query` button in your GraphiQL's request
@@ -156,11 +156,11 @@ query ParallelExecution {
 
 <Thumbnail src="/img/explain/parallel-execution.png" alt="Parallel execution" width="700px" />
 
-## Examples
+## Example
 
-Let's try understanding the execution plan by looking at some examples.
-
-### Example 1
+In the example below, we are fetching the `Album` and its `Artist` and `Tracks`. We are also fetching the `Album` for
+each of the `Tracks`. `Tracks` is a local relationship, whereas `Artist` (on `Album`) and `Album` (on `Tracks`) are
+remote relationships.
 
 ```graphql
 query {
@@ -183,15 +183,12 @@ query {
 }
 ```
 
-In the above example, we are fetching the `Album` and its `Artist` and `Tracks`. We are also fetching the `Album` for
-each of the `Tracks`. `Tracks` is a local relationship, whereas `Artist` (on `Album`) and `Album` (on `Tracks`) are
-remote relationships.
-
 Now, from [the explain plan](/observability/explain/api-reference#example-1), we can understand that:
 
 - There are three sequential steps:
-  - Make a selection from the model cities.
-  - Do the following steps in parallel:
-    - For each city, fetch the weather
-    - For each state, fetch the weather
-  - Hash join the results
+  - Make a selection on the `Album` model
+  - For each `Album`, make a selection on the `Artist` model
+  - For each `Album`, make a selection on the `Tracks` model
+- HashJoin the `Album` and `Tracks` models to construct the response
+
+<!-- TODO: Add screenshot -->
