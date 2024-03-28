@@ -196,88 +196,90 @@ export function AiChatBot() {
 
   };
 
-  const baseUrl = useDocusaurusContext().siteConfig.baseUrl;
+  const isOnOverviewOrIndex = window.location.href.endsWith("/index") || window.location.href.endsWith("/overview")
 
   return (
-    <div className="chat-popup">
-      {isOpen ? (
-        <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
-          {CloseIcon} Close Chat
-        </button>
-      ) : (
-        <button className="open-chat-button" onClick={() => setIsOpen(!isOpen)}>
-          {SparklesIcon} Hasura Docs AI Chat
-        </button>
-      )}
-      {isOpen && (
-        <div className="chat-window">
-          <div className="info-bar">
-            <div className={"bot-name-pic-container"}>
-              <div className="bot-name">DocsBot</div>
-              <img src={profilePic} height={30} width={30} className="bot-pic"/>
-            </div>
-            <button className="clear-button" onClick={() => {
-              setMessages(initialMessages)
-              setCurrentMessage({ userMessage: '', botResponse: '' });
-              setMessageThreadId(uuidv4());
-            }}>Clear</button>
-          </div>
-          <div className="messages-container" onScroll={handleScroll} ref={scrollDiv}>
-            {messages.map((msg, index) => (
-              <div key={index}>
-                {msg.userMessage && (
-                  <div className="user-message-container">
-                    <div className="formatted-text message user-message">
-                      <Markdown>{msg.userMessage}</Markdown>
-                    </div>
-                  </div>
-                )}
-                {msg.botResponse && (
-                  <div className="bot-message-container">
-                    <div className="formatted-text message bot-message">
-                      <Markdown>{msg.botResponse}</Markdown>
-                    </div>
-                  </div>
-                )}
+    <div className={"chat-popup"}>
+      <div className={isOnOverviewOrIndex ? 'chat-popup-index-and-overviews': 'chat-popup-other-pages'}>
+        {isOpen ? (
+          <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
+            {CloseIcon} Close Chat
+          </button>
+        ) : (
+          <button className="open-chat-button" onClick={() => setIsOpen(!isOpen)}>
+            {SparklesIcon} Hasura Docs AI Chat
+          </button>
+        )}
+        {isOpen && (
+          <div className="chat-window">
+            <div className="info-bar">
+              <div className={"bot-name-pic-container"}>
+                <div className="bot-name">DocsBot</div>
+                <img src={profilePic} height={30} width={30} className="bot-pic"/>
               </div>
-            ))}
-            <div className="user-message-container">
-              {currentMessage.userMessage && (
-                <div className="formatted-text message user-message">
-                  <Markdown>{currentMessage.userMessage}</Markdown>
+              <button className="clear-button" onClick={() => {
+                setMessages(initialMessages)
+                setCurrentMessage({ userMessage: '', botResponse: '' });
+                setMessageThreadId(uuidv4());
+              }}>Clear</button>
+            </div>
+            <div className="messages-container" onScroll={handleScroll} ref={scrollDiv}>
+              {messages.map((msg, index) => (
+                <div key={index}>
+                  {msg.userMessage && (
+                    <div className="user-message-container">
+                      <div className="formatted-text message user-message">
+                        <Markdown>{msg.userMessage}</Markdown>
+                      </div>
+                    </div>
+                  )}
+                  {msg.botResponse && (
+                    <div className="bot-message-container">
+                      <div className="formatted-text message bot-message">
+                        <Markdown>{msg.botResponse}</Markdown>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div>
-              <div className="bot-message-container">
-                {currentMessage.botResponse && (
-                  <div className="formatted-text message bot-message">
-                    <Markdown>{currentMessage.botResponse}</Markdown>
+              ))}
+              <div className="user-message-container">
+                {currentMessage.userMessage && (
+                  <div className="formatted-text message user-message">
+                    <Markdown>{currentMessage.userMessage}</Markdown>
                   </div>
                 )}
               </div>
-              <div className="responding-div">
-                {isResponding ?
-                  RespondingIconGray : null}
+              <div>
+                <div className="bot-message-container">
+                  {currentMessage.botResponse && (
+                    <div className="formatted-text message bot-message">
+                      <Markdown>{currentMessage.botResponse}</Markdown>
+                    </div>
+                  )}
+                </div>
+                <div className="responding-div">
+                  {isResponding ?
+                    RespondingIconGray : null}
+                </div>
               </div>
             </div>
+            {/* Handles scrolling to the end */}
+            {/*<div ref={messagesEndRef} />*/}
+            <form
+              className="input-container"
+              onSubmit={e => {
+                e.preventDefault();
+                handleSubmit();
+              }}
+            >
+              <input disabled={isResponding || isConnecting} className="input-text" value={input} onChange={e => setInput(e.target.value)} />
+              <button disabled={isResponding || isConnecting} className="input-button" type="submit">
+                {isConnecting ? "Connecting..." : isResponding ? "Responding..." : "Send"}
+              </button>
+            </form>
           </div>
-          {/* Handles scrolling to the end */}
-          {/*<div ref={messagesEndRef} />*/}
-          <form
-            className="input-container"
-            onSubmit={e => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-          >
-            <input disabled={isResponding || isConnecting} className="input-text" value={input} onChange={e => setInput(e.target.value)} />
-            <button disabled={isResponding || isConnecting} className="input-button" type="submit">
-              {isConnecting ? "Connecting..." : isResponding ? "Responding..." : "Send"}
-            </button>
-          </form>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

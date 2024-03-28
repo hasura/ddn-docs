@@ -1,8 +1,8 @@
 import React from 'react';
 import Translate, {translate} from '@docusaurus/Translate';
 import PaginatorNavLink from '@theme/PaginatorNavLink';
-import BrowserOnly from '@docusaurus/BrowserOnly';
-import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
+// import BrowserOnly from '@docusaurus/BrowserOnly';
+// import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 export default function DocPaginator(props) {
   const {previous, next} = props;
   return (
@@ -40,9 +40,9 @@ export default function DocPaginator(props) {
         />
       )}
     </nav>
-  <BrowserOnly fallback={<div>Loading...</div>}>
-    {() => <AiChatBot/>}
-  </BrowserOnly>
+  {/*<BrowserOnly fallback={<div>Loading...</div>}>*/}
+  {/*  {() => <AiChatBot/>}*/}
+  {/*</BrowserOnly>*/}
   </div>
   );
 }
