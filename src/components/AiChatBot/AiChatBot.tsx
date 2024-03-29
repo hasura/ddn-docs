@@ -202,16 +202,22 @@ export function AiChatBot() {
     <div className={"chat-popup"}>
       <div className={isOnOverviewOrIndex ? 'chat-popup-index-and-overviews': 'chat-popup-other-pages'}>
         {isOpen ? (
-          <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
-            {CloseIcon} Close Chat
-          </button>
+          <></>
         ) : (
           <button className="open-chat-button" onClick={() => setIsOpen(!isOpen)}>
             {SparklesIcon} Hasura Docs AI Chat
           </button>
         )}
         {isOpen && (
-          <div className="chat-window">
+          <div className={isOnOverviewOrIndex ? '': 'absolute -bottom-11 w-full min-w-[500px] right-[10px]'}>
+            {
+              isOpen && (
+                <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
+                  {CloseIcon} Close Chat
+                </button>
+              )
+            }
+            <div className="chat-window">
             <div className="info-bar">
               <div className={"bot-name-pic-container"}>
                 <div className="bot-name">DocsBot</div>
@@ -277,6 +283,7 @@ export function AiChatBot() {
                 {isConnecting ? "Connecting..." : isResponding ? "Responding..." : "Send"}
               </button>
             </form>
+            </div>
           </div>
         )}
       </div>
