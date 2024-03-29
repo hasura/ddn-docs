@@ -209,7 +209,7 @@ export function AiChatBot() {
           </button>
         )}
         {isOpen && (
-          <div className={isOnOverviewOrIndex ? '': 'absolute bottom-0 w-full'}>
+          <div className={isOnOverviewOrIndex ? '': 'absolute -bottom-11 w-full min-w-[500px] right-[10px]'}>
             {
               isOpen && (
                 <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
