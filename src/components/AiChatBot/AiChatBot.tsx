@@ -200,7 +200,8 @@ export function AiChatBot() {
 
   return (
     <div className={"chat-popup"}>
-      <div className={isOnOverviewOrIndex ? 'chat-popup-index-and-overviews': 'chat-popup-other-pages'}>
+      {/* <div className={isOnOverviewOrIndex ? 'chat-popup-index-and-overviews': 'chat-popup-other-pages'}> */}
+      <div className={isOnOverviewOrIndex ? 'chat-popup-index-and-overviews': 'chat-popup-index-and-overviews'}>
         {isOpen ? (
           <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
             {CloseIcon} Close Chat

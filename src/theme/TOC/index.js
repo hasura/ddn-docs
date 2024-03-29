@@ -4,8 +4,8 @@ import TOCItems from '@theme/TOCItems';
 import styles from './styles.module.css';
 import { useDoc } from '@docusaurus/theme-common/internal';
 import { Feedback } from '@site/src/components/Feedback/Feedback';
-import BrowserOnly from '@docusaurus/BrowserOnly';
-import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
+// import BrowserOnly from '@docusaurus/BrowserOnly';
+// import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 
 // Using a custom className
 // This prevents TOCInline/TOCCollapsible getting highlighted by mistake
@@ -21,9 +21,9 @@ export default function TOC({className, ...props}) {
         linkActiveClassName={LINK_ACTIVE_CLASS_NAME}
       />
       <Feedback metadata={metadata}/>
-      <BrowserOnly fallback={<div>Loading...</div>}>
+      {/* <BrowserOnly fallback={<div>Loading...</div>}>
         {() => <AiChatBot/>}
-      </BrowserOnly>
+      </BrowserOnly> */}
     </div>
   );
 }
