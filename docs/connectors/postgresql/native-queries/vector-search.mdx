@@ -46,80 +46,104 @@ Imagine a `products` table like the one we use in the docs-sample-app with the f
 | updated_at        | timestamptz |
 | vector            | vector      |
 
-We want to run a query that finds products similar to a given query vector. The query should return the `name` and order
-the results by similarity. We can do this using the `<->` operator provided by the `pgvector` extension.
+We want to be able to run vector searches on the `vector` column of this table. We can do this by writing a query to
+project the vector similarity given a query vector and expose it as a model in Hasura. Then, we can create a
+relationship from this projection to the full products table and query it flexibly in the GraphQL API.
 
-### Configuration
+### Native Query configuration
+
+In the `configuration.json` of our connector, we'd amend the `nativeQueries` to include:
 
 ```json
 "nativeQueries": {
-  "products_vector_search": {
-    "sql": {
-      "inline": "SELECT name FROM products ORDER BY vector <-> (SELECT vector FROM products WHERE name LIKE '%{{search_term}}%') ASC OFFSET 1"
-    },
-     "columns": {
-      "id": {
-        "name": "id",
-        "type": {
-          "scalarType": "uuid"
+      "products_vector_distance": {
+        "sql": {
+          "inline": "SELECT id, vector <=> {{query_vector}} AS distance FROM products"
+        },
+        "columns": {
+          "id": {
+            "name": "id",
+            "type": {
+              "scalarType": "uuid"
+            }
+          },
+          "distance": {
+            "name": "distance",
+            "type": {
+              "scalarType": "float8"
+            }
+          }
+        },
+        "arguments": {
+          "query_vector": {
+            "name": "query_vector",
+            "type": {
+              "scalarType": "vector"
+            }
+          }
         }
-      },
-      "name": {
-        "name": "name",
-        "type": {
-          "scalarType": "text"
-        }
-    },
-    "arguments": {
-      "query_vector": {
-        "type": "embedding"
       }
+    }
+```
+
+### Hasura metadata
+
+First, you would need to track the newly-available collection from the step above as types / models in your project's
+metadata ([see instructions here](/docs/cli/commands/dev.mdx)). Then, you would need to add a relationship from the
+generated `ProductsVectorDistance` type to the main `Products` model, like this:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: product
+  source: ProductsVectorDistance
+  target:
+    model:
+      name: Products
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: id
+```
+
+### Usage
+
+Now you can use the flexibility of Hasura's GraphQL API to search your vectors in many ways.
+
+#### Search products based on vector
+
+```graphql
+query MyQuery {
+  productsVectorDistance(args: { query_vector: "<input vector>" }, limit: 10, order_by: { distance: Asc }) {
+    id
+    distance
+    product {
+      name
     }
   }
 }
 ```
 
-This will create a query named `products_vector_search` which takes a `search_term` argument and returns the `name`
-column ordered by similarity. The `similarity` column is calculated using the `<->` operator provided by the `pgvector`
-extension.
-
-### Usage
-
-You can now run the query in your GraphQL API like so:
+#### Search products based on price and vector
 
 ```graphql
-query {
-  products_vector_search(args: { search_term: "CLOUD" }) {
-    name
-  }
-}
-```
-
-Which should return:
-
-```json
-{
-  "data": {
-    "products_vector_search": [
-      {
-        "name": "Dark Furry Logo Tee"
-      },
-      {
-        "name": "The Original Tee"
-      },
-      {
-        "name": "Tee"
-      }
-      {
-        "name": "Sticker Sheet"
-      },
-      {
-        "name": "Monogram Baseball Cap"
-      },
-      {
-        "name": "Get Ship Done Mug"
-      }
-    ]
+query MyQuery {
+  productsVectorDistance(
+    args: { query_vector: "<input vector>" }
+    limit: 10
+    order_by: { distance: Asc }
+    where: { product: { price: { _gt: 500 } } }
+  ) {
+    id
+    distance
+    product {
+      name
+    }
   }
 }
 ```
