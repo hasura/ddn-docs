@@ -147,3 +147,29 @@ query MyQuery {
   }
 }
 ```
+
+### Permissions
+
+You can also set the appropriate model permissions to restrict which rows can be accessed by an API client. The permissions predicate for the vectors can also traverse relationships.
+
+For example, if we want to restrict manufacturers to being able to search vectors only for their own products,
+and assuming the currently logged in manufacturer's ID is present in the session variable `x-hasura-manufacturer-id`, we would add the following to the metadata: 
+
+```yaml
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: ProductsVectorDistance
+  permissions:
+    - role: manufacturer
+      select:
+        filter:
+          relationship:
+            name: product
+            predicate:
+              fieldComparison:
+                field: manufacturer_id
+                operator: _eq
+                value:
+                  sessionVariable: x-hasura-manufacturer-id
+```
