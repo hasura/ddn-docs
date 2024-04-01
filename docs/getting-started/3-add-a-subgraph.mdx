@@ -38,7 +38,20 @@ Using the same tab, while we're still in the project directory, we'll add a seco
 ddn create subgraph chinook
 ```
 
-The CLI should respond that the subgraph was successfully created.
+The CLI should respond that the subgraph was successfully created and that you need to add this new subgraph to a
+SupergraphManifest to start using it in your DDN project. We can make our `base.supergraph.hml` look like this:
+
+```yaml
+kind: SupergraphManifest
+version: v1
+definition:
+  name: base
+  envfile: base.env.yaml
+  environment: dev
+  subgraphs:
+    - app
+    - chinook
+```
 
 ## Step 3: Connect a new data source
 
@@ -55,33 +68,19 @@ chinook:
   CHINOOK_CHINOOK_CONNECTOR_CONNECTION_URI: postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
 ```
 
-### Step 3.2: Track tables as models
-
-With our data connector configured, we'll need it to introspect our datasource to learn about the tables, their columns,
-and those columns' types. The CLI can help us with this:
+We can then run dev mode to generate a new build, introspect our Chinook data source, and watch for changes:
 
 ```bash
-ddn update connector-manifest chinook_connector --subgraph chinook
+ddn dev
 ```
 
-The CLI will respond and let us know that the data connector was update successfully. Finally, with our data connector
-configured to our datasource, we can track all of our tables as models, and build and then deploy our connector to
-Hasura DDN:
+:::warning remove headers
 
-```bash
-ddn update connector-link chinook_connector --subgraph chinook --add-all-resources
-```
-
-:::info What are models?
-
-[**Models**](/supergraph-modeling/models.mdx), defined in metadata, tell our GraphQL API how to expose collections from
-our data sources.
+Before proceeding, let's remove the `x-hasura-role` and `x-hasura-user-id` headers we added earlier.
 
 :::
 
-We can then run `ddn dev` to generate a new build, introspect our Chinook data source, and watch for changes.
-
-## Step 5: Create relationships across subgraphs
+## Step 4: Create relationships across subgraphs
 
 Finally, we'll create a relationship between entities in our different subgraphs. Our Chinook data source is a
 music-based dataset that contains a type called `Artist`. We have a `favorite_artist` colum on our `app_users` table.
@@ -103,10 +102,10 @@ definition:
   mapping:
     - source:
         fieldPath:
-          - fieldName: favorite_artist
+          - fieldName: favoriteArtist
       target:
         modelField:
-          - fieldName: ArtistId
+          - fieldName: artistId
 ```
 
 :::tip Remember, you can use LSP to assist in authoring metadata
@@ -123,7 +122,7 @@ query MyQuery {
   app_users {
     name
     user_to_favorite_artist {
-      Name
+      name
     }
   }
 }
