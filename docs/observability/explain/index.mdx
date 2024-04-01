@@ -158,35 +158,31 @@ query ParallelExecution {
 
 ## Example
 
-In the example below, we are fetching the `Album` and its `Artist` and `Tracks`. We are also fetching the `Album` for
-each of the `Tracks`. `Tracks` is a local relationship, whereas `Artist` (on `Album`) and `Album` (on `Tracks`) are
-remote relationships.
+In the example below, for each user, we are fetching the user's name, their notifications via a local relationship, and
+their favorite artists from a remote relationship:
 
 ```graphql
-query {
-  Album {
-    AlbumId
-    ArtistId
-    Artist {
-      # a remote relationship
-      ArtistId
+query MyQuery {
+  app_users {
+    name
+    # local relationship
+    notifications {
+      id
+      message
     }
-    Tracks {
-      # a local relationship
-      TrackId
-      Album {
-        # a remote relationship
-        AlbumId
-      }
+    # remote relationship
+    user_to_favorite_artist {
+      name
     }
   }
 }
 ```
 
+<Thumbnail src="/img/o11y/v0.1.1_console_explain-plan.png" alt="Explain plan example" width="700px" />
+
 Now, from [the explain plan](/observability/explain/api-reference#example), we can understand that:
 
 - There are three sequential steps:
-  - Make a selection on the `Album` model
-  - For each `Album`, make a selection on the `Artist` model
-  - For each `Album`, make a selection on the `Tracks` model
-- HashJoin the `Album` and `Tracks` models to construct the response
+  - Make a selection on the `app_users` model
+  - For each user, make a selection on the `artists` model
+- HashJoin the `app_user` and `artists` models to construct the response
