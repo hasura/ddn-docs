@@ -33,3 +33,15 @@ You can check out examples of the different types of native queries below:
 - [Custom Queries](/connectors/postgresql/native-queries/custom-queries.mdx)
 - [Custom Mutations](/connectors/postgresql/native-queries/custom-mutations.mdx)
 - [Vector Search](/connectors/postgresql/native-queries/vector-search.mdx)
+
+## Native Queries SQL Requirements {#NativeQueriesSqlRequirements}
+
+There are a few requirements for writing a Native Query SQL:
+
+- The SQL of a Native Query should be a single SQL statement that returns a result and should not contain a semicolon at the end,
+  as the SQL is used inside another SQL query.
+- The arguments are not interpolated, but are translated to parameters of parameterized queries (arguments like `{{id}}` and `{{name}}` are translated to `$1`, `$2`, etc.)
+  and passed as data, and therefore must be specific values, not arbitrary SQL, and do not need be wrapped inside quotes (for example, use `{{name}}` instead of `'{{name}}'`).
+- In order to use a string argument inside a pattern, such as in a `LIKE` predicate, the argument can be concatenated with the relevant pattern parts.
+  For example: `SELECT * FROM "Artist" WHERE "Name" LIKE '%' || {{name}} || '%'`.
+- Argument names that begin with the prefix `hasura_` are reserved for internal use.
