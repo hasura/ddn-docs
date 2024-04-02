@@ -111,11 +111,11 @@ type:
 
 Definition of a user-defined scalar type that that has opaque semantics.
 
-| Key          | Value                                    | Required | Description |
-| ------------ | ---------------------------------------- | -------- | ----------- |
-| `kind`       | `ScalarType`                             | true     |             |
-| `version`    | `v1`                                     | true     |             |
-| `definition` | [ScalarTypeV1](#scalartype-scalartypev1) | true     |             |
+| Key          | Value                                    | Required | Description                                                              |
+| ------------ | ---------------------------------------- | -------- | ------------------------------------------------------------------------ |
+| `kind`       | `ScalarType`                             | true     |                                                                          |
+| `version`    | `v1`                                     | true     |                                                                          |
+| `definition` | [ScalarTypeV1](#scalartype-scalartypev1) | true     | Definition of a user-defined scalar type that that has opaque semantics. |
 
 #### ScalarTypeV1 {#scalartype-scalartypev1}
 
@@ -160,11 +160,11 @@ The name of a user-defined type.
 
 Definition of a user-defined Open DD object type.
 
-| Key          | Value                                    | Required | Description |
-| ------------ | ---------------------------------------- | -------- | ----------- |
-| `kind`       | `ObjectType`                             | true     |             |
-| `version`    | `v1`                                     | true     |             |
-| `definition` | [ObjectTypeV1](#objecttype-objecttypev1) | true     |             |
+| Key          | Value                                    | Required | Description                                       |
+| ------------ | ---------------------------------------- | -------- | ------------------------------------------------- |
+| `kind`       | `ObjectType`                             | true     |                                                   |
+| `version`    | `v1`                                     | true     |                                                   |
+| `definition` | [ObjectTypeV1](#objecttype-objecttypev1) | true     | Definition of a user-defined Open DD object type. |
 
 #### ObjectTypeV1 {#objecttype-objecttypev1}
 
@@ -216,21 +216,23 @@ connector.
 | ------------------------- | -------------------------------------------------- | -------- | ----------- |
 | `dataConnectorName`       | [DataConnectorName](#objecttype-dataconnectorname) | true     |             |
 | `dataConnectorObjectType` | string                                             | true     |             |
-| `fieldMapping`            | [FieldMapping](#objecttype-fieldmapping)           | false    |             |
+| `fieldMapping`            | [FieldMappings](#objecttype-fieldmappings)         | false    |             |
 
-#### FieldMapping {#objecttype-fieldmapping}
+#### FieldMappings {#objecttype-fieldmappings}
 
-| Key           | Value                                                | Required | Description |
-| ------------- | ---------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [ObjectFieldMapping](#objecttype-objectfieldmapping) | false    |             |
+Mapping of object fields to their source columns in the data connector.
 
-#### ObjectFieldMapping {#objecttype-objectfieldmapping}
+| Key           | Value                              | Required | Description |
+| ------------- | ---------------------------------- | -------- | ----------- |
+| `<customKey>` | [undefined](#objecttype-undefined) | false    |             |
+
+#### undefined {#objecttype-undefined}
 
 Source field directly maps to some column in the data connector.
 
-| Key      | Value                                                | Required | Description |
-| -------- | ---------------------------------------------------- | -------- | ----------- |
-| `column` | [ColumnFieldMapping](#objecttype-columnfieldmapping) | true     |             |
+| Key      | Value                                                | Required | Description                                                               |
+| -------- | ---------------------------------------------------- | -------- | ------------------------------------------------------------------------- |
+| `column` | [ColumnFieldMapping](#objecttype-columnfieldmapping) | true     | The target column in a data connector object that a source field maps to. |
 
 #### ColumnFieldMapping {#objecttype-columnfieldmapping}
 
@@ -250,10 +252,23 @@ The name of a data connector.
 
 GraphQL configuration of an Open DD object type.
 
-| Key             | Value                                                 | Required | Description                                                                                             |
-| --------------- | ----------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `typeName`      | [GraphQlTypeName](#objecttype-graphqltypename) / null | false    | The name to use for the GraphQL type representation of this object type when used in an output context. |
-| `inputTypeName` | [GraphQlTypeName](#objecttype-graphqltypename) / null | false    | The name to use for the GraphQL type representation of this object type when used in an input context.  |
+| Key                | Value                                                                           | Required | Description                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `typeName`         | [GraphQlTypeName](#objecttype-graphqltypename) / null                           | false    | The name to use for the GraphQL type representation of this object type when used in an output context. |
+| `inputTypeName`    | [GraphQlTypeName](#objecttype-graphqltypename) / null                           | false    | The name to use for the GraphQL type representation of this object type when used in an input context.  |
+| `apolloFederation` | [ObjectApolloFederationConfig](#objecttype-objectapollofederationconfig) / null | false    | Configuration for exposing apollo federation related types and directives.                              |
+
+#### ObjectApolloFederationConfig {#objecttype-objectapollofederationconfig}
+
+| Key    | Value                                                                | Required | Description |
+| ------ | -------------------------------------------------------------------- | -------- | ----------- |
+| `keys` | [[ApolloFederationObjectKey](#objecttype-apollofederationobjectkey)] | true     |             |
+
+#### ApolloFederationObjectKey {#objecttype-apollofederationobjectkey}
+
+| Key      | Value                                | Required | Description |
+| -------- | ------------------------------------ | -------- | ----------- |
+| `fields` | [[FieldName](#objecttype-fieldname)] | true     |             |
 
 #### GraphQlTypeName {#objecttype-graphqltypename}
 
@@ -302,11 +317,11 @@ The name of a user-defined type.
 
 Definition of a type representing a boolean expression on an Open DD object type.
 
-| Key          | Value                                                                                       | Required | Description |
-| ------------ | ------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `kind`       | `ObjectBooleanExpressionType`                                                               | true     |             |
-| `version`    | `v1`                                                                                        | true     |             |
-| `definition` | [ObjectBooleanExpressionTypeV1](#objectbooleanexpressiontype-objectbooleanexpressiontypev1) | true     |             |
+| Key          | Value                                                                                       | Required | Description                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------- |
+| `kind`       | `ObjectBooleanExpressionType`                                                               | true     |                                                                                   |
+| `version`    | `v1`                                                                                        | true     |                                                                                   |
+| `definition` | [ObjectBooleanExpressionTypeV1](#objectbooleanexpressiontype-objectbooleanexpressiontypev1) | true     | Definition of a type representing a boolean expression on an Open DD object type. |
 
 #### ObjectBooleanExpressionTypeV1 {#objectbooleanexpressiontype-objectbooleanexpressiontypev1}
 
