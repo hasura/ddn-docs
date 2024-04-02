@@ -201,7 +201,7 @@ options](#introspectionoptions).
 
 ### Manually editing
 
-There are ocasions when the automatic introspection falls short of your needs. For instance, it may not detect a
+There are occasions when the automatic introspection falls short of your needs. For instance, it may not detect a
 particular entity type, or it may pick names according to conventions you disagree with.
 
 If you find yourself in this situation you may still be able to bring your configuration into an acceptable state by
@@ -213,7 +213,7 @@ a new `introspectionOptions` field that could integrate the pattern with the nor
 raise a feature request issue on the [Issue Tracker][NDC Postgres Issue Tracker].
 
 One section of the configuration that will always need manual authorship is the user-defined
-[`nativeQueries`](#nativeQueries).
+[`nativeQueries`](/connectors/postgresql/native-queries/index.mdx).
 
 ## `version`
 
@@ -483,124 +483,6 @@ Then you may make these types available with the following configuration counter
 }
 ```
 
-### `nativeQueries` {#nativeQueries}
-
-Native queries can be defined by adding them to the `metadata.nativeQueries` section of the connector configuration.
-Each query is specified as SQL. The return structure of the query must be explicitly specified in the `"columns"` field.
-
-Native queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
-type. The arguments are not interpolated, but provided to your data source as parameters, and therefore must be specific
-values, not arbitrary SQL.
-
-#### Queries
-
-Here's an example which filters a table called `"Artist"`:
-
-```yaml
-"nativeQueries": {
-  "artist_below_id": {
-    "sql": {
-      "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
-    },
-    "columns": {
-      "ArtistId": {
-        "name": "ArtistId",
-        "type": {
-          "scalarType": "int4"
-        }
-      },
-      "Name": {
-        "name": "Name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    },
-    "arguments": {
-      "id": {
-        "name": "id",
-        "type": {
-          "scalarType": "int4"
-        }
-      }
-    }
-  }
-}
-```
-
-This will create a query called `"artist_below_id"` which takes a single argument called `"id"` of type `int4`. The
-query will return a list of objects with the fields `"ArtistId"` and `"Name"`.
-
-Note that the SQL can be defined `inline`, and can also reference a `file` that exists in the configuration directory
-using the following structure:
-
-```yaml
-"nativeQueries": {
-  "artist_below_id": {
-    "sql": {
-      "file": "artist_below_id.sql"
-    },
-...
-```
-
-And the SQL can be written in the `artist_below_id.sql` file without escaping:
-
-```sql
-SELECT *
-  FROM public."Artist"
- WHERE "ArtistId" < {{id}}
-```
-
-#### Mutations
-
-Native Query mutations can be defined the same way as regular Native Queries, with a few important tweaks:
-
-1. The Native Query should include a field `isProcedure: true`.
-2. The SQL should include a `RETURNING` clause, listing the returned columns (use `RETURNING *` to return all columns).
-
-Here's an example which inserts into a table called `"Artist"`:
-
-```yaml
-"nativeQueries": {
-  "insert_artist": {
-    "isProcedure": true,
-    "sql": {
-      "inline": "INSERT INTO public.\"Artist\" VALUES ({{id}}, {{name}}) RETURNING *"
-    },
-    "columns": {
-      "ArtistId": {
-        "name": "ArtistId",
-        "type": {
-          "scalarType": "int4"
-        }
-      },
-      "Name": {
-        "name": "Name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    },
-    "arguments": {
-      "id": {
-        "name": "id",
-        "type":{
-          "scalarType": "int4"
-        }
-      },
-      "name": {
-        "name": "name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    }
-  }
-}
-```
-
-To expose a Native Query mutation via the GraphQL API, add it as a procedure
-[command](/supergraph-modeling/commands.mdx) to the Hasura metadata.
 
 ### `aggregateFunctions`
 

@@ -38,22 +38,28 @@ Using the same tab, while we're still in the project directory, we'll add a seco
 ddn create subgraph chinook
 ```
 
-The CLI should respond that the subgraph was successfully created.
+The CLI should respond that the subgraph was successfully created and that you need to add this new subgraph to a
+SupergraphManifest to start using it in your DDN project. We can make our `base.supergraph.hml` look like this:
+
+```yaml
+kind: SupergraphManifest
+version: v1
+definition:
+  name: base
+  envfile: base.env.yaml
+  environment: dev
+  subgraphs:
+    - app
+    - chinook
+```
 
 ## Step 3: Connect a new data source
 
 Since this is a PostgreSQL database, we can add a connector manifest using the following CLI command:
 
 ```bash
-ddn add connector-manifest chinook_connector --subgraph chinook --hub-connector hasura/postgres:v0.5.0 --type cloud
+ddn add connector-manifest chinook_connector --subgraph chinook --hub-connector hasura/postgres:v0.5.1 --type cloud
 ```
-
-:::info What's a connector manifest?
-
-A [connector manifest](/ci-cd/projects.mdx) is the file which contains the details of the connector's configuration.
-This tells Hasura DDN what capabilities of the connector has and how to build your connector for your data source.
-
-:::
 
 Then, in our `base.env.yaml` in the root of the project, we can add the new subgraph and connection string:
 
@@ -62,25 +68,19 @@ chinook:
   CHINOOK_CHINOOK_CONNECTOR_CONNECTION_URI: postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
 ```
 
-We can then run `ddn dev` to generate a new build, introspect our Chinook data source, and watch for changes.
+We can then run dev mode to generate a new build, introspect our Chinook data source, and watch for changes:
 
-## Step 4: Track tables from our new source
+```bash
+ddn dev
+```
 
-As before, we'll also need to track these tables.
+:::warning remove headers
 
-**After** the build is complete, head into `/chinook/chinook_connector.hml` and run the `track all` command using VS
-Code's command palette.
+Before proceeding, let's remove the `x-hasura-role` and `x-hasura-user-id` headers we added earlier.
 
-Be sure to select `chinook_connector` and `Default` from the options that appear from the palette's dropdown menu:
+:::
 
-<Thumbnail src="/img/get-started/trackAllFromChinook.gif" alt="Tracking chinook models" width="1000px" />
-
-When you run this command and make your selections, the CLI will automatically generate a new build and the Chinook data
-source will be available in your API:
-
-<Thumbnail src="/img/get-started/0.0.1_console_chinook-api.png" alt="Chinook in API" width="1000px" />
-
-## Step 5: Create relationships across subgraphs
+## Step 4: Create relationships across subgraphs
 
 Finally, we'll create a relationship between entities in our different subgraphs. Our Chinook data source is a
 music-based dataset that contains a type called `Artist`. We have a `favorite_artist` colum on our `app_users` table.
@@ -102,10 +102,10 @@ definition:
   mapping:
     - source:
         fieldPath:
-          - fieldName: favorite_artist
+          - fieldName: favoriteArtist
       target:
         modelField:
-          - fieldName: ArtistId
+          - fieldName: artistId
 ```
 
 :::tip Remember, you can use LSP to assist in authoring metadata
@@ -122,7 +122,7 @@ query MyQuery {
   app_users {
     name
     user_to_favorite_artist {
-      Name
+      name
     }
   }
 }
