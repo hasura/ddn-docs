@@ -26,7 +26,7 @@ seoFrontMatterUpdated: true
 A relationship allows you to query nested or linked information. This allows you to extend [type](./types.mdx) objects
 with related [models](./models.mdx) or related [commands](./commands.mdx).
 
-Typically, relationships will can take one of two forms:
+Relationships can take one of two forms:
 
 | Type of relationship | Description                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------ |
@@ -40,6 +40,54 @@ The latter is a more advanced relationship type, allowing you to query related d
 you want to query data from a command that is not directly related to a model and even return the data in a nested
 format. You can imagine enriching or transforming data from a command and returning it as part of a nested query,
 thereby saving the need for multiple queries or data transformations in your application.
+
+For example, let's say you have a `user` type in your graph, and also a command which responds with the current
+logged-in user information (say `getLoggedInUserInfo`). Now you can link these two, by defining a relationship from the
+`user` type to `getLoggedInUserInfo`.
+
+Let's say we name the relationship `currentSession`. Now you can make a single query from your client to get a user's
+data and their current session information.
+
+**Example:** fetch a list of users and the current session information of each user:
+
+<GraphiQLIDE
+  query={`query {
+  users {
+    id
+    username
+    currentSession {
+      activeSince
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "username": "sit_amet",
+        "currentSession": {
+          "activeSince": "2024-04-01T07:08:22+0000"
+        }
+      },
+      {
+        "id": 2,
+        "username": "fancy_nibh",
+        "currentSession": {
+          "activeSince": "2024-04-01T07:08:22+0000"
+        }
+      },
+      {
+        "id": 3,
+        "username": "just_joe",
+        "currentSession": {
+          "activeSince": "2024-04-01T07:08:22+0000"
+        }
+      }
+    ]
+  }
+}`}
+/>
 
 :::info LSP-assisted authoring
 
