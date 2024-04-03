@@ -118,11 +118,11 @@ The response to the above request should identify the `User` with `user_id: 1`.
 The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
 more CRUD operations.
 
-| Key          | Value                     | Required | Description |
-| ------------ | ------------------------- | -------- | ----------- |
-| `kind`       | `Model`                   | true     |             |
-| `version`    | `v1`                      | true     |             |
-| `definition` | [ModelV1](#model-modelv1) | true     |             |
+| Key          | Value                     | Required | Description                                                                                                                                   |
+| ------------ | ------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kind`       | `Model`                   | true     |                                                                                                                                               |
+| `version`    | `v1`                      | true     |                                                                                                                                               |
+| `definition` | [ModelV1](#model-modelv1) | true     | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
 
 #### ModelV1 {#model-modelv1}
 
@@ -173,6 +173,8 @@ graphql:
     queryRootField: ArticleMany
     description: Description for the select many ArticleMany
   orderByExpressionType: Article_Order_By
+  apolloFederation:
+    entitySource: true
 description: Description for the model Articles
 ```
 
@@ -180,12 +182,13 @@ description: Description for the model Articles
 
 The definition of how a model appears in the GraphQL API.
 
-| Key                     | Value                                                                    | Required | Description                                                                                                                                    |
-| ----------------------- | ------------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `selectUniques`         | [[SelectUniqueGraphQlDefinition](#model-selectuniquegraphqldefinition)]  | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
-| `selectMany`            | [SelectManyGraphQlDefinition](#model-selectmanygraphqldefinition) / null | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
-| `argumentsInputType`    | [GraphQlTypeName](#model-graphqltypename) / null                         | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
-| `orderByExpressionType` | [GraphQlTypeName](#model-graphqltypename) / null                         | false    | The type name of the order by expression input type.                                                                                           |
+| Key                     | Value                                                                                  | Required | Description                                                                                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectUniques`         | [[SelectUniqueGraphQlDefinition](#model-selectuniquegraphqldefinition)]                | true     | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany`            | [SelectManyGraphQlDefinition](#model-selectmanygraphqldefinition) / null               | false    | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType`    | [GraphQlTypeName](#model-graphqltypename) / null                                       | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
+| `orderByExpressionType` | [GraphQlTypeName](#model-graphqltypename) / null                                       | false    | The type name of the order by expression input type.                                                                                           |
+| `apolloFederation`      | [ModelApolloFederationConfiguration](#model-modelapollofederationconfiguration) / null | false    | Apollo Federation configuration                                                                                                                |
 
 **Example:**
 
@@ -200,6 +203,12 @@ selectMany:
   description: Description for the select many ArticleMany
 orderByExpressionType: Article_Order_By
 ```
+
+#### ModelApolloFederationConfiguration {#model-modelapollofederationconfiguration}
+
+| Key            | Value   | Required | Description                                                                                   |
+| -------------- | ------- | -------- | --------------------------------------------------------------------------------------------- |
+| `entitySource` | boolean | true     | Whether this model should be used as the source for fetching \_entity for object of its type. |
 
 #### GraphQlTypeName {#model-graphqltypename}
 
@@ -271,11 +280,11 @@ The name of a field in a user-defined object type.
 
 Description of how a model maps to a particular data connector
 
-| Key                 | Value                                         | Required | Description                                                 |
-| ------------------- | --------------------------------------------- | -------- | ----------------------------------------------------------- |
-| `dataConnectorName` | [DataConnectorName](#model-dataconnectorname) | true     | The name of the data connector backing this model.          |
-| `collection`        | string                                        | true     | The collection in the data connector that backs this model. |
-| `argumentMapping`   | [ArgumentMapping](#model-argumentmapping)     | false    |                                                             |
+| Key                 | Value                                         | Required | Description                                                                    |
+| ------------------- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
+| `dataConnectorName` | [DataConnectorName](#model-dataconnectorname) | true     | The name of the data connector backing this model.                             |
+| `collection`        | string                                        | true     | The collection in the data connector that backs this model.                    |
+| `argumentMapping`   | [ArgumentMapping](#model-argumentmapping)     | false    | Mapping from model argument names to data connector collection argument names. |
 
 **Example:**
 
@@ -285,6 +294,10 @@ collection: articles
 ```
 
 #### ArgumentMapping {#model-argumentmapping}
+
+Mapping of a comand or model argument name to the corresponding argument name used in the data connector. The key of
+this object is the argument name used in the command or model and the value is the argument name used in the data
+connector.
 
 | Key           | Value  | Required | Description |
 | ------------- | ------ | -------- | ----------- |
