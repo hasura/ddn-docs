@@ -40,3 +40,8 @@ for (const [metadataObject, file] of Object.entries(topLevelMetadataObjects)) {
 
   fileToObjectsMapping[file].push(metadataObject);
 }
+
+export const externalMetadataRefs: Record<string, string> = {
+  'Schema Response': '[Schema Response](https://hasura.github.io/ndc-spec/specification/schema/index.html)',
+  'Capabilities Response': '[Capabilities Response](https://hasura.github.io/ndc-spec/specification/capabilities.html)',
+};
