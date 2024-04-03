@@ -43,11 +43,11 @@ the data source.
 
 Definition of a data connector, used to bring in sources of data and connect them to OpenDD models and commands.
 
-| Key          | Value                                                         | Required | Description |
-| ------------ | ------------------------------------------------------------- | -------- | ----------- |
-| `kind`       | `DataConnectorLink`                                           | true     |             |
-| `version`    | `v1`                                                          | true     |             |
-| `definition` | [DataConnectorLinkV1](#dataconnectorlink-dataconnectorlinkv1) | true     |             |
+| Key          | Value                                                         | Required | Description                                 |
+| ------------ | ------------------------------------------------------------- | -------- | ------------------------------------------- |
+| `kind`       | `DataConnectorLink`                                           | true     |                                             |
+| `version`    | `v1`                                                          | true     |                                             |
+| `definition` | [DataConnectorLinkV1](#dataconnectorlink-dataconnectorlinkv1) | true     | Definition of a data connector - version 1. |
 
 #### DataConnectorLinkV1 {#dataconnectorlink-dataconnectorlinkv1}
 
@@ -55,9 +55,9 @@ Definition of a data connector - version 1.
 
 | Key       | Value                                                                   | Required | Description                                                                                                                                                    |
 | --------- | ----------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`    | String                                                                  | true     | The name of the data connector.                                                                                                                                |
-| `url`     | Object                                                                  | true     | The url(s) to access the data connector.                                                                                                                       |
-| `headers` | Object                                                                  | false    | Key value map of HTTP headers to be sent with each request to the data connector.                                                                              |
+| `name`    | [DataConnectorName](#dataconnectorlink-dataconnectorname)               | true     | The name of the data connector.                                                                                                                                |
+| `url`     | [DataConnectorUrlV1](#dataconnectorlink-dataconnectorurlv1)             | true     | The url(s) to access the data connector.                                                                                                                       |
+| `headers` | [HttpHeaders](#dataconnectorlink-httpheaders)                           | false    | Key value map of HTTP headers to be sent with each request to the data connector.                                                                              |
 | `schema`  | [SchemaAndCapabilitiesV01](#dataconnectorlink-schemaandcapabilitiesv01) | true     | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
 
 **Example:**
@@ -95,15 +95,59 @@ of the data connector is not looked up.
 | `schema`       | [Schema Response](https://hasura.github.io/ndc-spec/specification/schema/index.html)       | true     |             |
 | `capabilities` | [Capabilities Response](https://hasura.github.io/ndc-spec/specification/capabilities.html) | true     |             |
 
+#### HttpHeaders {#dataconnectorlink-httpheaders}
+
+Key value map of HTTP headers to be sent with an HTTP request. The key is the header name and the value is a potential
+reference to an environment variable.
+
+| Key           | Value                                                   | Required | Description                                               |
+| ------------- | ------------------------------------------------------- | -------- | --------------------------------------------------------- |
+| `<customKey>` | [EnvironmentValue](#dataconnectorlink-environmentvalue) | false    | Either a literal string or a reference to a Hasura secret |
+
+#### DataConnectorUrlV1 {#dataconnectorlink-dataconnectorurlv1}
+
+The url(s) to access the data connector.
+
+**Must have exactly one of the following fields:**
+
+| Key             | Value                                                   | Required | Description |
+| --------------- | ------------------------------------------------------- | -------- | ----------- |
+| `singleUrl`     | [EnvironmentValue](#dataconnectorlink-environmentvalue) | false    |             |
+| `readWriteUrls` | [ReadWriteUrls](#dataconnectorlink-readwriteurls)       | false    |             |
+
+#### ReadWriteUrls {#dataconnectorlink-readwriteurls}
+
+| Key     | Value                                                   | Required | Description |
+| ------- | ------------------------------------------------------- | -------- | ----------- |
+| `read`  | [EnvironmentValue](#dataconnectorlink-environmentvalue) | true     |             |
+| `write` | [EnvironmentValue](#dataconnectorlink-environmentvalue) | true     |             |
+
+#### EnvironmentValue {#dataconnectorlink-environmentvalue}
+
+Either a literal string or a reference to a Hasura secret
+
+**Must have exactly one of the following fields:**
+
+| Key            | Value  | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `value`        | string | false    |             |
+| `valueFromEnv` | string | false    |             |
+
+#### DataConnectorName {#dataconnectorlink-dataconnectorname}
+
+The name of a data connector.
+
+**Value:** string
+
 ### DataConnectorScalarRepresentation {#dataconnectorscalarrepresentation-dataconnectorscalarrepresentation}
 
 The representation of a data connector scalar in terms of Open DD types
 
-| Key          | Value                                                                                                         | Required | Description |
-| ------------ | ------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `kind`       | `DataConnectorScalarRepresentation`                                                                           | true     |             |
-| `version`    | `v1`                                                                                                          | true     |             |
-| `definition` | [DataConnectorScalarRepresentationV1](#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1) | true     |             |
+| Key          | Value                                                                                                         | Required | Description                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
+| `kind`       | `DataConnectorScalarRepresentation`                                                                           | true     |                                                                         |
+| `version`    | `v1`                                                                                                          | true     |                                                                         |
+| `definition` | [DataConnectorScalarRepresentationV1](#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1) | true     | The representation of a data connector scalar in terms of Open DD types |
 
 #### DataConnectorScalarRepresentationV1 {#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1}
 
@@ -144,10 +188,10 @@ The name of the Open DD type that this data connector scalar type should be repr
 
 **One of the following values:**
 
-| Value                                                               | Description |
-| ------------------------------------------------------------------- | ----------- |
-| [InbuiltType](#dataconnectorscalarrepresentation-inbuilttype)       |             |
-| [CustomTypeName](#dataconnectorscalarrepresentation-customtypename) |             |
+| Value                                                               | Description                       |
+| ------------------------------------------------------------------- | --------------------------------- |
+| [InbuiltType](#dataconnectorscalarrepresentation-inbuilttype)       | An inbuilt primitive OpenDD type. |
+| [CustomTypeName](#dataconnectorscalarrepresentation-customtypename) |                                   |
 
 #### CustomTypeName {#dataconnectorscalarrepresentation-customtypename}
 
