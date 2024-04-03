@@ -14,6 +14,8 @@ toc_max_heading_level: 2
 ---
 
 import Thumbnail from "@site/src/components/Thumbnail";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 # Create a Project
 
@@ -110,7 +112,7 @@ The CLI will respond with information about your new project, including the cons
 
 Additionally, it will log some information about the [project](/docs/ci-cd/projects.mdx) that was created locally.
 
-## Step 4: Add a connector manifest
+## Step 4: Add a connector manifest {#step-4-add-a-connector-manifest}
 
 A [**connector manifest**](/ci-cd/config.mdx#supergraph-manifests) is the file which contains the details of the
 connector's configuration. This tells Hasura DDN what capabilities the connector has and how to build that connector for
@@ -157,27 +159,9 @@ INF connector "hasura/postgres:<VERSION>" with name "app_connector" added succes
 INF Please add your Postgres Connection URI as the value for CONNECTION_URI env var in app/app_connector/connector/app_connector.build.hml file
 ```
 
-Next, we can open our project in VS Code and open the `app_connector.build.hml` file in our project. We can then add the
-`CONNECTION_URI` environment variable:
-
-```yaml
-kind: ConnectorManifest
-version: v1
-spec:
-  supergraphManifests:
-    - base
-definition:
-  name: app_connector
-  type: cloud
-  connector:
-    type: hub
-    name: hasura/postgres:v0.5.1
-  deployments:
-    - context: .
-      env:
-        CONNECTION_URI:
-          value: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
-```
+With connection strings, you have two options for adding them to your metadata. You can either add them as environment
+variables in your `*.env.yaml` files — which is the preferred secure method — or as raw connection strings in a
+connector's build manifest. Make your choice below and add your connection string:
 
 :::info We're using the docs sample app's connection string
 
@@ -202,6 +186,68 @@ postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
 </details>
 
 :::
+
+<Tabs groupId="string-preference" className="api-tabs">
+<TabItem value="EnvVar" label="Environment Variable">
+
+Open your project in VS Code and open the `base.env.yaml` file in the root of your project. Then, add the
+`APP_CONNECTOR_CONNECTION_URI` environment variable with the connection string under the `app` subgraph:
+
+```yaml
+supergraph: {}
+subgraphs:
+  app:
+    APP_CONNECTOR_CONNECTION_URI: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
+```
+
+Next, update your `app_connector.build.hml` file to reference this new environment variable:
+
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: app_connector
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/postgres:v0.5.1
+  deployments:
+    - context: .
+      env:
+        CONNECTION_URI:
+          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
+```
+
+</TabItem>
+<TabItem value="RawString" label="Raw Connection String">
+
+Open your project in VS Code and open the `app_connector.build.hml` file in our project. We can then add the
+`CONNECTION_URI`'s value:
+
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: app_connector
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/postgres:v0.5.1
+  deployments:
+    - context: .
+      env:
+        CONNECTION_URI:
+          value: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
+```
+
+</TabItem>
+</Tabs>
 
 ## Step 5: Build your GraphQL API
 

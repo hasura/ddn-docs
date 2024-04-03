@@ -55,8 +55,40 @@ The `hasura.yaml` file also contains a `subgraphs` section. This section is used
 
 ### \*.env.yaml
 
-This file is used to store environment variables. The CLI will handle this file for you, but you can also manually edit
-it if you need to. The CLI generates a `base.env.yaml` for you by default.
+This file is used to store environment variables. The CLI generates a `base.env.yaml` for you by default. You can add
+environment variables by adding key-value pairs under a particular subgraph:
+
+```yaml
+supergraph: {}
+subgraphs:
+  #highlight-start
+  app:
+    APP_CONNECTOR_CONNECTION_URI: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
+#highlight-end
+```
+
+And then referencing them in your metadata using `valueFromEnv`:
+
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: app_connector
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/postgres:v0.5.1
+  deployments:
+    - context: .
+      env:
+        CONNECTION_URI:
+          #highlight-start
+          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
+#highlight-end
+```
 
 ### Supergraph manifests {#supergraph-manifests}
 
