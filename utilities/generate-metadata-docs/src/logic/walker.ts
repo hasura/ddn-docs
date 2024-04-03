@@ -15,12 +15,13 @@ import {
   isScalarType,
   simplifyMetadataDefinition,
 } from './helpers';
-import { topLevelMetadataRefs } from '../entities/objects';
+import { externalMetadataRefs, topLevelMetadataRefs } from '../entities/objects';
 
 export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string {
   const markdownArray = [];
   const visitedRefs = {
     ...topLevelMetadataRefs,
+    ...externalMetadataRefs,
   };
 
   // needed to generate uniq anchor tags
