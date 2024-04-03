@@ -112,8 +112,9 @@ Additionally, it will log some information about the [project](/docs/ci-cd/proje
 
 ## Step 4: Add a connector manifest
 
-A [**connector manifest**](/ci-cd/projects.mdx) is the file which contains the details of the connector's configuration.
-This tells Hasura DDN what capabilities of the connector has and how to build your connector for your data source.
+A [**connector manifest**](/ci-cd/config.mdx#supergraph-manifests) is the file which contains the details of the
+connector's configuration. This tells Hasura DDN what capabilities the connector has and how to build that connector for
+your data source.
 
 Let's move into the project directory:
 
@@ -153,17 +154,29 @@ The CLI will respond with information about our successfully-added connector and
 
 ```bash
 INF connector "hasura/postgres:<VERSION>" with name "app_connector" added successfully to Subgraph "app"
-INF Please add your Postgres Connection URI as the value for APP_APP_CONNECTOR_CONNECTION_URI env var in base.env.yaml file
+INF Please add your Postgres Connection URI as the value for CONNECTION_URI env var in app/app_connector/connector/app_connector.build.hml file
 ```
 
-Next, we can open our project in VS Code and open the `base.env.yaml` file in the root of our project. We can add the
-`APP_APP_CONNECTOR_CONNECTION_URI` environment variable referenced by the output of the CLI in our `base.env.yaml` file:
+Next, we can open our project in VS Code and open the `app_connector.build.hml` file in our project. We can then add the
+`CONNECTION_URI` environment variable:
 
 ```yaml
-supergraph: {}
-subgraphs:
-  app:
-    APP_APP_CONNECTOR_CONNECTION_URI: postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: app_connector
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/postgres:v0.5.1
+  deployments:
+    - context: .
+      env:
+        CONNECTION_URI:
+          value: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
 :::info We're using the docs sample app's connection string
@@ -171,13 +184,19 @@ subgraphs:
 <details>
 
 <summary>
-  We also have another data set available in this dropdown or, if you wish, you can add your own connection string.
+  We also have other data sets available in this dropdown or, if you wish, you can add your own connection string.
 </summary>
 
 A music-platform themed dataset.
 
 ```text
 postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
+```
+
+A dataset composed of various functions.
+
+```text
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
 ```
 
 </details>
@@ -196,44 +215,23 @@ We'll see the CLI creates our first build, displays the URL for our project's Co
 changes 🎉
 
 ```bash
-INF Preparing project...
-INF Preparing connector "app_connector" in subgraph "app"
-INF Updating ConnectorManifest for connector "app_connector" in subgraph "app"
-INF Building connector "app_connector" in subgraph "app"
-INF Waiting for deployment with ID "d2c96069-8dc6-452f-9b12-84896535492b" to go through...
-◑+---------------+------------------------------------------------------------------------------+
-| File Id       | e50204eb-1198-42c0-80fe-af049d79d4ae                                         |
-+---------------+------------------------------------------------------------------------------+
-| Deployment Id | d2c96069-8dc6-452f-9b12-84896535492b                                         |
-+---------------+------------------------------------------------------------------------------+
-| Build Url     | <URL>                                                                        |
-+---------------+------------------------------------------------------------------------------+
-INF Connectors built and running successfully
-INF Updating ConnectorLink for connector "app_connector" in subgraph app
-INF Updating URL...
-INF env file base.env.yaml updated
-INF Connector Link updated...
+INF Models and commands added to the project successfully
 INF Doing a supergraph build...
-◑+---------------+--------------------------------------------------------------------+
-| Build ID      | 39aea467-07c4-4b13-8bbf-e475bb083267                               |
-+---------------+--------------------------------------------------------------------+
-| Build Version | cfe1ca9abf                                                         |
-+---------------+--------------------------------------------------------------------+
-| Build URL     | https://<PROJECT_NAME>-<ENV>-cfe1ca9abf.ddn.hasura.me/graphql      |
-+---------------+--------------------------------------------------------------------+
-| Project Id    | <PROJECT_ID>                                                       |
-+---------------+--------------------------------------------------------------------+
-# highlight-start
-| Console Url   | https://console.hasura.com/project/<PROJECT_NAME>/graphql          |
-# highlight-end
-+---------------+--------------------------------------------------------------------+
-| FQDN          | <PROJECT_NAME>.ddn.hasura.me                                       |
-+---------------+--------------------------------------------------------------------+
-| Environment   | dev                                                                |
-+---------------+--------------------------------------------------------------------+
-| Description   | Hasura Watch build at                                              |
-|               | <TIMESTAMP>                                                        |
-+---------------+--------------------------------------------------------------------+
+INF Building SupergraphManifest "base"...
+◑+---------------+----------------------------------------------------------------------------------------------------+
+| Build Version | 3405408c06                                                                                         |
++---------------+----------------------------------------------------------------------------------------------------+
+| Description   | Dev build - Tue, 02 Apr 2024                                                                       |
+|               | 13:36:57 CDT                                                                                       |
++---------------+----------------------------------------------------------------------------------------------------+
+| API URL       | https://<PROJECT_NAME>-default-3405408c06.ddn.hasura.app/graphql                                   |
++---------------+----------------------------------------------------------------------------------------------------+
+| Console URL   | https://console.hasura.io/project/<PROJECT_NAME>/environment/default/build/3405408c06/graphql      |
++---------------+----------------------------------------------------------------------------------------------------+
+| Project Name  | <PROJECT_NAME>                                                                                     |
++---------------+----------------------------------------------------------------------------------------------------+
+INF Starting ConnectorManifest watcher for connector "app_connector" in subgraphName "app"
+INF Starting ConnectorLink watcher for connector "app_connector" in subgraphName "app"
 ```
 
 :::info What's a build?
@@ -241,9 +239,9 @@ INF Doing a supergraph build...
 A [**build**](/ci-cd/builds.mdx) in Hasura DDN is an immutable state of your GraphQL API that represents a milestone in
 your development cycle.
 
-A project can have multiple builds for each [**environment**](/ci-cd/environments.mdx), and only one can be applied to
-an environment's endpoint. All builds on a project have a unique URL on Hasura DDN to access their GraphQL API which can
-be shared with other users.
+Each [**project**](/ci-cd/projects.mdx) can have multiple builds, but only one can be applied to a the project's
+endpoint. All builds on a project have a unique URL on Hasura DDN to access their GraphQL API which can be shared with
+other users.
 
 Builds allow you and your team to quickly iterate and experiment with your project's metadata and allow for easier
 rollbacks on production and greater collaboration during development.
@@ -264,13 +262,13 @@ query OrdersQuery {
   app_orders {
     id
     status
-    delivery_date
-    User {
+    deliveryDate
+    users {
       id
       name
       email
     }
-    Product {
+    products {
       id
       name
     }
