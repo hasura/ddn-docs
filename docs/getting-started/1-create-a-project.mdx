@@ -114,9 +114,9 @@ Additionally, it will log some information about the [project](/docs/ci-cd/proje
 
 ## Step 4: Add a connector manifest {#step-4-add-a-connector-manifest}
 
-A [**connector manifest**](/ci-cd/config.mdx#supergraph-manifests) is the file which contains the details of the
-connector's configuration. This tells Hasura DDN what capabilities the connector has and how to build that connector for
-your data source.
+A [**connector manifest**](/supergraph-modeling/build-manifests.mdx#connector-manifests) is the file which contains the
+details of the connector's configuration. This tells Hasura DDN what capabilities the connector has and how to build
+that connector for your data source.
 
 Let's move into the project directory:
 
@@ -128,28 +128,7 @@ Then, create a connector manifest by passing a name — in this case `app_connec
 command:
 
 ```bash
-ddn add connector-manifest app_connector
-```
-
-The CLI will ask us if we want to add a `cloud` or `endpoints` connector. For now, we'll choose `cloud`:
-
-```bash
-? type (one of cloud | endpoints . This determines how the connector will be deployed. If unsure, choose 'cloud'):
-#highlight-start
-  ▸ cloud
-#highlight-end
-    endpoints
-```
-
-The CLI will then ask us which type of connector we want to add. We'll choose `postgres`:
-
-```bash
-✔ cloud
-Use the arrow keys to navigate: ↓ ↑ → ←
-? hub-connector (name and version of connector in Hasura connector hub):
-#highlight-start
-  ▸ hasura/postgres:<VERSION>
-#highlight-end
+ddn add connector-manifest app_connector --subgraph app --hub-connector hasura/postgres --type cloud
 ```
 
 The CLI will respond with information about our successfully-added connector and alert us to our next steps:
@@ -208,25 +187,13 @@ subgraphs:
     APP_CONNECTOR_CONNECTION_URI: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
-Next, update your `app_connector.build.hml` file to reference this new environment variable:
+Next, update your `/app/app_connector/connector/app_connector.build.hml` file to reference this new environment
+variable:
 
 ```yaml
-kind: ConnectorManifest
-version: v1
-spec:
-  supergraphManifests:
-    - base
-definition:
-  name: app_connector
-  type: cloud
-  connector:
-    type: hub
-    name: hasura/postgres:v0.5.1
-  deployments:
-    - context: .
-      env:
-        CONNECTION_URI:
-          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
+# other configuration above
+CONNECTION_URI:
+  valueFromEnv: APP_CONNECTOR_CONNECTION_URI
 ```
 
 </TabItem>
@@ -236,22 +203,9 @@ Open your project in VS Code and open the `app_connector.build.hml` file in our 
 `CONNECTION_URI`'s value:
 
 ```yaml
-kind: ConnectorManifest
-version: v1
-spec:
-  supergraphManifests:
-    - base
-definition:
-  name: app_connector
-  type: cloud
-  connector:
-    type: hub
-    name: hasura/postgres:v0.5.1
-  deployments:
-    - context: .
-      env:
-        CONNECTION_URI:
-          value: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
+# other configuration above
+CONNECTION_URI:
+  value: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
 </TabItem>
@@ -369,7 +323,7 @@ all the necessary configuration and metadata in your project's directory:
 └── supergraph
 ```
 
-You can learn more about project structure by visiting our [CI/CD section](/ci-cd/overview.mdx).
+You can learn more about project structure by visiting our [CI/CD section](/ci-cd/config.mdx).
 
 ### Connector deployment
 
