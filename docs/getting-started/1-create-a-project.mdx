@@ -40,8 +40,7 @@ During this process, we'll add a [**data connector**](/docs/connectors/overview.
 source. Data connectors can connect to any data source. Connectors are available from Hasura and the community on the
 [Connector Hub](https://hasura.io/connectors), or you can [write your own](/connectors/build-your-own-connector.mdx).
 
-Once a project is defined, we can use the `dev` command to continually watch for changes and build the project to make
-it available as an API on Hasura DDN.
+Once a project is defined, we can use the `dev` command to continually watch for changes, build the supergraph on Hasura DDN, and make the supergraph API available.
 
 :::
 
@@ -55,6 +54,8 @@ it available as an API on Hasura DDN.
 
 If you don't have a PostgreSQL database and prefer to connect to a cloud provider, check out our friends at
 [Neon](https://neon.tech).
+
+You can connect a local database by using a tool like [ngrok](https://ngrok.com/).
 
 Additionally, we've provisioned a few read-only databases for you to use for this guide if you'd like. The connection
 strings are available later in the third step.
@@ -95,7 +96,7 @@ ddn --help
 We'll use the `create project` command to create a new project:
 
 ```bash
-ddn create project --dir ./my-first-supergraph
+ddn create project --dir ./my-first-project
 ```
 
 The CLI will respond with information about your new project, including the console URL:
@@ -110,7 +111,7 @@ The CLI will respond with information about your new project, including the cons
 +-------------+-----------------------------------------------------+
 ```
 
-Additionally, it will log some information about the [project](/docs/ci-cd/projects.mdx) that was created locally.
+Additionally, it [scaffolds some files](/docs/ci-cd/projects.mdx) to get you started with working on your project.
 
 ## Step 4: Add a connector manifest {#step-4-add-a-connector-manifest}
 
@@ -121,21 +122,21 @@ that connector for your data source.
 Let's move into the project directory:
 
 ```bash
-cd my-first-supergraph
+cd my-first-project
 ```
 
-Then, create a connector manifest by passing a name — in this case `app_connector` — to the `add connector-manifest`
+Then, create a connector manifest by passing a name — in this case `mydb` — to the `add connector-manifest`
 command:
 
 ```bash
-ddn add connector-manifest app_connector --subgraph app --hub-connector hasura/postgres:v0.5.1 --type cloud
+ddn add connector-manifest mydb --hub-connector hasura/postgres --type cloud
 ```
 
-The CLI will respond with information about our successfully-added connector and alert us to our next steps:
+The CLI will respond with information about our successfully-added connector manifest and alert us to our next steps:
 
 ```bash
-INF connector "hasura/postgres:<VERSION>" with name "app_connector" added successfully to Subgraph "app"
-INF Please add your Postgres Connection URI as the value for CONNECTION_URI env var in app/app_connector/connector/app_connector.build.hml file
+INF connector "hasura/postgres:<VERSION>" with name "mydb" added successfully to Subgraph "app"
+INF Please add your Postgres Connection URI as the value for CONNECTION_URI env var in app/mydb/connector/mydb.build.hml file
 ```
 
 With connection strings, you have two options for adding them to your metadata. You can either add them as environment
@@ -145,7 +146,7 @@ connector's build manifest. Make your choice below and add your connection strin
 :::info We're using the docs sample app's connection string
 
 These databases are all located in `us-west-1`. As such, there may be some performance issues as the data traverses the
-network from where it's hosted to your nearest Hasura region. We're using the `docs-sample-app`'s connection string, but
+network from where it's hosted to your nearest Hasura region. We're using the `v3-docs-sample-app`'s connection string, but
 also have other data sets available in this dropdown or, if you wish, you can add your own connection string.
 
 <details>
@@ -178,16 +179,16 @@ postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
 <TabItem value="EnvVar" label="Environment Variable">
 
 Open your project in VS Code and open the `base.env.yaml` file in the root of your project. Then, add the
-`APP_CONNECTOR_CONNECTION_URI` environment variable with the connection string under the `app` subgraph:
+`MYDB_CONNECTION_URI` environment variable with the connection string under the `app` subgraph:
 
 ```yaml
 supergraph: {}
 subgraphs:
   app:
-    APP_CONNECTOR_CONNECTION_URI: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
+    MYDB_CONNECTION_URI: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
-Next, update your `/app/app_connector/connector/app_connector.build.hml` file to reference this new environment
+Next, update your `/app/mydb/connector/mydb.build.hml` file to reference this new environment
 variable:
 
 ```yaml
@@ -197,7 +198,7 @@ spec:
   supergraphManifests:
     - base
 definition:
-  name: app_connector
+  name: mydb
   type: cloud
   connector:
     type: hub
@@ -206,13 +207,13 @@ definition:
     - context: .
       env:
         CONNECTION_URI:
-          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
+          valueFromEnv: MYDB_CONNECTION_URI
 ```
 
 </TabItem>
 <TabItem value="RawString" label="Raw Connection String">
 
-Open your project in VS Code and open the `app_connector.build.hml` file in our project. We can then add the
+Open your project in VS Code and open the `mydb.build.hml` file in our project. We can then add the
 `CONNECTION_URI`'s value:
 
 ```yaml
@@ -222,7 +223,7 @@ spec:
   supergraphManifests:
     - base
 definition:
-  name: app_connector
+  name: mydb
   type: cloud
   connector:
     type: hub
@@ -264,8 +265,8 @@ INF Building SupergraphManifest "base"...
 +---------------+----------------------------------------------------------------------------------------------------+
 | Project Name  | <PROJECT_NAME>                                                                                     |
 +---------------+----------------------------------------------------------------------------------------------------+
-INF Starting ConnectorManifest watcher for connector "app_connector" in subgraphName "app"
-INF Starting ConnectorLink watcher for connector "app_connector" in subgraphName "app"
+INF Starting ConnectorManifest watcher for connector "mydb" in subgraphName "app"
+INF Starting ConnectorLink watcher for connector "mydb" in subgraphName "app"
 ```
 
 :::info What's a build?
@@ -282,8 +283,8 @@ rollbacks on production and greater collaboration during development.
 
 Under the hood, `ddn dev` is using two CLI commands:
 
-- `update connector-manifest`
-- `update connector-link`
+- `ddn update connector-manifest mydb`
+- `ddn update connector-link mydb --add-all-resources`
 
 These commands update a connector's [`BuildContext`](/supergraph-modeling/build-manifests.mdx#connector-manifests) and
 the schema of its [`DataConnectorLink`](/supergraph-modeling/data-connectors.mdx#dataconnectorlink-dataconnectorlink)
@@ -294,10 +295,9 @@ respectively. Running these two allows you to track tables from your data source
 
 ## Step 6: Run your first query
 
-We're using the Docs Sample App schema for the visuals in this guide, but you can use the GraphiQL Explorer in Console
-to create your own query or write it manually:
-
 <Thumbnail src="/img/get-started/0.0.1_console-execute-query-on-build.png" alt="Execute a query" width="1000px" />
+
+You can use the GraphiQL Explorer in Console to create your own query or write it manually.
 
 :::info Using our sample db? You can use this query!
 
@@ -335,7 +335,7 @@ git commit -m "init supergraph"
 
 :::
 
-## What just happened?
+## Let's recap
 
 ### Project configuration
 
@@ -359,8 +359,7 @@ deploy them on your own infrastructure.
 ### Models tracked
 
 When you ran `ddn dev`, the CLI tracked all the tables in the PostgreSQL database as models.
-[**Models**](/supergraph-modeling/models.mdx), defined in metadata, tell our GraphQL API how to expose collections from
-our data sources.
+[**Models**](/supergraph-modeling/models.mdx), defined in metadata, add collections from our data sources to the GraphQL API.
 
 ### Relationships
 
@@ -368,4 +367,6 @@ Additionally, Hasura instantly added all foreign-key [**relationships**](/superg
 our data source to our API. This unlocks the potential for rich, deeply-nested queries that reach across different
 models in our API.
 
-Next, let's see how easy it is to add authorization to your API!
+## Next up: authorization
+
+Let's see how easy it is to add authorization to your API!
