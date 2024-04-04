@@ -14,17 +14,9 @@ seoFrontMatterUpdated: false
 
 ## Introduction
 
-Native queries allow you to run custom SQL queries on your PostgreSQL database. This allows you to run queries that are
-not supported by Hasura's GraphQL engine. This unlocks the full power of your database, allowing you to run complex
+Native Queries allow you to run custom SQL queries on your PostgreSQL database. This allows you to run queries that are
+not supported by Hasura DDN's GraphQL engine. This unlocks the full power of your database, allowing you to run complex
 queries, mutations, and even vector searches — all directly from your Hasura GraphQL API.
-
-Native queries can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json` for a
-particular connector. Each query is specified as SQL. The return structure of the query must be explicitly specified in
-the `"columns"` field.
-
-Native queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
-type. The arguments are not interpolated, but provided to your data source as parameters, and therefore must be specific
-values, not arbitrary SQL.
 
 ## Types of Native Queries
 
@@ -33,16 +25,3 @@ You can check out examples of the different types of native queries below:
 - [Custom Queries](/connectors/postgresql/native-queries/custom-queries.mdx)
 - [Custom Mutations](/connectors/postgresql/native-queries/custom-mutations.mdx)
 - [Vector Search](/connectors/postgresql/native-queries/vector-search.mdx)
-
-## Native Queries SQL Requirements {#native-queries-sql-requirements}
-
-There are a few requirements for writing a Native Query SQL:
-
-- The SQL of a Native Query should be a single SQL statement that returns a result and should not contain a semicolon at the end,
-  as the SQL is used inside another SQL query.
-- The arguments are not interpolated, but are translated to parameters of parameterized queries (arguments like `{{id}}` and `{{name}}` are translated to `$1`, `$2`, etc.)
-  and passed as data, and therefore can only be used in place of scalar values, not table names, column names, or other arbitrary SQL, and do not need be wrapped inside quotes
-  (for example, use `{{name}}` instead of `'{{name}}'`).
-- In order to use a string argument inside a pattern, such as in a `LIKE` predicate, the argument can be concatenated with the relevant pattern parts.
-  For example: `SELECT * FROM "Artist" WHERE "Name" LIKE '%' || {{name}} || '%'`.
-- Argument names that begin with the prefix `hasura_` are reserved for internal use.
