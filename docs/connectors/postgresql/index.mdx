@@ -128,6 +128,37 @@ map names and select which functions to include. See the configuration reference
 Mutations are still undergoing active development and are likely to change in the future. See
 [mutationsVersion](config.mdx#mutationsversion).
 
+## Troubleshooting the Postgres Connector
+
+### I received the error message `error communicating with database`
+
+This error message indicates that there was a problem connecting to the database. Some common issues are a typo in the connection string,
+a firewall blocking access, etc.
+
+If you receive such an error, make sure that the postgres database is live and you can connect to it from your machine using `psql` using
+the same connection string supplied to your `ndc-postgres` connector.
+
+### I've changed my database schema and would like these changes propagated in Hasura
+
+Running the [ddn dev](/cli/commands/dev.mdx) command tells the CLI to watch for local development changes and update the ndc-postgres configuration
+when changes occurs. Note that the `metadata.tables` part of the configuration will be refreshed and overwritten when a change occurs.
+
+### I'd like to tweak how the connector works or does database introspection
+
+The connector settings can be modified by editing the connector configuration.
+For example, you can tweak the [Pool Settings](/connectors/postgresql/config.mdx#poolsettings),
+change the [Isolation Level](/connectors/postgresql/config.mdx#isolationlevel) of transactions,
+or choose [which schema not to introspect](/connectors/postgresql/config.mdx#excludedschemas).
+
+Visit the [Configuration page](/connectors/postgresql/config.mdx) for more information.
+
+### I'm having issues getting my Native Query to run
+
+There are certain requirements that the SQL of a Native Query must fulfill, such omitting the semicolon in the SQL,
+or using arguments only in place of scalar values.
+
+More information can be found in the [Native Queries SQL Requirements](/connectors/postgresql/native-queries/index.mdx) section.
+
 [PostgreSQL: pg_type]: https://www.postgresql.org/docs/current/catalog-pg-type.html
 [PostgreSQL: data types]: https://www.postgresql.org/docs/current/datatype.html
 [PostgreSQL: CREATE DOMAIN]: https://www.postgresql.org/docs/current/sql-createdomain.html
