@@ -28,9 +28,10 @@ four types of files:
 | File type                                    | Description                                                                                                                |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [`hasura.yaml`](#hasurayaml)                 | The main configuration file.                                                                                               |
-| [`*.env.yaml`](#envyaml)                     | A file that stores environment variables and pertinent information for connectors and a supergraph manifest.               |
+| [`*.env.yaml`](#envyaml)                     | A file that stores environment variables.                                                                                  |
 | [`*.supergraph.yaml`](#supergraph-manifests) | Build manifest file(s) for a project.                                                                                      |
 | `*.hml`                                      | Hasura metadata files for a project.                                                                                       |
+| [`supergraph`](#supergraph)                  | A directory, containing all the necessary configuration and metadata files, for the supergraph-level scope of a project.   |
 | [`<SUBGRAPH_DIRECTORY>`](#subgraphs)         | A directory, containing all the necessary configuration and metadata files, for a corresponding subgraph within a project. |
 
 ### hasura.yaml
@@ -40,54 +41,76 @@ This is the entrypoint to a Hasura project.
 ```yaml
 version: v1
 project: <PROJECT_NAME>
-
-supergraphManifests:
-  rootPath: "."
-  resources:
-    - "/*.hml"
-
+subgraphs:
+  app:
+    path: ./app
 defaultSupergraphManifest: base
 ```
 
 The `version` section is used to specify the version of the configuration file. The `project` field is used to specify
 the project name.
 
-The `hasura.yaml` file also contains a `supergraphManifests` section. This section is used to specify the various
-[manifest files](#supergraph-manifests) associated with the project. As you can see from this example, `base` is
-intended to use all nested `hml` files as resources in a build and is also identified as the default to use when
-creating a new build. **The `base` profile is required for a project.**
+The `hasura.yaml` file also contains a `subgraphs` section. This section is used to specify the various
+[subgraphs](#subgraphs) associated with the project.
 
 ### \*.env.yaml
 
-This file is used to store environment variables and pertinent information for connectors. The CLI will handle this file
-for you, but you can also manually edit it if you need to. The CLI generates a `base.env.yaml` for you by default.
+This file is used to store environment variables. The CLI generates a `base.env.yaml` for you by default. You can add
+environment variables by adding key-value pairs under a particular subgraph:
+
+```yaml
+supergraph: {}
+subgraphs:
+  #highlight-start
+  app:
+    APP_CONNECTOR_CONNECTION_URI: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
+#highlight-end
+```
+
+And then referencing them in your metadata using `valueFromEnv`:
+
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: app_connector
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/postgres:v0.5.1
+  deployments:
+    - context: .
+      env:
+        CONNECTION_URI:
+          #highlight-start
+          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
+#highlight-end
+```
+
+:::info Accessing environment variables
+
+In the example above, our `supergraphManifests` array references our `base.supergraph.hml` file, which contains an
+`envfile` key that maps to our `base.env.yaml`. Thus, any environment variables present in this YAML file will then be
+accessible in our HML.
+
+:::
 
 ### Supergraph manifests {#supergraph-manifests}
 
 Supergraph manifests tell Hasura DDN how to construct your supergraph. A manifest will contain information such as which
-environment to use, which subgraphs to include, and which resources to use for the build.
-
-By default, the included `base.supergraph.hml` file is populated with the following content and specifies a `dev`
-[environment](/ci-cd/environments.mdx):
+subgraphs to include and which resources to use for the build.
 
 ```yaml
 kind: SupergraphManifest
 version: v1
 definition:
   name: base
-  environment: dev
   envfile: base.env.yaml
-  supergraph:
-    rootPath: supergraph
-    resources:
-      - "*.hml"
   subgraphs:
-    - name: app
-      rootPath: app
-      resources:
-        - "*.hml"
-        - "!app_connector/connector/*"
-        - app_connector/connector/app_connector.build.hml
+    - app
 ```
 
 ### Supergraph
@@ -146,31 +169,3 @@ subgraph:
 | `<CONNECTOR_NAME>/configuration.json`   | The configuration file for the connector.                                          |
 | `<CONNECTOR_NAME>/schema.json`          | The schema file for the connector.                                                 |
 | `/connector/<CONNECTOR_NAME>.build.hml` | The build manifest for the connector.                                              |
-
-## Basic configuration
-
-When using the [ddn CLI](/cli/overview.mdx) to create a new project, you'll run the following command:
-
-```bash
-ddn quickstart
-```
-
-After completing the wizard — if using the default values — this will generate a new project directory in the current
-folder with the following structure:
-
-```bash
-<PROJECT_DIRECTORY>
-├── app_connector
-│   ├── app_connector-types.hml
-│   ├── app_connector.hml
-│   ├── connector
-│   │   ├── app_connector.build.hml
-│   │   ├── configuration.json
-│   │   └── schema.json
-```
-
-## Advanced configuration
-
-To learn more about the advanced configuration options, leveraging concepts like
-[environments](/ci-cd/environments.mdx), see the [deployment](#) page and learn about our GitHub Action for automating
-the deployment process.
