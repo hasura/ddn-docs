@@ -1,6 +1,6 @@
 ---
 title: Create a project
-sidebar_label: "I. Create a project"
+sidebar_label: "I. Create an API"
 sidebar_position: 2
 description: "Learn how to create your first project, a supergraph, and see your APIs come to life with Hasura."
 keywords:
@@ -14,8 +14,10 @@ toc_max_heading_level: 2
 ---
 
 import Thumbnail from "@site/src/components/Thumbnail";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-# Create a Project
+# Create an API
 
 ## Introduction
 
@@ -110,11 +112,11 @@ The CLI will respond with information about your new project, including the cons
 
 Additionally, it will log some information about the [project](/docs/ci-cd/projects.mdx) that was created locally.
 
-## Step 4: Add a connector manifest
+## Step 4: Add a connector manifest {#step-4-add-a-connector-manifest}
 
-A [**connector manifest**](/ci-cd/config.mdx#supergraph-manifests) is the file which contains the details of the
-connector's configuration. This tells Hasura DDN what capabilities the connector has and how to build that connector for
-your data source.
+A [**connector manifest**](/supergraph-modeling/build-manifests.mdx#connector-manifests) is the file which contains the
+details of the connector's configuration. This tells Hasura DDN what capabilities the connector has and how to build
+that connector for your data source.
 
 Let's move into the project directory:
 
@@ -126,28 +128,7 @@ Then, create a connector manifest by passing a name — in this case `app_connec
 command:
 
 ```bash
-ddn add connector-manifest app_connector
-```
-
-The CLI will ask us if we want to add a `cloud` or `endpoints` connector. For now, we'll choose `cloud`:
-
-```bash
-? type (one of cloud | endpoints . This determines how the connector will be deployed. If unsure, choose 'cloud'):
-#highlight-start
-  ▸ cloud
-#highlight-end
-    endpoints
-```
-
-The CLI will then ask us which type of connector we want to add. We'll choose `postgres`:
-
-```bash
-✔ cloud
-Use the arrow keys to navigate: ↓ ↑ → ←
-? hub-connector (name and version of connector in Hasura connector hub):
-#highlight-start
-  ▸ hasura/postgres:<VERSION>
-#highlight-end
+ddn add connector-manifest app_connector --subgraph app --hub-connector hasura/postgres:v0.5.1 --type cloud
 ```
 
 The CLI will respond with information about our successfully-added connector and alert us to our next steps:
@@ -157,8 +138,82 @@ INF connector "hasura/postgres:<VERSION>" with name "app_connector" added succes
 INF Please add your Postgres Connection URI as the value for CONNECTION_URI env var in app/app_connector/connector/app_connector.build.hml file
 ```
 
-Next, we can open our project in VS Code and open the `app_connector.build.hml` file in our project. We can then add the
-`CONNECTION_URI` environment variable:
+With connection strings, you have two options for adding them to your metadata. You can either add them as environment
+variables in your `*.env.yaml` files — which is the preferred secure method — or as raw connection strings in a
+connector's build manifest. Make your choice below and add your connection string:
+
+:::info We're using the docs sample app's connection string
+
+These databases are all located in `us-west-1`. As such, there may be some performance issues as the data traverses the
+network from where it's hosted to your nearest Hasura region. We're using the `docs-sample-app`'s connection string, but
+also have other data sets available in this dropdown or, if you wish, you can add your own connection string.
+
+<details>
+
+<summary>See connection strings »</summary>
+
+An e-commerce application.
+
+```text
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
+```
+
+A music-platform themed dataset.
+
+```text
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
+```
+
+A dataset composed of various functions.
+
+```text
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
+```
+
+</details>
+
+:::
+
+<Tabs groupId="string-preference" className="api-tabs">
+<TabItem value="EnvVar" label="Environment Variable">
+
+Open your project in VS Code and open the `base.env.yaml` file in the root of your project. Then, add the
+`APP_CONNECTOR_CONNECTION_URI` environment variable with the connection string under the `app` subgraph:
+
+```yaml
+supergraph: {}
+subgraphs:
+  app:
+    APP_CONNECTOR_CONNECTION_URI: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
+```
+
+Next, update your `/app/app_connector/connector/app_connector.build.hml` file to reference this new environment
+variable:
+
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: app_connector
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/postgres:v0.5.1
+  deployments:
+    - context: .
+      env:
+        CONNECTION_URI:
+          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
+```
+
+</TabItem>
+<TabItem value="RawString" label="Raw Connection String">
+
+Open your project in VS Code and open the `app_connector.build.hml` file in our project. We can then add the
+`CONNECTION_URI`'s value:
 
 ```yaml
 kind: ConnectorManifest
@@ -179,29 +234,8 @@ definition:
           value: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
-:::info We're using the docs sample app's connection string
-
-<details>
-
-<summary>
-  We also have other data sets available in this dropdown or, if you wish, you can add your own connection string.
-</summary>
-
-A music-platform themed dataset.
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/Chinook
-```
-
-A dataset composed of various functions.
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/AdventureWorks
-```
-
-</details>
-
-:::
+</TabItem>
+</Tabs>
 
 ## Step 5: Build your GraphQL API
 
@@ -245,6 +279,16 @@ other users.
 
 Builds allow you and your team to quickly iterate and experiment with your project's metadata and allow for easier
 rollbacks on production and greater collaboration during development.
+
+Under the hood, `ddn dev` is using two CLI commands:
+
+- `update connector-manifest`
+- `update connector-link`
+
+These commands update a connector's [`BuildContext`](/supergraph-modeling/build-manifests.mdx#connector-manifests) and
+the schema of its [`DataConnectorLink`](/supergraph-modeling/data-connectors.mdx#dataconnectorlink-dataconnectorlink)
+respectively. Running these two allows you to track tables from your data source and can be run independently of
+`ddn dev` in situations such as when your underlying database's schema changes.
 
 :::
 
