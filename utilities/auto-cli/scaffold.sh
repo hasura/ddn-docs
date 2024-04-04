@@ -17,7 +17,7 @@ echo -e '{
 ' > "$MDX_DIR/_category_.json"
 
 # List of CLI commands
-COMMANDS=("" "add" "add command" "add connector-manifest" "add model" "apply" "apply supergraph-build" "build" "build connector-manifest" "build supergraph-manifest" "completion" "completion bash" "completion fish" "completion powershell" "completion zsh" "create" "create cloud-environment-variable" "create environment" "create project" "create subpgrah" "delete" "delete cloud-environment-variable" "delete environment" "delete project" "delete subgraph" "delete supergraph-build" "dev" "get" "get cloud-environment-variable" "get connector-build" "get environment" "get project" "get region" "get subgraph" "get supergraph-build" "help" "login" "logout" "plugins" "plugins install" "plugins list" "plugins uninstall" "plugins upgrade" "update" "update command" "update connector-link" "update connector-manifest" "update model" "update-cli" "version")  
+COMMANDS=("" "add" "add command" "add connector-manifest" "add model" "apply" "apply supergraph-build" "build" "build connector-manifest" "build supergraph-manifest" "completion" "completion bash" "completion fish" "completion powershell" "completion zsh" "create" "create project" "create subgraph" "delete" "delete project" "delete subgraph" "delete supergraph-build" "dev" "get" "get connector-build" "get project" "get region" "get subgraph" "get supergraph-build" "help" "login" "logout" "plugins" "plugins install" "plugins list" "plugins uninstall" "plugins upgrade" "update" "update command" "update connector-link" "update connector-manifest" "update model" "update-cli" "version")  
 # Position counter
 position=1
 
