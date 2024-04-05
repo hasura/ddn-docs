@@ -130,7 +130,7 @@ const config: Config = {
     },
     announcementBar: {
       id: 'announcementBar-4', // Increment on change
-      content: `Learn all about Hasura DDN and celebrate the launch with us at DevDay on April 16. <a target="_blank" rel="noopener noreferrer" href="https://hasura.io/dev-day">Sign up here</a>.`,
+      content: `Learn all about Hasura DDN and celebrate the launch with us at Dev Day on April 16. <a target="_blank" rel="noopener noreferrer" href="https://hasura.io/dev-day">Sign up here</a>.`,
     },
     navbar: {
       title: '',
