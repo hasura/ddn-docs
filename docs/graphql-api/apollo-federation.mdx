@@ -16,25 +16,29 @@ seoFrontMatterUpdated: true
 ---
 
 ## Introduction
-Hasura DDN can be used as a subgraph in a supergraph built using [Apollo
-Federation](https://www.apollographql.com/docs/federation/). Apollo Federation is a way to compose multiple GraphQL
-services (called subgraphs) into a unified API (called supergraph).
+Hasura DDN itself can be used as a subgraph in an supergraph created by
+[Apollo Federation](https://www.apollographql.com/docs/federation/).
 
-:::info Let's learn about some terms used by Hasura as well as Apollo
+Apollo Federation is a way to compose multiple GraphQL services (called subgraphs) into a unified API (called a
+supergraph).
 
-Some of the terms used in Apollo Federation conflict with the terms used in Hasura. Here is a quick glossary to help you understand the terms better:
+:::info Supergraphs and Subgraph terminology in Hasura DDN and Apollo Federation
 
-| Term       | Hasura                                                                                             | Apollo Federation                                                                                               |
-| ---------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Subgraph   | A subgraph in Hasura is a notion of a module system for Hasura metadata.                           | A subgraph in Apollo Federation is a standalone GraphQL service.                                                |
-| Supergraph | A supergraph in Hasura is the GraphQL API that is created by combining multiple subgraph metadata. | A supergraph in Apollo Federation is a unified GraphQL API that is created by stitching multiple subgraph APIs. |
+Some of the naming used in Apollo Federation conflicts with the same names used in Hasura. Here is a quick glossary
+to help you understand the terms better:
+
+| Term       | Hasura                                                                                                       | Apollo Federation                                                                                               |
+|------------|--------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| Subgraph   | A subgraph in Hasura is the notion of a module of Hasura supergraph metadata.                                | A subgraph in Apollo Federation is a **standalone GraphQL service.**                                            |
+| Supergraph | A supergraph in Hasura is the collection of subgraph metadata and the resultant GraphQL API that is created. | A supergraph in Apollo Federation is a unified GraphQL API that is created by stitching multiple subgraph APIs. |
 
 :::
 
 ## Using DDN as a subgraph
 
-DDN is [Apollo Federation subgraph specification](https://www.apollographql.com/docs/federation/subgraph-spec/)
-compliant, so you can plug Hasura DDN as a subgraph in your Apollo federated supergraph.
+Hasura DDN is compliant with the
+[Apollo Federation subgraph specification](https://www.apollographql.com/docs/federation/subgraph-spec/), so you can
+plug Hasura DDN in as a subgraph in your Apollo federated supergraph.
 
 
 ```mermaid
@@ -49,7 +53,7 @@ graph LR;
 
 ```
 
-## Enabling Apollo Federation fields in metadata
+## Enabling Apollo Federation fields in Hasura DDN metadata
 
 You will need to edit the [`GraphqlConfig`](/supergraph-modeling/graphql-config/#graphqlconfig-graphqlconfig) for the
 supergraph to enable the fields required for schema stitching by the Apollo supergraph router. You will have to add the
@@ -74,16 +78,17 @@ definition:
     enableRootFields: true
 ```
 
-## Marking Type as Apollo Entity
+## Marking a Type as an Apollo Entity
 
-Types defined in Hasura DDN can also be marked as [Entities](https://www.apollographql.com/docs/federation/entities/).
-This will allow the same type to be resolved from DDN (and your other subgraphs that defines the type) as well.
+Types defined in Hasura DDN can also be marked as
+[Apollo Entities](https://www.apollographql.com/docs/federation/entities/). This will allow the same type to be
+resolved from DDN (and your other subgraphs that defines the type) as well.
 
 To mark a type as an entity, you will have to edit the metadata for the `ObjectType` and the `Model` which will be
 used to resolve the type.
 
-1. You will have to add the keys for the `ObjectType`. The
-   [keys](https://www.apollographql.com/docs/federation/entities/#1-define-a-key) can be defined as following in the
+1. Add the keys for the `ObjectType`. The [keys](https://www.apollographql.com/docs/federation/entities/#1-define-a-key)
+   can be defined as following in the
    [`definition.graphql`](/supergraph-modeling/types#objecttype-objecttypegraphqlconfiguration) for `ObjectType`:
 
    ```yaml
@@ -93,18 +98,20 @@ used to resolve the type.
          - id
    ```
 
-2. You will have to mark the Model that should act as the source for the entity. This can be done by adding the
-   following in the [`definition.graphql`](/supergraph-modeling/models#model-modelgraphqldefinition) for `Model`:
+2. Mark the `Model` that should act as the source for the entity. This can be done by adding the following in the
+   [`definition.graphql`](/supergraph-modeling/models#model-modelgraphqldefinition) for `Model`:
 
    ```yaml
    apolloFederation:
      entitySource: true
    ```
 
-:::info
+:::info Single direction Federation support
 
-The Apollo Federation support in DDN only allows extending other subgraphs with DDN types. The other way i.e.
-extending DDN types with other subgraphs is not possible currently. i.e. the following is not supported:
+Apollo Federation support in DDN only allows extending subgraphs with DDN types.
+
+The other way i.e. extending DDN types with other subgraphs is not currently possible. i.e. the following is not
+supported:
 
 The `Review` type defined in DDN:
 ```graphql
@@ -117,6 +124,7 @@ type Review {
 ```
 
 The `Product` type defined in another subgraph:
+
 ```graphql
 type Product @key(fields: "id") {
   id: ID!
