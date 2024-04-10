@@ -9,7 +9,7 @@ export default function DocsRootWrapper(props) {
     <>
       <DocsRoot {...props} />
       <BrowserOnly fallback={<div>Loading...</div>}>
-        {() => (!window.location.href.endsWith("/index") && !window.location.href.endsWith("/overview") && !window.location.href.endsWith("/overview/")) ? null : <AiChatBot/>}
+        {() => (!window.location.href.endsWith("/index") && !window.location.href.endsWith("/index/") && !window.location.href.endsWith("/overview") && !window.location.href.endsWith("/overview/")) ? null : <AiChatBot/>}
       </BrowserOnly>
     </>
   );
