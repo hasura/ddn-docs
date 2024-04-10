@@ -5,11 +5,16 @@ import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 
 export default function DocsRootWrapper(props) {
 
+  function isOnOverview(str) {
+    const regex = /(index|overview)\/?$/
+    return regex.test(str);
+  }
+
   return (
     <>
       <DocsRoot {...props} />
       <BrowserOnly fallback={<div>Loading...</div>}>
-        {() => (!window.location.href.endsWith("/index") && !window.location.href.endsWith("/index/") && !window.location.href.endsWith("/overview") && !window.location.href.endsWith("/overview/")) ? null : <AiChatBot/>}
+        {() => isOnOverview(window?.location?.href) ? <AiChatBot/> : null }
       </BrowserOnly>
     </>
   );
