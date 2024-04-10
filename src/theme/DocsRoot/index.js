@@ -6,7 +6,7 @@ import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 export default function DocsRootWrapper(props) {
 
   function isOnOverview(str) {
-    const regex = /(index|overview)\/?$/
+    const regex = /(overview)\/?$/
     return regex.test(str);
   }
 
