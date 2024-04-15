@@ -27,7 +27,49 @@ Commands are backed by **functions** or **procedures** declared in a
 [`DataConnectorLink`](/supergraph-modeling/data-connectors.mdx) allowing you to execute business logic directly from
 your GraphQL API. You can use them to validate, process or enrich data, call another API, or even log a user in.
 
-Commands are the metadata representation of these functions or procedures.
+Commands are the metadata representation of these functions or procedures. As an example, if we have a TypeScript
+function connected using the [Node.js Lambda connector](https://github.com/hasura/ndc-nodejs-lambda):
+
+```typescript
+/**
+ * @readonly Exposes the function as an NDC function (the function should only query data without making modifications)
+ */
+export function hello(name?: string) {
+  return `hello ${name ?? "world"}`;
+}
+```
+
+It would be represented in our metadata as the following command:
+
+```yaml
+---
+kind: Command
+version: v1
+definition:
+  name: Hello
+  outputType: String!
+  arguments:
+    - name: name
+      type: String
+  source:
+    dataConnectorName: <connector_name>
+    dataConnectorCommand:
+      function: hello
+  graphql:
+    rootFieldName: app_hello
+    rootFieldKind: Query
+```
+
+:::info Automatically track commands
+
+When using `ddn dev`, the CLI will automatically track functions in your `functions.ts` file as commands after
+generating their [types](/supergraph-modeling/types.mdx). However, you can also use define these commands manually in
+your metadata.
+
+Check out the custom [business logic section](#) for guidance on how to add functions and procedures using the Node.js
+Lambda connector.
+
+:::
 
 ### Functions vs. Procedures
 
