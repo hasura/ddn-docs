@@ -28,7 +28,8 @@ Let's take a look at doing this with the
 
 ## Step 1: Add the TypeScript connector
 
-Like we did with our Postgres connector, let's add the TypeScript connector:
+Let's kill dev mode by pressing `CTRL+C`. Then, like we did with our Postgres connector, let's add the TypeScript
+connector:
 
 ```bash
 ddn add connector-manifest ts_connector --subgraph app --hub-connector hasura/nodejs --type cloud
@@ -37,21 +38,27 @@ ddn add connector-manifest ts_connector --subgraph app --hub-connector hasura/no
 This will generate the necessary configuration files in addition to adding a connector manifest for our TypeScript
 connector.
 
-## Step 2: Navigate to the TypeScript connector
-
-Inside of the `/app/app_functions` directory we can find all the files the CLI generated, including `functions.ts` which
-will contain our custom logic:
+Let's go ahead and re-start dev mode so as we make changes, our API will live-update:
 
 ```bash
-├── builds
-# highlight-start
-│   ├── functions.ts
-# highlight-end
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── app_functions.build.hml
-│   └── tsconfig.json
-└── app_functions.hml
+ddn dev
+```
+
+## Step 2: Navigate to the TypeScript connector
+
+Inside of the `/app/ts_functions` directory we can find all the files the CLI generated, including
+`connector/functions.ts` which will contain our custom logic:
+
+```bash
+├── connector
+#highlight-start
+│   ├── functions.ts
+#highlight-end
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── ts_functions.build.hml
+│   └── tsconfig.json
+└── ts_functions.hml
 ```
 
 If we open `functions.ts`, we'll see the following contents:
@@ -128,7 +135,7 @@ by running the following query:
 
 ```graphql
 query ScoldUserQuery {
-  app_ScoldUser(userId: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb")
+  app_scoldUser(userId: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb")
 }
 ```
 
@@ -142,7 +149,7 @@ with. Let's add the `pg` package so we can directly interact with our database.
 In an available terminal tab, run the following from the root of the project:
 
 ```bash
-cd ./app/app_functions/connector
+cd ./app/ts_functions/connector
 ```
 
 Then, let's install the `pg` package and its types:
@@ -244,8 +251,10 @@ Upon saving the file, your API will be re-built. If you head to your project's c
 can directly call your TypeScript function from your API based on your user's ID:
 
 ```graphql
-query MyQuery {
+query UserQueryWithCommand {
   app_users(where: { id: { _eq: "7cf0a66c-65b7-11ed-b904-fb49f034fbbb" } }) {
+    id
+    email
     scold_user
   }
 }
@@ -258,7 +267,9 @@ And the response is:
   "data": {
     "app_users": [
       {
-        "app_scold_user": "DON'T DO THAT, SEAN!"
+        "id": "7cf0a66c-65b7-11ed-b904-fb49f034fbbb",
+        "email": "seandemo@hasura.io",
+        "scold_user": "DON'T DO THAT, SEAN!"
       }
     ]
   }
@@ -270,7 +281,7 @@ And the response is:
 Of course, we don't want _any_ user accessing this command from the API. Just as we did earlier with the `users` model,
 with commands we can also declaratively restrict access to specific roles using permissions.
 
-Find the `ScoldUser.hml` file in `/app/app_functions/commands` and let's use the LSP to help us create a permission.
+Find the `ScoldUser.hml` file in `/app/ts_functions/commands` and let's use the LSP to help us create a permission.
 Within this file, you'll see `CommandPermissions` for `ScoldUser` command. There's already a permissions array with the
 role of `admin` enabled by default.
 
