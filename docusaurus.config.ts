@@ -14,7 +14,7 @@ const config: Config = {
 
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/docs/3.0',
+  baseUrl: process.env.CF_PAGES === '1' ? '/' : '/docs/3.0',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
