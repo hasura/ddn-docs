@@ -14,6 +14,7 @@ import CiCd from '@site/static/icons/upload-cloud-02.svg';
 import ProjectConfiguration from '@site/static/icons/dataflow-01.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
+import Enterprise from '@site/static/icons/features/enterprise.svg';
 import Glossary from '@site/static/icons/box.svg';
 import Quickstart from '@site/static/icons/speedometer-04.svg';
 import SupergraphModeling from '@site/static/icons/cpu-chip-01.svg';
@@ -71,6 +72,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'observability-icon':
       icons = <Observability />;
+      break;
+    case 'enterprise-icon':
+      icons = <Enterprise />;
       break;
     case 'glossary-icon':
       icons = <Glossary />;
