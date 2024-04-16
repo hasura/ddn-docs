@@ -97,17 +97,9 @@
                         "envfile": {
                           "type": "string",
                           "description": "Path to the YAML file containing environment variables."
-                        },
-                        "subgraphs": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "Names of subgraphs to be considered.",
-                          "minItems": 1
                         }
                       },
-                      "required": ["name", "subgraphs"],
+                      "required": ["name"],
                       "additionalProperties": false,
                       "description": "Details of how to build the Supergraph.",
                       "title": "SupergraphManifestDefinition"
@@ -688,6 +680,7 @@
                                               "description": "Source of the Authorization token",
                                               "oneOf": [
                                                 {
+                                                  "title": "JWTBearerAuthorizationLocation",
                                                   "description": "Get the bearer token from the `Authorization` header.",
                                                   "type": "object",
                                                   "required": ["type"],
@@ -1187,7 +1180,8 @@
                             },
                             "url": {
                               "description": "The url(s) to access the data connector.",
-                              "allOf": [
+                              "title": "DataConnectorUrlRef",
+                              "oneOf": [
                                 {
                                   "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorUrlV1",
                                   "title": "DataConnectorUrlV1",
@@ -1225,6 +1219,19 @@
                                       "additionalProperties": false
                                     }
                                   ]
+                                },
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/FnManifestRef",
+                                  "title": "Fn::ManifestRef",
+                                  "description": "Refer a ConnectorManifest to build and derive the connector URL from",
+                                  "type": "object",
+                                  "required": ["Fn::ManifestRef"],
+                                  "properties": {
+                                    "Fn::ManifestRef": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "additionalProperties": false
                                 }
                               ]
                             },
@@ -1338,6 +1345,17 @@
                                               "type": "object",
                                               "required": ["aggregate_functions", "comparison_operators"],
                                               "properties": {
+                                                "representation": {
+                                                  "description": "A description of valid values for this scalar type. Defaults to `TypeRepresentation::JSON` if omitted",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/schema/definitions/TypeRepresentation"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
                                                 "aggregate_functions": {
                                                   "description": "A map from aggregate function names to their definitions. Result type names must be defined scalar types declared in ScalarTypesCapabilities.",
                                                   "type": "object",
@@ -1353,6 +1371,240 @@
                                                   }
                                                 }
                                               }
+                                            },
+                                            "TypeRepresentation": {
+                                              "title": "Type Representation",
+                                              "description": "Representations of scalar types",
+                                              "oneOf": [
+                                                {
+                                                  "description": "JSON booleans",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["boolean"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "Any JSON string",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["string"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "Any JSON number",
+                                                  "deprecated": true,
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["number"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "Any JSON number, with no decimal part",
+                                                  "deprecated": true,
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["integer"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["int8"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["int16"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["int32"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["int64"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "An IEEE-754 single-precision floating-point number",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["float32"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "An IEEE-754 double-precision floating-point number",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["float64"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "Arbitrary-precision decimal string",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["bigdecimal"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "UUID string (8-4-4-4-12)",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["uuid"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "ISO 8601 date",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["date"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "ISO 8601 timestamp",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["timestamp"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "ISO 8601 timestamp-with-timezone",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["timestamptz"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "GeoJSON, per RFC 7946",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["geography"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "GeoJSON Geometry object, per RFC 7946",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["geometry"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "Base64-encoded bytes",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["bytes"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "Arbitrary JSON",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["json"]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "description": "One of the specified string values",
+                                                  "type": "object",
+                                                  "required": ["one_of", "type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["enum"]
+                                                    },
+                                                    "one_of": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "string"
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              ]
                                             },
                                             "AggregateFunctionDefinition": {
                                               "title": "Aggregate Function Definition",
@@ -2078,6 +2330,8 @@
                                         "description": "Mapping of object fields to their source columns in the data connector.",
                                         "type": "object",
                                         "additionalProperties": {
+                                          "$id": "https://hasura.io/jsonschemas/metadata/FieldMapping",
+                                          "title": "FieldMapping",
                                           "oneOf": [
                                             {
                                               "description": "Source field directly maps to some column in the data connector.",
@@ -2415,6 +2669,8 @@
                               "description": "The name of the Open DD type that this data connector scalar type should be represented as.",
                               "allOf": [
                                 {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/TypeName",
+                                  "title": "TypeName",
                                   "anyOf": [
                                     {
                                       "$id": "https://hasura.io/jsonschemas/metadata/InbuiltType",
@@ -3754,11 +4010,19 @@
                                                         "required": ["fieldIsNull"],
                                                         "properties": {
                                                           "fieldIsNull": {
+                                                            "$id": "https://hasura.io/jsonschemas/metadata/FieldIsNullPredicate",
+                                                            "title": "FieldIsNullPredicate",
+                                                            "description": "Predicate to check if the given field is null.",
                                                             "type": "object",
                                                             "required": ["field"],
                                                             "properties": {
                                                               "field": {
-                                                                "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/1/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                                "description": "The name of the field that should be checked for a null value.",
+                                                                "allOf": [
+                                                                  {
+                                                                    "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/1/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                                  }
+                                                                ]
                                                               }
                                                             },
                                                             "additionalProperties": false

@@ -14,9 +14,7 @@ const config: Config = {
 
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: process.env.CF_PAGES === '1'
-    ? '/'
-    : '/docs/3.0',
+  baseUrl: process.env.CF_PAGES === '1' ? '/' : '/docs/3.0',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -40,8 +38,9 @@ const config: Config = {
   customFields: {
     docsBotEndpointURL: (() => {
       console.log('process.env.release_mode docs-bot', process.env.release_mode);
-      if (process.env.CF_PAGES === '1') {return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';}
-      else {
+      if (process.env.CF_PAGES === '1') {
+        return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
+      } else {
         switch (process.env.release_mode) {
           case 'development':
             return 'ws://localhost:8000/hasura-docs-ai';
@@ -86,7 +85,7 @@ const config: Config = {
         },
         blog: false,
         googleTagManager: {
-            containerId: 'GTM-PF5MQ2Z',
+          containerId: 'GTM-PF5MQ2Z',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -109,11 +108,11 @@ const config: Config = {
     ],
     async function tailwind(context, options) {
       return {
-        name: "docusaurus-tailwindcss",
+        name: 'docusaurus-tailwindcss',
         configurePostCss(postcssOptions) {
           // Appends TailwindCSS and AutoPrefixer.
-          postcssOptions.plugins.push(require("tailwindcss"));
-          postcssOptions.plugins.push(require("autoprefixer"));
+          postcssOptions.plugins.push(require('tailwindcss'));
+          postcssOptions.plugins.push(require('autoprefixer'));
           return postcssOptions;
         },
       };
@@ -185,7 +184,7 @@ const config: Config = {
   markdown: {
     mermaid: true,
   },
-  themes: ['@docusaurus/theme-mermaid']
+  themes: ['@docusaurus/theme-mermaid'],
 };
 
 export default config;
