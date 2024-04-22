@@ -141,7 +141,9 @@ export function getArrayItemType(metadataObject: JSONSchema7Definition): JSONSch
 }
 
 export function getTitle(metadataObject: JSONSchema7Definition): string {
-  return metadataObject.title || getParsedRef(metadataObject.$ref);
+  const titleFromId = metadataObject['$id']?.split('/').pop();
+
+  return titleFromId || metadataObject.title || getParsedRef(metadataObject.$ref);
 }
 
 export function getDescription(metadataObject: JSONSchema7Definition): string {
