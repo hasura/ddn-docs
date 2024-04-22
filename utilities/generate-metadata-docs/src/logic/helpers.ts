@@ -141,6 +141,15 @@ export function getArrayItemType(metadataObject: JSONSchema7Definition): JSONSch
 }
 
 export function getTitle(metadataObject: JSONSchema7Definition): string {
+  const components = metadataObject['$id']?.split('/').pop()?.split('_for_');
+
+  if (components && components.length > 1) { // e.g. JWTClaimsMappingPathEntry_for_Array_of_Role
+    const root = components.shift();
+    const specialisation = components.join('_for_').replaceAll('_', ' ');
+
+    return root + ' (' + specialisation + ')';
+  }
+
   return metadataObject.title || getParsedRef(metadataObject.$ref);
 }
 
@@ -165,7 +174,14 @@ export function formatLink(linkText: string): string {
 }
 
 export function getRefAnchor(metadataObject: JSONSchema7Definition, rootTitle: string): string {
-  return `#${formatLink(`${rootTitle}-${getTitle(metadataObject)}`)}`;
+  const components = metadataObject['$id']?.split('/').pop()?.split('_for_');
+  let subtitle = metadataObject.title || getParsedRef(metadataObject.$ref);
+
+  if (components && components.length > 1) {
+    subtitle = components.join('_for_')
+  }
+
+  return `#${formatLink(`${rootTitle}-${subtitle}`)}`;
 }
 
 export function getRefLink(metadataObject: JSONSchema7Definition, rootTitle: string): string {
