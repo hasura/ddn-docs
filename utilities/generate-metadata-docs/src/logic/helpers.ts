@@ -177,7 +177,7 @@ export function getRefAnchor(metadataObject: JSONSchema7Definition, rootTitle: s
   const components = metadataObject['$id']?.split('/').pop()?.split('_for_');
   let subtitle = metadataObject.title || getParsedRef(metadataObject.$ref);
 
-  if (components && components.length > 1) {
+  if (components && components.length > 1) { // e.g. JWTClaimsMappingPathEntry_for_Array_of_Role
     subtitle = components.join('_for_')
   }
 
