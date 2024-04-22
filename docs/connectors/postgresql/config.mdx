@@ -105,7 +105,8 @@ here in abbreviated form:
     "compositeTypes": {},
     "nativeQueries": {},
     "aggregateFunctions": {},
-    "comparisonOperators": {}
+    "comparisonOperators": {},
+    "typeRepresentations": {}
   },
   "introspectionOptions": {
     "excludedSchemas": [
@@ -570,6 +571,44 @@ Note that the support for comparison operators is not yet aware of schema namesp
 should be defined in the `search_path` of the database user used by the data connector (e.g., the `public` schema).
 
 :::
+
+### `typeRepresentations`
+
+The `metadata.typeRepresentations` field defines the type representations of the various **scalar types** that
+appear in a project. If a type does not have a defined type representation, the default type representation is opaque json.
+
+The type representation of a scalar type indicates what values are considered acceptable in requests, and what values are expected
+to be returned in the response.
+
+#### `int8` and `numeric` types
+
+The default type representations of `int8` and `numeric` types are `int64AsString` and `bigDecimalAsString` respectively.
+These indicate that values accepted in requests and returned in response will have a string value json representation,
+to improve compatibility with common JavaScript clients.
+
+It is possible to configure this option to represent these types as numbers instead. To do so, configure the type representation
+of the `int8` type to `int64`, and/or configure the type representation of the `numeric` type to `bigDecimal` as follows:
+
+```diff
+  { ...
+    "metadata": {
+      ...
+      "typeRepresentations": {
+        "Phone": "string",
+        "CardSuit": {
+          "enum": ["hearts", "clubs", "diamonds", "spades"]
+        },
+        ...
+-       "int8": "int64AsString",
++       "int8": "int64",
+-       "numeric": "bigDecimalAsString",
++       "numeric": "bigDecimal",
+        ...
+      }
+      ...
+    }
+  }
+```
 
 ## `introspectionOptions`
 

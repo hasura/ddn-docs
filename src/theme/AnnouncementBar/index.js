@@ -25,7 +25,7 @@ export default function AnnouncementBar() {
   const isDarkMode = definedColorMode === 'dark';
 
   return (
-    <div className={'p-6 md:p-8 lg:p-10 lg:pb-4 ' + styles.announcementWrapper}>
+    <div className={styles.announcementWrapper}>
       <div
         className={styles.announcementBar}
         style={{backgroundColor, color: textColor}}

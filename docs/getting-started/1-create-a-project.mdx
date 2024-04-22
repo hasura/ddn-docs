@@ -36,9 +36,10 @@ We'll create a **project** on Hasura DDN, which is fully defined in metadata fil
 We'll use the CLI's `create` command, which is a convenient way of setting up these files using best practices, to
 scaffold out our project.
 
-During this process, we'll add a [**data connector**](/docs/connectors/overview.mdx) to connect to a PostgreSQL data
-source. Data connectors can connect to any data source. Connectors are available from Hasura and the community on the
-[Connector Hub](https://hasura.io/connectors), or you can [write your own](/connectors/build-your-own-connector.mdx).
+During this process, we'll add a pair of **data connectors** to connect to a PostgreSQL data source and to run custom
+logic. Data connectors can connect to any data source, be it a database, REST API, TypeScript functions, or anything in
+between. Connectors are available from Hasura and the community on the [Connector Hub](https://hasura.io/connectors), or
+you can [write your own](/connectors/build-your-own-connector.mdx).
 
 Once a project is defined, we can use the `dev` command to continually watch for changes and build the project to make
 it available as an API on Hasura DDN.
@@ -110,9 +111,9 @@ The CLI will respond with information about your new project, including the cons
 +-------------+-----------------------------------------------------+
 ```
 
-Additionally, it will log some information about the [project](/docs/project-configuration/projects.mdx) that was created locally.
+Additionally, it will log some information about the [project](/docs/project-configuration/projects.mdx).
 
-## Step 4: Add a connector manifest {#step-4-add-a-connector-manifest}
+## Step 4: Add the Postgres Connector {#step-4-add-a-connector-manifest}
 
 A [**connector manifest**](/supergraph-modeling/build-manifests.mdx#connector-manifests) is the file which contains the
 details of the connector's configuration. This tells Hasura DDN what capabilities the connector has and how to build
@@ -139,8 +140,8 @@ INF Please add your Postgres Connection URI as the value for CONNECTION_URI env 
 ```
 
 With connection strings, you have two options for adding them to your metadata. You can either add them as environment
-variables in your `*.env.yaml` files — which is the preferred secure method — or as raw connection strings in a
-connector's build manifest. Make your choice below and add your connection string:
+variables in your `*.env.yaml` files or as raw connection strings in a connector's build manifest. Make your choice
+below and add your connection string:
 
 :::info We're using the docs sample app's connection string
 
@@ -196,6 +197,9 @@ CONNECTION_URI:
   valueFromEnv: APP_CONNECTOR_CONNECTION_URI
 ```
 
+Notice, when we use an environment variable, we must change the key to `valueFromEnv` instead of `value`. This tells
+Hasura DDN to look for the value in the environment variable we've defined instead of using the value directly.
+
 </TabItem>
 <TabItem value="RawString" label="Raw Connection String">
 
@@ -207,6 +211,9 @@ Open your project in VS Code and open the `app_connector.build.hml` file in our 
 CONNECTION_URI:
   value: "postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
+
+If you _are_ storing sensitive information, such as connection strings in your `.env.yaml` files, you should add these
+to your gitignore so as to avoid accidentally committing them to version control.
 
 </TabItem>
 </Tabs>
@@ -244,12 +251,12 @@ INF Starting ConnectorLink watcher for connector "app_connector" in subgraphName
 
 :::info What's a build?
 
-A [**build**](/project-configuration/builds.mdx) in Hasura DDN is an immutable state of your GraphQL API that represents a milestone in
-your development cycle.
+A [**build**](/project-configuration/builds.mdx) in Hasura DDN is an immutable state of your GraphQL API that represents
+a milestone in your development cycle.
 
-Each [**project**](/project-configuration/projects.mdx) can have multiple builds, but only one can be applied to a the project's
-endpoint. All builds on a project have a unique URL on Hasura DDN to access their GraphQL API which can be shared with
-other users.
+Each [**project**](/project-configuration/projects.mdx) can have multiple builds, but only one can be applied to a the
+project's endpoint. All builds on a project have a unique URL on Hasura DDN to access their GraphQL API which can be
+shared with other users.
 
 Builds allow you and your team to quickly iterate and experiment with your project's metadata and allow for easier
 rollbacks on production and greater collaboration during development.
