@@ -40,43 +40,31 @@ For multi-region routing, you will add configuration for each of the data source
 
 An example configuration for the PostgreSQL `HasuraHubDataConnector`is provided below:
 
-```yaml {7-8,26-27}
-kind: HasuraHubDataConnector
+```yaml
+kind: ConnectorManifest
 version: v1
+spec:
+  supergraphManifests:
+    - base
 definition:
-  name: db
-  connectorId: hasura/postgres
-  connectorConfiguration:
-    - region: gcp-europe-west1
-      mode: ReadOnly
-      configuration:
-        version: 1
-        metadata: &db-metadata
-          tables:
-            Album:
-              schemaName: public
-              tableName: Album
-              columns:
-                AlbumId:
-                  name: AlbumId
-                  type: integer
-        aggregateFunctions:
-          integer: {}
-          text: {}
-        connectionUri:
-          uri:
-            stringValueFromSecret: PG_EUROPE_URL
-    - region: gcp-us-east4
+  name: mypg
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/postgres:v0.6.0
+  deployments:
+    - context: .
       mode: ReadWrite
-      configuration:
-        version: 1
-        metadata: *db-metadata
-        aggregateFunctions:
-          integer: {}
-          text: {}
-        connectionUri:
-          uri:
-            stringValueFromSecret: PG_US_URL
+      region: gcp-us-west2
+      env:
+        CONNECTION_URI:
+          valueFrom: CONNECTION_URI_FOR_READ_WRITE_REPLICA
+    - context: .
+      mode: Read
+      region: gcp-asia-south1
+      env:
+        CONNECTION_URI:
+          valueFrom: CONNECTION_URI_FOR_READ_REPLICA
 ```
 
 For the above configuration, Hasura DDN will route all the write queries (mutations) to the database in the
