@@ -1,0 +1,125 @@
+---
+title: Billing
+sidebar_label: "Billing"
+sidebar_position: 10
+sidebar_class_name: billing-icon
+description: "Learn about DDN billing"
+keywords:
+  - Hasura DDN billing
+  - Hasura DDN plan
+  - Data transfer
+  - DDN Free
+  - DDN Base
+  - DDN Advanced
+  - Dedicated
+  - Data passthrough
+---
+
+# Hasura DDN Billing
+
+## Overview
+
+[Hasura DDN Pricing](https://hasura.io/pricing/v3) is designed to be simple with fewer pricing components while
+maintaining consistency across different plans and deployment methods. Additionally, this pricing model remains
+independent of traffic usage, meaning that you won't incur higher costs as your traffic or usage grows.
+
+## DDN Pricing Units and Terminology
+
+| Pricing Unit      | Details                                                                                                                                                                                                                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model             | The number of models for billing purposes maps directly to the sum of [Model](/supergraph-modeling/models.mdx) and [Command](/supergraph-modeling/commands.mdx) objects in the metadata. A model or a command can be created from a database table, view, microservice, APIs, etc. |
+| Active Model      | An active model is defined as a model that is accessed more than 1000 times a month. A model is considered to be accessed if it is queried over the GraphQL API either directly or via a relationship                                                                              |
+| Availability Zone | An Availability Zone is a redundant location within a data center where Hasura is running. These typically maps to "zones" on major cloud providers.                                                                                                                               |
+| Data Transfer     | Amount of data in Gibibytes (GiB) transferred across various channels while running a Hasura instance.                                                                                                                                                                             |
+
+## DDN Plans
+
+| DDN Plan     | Use Case                                                                        | Details                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| DDN Free     | Ideal for individual developers building and running a supergraph at any scale. | <ul><li>Unlimited models, at any scale</li><li>1 supergraph developer</li><li>Observability: 15-minute retention</li></ul> |
+| DDN Base     | Ideal for a single team building a business-critical supergraph.                | <ul><li>Unlimited supergraph developers</li><li>Observability: 30-day retention</li></ul>                                  |
+| DDN Advanced | Ideal for multiple teams collaborating on a federated supergraph.               | <ul><li>Federated collaboration</li><li>Multi-repo CI/CD</li></ul>                                                         |
+
+## DDN Pricing
+
+| DDN Plan     | $ /Active Model /month | $ /Availability zone /month                                                  | $/GB of Data transfer                                                                                |
+| ------------ | ---------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| DDN Free     | No charges             | No charges                                                                   | No charges                                                                                           |
+| DDN Base     | $5                     | <ul> <li> $0 on shared infra </li> <li>$1,000 for dedicated infra </li></ul> | <ul> <li> $0 on shared infra </li> <li> On actuals as charged to Hasura by cloud provider </li></ul> |
+| DDN Advanced | $30                    | <ul> <li> $0 on shared infra </li> <li>$1,000 for dedicated infra </li></ul> | <ul> <li> $0 on shared infra </li> <li> On actuals as charged to Hasura by cloud provider </li></ul> |
+
+## Hasura DDN on Dedicated infrastructure
+
+For enhanced security, compliance and regulatory reasons, you can run Hasura on a dedicated infrastructure or as we call
+it `Private DDN`.
+
+Your active-model prices will stay consistent with those in shared infrastructure. However, there will be a monthly
+charge of $1000 for each Availability Zone (AZ) where you have provisioned Hasura.
+
+## Data Transfer
+
+### Sources of Data Transfer
+
+Data transfer costs depend on the cloud service provider hosting your Hasura deployment and the data sources.
+
+### AWS
+
+##### Traffic type
+
+1. Data transfer from internet to AWS
+2. Data transfer from AWS to internet
+3. Data transfer between your workload and other AWS services
+   - Accessing services within the same AWS Region
+   - Accessing services across AWS Regions
+4. Data transfer within different components of your workload
+   - Workload components in same AWS Region
+   - Workload components in different AWS Regions
+5. Data transfer between AWS and on-premises data centers
+   - Data transfer over AWS Site-to-Site VPN
+   - Data transfer over AWS Direct Connect
+
+More about the prevailing AWS data transfer prices can be read here:
+
+- [AWS EC2 Pricing](https://aws.amazon.com/ec2/pricing/on-demand/)
+- [AWS Blog on Data Transfer Costs](https://aws.amazon.com/blogs/architecture/overview-of-data-transfer-costs-for-common-architectures/)
+
+### GCP
+
+#### Traffic type
+
+1. Inbound data transfer to GCP is free, however the compute for below resources is charged as part of data transfer
+   - Load balance
+   - Cloud NAT
+   - Protocol forwarding
+2. Data transfer to the same Google Cloud zone when using the internal IPv4 addresses or any IPv6 addresses
+3. Data transfer to a different Google Cloud zone in the same Google Cloud region when using the internal or external IP
+   addresses
+4. VM-to-VM data transfer when the source and destination VMs are in different Google Cloud regions.
+5. VM-to-Google service
+   - Data transfer to specific Google products such as Gmail, YouTube, Google Maps, DoubleClick, and Google Drive,
+     whether from a VM in Google Cloud with an external IP address or an internal IP address.
+   - Data transfer to a different Google Cloud service within the same region using an external IP address or an
+     internal IP address, except for Memorystore for Redis, Filestore, GKE, and Cloud SQL.
+   - Data transfer from Compute Engine and GKE to Cloud CDN and Media CDN.
+   - Data transfer to Memorystore for Redis, Filestore, Cloud SQL, and Google Kubernetes Engine within the same region
+     is priced the same as VM-to-VM traffic.
+   - Data transfer to a Google Cloud service in a different region.
+   - GCP to Internet data transfer
+
+More about the prevailing GCP data transfer prices can be read here:
+
+- [GCP Network Pricing](https://cloud.google.com/vpc/network-pricing)
+
+## Exceptions to Data Transfer Cost
+
+Hasura doesn't charge for data transfer for customers who are on Hasura DDN plans on shared infrastructure and for
+customers who host their data plane on their own infrastructure (self-hosted Hasura).
+
+### How to Reduce Data Transfer Cost
+
+Considering data transfer charges while making architectural decisions can help save costs.
+
+- Avoid routing traffic over the internet.
+- Use data peering or a VPC.
+- Traffic that crosses a Regional boundary will typically incur a data transfer charge. Avoid cross-region data transfer
+  unless your business case requires it.
