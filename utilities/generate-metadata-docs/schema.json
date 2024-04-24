@@ -185,7 +185,14 @@
                         "deployments": {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudDeployment"
+                            "anyOf": [
+                              {
+                                "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudDeployment"
+                              },
+                              {
+                                "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudRegionDeployment"
+                              }
+                            ]
                           },
                           "description": "Details about the cloud deployments for the connector.",
                           "minItems": 1
@@ -274,6 +281,55 @@
                       "additionalProperties": false,
                       "description": "Load Env var value from the provided Env vars to the command.",
                       "title": "EnvValueFromEnv"
+                    },
+                    "CloudRegionDeployment": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "region": {
+                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudDeploymentRegions",
+                          "description": "Region of the connector build"
+                        },
+                        "mode": {
+                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudDeploymentMode",
+                          "description": "Connector build deployment mode"
+                        },
+                        "context": {
+                          "type": "string",
+                          "description": "Path of the connector context directory."
+                        },
+                        "env": {
+                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/Envs",
+                          "description": "Environment variables for the connector build."
+                        }
+                      },
+                      "required": ["context", "env", "mode", "region"],
+                      "description": "Details about the regional cloud deployments for the connector.",
+                      "title": "CloudRegionDeployment"
+                    },
+                    "CloudDeploymentRegions": {
+                      "type": "string",
+                      "enum": [
+                        "gcp-asia-northeast1",
+                        "gcp-asia-south1",
+                        "gcp-asia-southeast1",
+                        "gcp-australia-southeast1",
+                        "gcp-europe-west1",
+                        "gcp-europe-west3",
+                        "gcp-southamerica-east1",
+                        "gcp-us-central1",
+                        "gcp-us-east4",
+                        "gcp-us-west1",
+                        "gcp-us-west2"
+                      ],
+                      "description": "Specifies region for the cloud connector deployment.",
+                      "title": "CloudDeploymentRegions"
+                    },
+                    "CloudDeploymentMode": {
+                      "type": "string",
+                      "enum": ["ReadWrite", "ReadOnly"],
+                      "description": "Specifies mode for the cloud connector deployment.",
+                      "title": "CloudDeploymentMode"
                     },
                     "EndpointConnectorManifestDefinition": {
                       "type": "object",
