@@ -1,0 +1,109 @@
+---
+sidebar_position: 1
+sidebar_label: MongoDB
+description: "Dive into the Hasura's Native Data Connector for MongoDB."
+keywords:
+  - hasura
+  - mongodb
+  - data connector
+  - graphql
+  - queries
+  - nosql data types
+  - graphql types
+  - configuration
+  - api
+  - database
+seoFrontMatterUpdated: true
+---
+
+# Native Data Connector for MongoDB
+
+## Introduction
+
+The Native Data Connector for MongoDB expands our connectivity options, enabling seamless integration with MongoDB
+databases. In the sections below, we'll provide an overview of the features offered by the MongoDB connector and guide
+you through the configuration process within a Hasura project.
+
+The MongoDB data connector makes available any database resource that is listed in its configuration. In order to
+populate the configuration, the connector supports introspecting the database via the CLI `update` command.
+
+## Queryable collections
+
+The MongoDB data connector supports several types of queryable collections:
+
+- Tables
+- Views
+- Native queries
+- Native procedures
+
+Tables and views are typically discovered automatically during the introspection process.
+
+Native queries are named MongoDB [aggregation pipelines][MongoDB: pipeline] that you specify in the data connector
+configuration. They are similar to a database view, but more expressive as they admit parameters similar to a function
+and do not require any DDL permissions on the database. See the configuration reference on [Native
+Queries](/connectors/mongodb/config.mdx#updating-with-introspection).
+
+Native procedures are named MongoDB [runCommand][MongoDB: runCommand] operations that you specify in the data connector
+configuration. These are commonly used for mutations, but we do support the full [runCommand][MongoDB: runCommand] API.
+See the configuration reference on [Native Procedures](/connectors/mongodb/config.mdx#updating-with-introspection).
+
+## Data types
+
+The MongoDB data connector supports any data type that MongoDB knows how encode and decode as JSON - No data type is
+handled as a special case.
+
+:::tip Data type names
+
+Many data types have aliases in MongoDB, which can be found in the [MongoDB documentation on data types][MongoDB: data
+types]. 
+
+In order to use standard GraphQL data types rather than custom data types in the resulting GraphQL schema, the DDN
+configuration enables expressing a mapping between data connector types and GraphQL types.
+
+:::
+
+:::info BSON Type Support
+
+Hasura converts values while checking against the expected type. But there are a couple of cases where we do implicit
+conversion where the BSON types have indistinguishable JSON representations, and values can be converted back to BSON
+without loss of meaning.
+
+:::
+
+## Queries
+
+The connector supports all query operations; see the [query documentation](/graphql-api/queries/index.mdx) for details.
+
+### Filtering
+
+The connector supports the introspection and usage of all binary comparison functions and operators defined for any
+tracked scalar type, built-in and user-defined alike.
+
+However, because MongoDB operators don't translate syntactically well to GraphQL, and because not all binary procedures
+are necessarily appropriate comparison operators, the introspection process needs some guidance in order to map names
+and select which functions to include. See the configuration reference for [Comparison
+Operators](/connectors/mongodb/config.mdx) for details.
+
+## Mutations
+
+Mutations are still undergoing active development and are likely to change in the future. Currently you can write you
+own mutations using [Native Procedures](/connectors/mongodb/native-procedures).
+
+## Troubleshooting the MongoDB Connector
+
+### I've changed my database schema and would like these changes propagated in Hasura
+
+TODO
+
+### I'd like to tweak how the connector works or does database introspection
+
+Visit the [Configuration page](/connectors/mongodb/config.mdx) for more information.
+
+### I'm having issues getting my Native Query to run
+
+More information can be found in the [Native Queries SQL Requirements](/connectors/mongodb/native-queries/index.mdx)
+section.
+
+[MongoDB: pipeline]: https://www.mongodb.com/docs/manual/core/aggregation-pipeline
+[MongoDB: runCommand]: https://www.mongodb.com/docs/manual/reference/method/db.runCommand
+[MongoDB: data types]: https://www.mongodb.com/docs/manual/reference/bson-types

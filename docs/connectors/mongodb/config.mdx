@@ -1,0 +1,205 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura MongoDB connector, including connection URI details,
+  native queries, and native procedures."
+keywords:
+  - hasura mongodb setup
+  - connector configuration
+  - graphql api integration
+  - database connection uri
+  - native queries
+  - native procedures
+  - graphql mutations
+  - data modeling
+  - api customization
+  - hasura configuration guide
+  - database schema management
+seoFrontMatterUpdated: true
+---
+
+# Configuration
+
+:::warning Subject to change
+
+During this active development phase, the configuration structure is subject to change.
+
+:::
+
+## Introduction
+
+This document is the reference documentation for the MongoDB data connector configuration. Configuration is broken down
+into 3 folders currently.
+1. [`schema`](#schema)
+2. [`native_queries`](#native-queries)
+3. [`native_procedures`](#native-procedures)
+
+### Schema
+
+The `schema` directory contains json files of all the collections that were introspected in your database.
+
+**Example**
+
+```json
+{
+  "name": "users",
+  "collections": {
+    "users": {
+      "type": "users"
+    }
+  },
+  "objectTypes": {
+    "users": {
+      "fields": {
+        "_id": {
+          "type": {
+            "scalar": "objectId"
+          }
+        },
+        "email": {
+          "type": {
+            "scalar": "string"
+          }
+        },
+        "name": {
+          "type": {
+            "scalar": "string"
+          }
+        },
+        "password": {
+          "type": {
+            "scalar": "string"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Name
+
+Specifies the name that gets exposed to Hasura metadata/tooling.
+
+```json
+{
+  "name": "users"
+}
+```
+
+#### Collections
+
+Contains definitions of the collection name in your database and the object type it returns
+
+```json
+{
+  "collections": {
+    "users": {
+      "type": "users"
+    }
+  }
+}
+```
+
+#### Object types
+
+Defines the returned object types. Object types contain `fields` that specify either scalar or other structural object
+types.
+
+```json
+{
+  "objectTypes": {
+    "users": {
+      "fields": {
+        "_id": {
+          "type": {
+            "scalar": "objectId"
+          }
+        },
+        "email": {
+          "type": {
+            "scalar": "string"
+          }
+        },
+        "name": {
+          "type": {
+            "scalar": "string"
+          }
+        },
+        "password": {
+          "type": {
+            "scalar": "string"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Native queries
+
+Native queries are named MongoDB [aggregation pipelines][MongoDB: pipeline] that you specify in the data connector
+configuration. They are similar to a database view, but more expressive as they admit parameters similar to a function
+and do not require any DDL permissions on the database. See the configuration reference on [Native
+Queries](#updating-with-introspection).
+
+More information in the [Native Queries](/connectors/mongodb/native-queries) documention.
+
+### Native procedures
+
+Native procedures are named MongoDB [runCommand][MongoDB: runCommand] operations that you specify in the data connector
+configuration. These are commonly used for mutations, but we do support the full [runCommand][MongoDB: runCommand] API.
+See the configuration reference on [Native Procedures](#updating-with-introspection).
+
+More information in the [Native Procedures](/connectors/mongodb/native-procedures) documention.
+
+## Configuration workflows
+
+The data connector provides a plugin to the hasura CLI to assist you in authoring configuration.
+
+We provide the `mongodb-cli-plugin`, which is a small executable whose, builds can be accessed [here](https://github.com/hasura/ndc-mongodb/releases/).
+
+:::warning Current status
+
+The intended way to commonly use this plugin is through the main `ddn` CLI.
+
+But at the time of this writing this part of the developer experience is undergoing active development, so the exact
+command invocations are likely to be different from what is described here.
+
+Therefore this document will give workflow descriptions using the data connector CLI plugin directly. This is likely to
+change in the near future.
+:::
+
+### Updating with introspection
+
+Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
+reflect those changes.
+
+Running `mongodb-cli-plugin update` in a directory will do the following:
+
+Connect to the database with the specified `connection-uri`, create a `schema` directory if one does not exist, and then
+either create or update a file for each collection that is introspected in your database.
+
+Currently `mongodb-cli-plugin` tries use any validation schemas if they exist, and falls back to sampling documents in
+your collection. The current sample size is 10. This will be configurable in future releases.
+
+### Manually editing
+
+There are occasions when the automatic introspection falls short of your needs. For instance, it may not detect a
+particular entity type, or it may pick names according to conventions you disagree with.
+
+:::note
+This only applies to the files under the `schema` directory
+:::
+
+If you find yourself in this situation you may still be able to bring your configuration into an acceptable state by
+editing it manually. In this case you'd be well advised to keep your configuration files under version control, as
+re-running the `update` command will overwrite your manually-crafted changes.
+
+[Native Queries](/connectors/mongodb/native-queries) and [Native Procedures](/connectors/mongodb/native-procedures) will
+always need manual authorship currently. We plan on improving this authorship flow in the future.
+
+[MongoDB: pipeline]: https://www.mongodb.com/docs/manual/core/aggregation-pipeline
+[MongoDB: runCommand]: https://www.mongodb.com/docs/manual/reference/method/db.runCommand
