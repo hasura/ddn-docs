@@ -36,10 +36,6 @@ schemas, then the metadata build would fail.
 
 ## Configuration
 
-For multi-region routing, you will add configuration for each of the data sources' metadata objects
-
-An example configuration for the PostgreSQL `HasuraHubDataConnector`is provided below:
-
 ```yaml
 kind: ConnectorManifest
 version: v1
@@ -60,15 +56,21 @@ definition:
         CONNECTION_URI:
           valueFrom: CONNECTION_URI_FOR_READ_WRITE_REPLICA
     - context: .
-      mode: Read
-      region: gcp-asia-south1
+      mode: ReadOnly
+      region: gcp-us-east4
       env:
         CONNECTION_URI:
-          valueFrom: CONNECTION_URI_FOR_READ_REPLICA
+          valueFrom: CONNECTION_URI_FOR_READ_REPLICA_IN_US_EAST4
+    - context: .
+      mode: ReadOnly
+      region: gcp-europe-west1
+      env:
+        CONNECTION_URI:
+          valueFrom: CONNECTION_URI_FOR_READ_REPLICA_IN_EUROPE_WEST1
 ```
 
 For the above configuration, Hasura DDN will route all the write queries (mutations) to the database in the
-`gcp-us-east4` region and the read queries (query and subscriptions) to either `gcp-us-east4` or `gcp-europe-west1`
+`gcp-us-west2` region and the read queries (query and subscriptions) to either `gcp-us-east4` or `gcp-europe-west1`
 based on the geolocation of the client.
 
 ## Supported regions
