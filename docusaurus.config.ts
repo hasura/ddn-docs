@@ -128,8 +128,8 @@ const config: Config = {
       indexName: 'hasura',
     },
     announcementBar: {
-      id: 'announcementBar-4', // Increment on change
-      content: `Learn all about Hasura DDN and celebrate the launch with us at Dev Day on April 16. <a target="_blank" rel="noopener noreferrer" href="https://hasura.io/dev-day">Sign up here</a>.`,
+      id: 'announcementBar-5', // Increment on change
+      content: `This is the documentation for Hasura DDN, the future of data delivery. <a target="_blank" rel="noopener noreferrer" href="https://hasura.io/docs/latest/index/">Click here for the Hasura v2.x docs</a>.`,
     },
     navbar: {
       title: '',
