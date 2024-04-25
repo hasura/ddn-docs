@@ -1,0 +1,65 @@
+---
+title: GraphQL API Errors
+sidebar_label: Errors
+sidebar_position: 8
+description: "Learn about error responses from the GraphQL API"
+keywords:
+  - errors
+  - api errors
+  - graphql api errors
+  - internal errors
+  - graphql api internal errors
+seoFrontMatterUpdated: true
+---
+
+# GraphQL API Errors
+
+## Introduction
+
+The GraphQL API returns an error response when the requested operation fails to execute successfully.
+Hasura provides the error responses that adhere to the [GraphQL spec](https://spec.graphql.org/October2021/#sec-Errors).
+Each error object contains only the `message` field, providing a string description of the error
+intended for the API consumer.
+
+:::info Note
+In future iterations, the error object could be expanded with additional information, such as path
+and error code.
+:::
+
+Below is an example of an error response triggered by a negative value for the `limit` argument:
+```json
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Unexpected value: expecting NON-NEGATIVE 32-bit INT, but found: -10"
+    }
+  ]
+}
+```
+
+## Internal Errors
+
+Internal errors are exceptions that are unexpected in the API execution cycle. GraphQL API responses
+for internal errors only contain the message `internal error`.
+
+```json
+{
+    "data": null,
+    "errors": [
+        {
+            "message": "internal error"
+        }
+    ]
+}
+```
+
+As an API author, you have access to details of certain internal errors, including but not limited to:
+- [DDN metadata](/supergraph-modeling/overview), such as the absence of a data source for model or command root fields and arguments,
+  and the omission of required session variables in the request.
+- [Data connector](/connectors/overview) interactions, which are useful for debugging connection or
+interface errors with your custom data connectors.
+
+The details of an internal error are available through [traces](/observability/traces). It is recommended to review all error spans
+within the trace to obtain details of the internal error. If still the trace does not reveal the details, the error may originate
+from Hasura internals. In such cases, please reach out to Hasura support with the trace ID.
