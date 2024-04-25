@@ -3,8 +3,8 @@ title: Multi-Region Routing
 sidebar_label: Multi-Region Routing
 sidebar_position: 3
 description:
-  "Understand how to set up multi-region routing in Hasura to achieve efficient data fetching and lower latency. Benefit
-  from optimal database performance and global data access with Hasura."
+  "Understand how to set up multi-region routing in Hasura DDN to achieve efficient data fetching and lower latency.
+  Benefit from optimal database performance and global data access with Hasura."
 keywords:
   - multi-region routing
   - hasura
@@ -19,25 +19,33 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-# Multi-Region Routing with the Native Data Connector for PostgreSQL
+# Multi-Region Routing
 
-With multi-region routing, you can easily ensure that the data is fetched from the data source closest to the user, thus
-minimizing latency for the request.
+With multi-region routing, you can easily ensure that data is fetched from the data source closest to the user, thus
+minimizing latency for the request, improving the performance of your application, and providing a better user
+experience.
 
-For multi-region routing, you only need a supported data source deployed in (or near) more than one of the
-[supported regions](#supported-regions).
+:::note Currently only supported for PostgreSQL
 
-:::info Same schema for all databases
+Multi-region routing is currently supported only for PostgreSQL and PostgreSQL-compatible
+[data sources](https://hasura.io/connectors#connectors-list).
 
-You must ensure that the schema for the different databases are exactly same. If there is any ambiguity between the
-schemas, then the metadata build would fail.
+:::
+
+To use multi-region routing in Hasura DDN, you only need a supported data source deployed in (or near) more than one
+of the [supported regions](#supported-regions).
+
+:::warning Same schema for all data sources
+
+You must ensure all data sources share exactly the same schema. If there is any ambiguity between them, the metadata
+build will fail.
 
 :::
 
 ## Configuration
 
-If you don't have a project setup that lets you query Postgres DB, please follow
-[this guide](/getting-started/create-a-project). Once you have a working project, you could modify the
+If you don't have a project setup that lets you query PostgreSQL, please follow
+[this guide](/getting-started/1-create-a-project.mdx). Once you have a working project, you can modify the
 `ConnectorManifest` configuration as shown below to enable multi-region routing.
 
 ```yaml
@@ -73,13 +81,13 @@ definition:
           valueFrom: CONNECTION_URI_FOR_READ_REPLICA_IN_EUROPE_WEST1
 ```
 
-For the above configuration, Hasura DDN will route all the write queries (mutations) to the database in the
-`gcp-us-west2` region and the read queries (query and subscriptions) to either `gcp-us-east4` or `gcp-europe-west1`
-based on the geolocation of the client.
+In the above configuration example, Hasura DDN will route all the write queries (mutations) to the PostgreSQL database
+in the `gcp-us-west2` region and the read queries (query and subscriptions) to either `gcp-us-east4` or
+`gcp-europe-west1` based on the geolocation of the client.
 
 ## Supported regions
 
-Currently, Hasura DDN supports the following regions:
+Currently, Hasura DDN supports the following regions in GCP for multi-region routing:
 
 - `gcp-asia-south1`
 - `gcp-asia-southeast1`
