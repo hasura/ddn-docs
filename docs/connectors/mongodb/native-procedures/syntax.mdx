@@ -13,4 +13,325 @@ seoFrontMatterUpdated: false
 
 # Native Procedure MongoDB Syntax
 
-TODO
+## Examples
+
+### Insert
+```json
+  "name": "insertArtist",
+  "description": "Example of a database insert using a native procedure",
+  "resultType": {
+    "object": "InsertArtist"
+  },
+  "arguments": {
+    "artistId": {
+      "type": {
+        "scalar": "int"
+      }
+    },
+    "name": {
+      "type": {
+        "scalar": "string"
+      }
+    }
+  },
+  "objectTypes": {
+    "InsertArtist": {
+      "fields": {
+        "ok": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "n": {
+          "type": {
+            "scalar": "int"
+          }
+        }
+      }
+    }
+  },
+  "command": {
+    "insert": "Artist",
+    "documents": [
+      {
+        "ArtistId": "{{ artistId }}",
+        "Name": "{{ name }}"
+      }
+    ]
+  }
+}
+```
+
+### Update
+```json
+{
+  "name": "updateArtist",
+  "description": "Example of a database update using a native procedure",
+  "resultType": {
+    "object": "UpdateArtist"
+  },
+  "arguments": {
+    "artistId": {
+      "type": {
+        "scalar": "int"
+      }
+    },
+    "name": {
+      "type": {
+        "scalar": "string"
+      }
+    }
+  },
+  "objectTypes": {
+    "UpdateArtist": {
+      "fields": {
+        "ok": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "n": {
+          "type": {
+            "scalar": "int"
+          }
+        }
+      }
+    }
+  },
+  "command": {
+    "update": "Artist",
+    "updates": [
+      {
+        "q": {
+          "ArtistId": "{{ artistId }}"
+        },
+        "u": {
+          "ArtistId": "{{ artistId }}",
+          "Name": "{{ name }}"
+        }
+      }
+    ]
+  }
+}
+```
+
+### Delete
+```json
+{
+  "name": "deleteArtist",
+  "description": "Example of a database delete using a native procedure",
+  "resultType": {
+    "object": "DeleteArtist"
+  },
+  "arguments": {
+    "artistId": {
+      "type": {
+        "scalar": "int"
+      }
+    }
+  },
+  "objectTypes": {
+    "DeleteArtist": {
+      "fields": {
+        "ok": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "n": {
+          "type": {
+            "scalar": "int"
+          }
+        }
+      }
+    }
+  },
+  "command": {
+    "delete": "Artist",
+    "deletes": [
+      {
+        "q": {
+          "ArtistId": "{{ artistId }}"
+        }
+      }
+    ]
+  }
+}
+```
+
+## Documentation
+
+### Name
+
+`"name"`: **Required**
+
+Represents the name of the query that is exposed in your API.
+
+### Description
+
+`"description"`: **Optional**
+
+Used for documentation purposes in the API.
+
+### Result Type
+
+`"resultType"`: **Required**
+
+Represents the result type of your command. This can refer to an existing object type from your schema or can be object
+types you write yourself following the structure of [Types](#types)
+
+### Arguments
+
+`"arguments"`: **Optional**
+
+Used if you want to accept arguments in your API for your command. Please refer to [Types](#types). Arguments are
+denoted in your [command](#command) code using `"{{ argument }}"`.
+
+**Example:**
+
+```json
+"arguments": {
+  "age": {
+    "type": {
+      "scalar": "int"
+    }
+  },
+  "name": {
+    "type": {
+      "scalar": "string"
+    }
+  }
+}
+```
+
+### Object Types
+
+`"objectTypes"`: **Optional**
+
+If you need to return a type that is not already in your schema then you can write your own. Please refer to
+[Types](#types) on how to write your own object types. The only difference is those types need to be wrapped in a type
+name followed by fields.
+
+**Example:**
+
+```json
+"objectTypes": {
+  "ArtistWAlbumCount": {
+    "fields": {
+      "ArtistId": {
+        "type": {
+          "scalar": "int"
+        }
+      },
+      "Name": {
+        "type": {
+          "scalar": "string"
+        }
+      },
+      "AlbumCount": {
+        "type": {
+          "scalar": "int"
+        }
+      },
+      "_id": {
+        "type": {
+          "scalar": "objectId"
+        }
+      }
+    }
+  }
+}
+```
+
+### Command
+
+`"command"`: **Required**
+
+The command is almost identical to what you would write in javascript or mongosh using the [runCommand][MongoDB:
+runCommand] API. The only difference is the double qouted keys to comply with JSON. For documentation on runCommand
+please refer to [MongoDB][MongoDB: runCommand]. If you have arguments they need to be wrapped in double quotes and
+double braces `"{{ argument }}"`. See example below.
+
+**Example:**
+
+```json
+"command": {
+  "insert": "Artist",
+  "documents": [
+    {
+      "ArtistId": "{{ artistId }}",
+      "Name": "{{ name }}"
+    }
+  ]
+}
+
+```
+
+## Types
+
+Each field in a JSON object is defined with a key specifying the name of the field. Below the key, the "type" is
+specified, which can be a scalar or structural type, followed by the type name. Here are descriptions for each type:
+
+### Scalar Types
+
+- **double**: Represents a floating point number.
+- **string**: Represents a sequence of characters.
+- **bool**: Represents a boolean value, true or false.
+- **int**: Represents an integer.
+- **long**: Represents a longer form of integer.
+- **decimal**: Represents a large decimal number.
+- **date**: Represents a date, stored as a string in ISO format.
+- **timestamp**: Represents a Unix timestamp.
+- **objectId**: Represents an object identifier.
+
+### Structural Types
+- **object**: Represents a BSON document or an embedded document. Users can define their own nested object types,
+specifying the structure of these objects as required by their applications.
+- **arrayOf**: Represents an array of elements, with each element being a type specified after "arrayOf". For instance,
+"arrayOf": "string" means an array of strings.
+
+Examples:
+
+```json
+{
+  "age": {
+    "type": {
+      "scalar": "int"
+    }
+  },
+  "name": {
+    "type": {
+      "scalar": "string"
+    }
+  },
+  "preferences": {
+    "type": {
+      "object": "userPreferences"
+    }
+  },
+  "tags": {
+    "type": {
+      "arrayOf": "string"
+    }
+  },
+  "employment": {
+    "type": {
+      "object": "employmentDetails"
+    }
+  }
+}
+```
+
+**In this example:**
+
+- **age** is an integer.
+- **name** is a string.
+- **preferences** is a complex object defined elsewhere as userPreferences, indicating a structured type defined by the
+user.
+- **tags** is an array consisting of strings.
+- **employment** is a user-defined object type employmentDetails, which would be specified in more detail elsewhere in the
+documentation.
+
+[DDN: collections]: https://hasura.github.io/ndc-spec/specification/schema/collections.html
+[DDN: functions]: https://hasura.github.io/ndc-spec/specification/schema/functions.html
+[MongoDB: runCommand]: https://www.mongodb.com/docs/manual/reference/method/db.runCommand
