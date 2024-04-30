@@ -63,9 +63,27 @@ Hasura supergraph configuration enables expressing a mapping between data connec
 
 ### BSON support
 
-Hasura converts values while checking them against the expected type. But there are a few cases where we execute
-implicit conversion where the BSON types have indistinguishable JSON representations, and values can be converted
-back to BSON without loss of meaning.
+MongoDB stores data in BSON, while the GraphQL API uses JSON. Hasura converts query responses to JSON according to the types defined in the Hasura schema configuration. For example,
+
+- `double` and `int` (64-bit floating-point numbers, and 32-bit integers) are converted to JSON numbers
+- `long` and `decimal` (64-bit integers, and 128-bit floating point numbers) are converted to JSON strings to avoid loss of precision
+- dates are converted to strings in ISO 8601 format
+- object IDs are converted to hex-encoded strings
+
+If there is a value in a query response that does not match the type defined in the Hasura schema configuration then the query will fail with an error.
+
+In some cases it is not possible to configure a specific type for a collection field. For example if a field contains different types of data in different documents since Hasura does not implement union types. In those cases the configured type of a field may be `extendedJSON`. This is a fallback that captures any values that can be represented in BSON. To preserve type information values of this type are converted to JSON according to the canonical variation of the [MongoDB Extended JSON v2 spec](https://www.mongodb.com/docs/manual/reference/mongodb-extended-json/). For example,
+
+- numbers are converted to objects with a type tag and a string value, like `{ "$numberDouble": "3.14" }`
+- dates are converted to the form, `{"$date": {"$numberLong": "<milliseconds since Unix Epoch>" } }`
+- object IDs are converted to this form, `{ "$oid": "<hex-encoded string>" }`
+
+Queries may include input values in the form of arguments. These are converted from JSON to BSON according to the inverse of the above. For example,
+
+- if the type of an argument is `double` then a valid input is `3.14`.
+- if the type of an argument is `extendedJSON` then either `{ "$numberDouble": "3.14" }` or `3.14` is valid.
+
+In general if an argument value does not match the expected type then the query will fail with an error. But there are a few cases where we apply implicit conversion where the BSON types have indistinguishable JSON representations. In particular it is permissible to provide a GraphQL `Int` value where a `double` is expected, or to provide a GraphQL `Float` value where an `int` is expected.
 
 ## Queries
 
