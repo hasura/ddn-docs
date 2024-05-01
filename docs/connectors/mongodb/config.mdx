@@ -29,15 +29,15 @@ During this active development phase, the configuration structure is subject to 
 
 ## Introduction
 
-This document is the reference documentation for the MongoDB data connector configuration. Configuration is broken down
-into 3 folders currently.
+This document is the reference documentation for the MongoDB data connector configuration. Configuration is
+currently broken down into 3 folders.
 1. [`schema`](#schema)
 2. [`native_queries`](#native-queries)
 3. [`native_procedures`](#native-procedures)
 
 ### Schema
 
-The `schema` directory contains json files of all the collections that were introspected in your database.
+The `schema` directory contains JSON files of all collections that were introspected in your database.
 
 **Example**
 
@@ -80,7 +80,7 @@ The `schema` directory contains json files of all the collections that were intr
 
 #### Name
 
-Specifies the name that gets exposed to Hasura metadata/tooling.
+The `name` property specifies the name which gets exposed to Hasura metadata/tooling:
 
 ```json
 {
@@ -90,7 +90,7 @@ Specifies the name that gets exposed to Hasura metadata/tooling.
 
 #### Collections
 
-Contains definitions of the collection name in your database and the object type it returns
+The `collections` property contains definitions of the collection name in your database and the object type it returns:
 
 ```json
 {
@@ -104,8 +104,8 @@ Contains definitions of the collection name in your database and the object type
 
 #### Object types
 
-Defines the returned object types. Object types contain `fields` that specify either scalar or other structural object
-types.
+The `objectTypes` property defines the returned object types. Object types contain `fields` that specify either
+scalar or other structural object types.
 
 ```json
 {
@@ -142,30 +142,43 @@ types.
 
 ```json
 { "type": { "scalar": "string" } }
+```
+
+```json
 { "type": "extended_json" }
+```
+
+```json
 { "type": { "arrayOf": { "scalar": "string" } } }
+```
+
+```json
 { "type": { "object": "TypeName" } }
+```
+
+```json
 { "type": { "nulable": { "scalar": "string" } } }
 ```
 
+
 #### Scalar Types
 
-- **double**: Represents a floating point number.
-- **string**: Represents a sequence of characters.
-- **bool**: Represents a boolean value, true or false.
-- **int**: Represents an integer.
-- **long**: Represents a longer form of integer.
-- **decimal**: Represents a large decimal number.
-- **date**: Represents a date, stored as a string in ISO format.
-- **timestamp**: Represents a Unix timestamp.
-- **objectId**: Represents an object identifier.
+- `double`: Represents a floating point number.
+- `string`: Represents a sequence of characters.
+- `bool`: Represents a boolean value, true or false.
+- `int`: Represents an integer.
+- `long`: Represents a longer form of integer.
+- `decimal`: Represents a large decimal number.
+- `date`: Represents a date, stored as a string in ISO format.
+- `timestamp`: Represents a Unix timestamp.
+- `objectId`: Represents an object identifier.
 
 #### Structural Types
 
-- **object**: Represents a BSON document or an embedded document. Users can define their own nested object types,
+- `object`: Represents a BSON document or an embedded document. Users can define their own nested object types,
 specifying the structure of these objects as required by their applications.
-- **arrayOf**: Represents an array of elements, with each element being a type specified after "arrayOf". For instance,
-"arrayOf": "string" means an array of strings.
+- `arrayOf`: Represents an array of elements, with each element being a type specified after `arrayOf`. For instance,
+`{"arrayOf" : "string"}` means an array of strings.
 
 ### Native queries
 
@@ -188,17 +201,16 @@ More information in the [Native Procedures](/connectors/mongodb/native-procedure
 
 The data connector provides a plugin to the hasura CLI to assist you in authoring configuration.
 
-We provide the `mongodb-cli-plugin`, which is a small executable whose, builds can be accessed [here](https://github.com/hasura/ndc-mongodb/releases/).
+We provide the `mongodb-cli-plugin`, which is a small executable, of which the builds can be accessed
+[here](https://github.com/hasura/ndc-mongodb/releases/).
 
 :::warning Current status
 
-The intended way to commonly use this plugin is through the main `ddn` CLI.
+The intended way to use this plugin is through the main `ddn` CLI.
 
-But at the time of this writing this part of the developer experience is undergoing active development, so the exact
-command invocations are likely to be different from what is described here.
+But at the time of this writing, this part of the developer experience is undergoing active development, so the exact
+command invocations are likely to change.
 
-Therefore this document will give workflow descriptions using the data connector CLI plugin directly. This is likely to
-change in the near future.
 :::
 
 ### Updating with introspection {#updating-with-introspection}
@@ -208,11 +220,11 @@ reflect those changes.
 
 Running `mongodb-cli-plugin update` in a directory will do the following:
 
-Connect to the database with the specified `connection-uri`, create a `schema` directory if one does not exist, and then
-either create or update a file for each collection that is introspected in your database.
+Connect to the database with the specified `connection-uri`, create a `schema` directory, if one does not exist, and
+then either create or update a file for each collection that is introspected in your database.
 
-Currently `mongodb-cli-plugin` tries use any validation schemas if they exist, and falls back to sampling documents in
-your collection. The current sample size is 10. This will be configurable in future releases.
+Currently, the `mongodb-cli-plugin` tries to use any validation schemas if they exist, and falls back to sampling
+documents in your collection. The current sample size is 10. This will be configurable in future releases.
 
 ### Manually editing
 
@@ -220,10 +232,12 @@ There are occasions when the automatic introspection falls short of your needs. 
 particular entity type, or it may pick names according to conventions you disagree with.
 
 :::note
+
 This only applies to the files under the `schema` directory
+
 :::
 
-If you find yourself in this situation you may still be able to bring your configuration into an acceptable state by
+If you find yourself in this situation you are still able to bring your configuration into an acceptable state by
 editing it manually. In this case you'd be well advised to keep your configuration files under version control, as
 re-running the `update` command will overwrite your manually-crafted changes.
 
