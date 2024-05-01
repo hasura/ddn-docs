@@ -111,22 +111,26 @@ seoFrontMatterUpdated: false
 
 ### Name
 
-`"name"`: **Required**
+| Property | Required? |
+|----------|-----------|
+| `"name"` | Yes       |
 
 Represents the name of the query that is exposed in your API.
 
 ### Representation
 
+| Property           | Required? |
+|--------------------|-----------|
+| `"representation"` | Yes       |
+
 :::tip
-Using a representation of function in MongoDB Native Queries follows the same requirements of [functions in DDN
+Using a representation of a function in MongoDB Native Queries follows the same requirements of [functions in the DDN
 spec][DDN: functions]. Specifically:
 
 > A function is a collection which returns a single row and a single column, named __value
 <br/>
 Refer to the [function example](#example-using-function-representation) above.
 :::
-
-`"representation"`: **Required**
 
 There are 2 options:
 
@@ -135,21 +139,29 @@ There are 2 options:
 
 ### Input Collection
 
-`"inputCollection"`: **Optional**
+| Property            | Required? |
+|---------------------|-----------|
+| `"inputCollection"` | No        |
 
-Determines how the pipeline is ran. If `"inputCollection"` is present then the pipeline runs with that collection as the
-starting point. The same as doing `db.artist.aggregate` in mongosh. If no `"inputCollection"` is present then the
-pipeline is ran with db as the starting point. The same as doing `db.aggregate` in mongosh.
+Determines how the pipeline is run. If `"inputCollection"` is present then the pipeline runs with that collection as the
+starting point. It is the same as doing `db.artist.aggregate` in `mongosh`. If no `"inputCollection"` is present
+then the pipeline is run with `db` as the starting point. Which is the same as doing `db.aggregate` in `mongosh`.
 
 ### Description
 
-`"description"`: **Optional**
+| Property        | Required? |
+|-----------------|-----------|
+| `"description"` | No        |
+
 
 Used for documentation purposes in the API.
 
 ### Arguments
 
-`"arguments"`: **Optional**
+| Property      | Required? |
+|---------------|-----------|
+| `"arguments"` | No        |
+
 
 Used if you want to accept arguments in your API for your pipeline. Please refer to [Types](#types). Arguments are
 denoted in your [pipeline](#pipeline) code using `"{{ argument }}"`.
@@ -157,23 +169,24 @@ denoted in your [pipeline](#pipeline) code using `"{{ argument }}"`.
 **Example:**
 
 ```json
-"arguments": {
-  "abs": {
-    "type": {
-      "scalar": "int"
+  "arguments": {
+    "abs": {
+      "type": {
+        "scalar": "int"
+      }
+    },
+    "binarySize": {
+      "type": {
+        "scalar": "string"
+      }
     }
-  },
-  "binarySize": {
-    "type": {
-      "scalar": "string"
-    }
-  }
-}
 ```
 
 ### Result Document Type
 
-`"resultDocumentType"`: **Required**
+| Property               | Required? |
+|------------------------|-----------|
+| `"resultDocumentType"` | Yes       |
 
 Represents the result type of your pipeline. This can refer to an existing object type from your schema or can be object
 types you write yourself following the structure of [Types](#types)
@@ -182,46 +195,53 @@ A pipeline returns a stream of documents. `resultDocumentType` is the type of ea
 
 ### Object Types
 
-`"objectTypes"`: **Optional**
+| Property        | Required? |
+|-----------------|-----------|
+| `"objectTypes"` | No        |
 
 If you need to return a type that is not already in your schema then you can write your own. Please refer to
 [Types](#types) on how to write your own object types. The only difference is those types need to be wrapped in a type
 name followed by fields.
 
+Object types from all configuration files occupy a shared namespace so it is important that object type names be unique
+within your configuration.
+
 **Example:**
 
 ```json
-"objectTypes": {
-  "ArtistWAlbumCount": {
-    "fields": {
-      "ArtistId": {
-        "type": {
-          "scalar": "int"
-        }
-      },
-      "Name": {
-        "type": {
-          "scalar": "string"
-        }
-      },
-      "AlbumCount": {
-        "type": {
-          "scalar": "int"
-        }
-      },
-      "_id": {
-        "type": {
-          "scalar": "objectId"
+  "objectTypes": {
+    "ArtistWAlbumCount": {
+      "fields": {
+        "ArtistId": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "Name": {
+          "type": {
+            "scalar": "string"
+          }
+        },
+        "AlbumCount": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "_id": {
+          "type": {
+            "scalar": "objectId"
+          }
         }
       }
     }
   }
-}
 ```
 
 ### Pipeline
 
-`"pipeline"`: **Required**
+| Property     | Required? |
+|--------------|-----------|
+| `"pipeline"` | Yes       |
 
 The pipeline is almost identical to what you would write in javascript or mongosh using the [aggregate
 pipeline][MongoDB: pipeline] API. The only difference is the double qouted keys to comply with JSON. For documentation
@@ -231,33 +251,33 @@ double quotes and double braces `"{{ argument }}"`. See example with arguments b
 **Example:** without arguments
 
 ```json
-"pipeline": [
-  {
-    "$lookup": {
-      "from": "Album",
-      "localField": "ArtistId",
-      "foreignField": "ArtistId",
-      "as": "Albums"
+  "pipeline": [
+    {
+      "$lookup": {
+        "from": "Album",
+        "localField": "ArtistId",
+        "foreignField": "ArtistId",
+        "as": "Albums"
+      }
+    },
+    {"$unwind": "$Albums"},
+    {
+      "$group": {
+        "_id": "$ArtistId",
+        "id": {"$first": "$_id"},
+        "Name": {"$first": "$Name"},
+        "AlbumCount": {"$count": {}}
+      }
+    },
+    {
+      "$project": {
+        "_id": "$id",
+        "ArtistId": "$_id",
+        "Name": 1,
+        "AlbumCount": 1
+      }
     }
-  },
-  {"$unwind": "$Albums"},
-  {
-    "$group": {
-      "_id": "$ArtistId",
-      "id": {"$first": "$_id"},
-      "Name": {"$first": "$Name"},
-      "AlbumCount": {"$count": {}}
-    }
-  },
-  {
-    "$project": {
-      "_id": "$id",
-      "ArtistId": "$_id",
-      "Name": 1,
-      "AlbumCount": 1
-    }
-  }
-]
+  ]
 ```
 
 **Example:** with arguments
