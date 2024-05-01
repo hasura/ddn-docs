@@ -11,14 +11,47 @@ keywords:
 seoFrontMatterUpdated: false
 ---
 
-# Native Procedure MongoDB Syntax
+# Native Mutation MongoDB Syntax
+
+Command to run via MongoDB's `runCommand` API. For details on how to write commands see
+https://www.mongodb.com/docs/manual/reference/method/db.runCommand/
+
+The command is read as Extended JSON. It may be in canonical or relaxed format, or
+a mixture of both.
+See https://www.mongodb.com/docs/manual/reference/mongodb-extended-json/
+
+Keys and values in the command may contain placeholders of the form `{{variableName}}`
+which will be substituted when the native procedure is executed according to the given
+arguments.
+
+Placeholders must be inside quotes so that the command can be stored in JSON format. If the
+command includes a string whose only content is a placeholder, when the variable is
+substituted the string will be replaced by the type of the variable. For example in this
+command,
+
+```json
+{
+  "insert": "posts",
+  "documents": "{{ documents }}"
+}
+```
+
+If the type of the `documents` argument is an array then after variable substitution the
+command will expand to:
+
+```json
+{
+  "insert": "posts",
+  "documents": [/* array of documents */]
+}
+```
 
 ## Examples
 
 ### Insert
 ```json
   "name": "insertArtist",
-  "description": "Example of a database insert using a native procedure",
+  "description": "Example of a database insert using a native mutation",
   "resultType": {
     "object": "InsertArtist"
   },
@@ -66,7 +99,7 @@ seoFrontMatterUpdated: false
 ```json
 {
   "name": "updateArtist",
-  "description": "Example of a database update using a native procedure",
+  "description": "Example of a database update using a native mutation",
   "resultType": {
     "object": "UpdateArtist"
   },
@@ -119,7 +152,7 @@ seoFrontMatterUpdated: false
 ```json
 {
   "name": "deleteArtist",
-  "description": "Example of a database delete using a native procedure",
+  "description": "Example of a database delete using a native mutation",
   "resultType": {
     "object": "DeleteArtist"
   },

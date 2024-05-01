@@ -13,6 +13,35 @@ seoFrontMatterUpdated: false
 
 # Native Query MongoDB Syntax
 
+Pipeline to include in MongoDB queries. For details on how to write an aggregation pipeline
+see https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+
+The pipeline may include Extended JSON.
+
+Keys and values in the pipeline may contain placeholders of the form `{{variableName}}`
+which will be substituted when the native query is executed according to the given
+arguments.
+
+Placeholders must be inside quotes so that the pipeline can be stored in JSON format. If
+the pipeline includes a string whose only content is a placeholder, when the variable is
+substituted the string will be replaced by the type of the variable. For example in this
+pipeline,
+
+```json
+[{
+  "$documents": "{{ documents }}"
+}]
+```
+
+If the type of the `documents` argument is an array then after variable substitution the
+pipeline will expand to:
+
+```json
+[{
+  "$documents": [/* array of documents */]
+}]
+```
+
 ## Examples
 
 ### Collection Representation
