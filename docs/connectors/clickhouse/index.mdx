@@ -1,0 +1,258 @@
+---
+sidebar_position: 1
+sidebar_label: ClickHouse
+description: "Dive into Hasura's Native Data Connector for ClickHouse."
+keywords:
+  - hasura
+  - clickhouse
+  - data connector
+  - graphql
+  - queries
+  - sql data types
+  - graphql types
+  - configuration
+  - api
+  - database
+seoFrontMatterUpdated: true
+---
+
+# Native Data Connector for ClickHouse
+
+## Introduction
+
+The Native Data Connector for ClickHouse supports all kinds of queries. In the
+sections below, we'll try to give an overview of the features of the ClickHouse connector and how to configure it in a
+Hasura project.
+
+The ClickHouse data connector makes available any database resource that is listed in its configuration. In order to
+populate the configuration, the connector supports introspecting the database via the CLI `update` command.
+
+## Using the connector
+
+The connector behavior is deterministic: the api exposed depends on the configuration alone.
+
+The [Hasura DDN CLI](/cli/overview) will help you update this configuration, which is required to see any changes to your database schema.
+
+All commands that follow are assumed to be executed from the root directory of an already [created](/getting-started/create-a-project) Hasura DDN project.
+We're using the placeholder `mydb` as source name, you may change it to something more fitting.
+
+### 1. [Add the Connector Manifest](/cli/commands/add-connector-manifest) to your project:
+```sh
+ddn add connector-manifest mydb --type cloud --hub-connector hasura/clickhouse 
+```
+This will create the ddn configuration files for this source.
+
+### 2. Set values for required environment variables
+The connector requires the following environment variables:
+
+- `CLICKHOUSE_PASSWORD`
+- `CLICKHOUSE_URL`
+- `CLICKHOUSE_USERNAME`
+
+You'll need to set values for these variables in the connector build file.
+
+In our case, this file is found in `app/mydb/connector/mydb.build.hml`
+
+:::tip
+You can either set the values in this file directly:
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: clickhouse
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/clickhouse
+  deployments:
+    - context: .
+      env:
+        CLICKHOUSE_PASSWORD:
+          value: "placeholder"
+        CLICKHOUSE_URL:
+          value: "placeholder"
+        CLICKHOUSE_USERNAME:
+          value: "placeholder"
+```
+Or you can point to an environment variable. This is prefered:
+```yaml
+kind: ConnectorManifest
+version: v1
+spec:
+  supergraphManifests:
+    - base
+definition:
+  name: clickhouse
+  type: cloud
+  connector:
+    type: hub
+    name: hasura/clickhouse
+  deployments:
+    - context: .
+      env:
+        CLICKHOUSE_PASSWORD:
+          valueFromEnv: "APP_CLICKHOUSE_PASSWORD"
+        CLICKHOUSE_URL:
+          valueFromEnv: "APP_CLICKHOUSE_URL"
+        CLICKHOUSE_USERNAME:
+          valueFromEnv: "APP_CLICKHOUSE_USERNAME"
+```
+You'll then have to set the environment variable values in the `base.env.yaml` file in the project root:
+```yaml
+supergraph: {}
+subgraphs:
+  app:
+    APP_CLICKHOUSE_PASSWORD: "placeholder"
+    APP_CLICKHOUSE_URL: "placeholder"
+    APP_CLICKHOUSE_USERNAME: "placeholder"
+
+```
+:::
+
+### 3. [Update the Connector Manifest](/cli/commands/update-connector-manifest):
+```sh
+ddn update connector-manifest mydb
+```
+The Connector Manifest is deployment configuration for your connector.
+
+This configuration includes a list of views and tables our connector will make available.
+
+Updating it will introspect the database and update (or create) the connector configuration file.
+
+### 4. [Update the Connector Link](/cli/commands/update-data-connector-link):
+```sh
+ddn update connector-link mydb
+```
+Updating the connector-link will deploy the connector and make all exposed resources available to Hasura DDN
+
+:::tip Tracking All Models
+
+Note the update command won't add any models to your schema!
+
+To add models, pass the `--add-all-resources` flag to the [`ddn update connector-link`](/cli/commands/update-data-connector-link) command
+
+You can also add models individually by using the [`ddn add model`](/cli/commands/add-model) command
+
+:::
+
+## Updating the connector
+
+You'll need to update the connector configuration to see any changes to your database configuration.
+
+To do this, [update the connector manifest](/connectors/clickhouse/#3-update-the-connector-manifest), and then [update the connector link](/connectors/clickhouse/#4-update-the-connector-link).
+
+
+## Manually editing the connector configuration
+
+It is possible to manually modify the configuration, and valid changes will be preserved when the configuration is updated.
+
+The configuration file is accompanied by a json schema file which will help validate any manually written changes.
+
+### Table alias
+
+The keys in the tables object in the configuration file can be changed to modify the alias a table will be exposed under.
+
+This alias must remain unique
+
+### Table Return Type
+
+Tables can return the same type as another table.
+
+This is useful for views that return rows from another table.
+
+This will allow both tables to share an object type,
+which in turn allows both tables to share relationships and object type permissions.
+
+### Native Queries
+
+This connector supports native queries: writing raw SQL queries to treat as collections (virtual tables)
+
+This is an alternative to writing views on the database, which is usually preferable, but may not be plausible.
+This can also be useful to iterate on views before creating them on the database.
+
+You can write a native query as a `.sql` file in your configuration directory, typically in a dedicated subdirectory
+
+Your file may only contain a single statement.
+
+Arguments may be specified using the [clickhouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
+
+```sql
+-- queries/ArtistByName.sql
+SELECT *
+FROM "default"."Artist"
+WHERE "Artist"."Name" = {ArtistName: String}
+```
+
+Then add the query to your `configuration.json` file.
+You'll need to figure out the query return type
+
+```json
+{
+    "tables": {},
+    "queries": {
+        "Name": {
+            "exposed_as": "collection",
+            "file": "queries/ArtistByName.sql",
+            "return_type": {
+                "kind": "definition",
+                "columns": {
+                    "ArtistId": "Int32",
+                    "Name": "String"
+                }
+            }
+        }
+    }
+}
+```
+
+To figure out your return type, you can use the [ClickHouse `toTypeName` function](https://clickhouse.com/docs/en/sql-reference/functions/other-functions#totypenamex)
+
+One way to get the return types for your SQL statemen:
+
+```sql
+SELECT * APPLY toTypeName
+FROM (
+    -- your SQL here
+) q LIMIT 1;
+
+```
+
+Alternatively, if your query returns the same type as another table, and you want this reflected in your schema:
+
+```json
+{
+    "tables": {
+        "Artist": {
+            "name": "Artist",
+            "schema": "default",
+            "comment": "",
+            "primary_key": {
+                "name": "ArtistId",
+                "columns": [
+                "ArtistId"
+                ]
+            },
+            "return_type": {
+                "kind": "definition",
+                "columns": {
+                "ArtistId": "Int32",
+                "Name": "Nullable(String)"
+                }
+            }
+        }        
+    },
+    "queries": {
+        "Name": {
+            "exposed_as": "collection",
+            "file": "queries/ArtistByName.sql",
+            "return_type": {
+                "kind": "table_reference",
+                "table_name": "Artist"
+            }
+        }
+    }
+}
+```
