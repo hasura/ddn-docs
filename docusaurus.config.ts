@@ -179,6 +179,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
+      additionalLanguages: ['JSON'],
     },
   } satisfies Preset.ThemeConfig,
   markdown: {
