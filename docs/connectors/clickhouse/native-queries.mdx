@@ -1,4 +1,17 @@
+---
+sidebar_position: 3
+sidebar_label: Native Queries
+description:
+  "Native queries allow you to run custom aggregation pipelines on your ClickHouse instance. This allows you to run
+  queries that are not supported by Hasura's GraphQL engine. This page explains how to configure various types of native
+  queries in Hasura."
+keywords:
+  - native queries
+---
+
 # Native Queries
+
+## Introduction
 
 This connector supports native queries: writing raw SQL queries to treat as collections (virtual tables)
 
@@ -7,17 +20,27 @@ also be useful to iterate on views before creating them on the database.
 
 :::warning Remote relationships
 
-Parameterized native queries cannot be queried through remote relationships.
-Use [ClickHouse Parameterized Views](https://clickhouse.com/docs/en/sql-reference/statements/create/view#parameterized-view) instead.
+Parameterized native queries cannot be queried through remote relationships. Use
+[ClickHouse Parameterized Views](https://clickhouse.com/docs/en/sql-reference/statements/create/view#parameterized-view)
+instead.
 
 :::
 
-You can write a native query as a `.sql` file in your configuration directory, typically in a dedicated subdirectory
+## Writing native queries
 
-Your file may only contain a single statement.
+You can create SQL queries for your connector by writing them in `.sql` files and storing them within your configuration
+directory, usually organized in a specific subdirectory for better structure.
 
-Arguments may be specified using the
-[clickhouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
+**Requirements**:
+
+- Each `.sql` file should contain only a single SQL statement to maintain clarity and modularity.
+- When specifying arguments in your SQL queries, use the
+  [ClickHouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax) to
+  dynamically insert values.
+
+**Example**:
+
+Here's an example of a `.sql` file named `ArtistByName.sql` that retrieves artist data by name from the database:
 
 ```sql
 -- queries/ArtistByName.sql
@@ -26,7 +49,12 @@ FROM "default"."Artist"
 WHERE "Artist"."Name" = {ArtistName: String}
 ```
 
-Then add the query to your `configuration.json` file. You'll need to figure out the query return type
+### Configuring queries in JSON
+
+After creating your SQL query file, you need to define it in your `configuration.json` file. This involves specifying
+the file path and the expected return type of the query.
+
+Here is how you might add the `ArtistByName.sql` query to your configuration.json:
 
 ```json
 {
@@ -47,20 +75,27 @@ Then add the query to your `configuration.json` file. You'll need to figure out 
 }
 ```
 
-To figure out your return type, you can use the
-[ClickHouse `toTypeName` function](https://clickhouse.com/docs/en/sql-reference/functions/other-functions#totypenamex)
+### Determining return types
 
-One way to get the return types for your SQL statemen:
+To accurately define the return type in your JSON configuration, you can use the
+[ClickHouse `toTypeName`](https://clickhouse.com/docs/en/sql-reference/functions/other-functions#totypenamex) function
+to inspect the types of columns returned by your query.
+
+This SQL snippet can help you determine the column types by executing your query and applying the `toTypeName` function:
 
 ```sql
 SELECT * APPLY toTypeName
 FROM (
-    -- your SQL here
+ -- your SQL here
 ) q LIMIT 1;
-
 ```
 
-Alternatively, if your query returns the same type as another table, and you want this reflected in your schema:
+### Using table references
+
+If your query's return type matches an existing table schema, and you prefer to reference the table directly in your
+schema, you can do so by specifying it in your `configuration.json`.
+
+This configuration links the `ArtistByName` query directly to the `Artist` table's schema:
 
 ```json
 {
