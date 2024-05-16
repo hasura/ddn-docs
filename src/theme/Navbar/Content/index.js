@@ -1,9 +1,6 @@
 import React from 'react';
-import {useThemeConfig, ErrorCauseBoundary} from '@docusaurus/theme-common';
-import {
-  splitNavbarItems,
-  useNavbarMobileSidebar,
-} from '@docusaurus/theme-common/internal';
+import { useThemeConfig, ErrorCauseBoundary } from '@docusaurus/theme-common';
+import { splitNavbarItems, useNavbarMobileSidebar } from '@docusaurus/theme-common/internal';
 import NavbarItem from '@theme/NavbarItem';
 import NavbarColorModeToggle from '@theme/Navbar/ColorModeToggle';
 import SearchBar from '@theme/SearchBar';
@@ -19,27 +16,28 @@ function useNavbarItems() {
   // TODO temporary casting until ThemeConfig type is improved
   return useThemeConfig().navbar.items;
 }
-function NavbarItems({items}) {
+function NavbarItems({ items }) {
   return (
     <>
       {items.map((item, i) => (
         <ErrorCauseBoundary
           key={i}
-          onError={(error) =>
+          onError={error =>
             new Error(
               `A theme navbar item failed to render.
 Please double-check the following navbar item (themeConfig.navbar.items) of your Docusaurus config:
 ${JSON.stringify(item, null, 2)}`,
-              {cause: error},
+              { cause: error }
             )
-          }>
+          }
+        >
           <NavbarItem {...item} />
         </ErrorCauseBoundary>
       ))}
     </>
   );
 }
-function NavbarContentLayout({left, right, searchBarItem}) {
+function NavbarContentLayout({ left, right, searchBarItem }) {
   return (
     <div className="navbar__inner">
       <div className="navbar__items">{left}</div>
@@ -50,10 +48,16 @@ function NavbarContentLayout({left, right, searchBarItem}) {
       )}
       <div className="navbar__items navbar__items--right">
         {right}
-        <a href='https://cloud.hasura.io/login' className={'navbar__item navbar__link ' + styles.navBarBtn}>
+        <a href="https://console.hasura.io/" className={'navbar__item navbar__link ' + styles.navBarBtn}>
           Log In
           <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7.5 15.5L12.5 10.5L7.5 5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M7.5 15.5L12.5 10.5L7.5 5.5"
+              stroke="white"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </a>
       </div>
@@ -64,7 +68,7 @@ export default function NavbarContent() {
   const mobileSidebar = useNavbarMobileSidebar();
   const items = useNavbarItems();
   const [leftItems, rightItems] = splitNavbarItems(items);
-  const searchBarItem = items.find((item) => item.type === 'search');
+  const searchBarItem = items.find(item => item.type === 'search');
   // const { colorMode } = useColorMode();
   // const [definedColorMode, setDefinedColorMode] = useState('');
   // useEffect(() => {
@@ -79,12 +83,12 @@ export default function NavbarContent() {
         <>
           {!mobileSidebar.disabled && <NavbarMobileSidebarToggle />}
           <NavbarLogo />
-          <div className='pr-6'>
+          <div className="pr-6">
             <DocsLogoLight />
           </div>
           <div className={styles.dividerLine}>|</div>
           <NavbarItems items={leftItems} />
-          <div className=''>
+          <div className="">
             <NavbarColorModeToggle className={styles.colorModeToggle} />
           </div>
         </>
