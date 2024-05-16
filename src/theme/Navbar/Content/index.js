@@ -48,7 +48,11 @@ function NavbarContentLayout({ left, right, searchBarItem }) {
       )}
       <div className="navbar__items navbar__items--right">
         {right}
-        <a href="https://console.hasura.io/" className={'navbar__item navbar__link ' + styles.navBarBtn}>
+        <a
+          href="https://console.hasura.io/?pg=products&plcmt=header&cta=get_started&tech=default"
+          id="login_button"
+          className={'navbar__item navbar__link ' + styles.navBarBtn}
+        >
           Log In
           <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
