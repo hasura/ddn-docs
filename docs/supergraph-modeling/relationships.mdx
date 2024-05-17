@@ -25,27 +25,88 @@ import GraphiQLIDE from "@site/src/components/GraphiQLIDE";
 
 ## Introduction
 
-A relationship allows you to query nested or linked information. This allows you to extend [type](./types.mdx) objects
-with related [models](./models.mdx) or related [commands](./commands.mdx).
+Defining a relationship allows you to query nested or linked information.
 
-Relationships can take one of two forms:
+Relationships are defined in metadata **from [object types](./types#objecttype-objecttype.mdx), to
+[model](./models.mdx) or [command](./commands.mdx) types**.
 
-| Type of relationship | Description                                                                                      |
-| -------------------- | ------------------------------------------------------------------------------------------------ |
-| Model-to-model       | A relationship between two models, allowing you to query related data from one model to another. |
-| Model-to-command     | A relationship between a model and a command, allowing you to query related data from a command. |
+This enables you to create nested queries, where you can fetch related data in a single query.
 
-The former is the most common relationship type, allowing you to query related data from one model to another. This
-enables you to create nested queries, allowing you to fetch related data in a single query.
+### Example 1
 
-The latter is a more advanced relationship type, allowing you to query related data from a command. This is useful when
-you want to query data from a command that is not directly related to a model and even return the data in a nested
-format. You can imagine enriching or transforming data from a command and returning it as part of a nested query,
-thereby saving the need for multiple queries or data transformations in your application.
+In an e-commerce context, you might have `Order` and `Customer` models, and you want to link them so that you can
+fetch a customer's details for a given order.
 
-For example, let's say you have a `user` type in your graph, and also a command which responds with the current
+**Example:** Fetch a list of orders along with the customer details for each order:
+
+<GraphiQLIDE
+  query={`query {
+  orders {
+    orderId
+    orderDate
+    customer {
+      customerId
+      name
+      email
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "orders": [
+      {
+        "orderId": "ORD001",
+        "orderDate": "2024-05-10",
+        "customer": {
+          "customerId": "CUST001",
+          "name": "John Doe",
+          "email": "john.doe@example.com"
+        }
+      },
+      {
+        "orderId": "ORD002",
+        "orderDate": "2024-05-11",
+        "customer": {
+          "customerId": "CUST002",
+          "name": "Jane Smith",
+          "email": "jane.smith@example.com"
+        }
+      }
+    ]
+  }
+}`}
+/>
+
+Here is the corresponding relationship configuration which enables this query:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: customer
+  sourceType: orders
+  target:
+    model:
+      name: customers
+      subgraph: customers
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: customerId
+      target:
+        modelField:
+          - fieldName: customerId
+  description: The customer details for an order
+```
+
+This relationship configuration would best be located with your `orders` object type and model.
+
+### Example 2
+
+Let's say you have a `user` object type in your graph, and also a command which responds with the current
 logged-in user information (say `getLoggedInUserInfo`). Now you can link these two, by defining a relationship from the
-`user` type to `getLoggedInUserInfo`.
+`user` object type to `getLoggedInUserInfo`.
 
 Let's say we name the relationship `currentSession`. Now you can make a single query from your client to get a user's
 data and their current session information.
@@ -91,6 +152,86 @@ data and their current session information.
 }`}
 />
 
+Here is the corresponding relationship configuration which enables this query:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: currentSession
+  sourceType: user
+  target:
+    command:
+      name: getLoggedInUserInfo
+      subgraph: users
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        argument:
+          argumentName: user_id
+  description: The current session information for the user
+
+```
+
+### Example 3
+
+Hasura DDN also allows you to link commands together to query related data.
+
+**Example:** fetch the result of one command and use it as input for another command:
+
+<GraphiQLIDE
+  query={
+  `query {
+    trackOrder(orderId: "ORD12345") {
+      trackingNumber
+      shippingDetails {
+        carrier
+        estimatedDeliveryDate
+        currentStatus
+      }
+    }
+  }
+`}
+  response={
+  `{
+  "data": {
+    "trackOrder": {
+      "trackingNumber": "1Z9999999999999999",
+      "shippingDetails": {
+        "carrier": "UPS",
+        "estimatedDeliveryDate": "2024-05-25",
+        "currentStatus": "In Transit"
+      }
+    }
+  }
+}
+`}
+/>
+
+And the corresponding relationship configuration which enables this query:
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: shippingDetails
+  sourceType: trackOrder
+  target:
+    command:
+      name: getShippingDetails
+      subgraph: orders
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: trackingNumber
+      target:
+        argument:
+          argumentName: trackingNumber
+  description: The shipping details for an order based on its tracking number
+```
+
 :::info LSP-assisted authoring
 
 Relationships are written in your various HML files. If you're using a compatible editor (such as VS Code with the
@@ -103,7 +244,6 @@ The CLI also works to automatically track your relationships for you whenever yo
 :::
 
 ## Metadata structure
-
 
 ### Relationship {#relationship-relationship}
 
@@ -124,17 +264,17 @@ Definition of a relationship on an OpenDD type which allows it to be extended wi
 | Key | Value | Required | Description |
 |-----|-----|-----|-----|
 | `name` | [RelationshipName](#relationship-relationshipname) | true | The name of the relationship. |
-| `source` | [CustomTypeName](#relationship-customtypename) | true | The source type of the relationship. |
+| `sourceType` | [CustomTypeName](#relationship-customtypename) | true | The source type of the relationship. |
 | `target` | [RelationshipTarget](#relationship-relationshiptarget) | true | The target of the relationship. |
 | `mapping` | [[RelationshipMapping](#relationship-relationshipmapping)] | true | The mapping configuration of source to target for the relationship. |
 | `description` | string / null | false | The description of the relationship. Gets added to the description of the relationship in the graphql schema. |
 | `deprecated` | [Deprecated](#relationship-deprecated) / null | false | Whether this relationship is deprecated. If set, the deprecation status is added to the relationship field's graphql schema. |
 
- **Example:**
+**Example:**
 
 ```yaml
 name: Articles
-source: author
+sourceType: author
 target:
   model:
     name: Articles
