@@ -1,0 +1,1093 @@
+---
+sidebar_position: 2
+sidebar_label: Getting Started
+description: "Learn how to implement Hasura with a PostgreSQL data source, from start to finish."
+keywords:
+  - hasura
+  - postgresql
+  - data connector
+  - graphql
+  - queries
+  - sql data types
+  - graphql types
+  - api
+  - database
+  - getting started
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Getting Started with Hasura and PostgreSQL
+
+## Introduction
+
+In this guide, you'll learn how you can build an API on PostgreSQL using Hasura DDN. As an experienced engineer, when
+building APIs on PostgreSQL, you understand that 50-90% of your API is already implicitly defined by the modeling work
+you've done within PostgreSQL. The remaining work — business logic — is what requires you to maintain custom code.
+
+Traditional API frameworks solve this by requiring you to write code and use ORMs to abstract away the database, leading
+to performance debt down the road. Hasura provides a revolutionary way of creating APIs on PostgreSQL that ensures the
+highest levels of performance upfront. Hasura helps you automatically maintain an API for parts of your API that can
+already be defined by the existing modeling work in PostgreSQL, and offers a lightweight and high-performance way to
+write business logic wherever required.
+
+Our approach is based on two key principles:
+
+1. **Query compilation that is native to the database with push-down**: This principle ensures that queries are
+   optimized and executed directly within the database, minimizing overhead and maximizing performance.
+
+2. **Lazy evaluation—only compute what is needed**: By evaluating only the necessary computations, Hasura minimizes
+   resource usage and enhances performance efficiency.
+
+This results in an API that your consumers will love because of its standardization and on-demand composability. When
+leveraging Hasura's capabilities, your API will approach theoretical optimal performance, as if you wrote a custom,
+optimized query for every single API endpoint 🚀
+
+## API authoring lifecycle
+
+The API authoring lifecycle with Hasura involves the following steps:
+
+1. **Definition by models and commands in Hasura metadata**: The API is defined through models and commands that are
+   stored within Hasura's metadata.
+
+2. **Backing by database entities, code, or queries**: These models and commands are backed by the underlying database
+   entities, custom code, or native queries.
+
+3. **CLI tooling for easy authoring**: Hasura's CLI makes it easy to author models and commands by introspecting the
+   database, code, or native queries.
+
+By following these steps, you can efficiently create and maintain high-performance APIs on PostgreSQL with Hasura DDN.
+
+## Modeling basics
+
+Database modeling is a critical step in the design and development of a high-performance and scalable application.
+PostgreSQL, being one of the most advanced open-source relational databases, provides a rich set of features to support
+complex data models. In the sections below, we'll walk you through the best practices for database modeling with
+PostgreSQL, ensuring that your database is both efficient and easy to maintain while being set up for success with
+Hasura.
+
+### Understanding database modeling
+
+Database modeling involves defining the structure of your database, including tables, columns, data types,
+relationships, and constraints. A well-designed database model reflects the data requirements and business rules of your
+application, providing the foundation for reliable and performant data storage and retrieval.
+
+#### Key Concepts
+
+- **Entities and Tables**: Represent the main objects or concepts in your application.
+- **Attributes and Columns**: Define the properties of entities.
+- **Primary Keys**: Unique identifiers for each record in a table.
+- **Foreign Keys**: Relationships between tables.
+- **Indexes**: Structures to improve query performance.
+- **Constraints**: Rules enforced on data to ensure integrity.
+
+:::info See the PostgreSQL docs for a general overview
+
+Below, we'll take a look at how the data modeling concepts for PostgreSQL relate to Hasura and your ability to quickly
+and easily build an API largely based on your PostgreSQL modeling work. If the terms above — or PostgreSQL in general —
+are new to you, check out their excellent documentation
+[here](https://www.postgresql.org/docs/current/tutorial-arch.html).
+
+:::
+
+### Best practices for PostgreSQL database modeling
+
+#### 1. Normalize your data
+
+Normalization is the process of organizing your data to reduce redundancy and improve data integrity. Largely, this is
+done by ensuring that each cell in a table should only contain a single value and that each column has a unique name.
+
+You can learn more about normalizing your data [here](https://www.geeksforgeeks.org/normal-forms-in-dbms/).
+
+#### 2. Use appropriate data types
+
+PostgreSQL offers a variety of data types, including:
+
+- **Integer and Serial Types**: `INTEGER`, `BIGINT`, `SERIAL`, etc.
+- **Character Types**: `VARCHAR`, `TEXT`, etc.
+- **Date/Time Types**: `DATE`, `TIMESTAMP`, etc.
+- **Boolean**: `BOOLEAN`
+- **Array**: Store multiple values in a single column.
+- **JSON/JSONB**: Store and query JSON data.
+
+Choose [data types](https://www.postgresql.org/docs/current/datatype.html) that best fit the nature of your data to
+ensure efficiency and integrity.
+
+#### 3. Define primary and foreign keys
+
+- **Primary Keys**: Always define a
+  [primary key](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS) for each
+  table to uniquely identify records.
+- **Foreign Keys**: Use [foreign keys](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-FK)
+  to enforce relationships between tables, ensuring referential integrity and reducing redundancies.
+
+#### 4. Use constraints
+
+[Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html) enforce rules on your data to maintain
+accuracy and reliability:
+
+- `NOT NULL`: Ensure a column cannot have a `NULL` value.
+- `UNIQUE`: Ensure all values in a column are unique.
+- `CHECK`: Ensure all values in a column satisfy a specific condition.
+- `FOREIGN KEY`: Enforce referential integrity between tables.
+
+#### 5. Add indexes for performance
+
+[Indexes](https://www.postgresql.org/docs/current/indexes-intro.html) can significantly improve query performance.
+PostgreSQL supports several types of indexes, including:
+
+- **B-tree**: The default index type, suitable for most queries.
+- **Hash**: Useful for equality comparisons.
+- **GIN/GIST**: Used for full-text search and complex data types.
+
+:::info When should I create an index?
+
+Create indexes on columns that are frequently used in `WHERE`
+[clauses](https://www.postgresql.org/docs/7.1/queries.html), `JOIN`
+[conditions](https://www.postgresql.org/docs/current/tutorial-join.html), and `ORDER BY` clauses.
+
+:::
+
+#### 6. Leverage PostgreSQL features
+
+PostgreSQL offers advanced features that can enhance your database model:
+
+- **[Views](https://www.postgresql.org/docs/current/tutorial-views.html)**: Create virtual tables based on the result
+  set of a query.
+- **[Triggers and Rules](https://www.postgresql.org/docs/current/rules-triggers.html#:~:text=A%20trigger%20is%20fired%20once,what%20to%20do%20many%20times.)**:
+  Automate complex operations based on events.
+
+### Example: Modeling a simple e-commerce system
+
+Let's take a look at modeling an e-commerce application's data layer using the concepts from above.
+
+#### Entities and relationships
+
+1. **Customers**: Stores customer information.
+2. **Products**: Stores product details.
+3. **Orders**: Stores order information, including customer references.
+4. **OrderItems**: Stores details of products in each order, including order and product references.
+
+#### Table definitions
+
+```sql
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price NUMERIC(10, 2) NOT NULL,
+    stock INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INTEGER REFERENCES customers(customer_id),
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE order_items (
+    order_item_id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(order_id),
+    product_id INTEGER REFERENCES products(product_id),
+    quantity INTEGER NOT NULL,
+    price NUMERIC(10, 2) NOT NULL
+);
+
+-- Indexes for performance
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX idx_order_items_product_id ON order_items(product_id);
+```
+
+These table definitions and indexes conform to the best practices outlined in this guide:
+
+- **Normalization**: The tables are designed to eliminate redundancy and ensure data integrity. Each table represents a
+  single entity (Customer, Product, Order, OrderItem).
+
+- **Appropriate Data Types**: Data types are chosen based on the nature of the data. For example, `VARCHAR` is used for
+  names and emails, `NUMERIC` for prices, and `TIMESTAMP` for date/time values.
+
+- **Primary and Foreign Keys**: Each table has a primary key (`customer_id`, `product_id`, `order_id`, `order_item_id`)
+  to uniquely identify records. Foreign keys (`customer_id` in `orders`, `order_id` and `product_id` in `order_items`)
+  establish relationships between tables, ensuring referential integrity.
+
+- **Indexes for Performance**: Indexes are created on columns frequently used in `WHERE` clauses and `JOIN` conditions,
+  such as `customer_id` in `orders` and `order_id`, `product_id` in `order_items`, to improve query performance.
+
+- **Constraints**: Constraints like `NOT NULL` and `UNIQUE` are used to ensure data accuracy and reliability, preventing
+  null values in critical fields and enforcing uniqueness in the email field.
+
+A well-designed database model is crucial for building efficient and scalable applications. By following the best
+practices outlined in this guide, you can leverage PostgreSQL's powerful features to create a robust and
+high-performance database.
+
+## Prerequisites
+
+Before continuing, ensure you've completed the following prerequisites:
+
+### Step 1. Install the Hasura CLI
+
+You can download the CLI binary below and start using it immediately. Please follow the instructions for your system.
+
+<Tabs groupId="os-preference" className="api-tabs">
+
+<TabItem value="macOS-or-linux" label="macOS and Linux">
+
+Simply run the installer script in your terminal:
+
+```bash
+curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v1/get.sh | bash
+```
+
+</TabItem>
+
+<TabItem value="windows" label="Windows">
+
+Download the latest `cli-ddn-windows-amd64.exe` binary and run it.
+
+```bash
+curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v1/latest/cli-ddn-windows-amd64.exe -o ddn.exe
+```
+
+:::info Unrecognized application warning
+
+In Windows, if you get an "Unrecognized application" warning, click "Run anyway".
+
+:::
+
+</TabItem>
+</Tabs>
+
+### Step 2. Install the Hasura VS Code extension
+
+If you don't already have [VS Code](https://code.visualstudio.com/download) installed, install it and then install the
+[Hasura extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura).
+
+### Step 3. Create a new Hasura DDN project
+
+Login to the CLI and then create a new project:
+
+```bash
+# Login using your Hasura Cloud account
+ddn login
+```
+
+```bash
+# Create a new project
+ddn create project --dir <path-to-project-dir>
+```
+
+## Connect your database
+
+You can connect both cloud-hosted and local PostgreSQL databases to Hasura DDN. Regardless of where your database is
+hosted, it will be connected to your project using a [data connector](/connectors/overview.mdx). Together, with the CLI,
+the PostgreSQL data connector will generate and use metadata that Hasura can understand to integrate your data source
+into your project.
+
+### Step 1. Create a connector manifest
+
+The connector manifest defines the configuration to build a data connector. You can think of this as a blueprint for the
+connector that will integrate your PostgreSQL database into your API. Run the following command to scaffold out the
+connector's structure and configuration files:
+
+```bash
+ddn add connector-manifest pg_connector --subgraph app --hub-connector hasura/postgres --type cloud
+```
+
+In this command, we're passing a few important values.
+
+#### Connector name
+
+First, we're naming our connector `pg_connector`, but you can call it whatever makes sense to your business outcome. For
+example, if this connector is integrating a database all about users' profiles, it would make sense to name it
+`user_profile_connector` so you and your team know which data source this relates to. **Importantly, a data connector
+can only connect to a single data source.**
+
+#### Parent subgraph
+
+Related to our connector's name is the value `app` — this is the **default** subgraph added to any Hasura DDN project.
+You can read more about subgraphs [here](/project-configuration/subgraphs.mdx), but for now, know that it's important to
+organize subgraphs around data domains within an organization. If our connector is for user profiles, it's a fair bet
+the team responsible for this data source — and others — is the UX team. Thus, we could rename this subgraph to `ux` or
+whatever makes the most sense.
+
+#### Connector type
+
+Additionally, we're calling out two other values: `hasura/postrgres`, which is the connector from the
+[Connector Hub](https://hasura.io/connectors/postgres); and, `cloud`, which tells the CLI we want Hasura DDN to host
+this connector for us.
+
+### Step 2. Update the connection string
+
+Now that our connector has been scaffolded out for us, we need to provide a connection string so that the data source
+can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
+caveats to consider before continuing.
+
+:::info Environment-specific caveats
+
+**Local PostgreSQL**
+
+If you're using a local PostgreSQL database — such as through [Docker](https://hub.docker.com/_/postgres) — you'll need
+to use a tool like [ngrok](https://ngrok.com/) to tunnel your database's connection. This will expose the port, most
+likely `5432`, on which the database is running and allow Hasura DDN to connect to it.
+
+**Cloud-hosted PostgreSQL**
+
+Alternatively, if you have a cloud-hosted database, as Hasura DDN will need to reach your database, ensure you've
+allowlisted `0.0.0.0/0` so that DDN is able to reach it.
+
+:::
+
+You have a few options when updating the connection string for a PostgreSQL database to the PostgreSQL connector. Choose
+the method below which makes the most sense for you:
+
+<Tabs groupId="string-preference" className="api-tabs">
+<TabItem value="EnvVar" label="Environment Variable">
+
+Open your project in VS Code and open the `base.env.yaml` file in the root of your project. Then, add the
+`PG_CONNECTOR_CONNECTION_URI` environment variable with the connection string under the `app` subgraph:
+
+```yaml
+supergraph: {}
+subgraphs:
+  app:
+    PG_CONNECTOR_CONNECTION_URI: "postgresql://<user>:<password>@<host>:<port>/<db_name>"
+```
+
+Next, update your `/app/pg_connector/connector/pg_connector.build.hml` file to reference this new environment variable:
+
+```yaml
+# other configuration above
+CONNECTION_URI:
+  valueFromEnv: PG_CONNECTOR_CONNECTION_URI
+```
+
+Notice, when we use an environment variable, we must change the key to `valueFromEnv` instead of `value`. This tells
+Hasura DDN to look for the value in the environment variable we've defined instead of using the value directly.
+
+</TabItem>
+<TabItem value="RawString" label="Raw Connection String">
+
+Open your project in VS Code and open the `pg_connector.build.hml` file in our project. We can then add the
+`CONNECTION_URI`'s value:
+
+```yaml
+# other configuration above
+CONNECTION_URI:
+  value: "postgresql://<user>:<password>@<host>:<port>/<db_name>"
+```
+
+If you _are_ storing sensitive information, such as connection strings in your `.env.yaml` files, you should add these
+to your gitignore so as to avoid accidentally committing them to version control.
+
+</TabItem>
+</Tabs>
+
+At this point, you can now update your connector manifest, which will allow the connector to introspect your data source
+and bring in database-specific configuration to your project.
+
+```bash
+ddn update data-connector-link pg_connector --subgraph app
+```
+
+This will also build and deploy your connector. In the next section, we'll create the first
+[**build**](/project-configuration/builds.mdx) of our supergraph and see an API in action.
+
+:::tip Initialize a Git repository
+
+At this point, we recommend initializing a Git repository. This gives you a fallback point as you begin to iterate on
+your project.
+
+:::
+
+## Basics
+
+In the previous section, we created a data connector and added a PostgreSQL database as a data source. If you were to
+navigate to your project at [https://hasura.console.io](https://hasura.console.io), you wouldn't see an API. Why not?
+
+Hasura DDN works by creating immutable builds, similar to git commits, based on changes to your project's metadata. This
+frees you to iteratively and rapidly test incremental changes to your API without causing disruption to other
+collaborators or downstream consumers. Before we create a supergraph build, let's first add a
+[**model**](/supergraph-modeling/models.mdx) to our subgraph.
+
+### Step 1. Add a model
+
+Models serve as the link between your data connector and the API Hasura generates. For PostgreSQL, models typically
+correspond to tables, but you can also create them for views and
+[native queries](/connectors/postgresql/native-queries/index.mdx).
+
+If you look in your `app/pg_connector/connector/pg_connector.hml` file, you'll see `object_types` for each table in your
+PostgreSQL database. For each of these, you can run the following command to create a model:
+
+```bash
+ddn add model --data-connector-link pg_connector --name <object_type>
+```
+
+:::tip Casing matters
+
+When adding a model, it is critical to use the same casing as the `object_type` from your connector's configuration
+file.
+
+:::
+
+<details>
+  <summary>
+    Each time you add a model, you'll see a new named file in the `models` directory of your connector. For example, if we
+    ran the previous command on the `carts` type, we'd then see a `Carts.hml` file that contains all the metadata Hasura DDN
+    needs to add it to our API. Click here to see an example `hml` file.
+  </summary>
+
+```yaml
+# Carts.
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Carts
+  fields:
+    - name: createdAt
+      type: Timestamptz
+    - name: id
+      type: Uuid!
+    - name: isComplete
+      type: Bool!
+    - name: isReminderSent
+      type: Bool!
+    - name: updatedAt
+      type: Timestamptz
+    - name: userId
+      type: Uuid!
+  graphql:
+    typeName: App_Carts
+    inputTypeName: App_CartsInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: pg_connector
+      dataConnectorObjectType: carts
+      fieldMapping:
+        createdAt:
+          column:
+            name: created_at
+        id:
+          column:
+            name: id
+        isComplete:
+          column:
+            name: is_complete
+        isReminderSent:
+          column:
+            name: is_reminder_sent
+        updatedAt:
+          column:
+            name: updated_at
+        userId:
+          column:
+            name: user_id
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Carts
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - id
+          - isComplete
+          - isReminderSent
+          - updatedAt
+          - userId
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: CartsBoolExp
+  objectType: Carts
+  dataConnectorName: pg_connector
+  dataConnectorObjectType: carts
+  comparableFields:
+    - fieldName: createdAt
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: isComplete
+      operators:
+        enableAll: true
+    - fieldName: isReminderSent
+      operators:
+        enableAll: true
+    - fieldName: updatedAt
+      operators:
+        enableAll: true
+    - fieldName: userId
+      operators:
+        enableAll: true
+  graphql:
+    typeName: App_CartsBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Carts
+  objectType: Carts
+  source:
+    dataConnectorName: pg_connector
+    collection: carts
+  filterExpressionType: CartsBoolExp
+  orderableFields:
+    - fieldName: createdAt
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: isComplete
+      orderByDirections:
+        enableAll: true
+    - fieldName: isReminderSent
+      orderByDirections:
+        enableAll: true
+    - fieldName: updatedAt
+      orderByDirections:
+        enableAll: true
+    - fieldName: userId
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: app_carts
+    selectUniques:
+      - queryRootField: app_cartsById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: App_CartsOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Carts
+  permissions:
+    - role: admin
+      select:
+        filter: null
+```
+
+</details>
+
+### Step 2. Create a supergraph build
+
+Next, we'll create our first supergraph build:
+
+```bash
+ddn build supergraph-manifest
+```
+
+The CLI will respond with informatin about our project, including a link to the project's console. Click on that to see
+the GraphiQL explorer and interact with your API.
+
+### Step 3. Write your first query
+
+For the `Carts` example we've been using, we can run the following query:
+
+```graphql
+query AllCartsQuery {
+  app_carts {
+    id
+    isComplete
+    userId
+  }
+}
+```
+
+All types are namespaced with the subgraph to which they belong. Here, you can see that `carts` belongs to the default
+`app` subgraph. Thus, the query above will return a response that looks like this:
+
+<!-- TODO: Add screenshot of console -->
+
+## Relationships
+
+Relationships unlock the true potential of GraphQL. And, with Hasura's
+[LSP](https://microsoft.github.io/language-server-protocol/) extension, you can quickly and easily create
+[relationships](/supergraph-modeling/relationships.mdx) between entites, allowing you to make deeply nested queries with
+whatever access control rules you desire.
+
+### Step 1. Add another model
+
+Begin by adding at least one other model to your metadata. In our example, we'll add the `Users` model so that we can
+create a query that returns a user's information and any carts belonging to them:
+
+```bash
+ddn add model --data-connector-link pg_connector --name users
+```
+
+### Step 2. Create the relationship
+
+You'll see a new `hml` file for the new model; for our example, we'll create the relationship in the `Users.hml` file as
+a user **owns** a cart. To do this, we'll open the `Users.hml` file in VS Code and add the following:
+
+```yaml
+---
+kind: Relationship
+version: v1
+definition:
+  name: carts
+  source: Users
+  target:
+    model:
+      name: Carts
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: userId
+```
+
+:::tip Use the LSP for easy authoring
+
+You can quickly and easily scaffold out a relationship using the Hasura extension, powered by LSP. If you start typing
+`relationship` after demarcating the new object with `---`, you'll see the LSP provide you a set of metadata objects
+which you can add. After selecting the `to model` relationship option, you can simply tab through the fields and Hasura
+will know which values are available to your models.
+
+:::
+
+### Step 3. Create a new supergrpah build
+
+As we've changed our metadata, we'll need to create a new build of our supergraph based on those changes:
+
+```bash
+ddn build supergraph-manifest
+```
+
+### Step 4. Run a nested query
+
+Afer selecting the most-recent build on your project's console, you can now execute a query using your relationship as a
+field on the type in which you created it earlier. As an example, using our data model, we can now query all users'
+information **and** their carts:
+
+```graphql
+query AllUsersCartsQuery {
+  app_users {
+    id
+    name
+    carts {
+      id
+      isComplete
+      userId
+    }
+  }
+}
+```
+
+Which will return information like this:
+
+<!-- TODO: Add screenshot of console -->
+
+## Model evolution
+
+Historically, iterating on APIs has presented challenges. Notably, versioning standards and schema evolution are not
+handled elegantly and can lead to downstream disruptions for consumers. With Hasura, iterating on your API is as simple
+as updating your metadata. We'll take a look at two common scenarios: adding a new field and deprecating an existing
+one.
+
+### Add a new field
+
+As a model is supported by an underlying entity in your PostgreSQL database, you'll need to modify that first. If, for
+instance, you add a column — such as `last_online` to a table — you can then update your `dataConnectorLink` by running
+the following:
+
+```bash
+ddn update data-connector-link pg_connector --subgraph app
+```
+
+This will instantly introspect your data source and update the connector's configuration to reflect the new `lastOnline`
+field. If this is part of our `Users` model, we'd then run the following to update the metadata:
+
+```bash
+ddn update model Users
+```
+
+If you have no plans to deprecate an existing field, you can now generate a new supergraph build.
+
+### Deprecate an existing field
+
+With a new field taking its place, we can now deprecate our existing `lastSeen` field by adding the `deprecated` key and
+— optionally — providing a reason that will be passed along during schema introspection.
+
+In the file whose field we want to deprecate, find the field and add the following in the `ObjectType` definition:
+
+```yaml
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Users
+  fields:
+    # Other fields above...
+    - name: lastSeen
+      type: Timestamptz
+      # highlight-start
+      deprecated:
+        reason: Use lastOnline instead.
+      # highlight-end
+```
+
+If you now create a new build and try to run a query that includes this deprecated field, you'll receive a warning
+alerting you to the field's deprecation:
+
+<!-- TODO: Add screenshot -->
+
+## Transformations
+
+As we alluded to in the beginning of this guide, the remaining work on top of your existing PostgreSQL modeling is
+authoring and maintaining custom code, or business logic. With Hasura, you can integrate — and even host — this business
+logic directly with Hasura DDN and your API.
+
+Hasura handles business logic using the TypeScript connector. This enables you to author you own custom code, written in
+TypeScript, and host it alongside your API. Using this connector, you can transform and enrich data before it reaches
+your consumers, unlocking you to simplify client applications and speed up your backend development.
+
+You can then integrate this custom code as individual [**commands**](/supergraph-modeling/commands.mdx) in your
+metadata.
+
+### Step 1. Add the TypeScript connector
+
+Let's begin by adding the connector to our project. In the example below, we'll call it the `ts_connector` and add it to
+our `app` subgraph:
+
+```bash
+ddn add connector-manifest ts_connector --subgraph app --hub-connector hasura/nodejs --type cloud
+```
+
+### Step 2. Write business logic
+
+If we look inside the `app` directory, we'll see a new `ts_connector/connector` subdirectory that contains a
+`functions.ts` file. This is our entrypoint for all TypeScript functions related to this subgraph. In our example, we're
+going to transform the timestamp returned on our `createdAt` field from `Users` into a human-readable format. We'll
+replace the default `hello()` function with the following:
+
+```ts
+import { Client } from "pg";
+
+/**
+ * @readonly
+ */
+export async function humanReadableCreatedAt(userId: string): Promise<string> {
+  const client = new Client({
+    host: "35.236.11.122",
+    port: 5432,
+    database: "v3-docs-sample-app",
+    user: "read_only_user",
+    password: "readonlyuser",
+  });
+
+  await client.connect();
+
+  const queryText = "SELECT created_at FROM users WHERE id = $1";
+  const result = await client.query(queryText, [userId]);
+
+  if (result.rows.length > 0) {
+    const timestamp = result.rows[0].created_at;
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  } else {
+    return `Issue retrieving user`;
+  }
+}
+```
+
+:::tip Install any dependency
+
+As this is a Node.js project, you can install any dependency! You can see we've installed the `pg` package and are using
+it to interact directly with our PostgreSQL data source.
+
+:::
+
+### Step 3. Track our function
+
+Adding a new function like this is similar to adding a new table in our PostgreSQL database. This means we'll need to
+ensure our connector knows about the function. We can do that by updating the `dataConnectorLink` like this for our
+`humanReadableCreatedAt()` function:
+
+```bash
+ddn add command --data-connector-link ts_connector --name humanReadableCreatedAt
+```
+
+### Step 4. Create a new build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn build supergraph-manifest
+```
+
+You should see your command available, along with its documentation, in the GraphiQL explorer:
+
+<!-- TODO: Add screenshot of console -->
+
+### Step 5. Create a relationship via a model
+
+As it stands, our `humanReadableCreatedAt` command isn't super useful. It's preferrable to return this value when we're
+querying for a user's information. We can easily utilize this business logic in a request from a client by creating a
+relationship.
+
+For our example, let's take our `Users.hml` file and create a new relationship. Remember, we can use the LSP to help us
+in authoring this:
+
+```yaml
+---
+kind: Relationship
+version: v1
+definition:
+  name: humanReadableCreatedAt
+  source: Users
+  target:
+    command:
+      name: HumanReadableCreatedAt
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        argument:
+          argumentName: userId
+```
+
+We can then update our `Users` model:
+
+```bash
+ddn update model Users --subgraph app
+```
+
+And create a new build before testing this:
+
+```bash
+ddn build supergraph-manifest
+```
+
+In our example, when querying a user's information, we can now return the transformed data as part of the simple query
+from the client 🎉
+
+<!-- TODO: Add screenshot -->
+
+## Authorization
+
+Powerful authorization rules can be created simply using the same declarative metadata approach we've seen for
+relationships and versioning. By adding
+[`modelPermissions`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and
+[`typePermissions`](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions), you can easily control which
+rows and columns from PostgreSQL are returned via your API.
+
+### Step 1. Create a modelPermission
+
+By default, a role of `admin` exists for your API and can access all models. To create a new role, such as `user`,
+simply add the role to the list of `permissions` for a model and set up your access control rules. In the example below,
+we'll allow users with the role of `user` to access only their own rows of data by checking for a header value matching
+their `id`:
+
+```yaml
+# Users.hml
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Users
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        #highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+        #highlight-end
+```
+
+### Step 2. Create a typePermission
+
+The `admin` role also has access to all fields for each model. However, adding a new role and limiting what columns can
+be returned from your data source is just as simple. For example, let's restrict what a `user` can see by omitting
+several fields from the `typePermissions`:
+
+```yaml
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Users
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - email
+          - favoriteArtist
+          - id
+          - isEmailVerified
+          - lastSeen
+          - name
+          - password
+          - updatedAt
+    #highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - email
+          - favoriteArtist
+          - id
+          - name
+          - password
+    #highlight-end
+```
+
+Creating a new build after modifying this metadata will allow us to use two headers in our request: `x-hasura-role` and
+`x-hasura-user-id`. In this example, we're passing them as unencoded values, but you can make these part of your claims
+when utilizing [JWTs](/auth/authentication/jwt.mdx) or [webhooks](/auth/authentication/webhook.mdx) for authentication:
+
+<!-- TODO: Add screenshot from console -->
+
+:::tip Don't forget about LSP!
+
+Remember, the LSP will help you author any metadata objects or updates, including `modelPermissions` and
+`typePermissions`.
+
+:::
+
+## Writes and transactions
+
+You can easily write data to your database using the native PostgreSQL driver and the TypeScript connector. In the
+example below, we've truncated the code used in this section, but you follow these steps to create a function which
+manipulates or inserts data and is exposed as a mutation via your GraphQL API.
+
+### Step 1. Create a function
+
+In the earlier example, we marked our `humanReadableCreatedAt()` function as `@readOnly` using JSDoc to expose it as a
+query. However, omiting this value will expose the function as a mutation. We can even add documentation that will be
+visible in the GraphiQL explorer by tagging `@param` for the argument(s) and `@returns` for what will be returned by the
+mutation.
+
+```ts
+import { Client } from "pg";
+
+/**
+ * @param userData An object containing the user's data.
+ * @returns The ID of the newly inserted user.
+ */
+export async function insertUser(userData: { name: string; email: string }): Promise<string> {
+  const client = new Client({
+    host: "<HOST>",
+    port: <PORT>,
+    database: "<DB_NAME>",
+    user: "<DB_USERNAME>",
+    password: "<DB_PASSWORD>",
+  });
+
+  await client.connect();
+
+  const queryText = `
+    INSERT INTO users (name, email)
+    VALUES ($1, $2)
+    RETURNING id
+  `;
+  const values = [userData.name, userData.email];
+  const result = await client.query(queryText, values);
+
+  await client.end();
+
+  if (result.rows.length > 0) {
+    return result.rows[0].id;
+  } else {
+    throw new Error("Failed to insert user");
+  }
+}
+```
+
+### Step 2. Track the function
+
+Just as before, we'll track our function using the CLI:
+
+```bash
+ddn add command --data-connector-link ts_connector --name insertUser
+```
+
+### Step 3. Create a new build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn build supergraph-manifest
+```
+
+Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation:
+
+<!-- TODO: Add screenshot of console -->
+
+## Decoupling your domain and physical data models
+
+Native Queries allow you to run custom SQL queries on your PostgreSQL database. This allows you to run queries that are
+not supported by Hasura DDN's GraphQL engine. This unlocks the full power of your database, allowing you to run complex
+queries, mutations, and even vector searches — all directly from your Hasura GraphQL API.
+
+In modern data architecture, decoupling the data domain from physical data models is a critical principle. This approach
+promotes flexibility and scalability, allowing the logical data representation to evolve independently of the underlying
+physical storage. By using Native Queries, you can define complex business logic and data transformations in SQL while
+exposing a clean and simplified GraphQL API. This separation ensures that changes in the database schema or physical
+data models do not disrupt the application layer, fostering a more maintainable and adaptable system architecture.
+
+You can read more about these [here](/connectors/postgresql/native-queries/index.mdx).
+
+## Moving to production
+
+At this point, you have all the ingredients and knowledge to create a robust supergrpah that composes data across
+various sources and aggregates them into a single, reliable, performant API. Before moving to production, consider the
+resources below:
+
+### Migrations
+
+Hasura recommends a number of third-party solutions for managing database migrations. Commonly, users implement
+migrations via CI/CD with [Flyaway](https://flywaydb.org/) or similar resources.
+
+:::info Doesn't Hasura manage migrations?
+
+In v2, Hasura provided a built-in migration tool. However, as v3 metadata is decoupled from the underyling data source,
+you are free to manage your migrations however you wish.
+
+:::
+
+### Performance optimizations
+
+Hasura provides a suite of observability tools direclty in a project's DDN console. You can view traces, query plans,
+and general usage statistics. These are helpful for diagnosing common bottlenecks and problems with your application's
+performance. You can read more about these [here](/observability/overview.mdx).
+
+### CI/CD
+
+You can create a pipeline for deployments using any tools you wish. As we recommend initializing a git repository early
+in the project creation process, and provide operability with environment variables, you can follow any git-workflow
+best practices for moving between development, staging, and production environments. Additionally, we provide a
+configurable [GitHub Action](https://github.com/marketplace/actions/ddn-deployment) for automatically managing your
+deployments.
