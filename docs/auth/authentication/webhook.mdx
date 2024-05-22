@@ -1,5 +1,7 @@
 ---
-description: "Get comprehensive information on how to configure Hasura to use webhook mode to authenticate incoming requests. Understand the process and requirements, and how to control the Hasura Engine's response to user authentication."
+description:
+  "Get comprehensive information on how to configure Hasura to use webhook mode to authenticate incoming requests.
+  Understand the process and requirements, and how to control the Hasura Engine's response to user authentication."
 keywords:
   - hasura webhook mode
   - hasura engine authentication
@@ -9,13 +11,13 @@ keywords:
   - api authorization
   - hasura api requests
   - session variables
-  - hasura user-role 
+  - hasura user-role
 sidebar_position: 4
 sidebar_label: Authentication Using a Webhook
 seoFrontMatterUpdated: true
 ---
 
-import Thumbnail from '@site/src/components/Thumbnail';
+import Thumbnail from "@site/src/components/Thumbnail";
 
 # Authentication Using a Webhook
 
@@ -44,16 +46,14 @@ kind: AuthConfig
 version: v1
 definition:
   allowRoleEmulationBy: admin
-  webhook:
-    webhookUrl: http://auth.yourservice.com/validate-request
+  mode:
+    webhook:
+      url: http://auth-hook.default:8080/webhook/ddn?role=admin
+      method: Post
 ```
 
-| Field        | Type   | Required | Description                                                                                                                             |
-|--------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `webhookUrl` | URL    | true     | URL of the authentication webhook.                                                                                                       |
-| `mode`       | String | false    | HTTP method to use while making the request to the authentication webhook. Only `Get` and `Post` methods are supported (default: `Get`). |
-
-
+**You can read more about the fields and shape of the AuthConfig object in the
+[modeling section of documentation](/supergraph-modeling/auth-config.mdx#authconfig-authhookconfig).**
 
 :::info Note
 
@@ -130,8 +130,8 @@ this request. Unlike JWT auth mode, you do not have to pass `x-hasura-allowed-ro
 variables. This is because the webhook is called for each request, allowing the auth service to easily switch the user
 role if needed.
 
-In the example below the `x-hasura-is-owner` and `x-hasura-custom` are examples of custom session variables which
-will be available to your permission rules in Hasura Engine.
+In the example below the `x-hasura-is-owner` and `x-hasura-custom` are examples of custom session variables which will
+be available to your permission rules in Hasura Engine.
 
 ```http
 HTTP/1.1 200 OK
@@ -165,39 +165,3 @@ If you want to deny the GraphQL request, return a `401 Unauthorized` exception.
 ```http
 HTTP/1.1 401 Unauthorized
 ```
-
-[//]: # (## Auth webhook samples)
-
-[//]: # ()
-[//]: # (We have put together a)
-
-[//]: # ([GitHub Node.js repo]&#40;https://github.com/hasura/graphql-engine/tree/master/community/boilerplates/auth-webhooks/nodejs-express&#41;)
-
-[//]: # (that has some sample auth webhooks configured.)
-
-[//]: # ()
-[//]: # (You can deploy these samples using [glitch]&#40;https://glitch.com/&#41;:)
-
-[//]: # ()
-[//]: # ([<img src="https://raw.githubusercontent.com/hasura/sample-auth-webhook/master/assets/deploy-glitch.png" className="no-shadow" width="200" alt="deploy_auth_webhook_with_glitch" />]&#40;http://glitch.com/edit/#!/import/github/hasura/sample-auth-webhook&#41;)
-
-[//]: # ()
-[//]: # (Once deployed, you can use any of the following endpoints as your auth webhook in the GraphQL Engine:)
-
-[//]: # ()
-[//]: # (- `/simple/webhook`)
-
-[//]: # (  &#40;[View source]&#40;https://github.com/hasura/graphql-engine/blob/master/community/boilerplates/auth-webhooks/nodejs-express/server.js&#41;&#41;)
-
-[//]: # (- `/firebase/webhook`)
-
-[//]: # (  &#40;[View source]&#40;https://github.com/hasura/graphql-engine/blob/master/community/boilerplates/auth-webhooks/nodejs-firebase/firebase/firebaseHandler.js&#41;&#41;)
-
-[//]: # ()
-[//]: # (:::info Firebase environment variables)
-
-[//]: # ()
-[//]: # (If you are using `Firebase`, you will need to set the associated environment variables.)
-
-[//]: # ()
-[//]: # (:::)
