@@ -6,7 +6,7 @@ import DocRootLayoutMain from '@theme/DocRoot/Layout/Main';
 import styles from './styles.module.css';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
-import UserFetcherWrapper from './posthogConfig';
+import UserFetcher from './posthogConfig';
 
 export default function DocRootLayout({ children }) {
   const sidebar = useDocsSidebar();
@@ -15,7 +15,7 @@ export default function DocRootLayout({ children }) {
 
   return (
     <div className={styles.docsWrapper}>
-      <UserFetcherWrapper />
+      <UserFetcher />
       <BackToTopButton />
       <div className={styles.docRoot}>
         {sidebar && (
