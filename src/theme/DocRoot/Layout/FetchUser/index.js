@@ -1,13 +1,4 @@
-import { useState, useEffect } from 'react';
-import BrowserOnly from '@docusaurus/BrowserOnly';
-import posthog from 'posthog-js';
-
-// 🦔 config
-posthog.init('phc_MZpdcQLGf57lyfOUT0XA93R3jaCxGsqftVt4iI4MyUY', {
-  api_host: 'https://analytics-posthog.hasura-app.io',
-});
-
-async function fetchUser() {
+export default async function fetchUser() {
   const url = 'https://data.pro.hasura.io/v1/graphql';
 
   const headers = {
@@ -46,26 +37,4 @@ async function fetchUser() {
     console.error('Error fetching user:', error);
     return null;
   }
-}
-
-function UserFetcher() {
-  const [docsUser, setDocsUser] = useState(null);
-
-  useEffect(() => {
-    async function getUser() {
-      const user = await fetchUser();
-      if (user) {
-        setDocsUser(user);
-        posthog.identify(user.data.users[0]?.id, { email: user.data.users[0]?.email });
-      }
-    }
-
-    getUser();
-  }, []);
-
-  return null;
-}
-
-export default function UserFetcherWrapper() {
-  return <BrowserOnly fallback={<div>Loading...</div>}>{() => <UserFetcher />}</BrowserOnly>;
 }
