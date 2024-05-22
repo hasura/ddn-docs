@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import posthog from 'posthog-js';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 
 // 🦔 config
 posthog.init('phc_MZpdcQLGf57lyfOUT0XA93R3jaCxGsqftVt4iI4MyUY', {
@@ -47,7 +48,7 @@ async function fetchUser() {
   }
 }
 
-export default function UserFetcher() {
+function UserFetcher() {
   const [docsUser, setDocsUser] = useState(null);
 
   useEffect(() => {
@@ -63,4 +64,8 @@ export default function UserFetcher() {
   }, []);
 
   return null;
+}
+
+export default function UserFetcherWrapper() {
+  return <BrowserOnly fallback={<div>Loading...</div>}>{() => <UserFetcher />}</BrowserOnly>;
 }
