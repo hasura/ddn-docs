@@ -1,7 +1,9 @@
 ---
 sidebar_position: 1
 sidebar_label: Version 3
-description: "Reference documentation for the setup process for the Hasura PostgreSQL connector, including connection URI details, native queries, and mutations."
+description:
+  "Reference documentation for the setup process for the Hasura PostgreSQL connector, including connection URI details,
+  native queries, and mutations."
 keywords:
   - hasura postgresql setup
   - connector configuration
@@ -22,7 +24,8 @@ seoFrontMatterUpdated: true
 
 The data connector provides a plugin to the hasura CLI to assist you in authoring configuration.
 
-We provide the `ndc-postgres-cli`, which is a small executable whose, builds can be accessed [here](https://github.com/hasura/ndc-postgres/releases/).
+We provide the `ndc-postgres-cli`, which is a small executable whose, builds can be accessed
+[here](https://github.com/hasura/ndc-postgres/releases/).
 
 :::warning Current status
 
@@ -32,8 +35,7 @@ But at the time of this writing this part of the developer experience is undergo
 command invocations are likely to be different from what is described here.
 
 Therefore this document will give workflow descriptions using the data connector CLI plugin directly. This is likely to
-change in the near future.
-:::
+change in the near future. :::
 
 ### The default configuration
 
@@ -44,72 +46,49 @@ here in abbreviated form:
 {
   "version": "3",
   "$schema": "./schema.json",
-  "connectionSettings": {
-    "connectionUri": {
-      "variable": "CONNECTION_URI"
+  "connectionSettings":
+    {
+      "connectionUri": { "variable": "CONNECTION_URI" },
+      "isolationLevel": "ReadCommitted",
+      "poolSettings":
+        {
+          "maxConnections": 50,
+          "poolTimeout": 30,
+          "idleTimeout": 180,
+          "connectionLifetime": 600,
+          "checkConnectionAfterIdle": 60,
+        },
     },
-    "isolationLevel": "ReadCommitted",
-    "poolSettings":
-      {
-        "maxConnections": 50,
-        "poolTimeout": 30,
-        "idleTimeout": 180,
-        "connectionLifetime": 600,
-        "checkConnectionAfterIdle": 60
-      }
-  },
   "mutationsVersion": null,
-  "metadata": {
-    "tables": {},
-    "compositeTypes": {},
-    "nativeQueries": {},
-    "aggregateFunctions": {},
-    "comparisonOperators": {},
-    "typeRepresentations": {}
-  },
-  "introspectionOptions": {
-    "excludedSchemas": [
-      "information_schema",
-      "pg_catalog",
-      "tiger",
-      "crdb_internal",
-      "columnar",
-      "columnar_internal"
-    ],
-    "unqualifiedSchemasForTables": [
-      "public"
-    ],
-    "unqualifiedSchemasForTypesAndProcedures": [
-      "public",
-      "pg_catalog",
-      "tiger"
-    ],
-    "comparisonOperatorMapping": [
-      {
-        "operatorName": "=",
-        "exposedName": "_eq",
-        "operatorKind": "equal"
-      },
-      {
-        "operatorName": "<=",
-        "exposedName": "_lte",
-        "operatorKind": "custom"
-      },
+  "metadata":
+    {
+      "tables": {},
+      "compositeTypes": {},
+      "nativeQueries": {},
+      "aggregateFunctions": {},
+      "comparisonOperators": {},
+      "typeRepresentations": {},
+    },
+  "introspectionOptions":
+    {
+      "excludedSchemas":
+        ["information_schema", "pg_catalog", "tiger", "crdb_internal", "columnar", "columnar_internal"],
+      "unqualifiedSchemasForTables": ["public"],
+      "unqualifiedSchemasForTypesAndProcedures": ["public", "pg_catalog", "tiger"],
+      "comparisonOperatorMapping":
+        [
+          { "operatorName": "=", "exposedName": "_eq", "operatorKind": "equal" },
+          { "operatorName": "<=", "exposedName": "_lte", "operatorKind": "custom" },
 
-      ...
-
-      ],
-    "introspectPrefixFunctionComparisonOperators": [
-      "box_above",
-      "box_below",
-      ...
-    ]
-  }
+          ...,
+        ],
+      "introspectPrefixFunctionComparisonOperators": ["box_above", "box_below", ...],
+    },
 }
 ```
 
-The various default values of `introspectionOptions` fields are output explicitly. This provides both immediacy, because you
-don't have to look up what the default values are, and versioning flexibly, because it allows the defaults to evolve
+The various default values of `introspectionOptions` fields are output explicitly. This provides both immediacy, because
+you don't have to look up what the default values are, and versioning flexibly, because it allows the defaults to evolve
 without requiring a version bump.
 
 ### A minimal configuration
@@ -117,27 +96,13 @@ without requiring a version bump.
 The very minimal configuration that is acceptable contains just the `version` and `connectionUri` fields:
 
 ```yaml
-{
-  "version": "3",
-  "connectionSettings": {
-    "connectionUri": {
-      "value": "postgres://..."
-    }
-  }
-}
+{ "version": "3", "connectionSettings": { "connectionUri": { "value": "postgres://..." } } }
 ```
 
 or, to get the connection uri from an environment variable:
 
 ```yaml
-{
-  "version": "3",
-  "connectionSettings": {
-    "connectionUri": {
-    "variable": "CONNECTION_URI"
-    }
-  }
-}
+{ "version": "3", "connectionSettings": { "connectionUri": { "variable": "CONNECTION_URI" } } }
 ```
 
 Note that the choice of environment variable name `CONNECTION_URI` is only a matter of convention. Any environment
@@ -153,11 +118,11 @@ Running `ndc-postgres-cli update` in a configuration directory will do the follo
 Connect to the database with the specified `connectionUri`, and then overwrite all data in the `metadata` field (except
 for the native queries) based on the contents of the database and the values given in the `introspectionOptions` field.
 
-Fill in default values for any fields absent from the configuration, as descriped in the [Versioning
-Policy](#versioning-policy) section.
+Fill in default values for any fields absent from the configuration, as descriped in the
+[Versioning Policy](/connectors/postgresql/configuration-reference/index.mdx#versioning-policy) section.
 
-Various fields in the `introspectionOptions` object influence the outcome of the introspection process, See [Configure
-options](#introspectionoptions).
+Various fields in the `introspectionOptions` object influence the outcome of the introspection process, See
+[Configure options](#manually-editing).
 
 ### Manually editing
 
@@ -177,14 +142,14 @@ One section of the configuration that will always need manual authorship is the 
 
 ## `version`
 
-This field indicates the version of the configuration format that the configuration file adheres to. See [Versioning
-Policy](#versioning-policy).
+This field indicates the version of the configuration format that the configuration file adheres to. See
+[Versioning Policy](/connectors/postgresql/configuration-reference/index.mdx#versioning-policy).
 
 The currently supported version is: `"3"`.
 
-##  `connectionSettings`
+## `connectionSettings`
 
-###  `connectionUri`
+### `connectionUri`
 
 The `connectionUri` field indicates the uri of the database which the connector will be querying. This can be given
 either as a literal value, or sourced from an environment variable (to help with sound credentials storage for
@@ -193,15 +158,13 @@ instance).
 The PostgreSQL database URL should follow the [PostgreSQL connection URI form][libpq: Connection Strings]
 
 **Examples:**
+
 ```yaml
 "connectionUri": "postgresql://user:password@host/databasename"
 ```
 
 ```yaml
-"connectionUri":
-  {
-    "variable": "CONNECTION_URI"
-  }
+"connectionUri": { "variable": "CONNECTION_URI" }
 ```
 
 Note that the choice of environment variable name `CONNECTION_URI` is only a matter of convention. Any environment
@@ -209,12 +172,12 @@ variable can be used.
 
 [libpq: Connection Strings]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
 
-
 ### `poolSettings`
 
 This field indicates how the data connector should manage connection pooling.
 
 The default value is:
+
 ```yaml
 "poolSettings":
   {
@@ -226,9 +189,9 @@ The default value is:
   }
 ```
 
-The `idleTimeout` and `connectionLifetime` options may be set to `null`. This indicates that connections will never
-be retired from the pool.
-The `checkConnectionAfterIdle` option may also be set to `null`. This indicates that the connection should be checked each time we acquire it from the pool.
+The `idleTimeout` and `connectionLifetime` options may be set to `null`. This indicates that connections will never be
+retired from the pool. The `checkConnectionAfterIdle` option may also be set to `null`. This indicates that the
+connection should be checked each time we acquire it from the pool.
 
 Note the distinction between setting the fields to `null` versus omitting them. `null` indicates an indefinite value and
 omission indicates the default value.
@@ -238,9 +201,10 @@ omission indicates the default value.
 This field indicates the isolation level of the transaction in which a query is executed.
 
 It may take on the following values:
-* `ReadCommitted` (the default). Prevents reading data from another uncommitted transaction.
-* `RepeatableRead`. Reading the same data twice is guaranteed to return the same result.
-* `Serializable`. Concurrent transactions behave identically to serializing them one at a time.
+
+- `ReadCommitted` (the default). Prevents reading data from another uncommitted transaction.
+- `RepeatableRead`. Reading the same data twice is guaranteed to return the same result.
+- `Serializable`. Concurrent transactions behave identically to serializing them one at a time.
 
 ## `metadata`
 
@@ -255,52 +219,49 @@ Consult the [json schema reference][Configuration JSON Schema] for details.
 **Example**
 
 ```yaml
-"tables": {
-  "Album": {  // Exposed collection name
-    "schemaName": "public",
-    "tableName": "Album", // The actual name of the table in the database
-    "columns": {
-      "AlbumId": { // The exposed field name
-        "name": "AlbumId", // The actual name of the column in the table
-        "type": {
-          "scalarType": "int4"
-        },
-        "nullable": "nonNullable",
-        "description": "The identifier of an album"
+"tables":
+  {
+    "Album":
+      {
+        // Exposed collection name "schemaName": "public",
+        "tableName": "Album",
+        // The actual name of the table in the database "columns":
+          {
+            "AlbumId":
+              {
+                // The exposed field name "name": "AlbumId",
+                // The actual name of the column in the table "type": { "scalarType": "int4" },
+                "nullable": "nonNullable",
+                "description": "The identifier of an album",
+              },
+            "ArtistId":
+              {
+                "name": "ArtistId",
+                "type": { "scalarType": "int4" },
+                "nullable": "nonNullable",
+                "description": "The id of the artist that authored the album",
+              },
+            "Title":
+              {
+                "name": "Title",
+                "type": { "scalarType": "varchar" },
+                "nullable": "nonNullable",
+                "description": "The title of an album",
+              },
+          },
+        "uniquenessConstraints": { "PK_Album": ["AlbumId"] },
+        "foreignRelations":
+          {
+            "FK_AlbumArtistId":
+              {
+                "foreignSchema": "public",
+                "foreignTable": "Artist",
+                "columnMapping": { "ArtistId": // Column of this table "ArtistId" // Column of the referenced table },
+              },
+          },
+        "description": "The record of all albums",
       },
-      "ArtistId": {
-        "name": "ArtistId",
-        "type": {
-          "scalarType": "int4"
-        },
-        "nullable": "nonNullable",
-        "description": "The id of the artist that authored the album"
-      },
-      "Title": {
-        "name": "Title",
-        "type": {
-          "scalarType": "varchar"
-        },
-        "nullable": "nonNullable",
-        "description": "The title of an album"
-      }
-    },
-    "uniquenessConstraints": {
-      "PK_Album": ["AlbumId"]
-    },
-    "foreignRelations": {
-      "FK_AlbumArtistId": {
-        "foreignSchema": "public",
-        "foreignTable": "Artist",
-        "columnMapping": {
-          "ArtistId": // Column of this table
-            "ArtistId" // Column of the referenced table
-        }
-      }
-    },
-    "description": "The record of all albums"
   }
-}
 ```
 
 #### The types of a column
@@ -310,17 +271,11 @@ Valid column types include all of scalar types, (single-dimension) array types, 
 **Examples**
 
 ```yaml
-"type": {
-  "scalarType": "varchar"
-}
+"type": { "scalarType": "varchar" }
 ```
 
 ```yaml
-"type": {
-  "arrayType": {
-    "scalarType": "varchar"
-  }
-}
+"type": { "arrayType": { "scalarType": "varchar" } }
 ```
 
 ```yaml
@@ -330,11 +285,7 @@ Valid column types include all of scalar types, (single-dimension) array types, 
 ```
 
 ```yaml
-"type": {
-  "arrayType": {
-    "compositeType": "person_address"
-  }
-}
+"type": { "arrayType": { "compositeType": "person_address" } }
 ```
 
 :::info Global scope
@@ -405,6 +356,7 @@ you will need to author the `compositeTypes` section manually if your project re
 **Example**
 
 Assuming your database has the following types defined:
+
 ```sql
 CREATE TYPE person_name AS
   (
@@ -426,76 +378,47 @@ CREATE TYPE person AS
 ```
 
 Then you may make these types available with the following configuration counterpart:
-```yaml
-"compositeTypes": {
-  "person": {
-    "name": "person",
-    "fields": {
-      "address": {
-        "name": "address",
-        "type": {
-          "compositeType": "person_address"
-        },
-        "description": null
-      },
-      "name": {
-        "name": "name",
-        "type": {
-          "compositeType": "person_name"
-        },
-        "description": null
-      }
-    },
-    "description": null
-  },
-  "person_address": {
-    "name": "person_address",
-    "fields": {
-      "address_line_1": {
-        "name": "address_line_1",
-        "type": {
-          "scalarType": "text"
-        },
-        "description": null
-      },
-      "address_line_2": {
-        "name": "address_line_2",
-        "type": {
-          "scalarType": "text"
-        },
-        "description": null
-      }
-    },
-    "description": null
-  },
-  "person_name": {
-    "name": "person_name",
-    "fields": {
-      "first_name": {
-        "name": "first_name",
-        "type": {
-          "scalarType": "text"
-        },
-        "description": null
-      },
-      "last_name": {
-        "name": "last_name",
-        "type": {
-          "scalarType": "text"
-        },
-        "description": null
-      }
-    },
-    "description": null
-  }
-}
-```
 
+```yaml
+"compositeTypes":
+  {
+    "person":
+      {
+        "name": "person",
+        "fields":
+          {
+            "address": { "name": "address", "type": { "compositeType": "person_address" }, "description": null },
+            "name": { "name": "name", "type": { "compositeType": "person_name" }, "description": null },
+          },
+        "description": null,
+      },
+    "person_address":
+      {
+        "name": "person_address",
+        "fields":
+          {
+            "address_line_1": { "name": "address_line_1", "type": { "scalarType": "text" }, "description": null },
+            "address_line_2": { "name": "address_line_2", "type": { "scalarType": "text" }, "description": null },
+          },
+        "description": null,
+      },
+    "person_name":
+      {
+        "name": "person_name",
+        "fields":
+          {
+            "first_name": { "name": "first_name", "type": { "scalarType": "text" }, "description": null },
+            "last_name": { "name": "last_name", "type": { "scalarType": "text" }, "description": null },
+          },
+        "description": null,
+      },
+  }
+```
 
 ### `aggregateFunctions`
 
-The `metadata.aggregateFunctions` field captures the aggregation functions that are defined for the various **scalar types** that
-appear in a project.
+The `metadata.aggregateFunctions` field captures the aggregation functions that are defined for the various **scalar
+types** that appear in a project.
 
 The introspection process is capabable of discovering all compatible aggregation functions.
 
@@ -529,8 +452,8 @@ should be defined in the `search_path` of the database user used by the data con
 
 ### `comparisonOperators`
 
-The `metadata.comparisonOperators` field defines the comparison operators that may be used for the various **scalar types** that
-appear in a project.
+The `metadata.comparisonOperators` field defines the comparison operators that may be used for the various **scalar
+types** that appear in a project.
 
 In the configuration, the comparison operators are grouped by the type of their first argument.
 
@@ -545,31 +468,36 @@ Regular functions (i.e. non-infix) are also usable as comparison operators. Pref
 introspection process. However, there is a large body of pre-existing functions that appear to be comparison functions
 according to their type (i.e., they take two arguments and return a bool) yet can't be meaningfully said to be
 performing a comparison operation (such as
-[`pg_has_role`](https://www.postgresql.org/docs/current/functions-info.html#FUNCTIONS-INFO-ACCESS-TABLE)).
-Therefore, only the names mentioned in
-[`introspectionOptions.introspectPrefixFunctionComparisonOperators`](#introspectPrefixFunctionComparisonOperators) are considered by
-the introspection process.
+[`pg_has_role`](https://www.postgresql.org/docs/current/functions-info.html#FUNCTIONS-INFO-ACCESS-TABLE)). Therefore,
+only the names mentioned in
+[`introspectionOptions.introspectPrefixFunctionComparisonOperators`](#introspectPrefixFunctionComparisonOperators) are
+considered by the introspection process.
 
 **Example**
 
 ```yaml
-"comparisonOperators": {
-  "char": {  // Type of the first argument
-    "_eq": { // Exposed mapped name of the operator
-      "operatorName": "=",     // Name of the operator in the database
-      "operatorKind": "equal", // The canonical equality operator (for relationships)
-      "argumentType": "char",
-      "isInfix": true // Indication of whether the operator is syntactically a binary
-                      // infix operator or a binary prefix-function
-    },
-    "_gt": {
-      "operatorName": ">",
-      "operatorKind": "custom", // A non-equality operator
-      "argumentType": "char",
-      "isInfix": true
-    }
+"comparisonOperators":
+  {
+    "char":
+      {
+        // Type of the first argument "_eq":
+          {
+            // Exposed mapped name of the operator "operatorName": "=",
+            // Name of the operator in the database "operatorKind": "equal",
+            // The canonical equality operator (for relationships) "argumentType": "char",
+            "isInfix":
+              true // Indication of whether the operator is syntactically a binary // infix operator or a binary
+              prefix-function,
+          },
+        "_gt":
+          {
+            "operatorName": ">",
+            "operatorKind": "custom",
+            // A non-equality operator "argumentType": "char",
+            "isInfix": true,
+          },
+      },
   }
-}
 ```
 
 :::info Global scope
@@ -581,20 +509,21 @@ should be defined in the `search_path` of the database user used by the data con
 
 ### `typeRepresentations`
 
-The `metadata.typeRepresentations` field defines the type representations of the various **scalar types** that
-appear in a project. If a type does not have a defined type representation, the default type representation is opaque json.
+The `metadata.typeRepresentations` field defines the type representations of the various **scalar types** that appear in
+a project. If a type does not have a defined type representation, the default type representation is opaque json.
 
-The type representation of a scalar type indicates what values are considered acceptable in requests, and what values are expected
-to be returned in the response.
+The type representation of a scalar type indicates what values are considered acceptable in requests, and what values
+are expected to be returned in the response.
 
 #### `int8` and `numeric` types
 
-The default type representations of `int8` and `numeric` types are `int64AsString` and `bigDecimalAsString` respectively.
-These indicate that values accepted in requests and returned in response will have a string value json representation,
-to improve compatibility with common JavaScript clients.
+The default type representations of `int8` and `numeric` types are `int64AsString` and `bigDecimalAsString`
+respectively. These indicate that values accepted in requests and returned in response will have a string value json
+representation, to improve compatibility with common JavaScript clients.
 
-It is possible to configure this option to represent these types as numbers instead. To do so, configure the type representation
-of the `int8` type to `int64`, and/or configure the type representation of the `numeric` type to `bigDecimal` as follows:
+It is possible to configure this option to represent these types as numbers instead. To do so, configure the type
+representation of the `int8` type to `int64`, and/or configure the type representation of the `numeric` type to
+`bigDecimal` as follows:
 
 ```diff
   { ...
@@ -623,32 +552,33 @@ This field collects various options that may be used to drive the configuration 
 
 ### `excludedSchemas`
 
-The `introspectionOptions.excludedSchemas` field is a list of schema names that the introspection process will ignore. The default value
-includes schemas used for internal database bookkeeping and reflection, such as `information_schema`, for PostgreSQL and
-common extensions.
+The `introspectionOptions.excludedSchemas` field is a list of schema names that the introspection process will ignore.
+The default value includes schemas used for internal database bookkeeping and reflection, such as `information_schema`,
+for PostgreSQL and common extensions.
 
 **Example (default)**
+
 ```yaml
-"excludedSchemas":
-  [
+"excludedSchemas": [
     "information_schema", # PostgreSQL
-    "pg_catalog",         # PostgreSQL
-    "tiger",              # PostGIS extension
-    "crdb_internal",      # CockroachDB
-    "columnar",           # Citus
-    "columnar_internal"   # Citus
+    "pg_catalog", # PostgreSQL
+    "tiger", # PostGIS extension
+    "crdb_internal", # CockroachDB
+    "columnar", # Citus
+    "columnar_internal", # Citus
   ]
 ```
 
 ### `unqualifiedSchemasForTables`
 
-The `introspectionOptions.unqualifiedSchemasForTables` field identifies schemas for which the introspection process will generate table
-metadata entries that are not prefixed by the schema name.
+The `introspectionOptions.unqualifiedSchemasForTables` field identifies schemas for which the introspection process will
+generate table metadata entries that are not prefixed by the schema name.
 
-Tables defined in schemas in this list will have metadata entries that of the form `<table_name>`.
-Those defined in schemas not in this list will have metadata entries that of the form `<schema_name>_<table_name>`.
+Tables defined in schemas in this list will have metadata entries that of the form `<table_name>`. Those defined in
+schemas not in this list will have metadata entries that of the form `<schema_name>_<table_name>`.
 
 **Example (default)**
+
 ```yaml
 "unqualifiedSchemasForTables": [
   "public"
@@ -657,17 +587,19 @@ Those defined in schemas not in this list will have metadata entries that of the
 
 ### `unqualifiedSchemasForTypesAndProcedures`
 
-The `introspectionOptions.unqualifiedSchemasForTypesAndProcedures` field identifies schemas for which the introspection process will generate
-type and comparison operator metadata entries that are not prefixed by the schema name, similar to the same for tables.
+The `introspectionOptions.unqualifiedSchemasForTypesAndProcedures` field identifies schemas for which the introspection
+process will generate type and comparison operator metadata entries that are not prefixed by the schema name, similar to
+the same for tables.
 
 :::info Global scope
 
-Comparison operators and types only support unqualified access i.e. global scoping currently.
-Consequentially, types and operators defined in any schema not in this list will not be discoverable.
+Comparison operators and types only support unqualified access i.e. global scoping currently. Consequentially, types and
+operators defined in any schema not in this list will not be discoverable.
 
 :::
 
 **Example (default)**
+
 ```yaml
 "unqualifiedSchemasForTypesAndProcedures": [
   "public",
@@ -686,37 +618,26 @@ In order for the introspection process to discover a given operator it must have
 **Example (default, truncated)**
 
 ```yaml
-"comparisonOperatorMapping": [
-  {
-    "operatorName": "=",
-    "exposedName": "_eq",
-    "operatorKind": "equal"
-  },
-  {
-    "operatorName": "<=",
-    "exposedName": "_lte",
-    "operatorKind": "custom"
-  },
-  ...
+"comparisonOperatorMapping":
+  [
+    { "operatorName": "=", "exposedName": "_eq", "operatorKind": "equal" },
+    { "operatorName": "<=", "exposedName": "_lte", "operatorKind": "custom" },
+    ...,
   ]
 ```
 
 ### `introspectPrefixFunctionComparisonOperators` {#introspectPrefixFunctionComparisonOperators}
 
-The `introspectionOptions.introspectPrefixFunctionComparisonOperators` gives the list of prefix-functions that are candidates for comparison
-operators.
+The `introspectionOptions.introspectPrefixFunctionComparisonOperators` gives the list of prefix-functions that are
+candidates for comparison operators.
 
 Because of the wide variety of predefined functions in existence this is an inclusion list rather than an exclusion
 list. Functions not appearing in this list will not be discoverable by the introspection process.
 
 **Example (default, truncated)**
+
 ```yaml
-"introspectPrefixFunctionComparisonOperators": [
-  "box_above",
-  "box_below",
-  "box_contain",
-  ...
-  ]
+"introspectPrefixFunctionComparisonOperators": ["box_above", "box_below", "box_contain", ...]
 ```
 
 ## `mutationsVersion`
@@ -727,8 +648,8 @@ Developing support for mutations of tables is an ongoing effort that has still n
 `mutationsVersion` field is essentially a feature flag toggle that will let you opt-in to trying this feature as it
 evolves.
 
-Beware that the set of supported mutations versions is expected to have a rapid turnover, and there is no guarantee that two
-successive configuration versions will have any overlap in the mutations versions they support.
+Beware that the set of supported mutations versions is expected to have a rapid turnover, and there is no guarantee that
+two successive configuration versions will have any overlap in the mutations versions they support.
 
 :::
 
