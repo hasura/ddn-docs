@@ -20,6 +20,17 @@ import TabItem from "@theme/TabItem";
 
 # Getting Started with Hasura and PostgreSQL
 
+:::info Completing this guide
+
+This guide will take approximately 30 minutes. By the end, you'll walk away with an understanding of:
+
+- How the Hasura API authoring lifecycle works.
+- How to connect a PostgreSQL database.
+- How to run and develop with Hasura locally.
+- How to use the new Hasura DDN CLI to create, iterate on, and deploy a supergraph to Hasura DDN.
+
+:::
+
 ## Introduction
 
 In this guide, you'll learn how you can build an API on PostgreSQL using Hasura DDN. As an experienced engineer, when
@@ -61,175 +72,22 @@ By following these steps, you can efficiently create and maintain high-performan
 
 ## Modeling basics
 
-Database modeling is a critical step in the design and development of a high-performance and scalable application.
-PostgreSQL, being one of the most advanced open-source relational databases, provides a rich set of features to support
-complex data models. In the sections below, we'll walk you through the best practices for database modeling with
-PostgreSQL, ensuring that your database is both efficient and easy to maintain while being set up for success with
-Hasura.
+Designing your database to align with your API model is essential for creating efficient and scalable applications. By
+working backwards from the desired API, you can structure your database to optimize for read operations, which is often
+the primary use case for most consumers. This approach works well for greenfield applications, but existing databases
+can also be adapted using techniques like [views](https://www.postgresql.org/docs/current/tutorial-views.html).
 
-### Understanding database modeling
+### Start with the API
 
-Database modeling involves defining the structure of your database, including tables, columns, data types,
-relationships, and constraints. A well-designed database model reflects the data requirements and business rules of your
-application, providing the foundation for reliable and performant data storage and retrieval.
+1. **Define the API**: Outline the resources, data structures, and relationships needed by your application.
+2. **Design the Database**: Create tables, columns, and relationships that map directly to the API model.
 
-#### Key Concepts
+### Focus on Reads
 
-- **Entities and Tables**: Represent the main objects or concepts in your application.
-- **Attributes and Columns**: Define the properties of entities.
-- **Primary Keys**: Unique identifiers for each record in a table.
-- **Foreign Keys**: Relationships between tables.
-- **Indexes**: Structures to improve query performance.
-- **Constraints**: Rules enforced on data to ensure integrity.
-
-:::info See the PostgreSQL docs for a general overview
-
-Below, we'll take a look at how the data modeling concepts for PostgreSQL relate to Hasura and your ability to quickly
-and easily build an API largely based on your PostgreSQL modeling work. If the terms above — or PostgreSQL in general —
-are new to you, check out their excellent documentation
-[here](https://www.postgresql.org/docs/current/tutorial-arch.html).
-
-:::
-
-### Best practices for PostgreSQL database modeling
-
-#### 1. Normalize your data
-
-Normalization is the process of organizing your data to reduce redundancy and improve data integrity. Largely, this is
-done by ensuring that each cell in a table should only contain a single value and that each column has a unique name.
-
-You can learn more about normalizing your data [here](https://www.geeksforgeeks.org/normal-forms-in-dbms/).
-
-#### 2. Use appropriate data types
-
-PostgreSQL offers a variety of data types, including:
-
-- **Integer and Serial Types**: `INTEGER`, `BIGINT`, `SERIAL`, etc.
-- **Character Types**: `VARCHAR`, `TEXT`, etc.
-- **Date/Time Types**: `DATE`, `TIMESTAMP`, etc.
-- **Boolean**: `BOOLEAN`
-- **Array**: Store multiple values in a single column.
-- **JSON/JSONB**: Store and query JSON data.
-
-Choose [data types](https://www.postgresql.org/docs/current/datatype.html) that best fit the nature of your data to
-ensure efficiency and integrity.
-
-#### 3. Define primary and foreign keys
-
-- **Primary Keys**: Always define a
-  [primary key](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS) for each
-  table to uniquely identify records.
-- **Foreign Keys**: Use [foreign keys](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-FK)
-  to enforce relationships between tables, ensuring referential integrity and reducing redundancies.
-
-#### 4. Use constraints
-
-[Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html) enforce rules on your data to maintain
-accuracy and reliability:
-
-- `NOT NULL`: Ensure a column cannot have a `NULL` value.
-- `UNIQUE`: Ensure all values in a column are unique.
-- `CHECK`: Ensure all values in a column satisfy a specific condition.
-- `FOREIGN KEY`: Enforce referential integrity between tables.
-
-#### 5. Add indexes for performance
-
-[Indexes](https://www.postgresql.org/docs/current/indexes-intro.html) can significantly improve query performance.
-PostgreSQL supports several types of indexes, including:
-
-- **B-tree**: The default index type, suitable for most queries.
-- **Hash**: Useful for equality comparisons.
-- **GIN/GIST**: Used for full-text search and complex data types.
-
-:::info When should I create an index?
-
-Create indexes on columns that are frequently used in `WHERE`
-[clauses](https://www.postgresql.org/docs/7.1/queries.html), `JOIN`
-[conditions](https://www.postgresql.org/docs/current/tutorial-join.html), and `ORDER BY` clauses.
-
-:::
-
-#### 6. Leverage PostgreSQL features
-
-PostgreSQL offers advanced features that can enhance your database model:
-
-- **[Views](https://www.postgresql.org/docs/current/tutorial-views.html)**: Create virtual tables based on the result
-  set of a query.
-- **[Triggers and Rules](https://www.postgresql.org/docs/current/rules-triggers.html#:~:text=A%20trigger%20is%20fired%20once,what%20to%20do%20many%20times.)**:
-  Automate complex operations based on events.
-
-### Example: Modeling a simple e-commerce system
-
-Let's take a look at modeling an e-commerce application's data layer using the concepts from above.
-
-#### Entities and relationships
-
-1. **Customers**: Stores customer information.
-2. **Products**: Stores product details.
-3. **Orders**: Stores order information, including customer references.
-4. **OrderItems**: Stores details of products in each order, including order and product references.
-
-#### Table definitions
-
-```sql
-CREATE TABLE customers (
-    customer_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE products (
-    product_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    price NUMERIC(10, 2) NOT NULL,
-    stock INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE orders (
-    order_id SERIAL PRIMARY KEY,
-    customer_id INTEGER REFERENCES customers(customer_id),
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE order_items (
-    order_item_id SERIAL PRIMARY KEY,
-    order_id INTEGER REFERENCES orders(order_id),
-    product_id INTEGER REFERENCES products(product_id),
-    quantity INTEGER NOT NULL,
-    price NUMERIC(10, 2) NOT NULL
-);
-
--- Indexes for performance
-CREATE INDEX idx_orders_customer_id ON orders(customer_id);
-CREATE INDEX idx_order_items_order_id ON order_items(order_id);
-CREATE INDEX idx_order_items_product_id ON order_items(product_id);
-```
-
-These table definitions and indexes conform to the best practices outlined in this guide:
-
-- **Normalization**: The tables are designed to eliminate redundancy and ensure data integrity. Each table represents a
-  single entity (Customer, Product, Order, OrderItem).
-
-- **Appropriate Data Types**: Data types are chosen based on the nature of the data. For example, `VARCHAR` is used for
-  names and emails, `NUMERIC` for prices, and `TIMESTAMP` for date/time values.
-
-- **Primary and Foreign Keys**: Each table has a primary key (`customer_id`, `product_id`, `order_id`, `order_item_id`)
-  to uniquely identify records. Foreign keys (`customer_id` in `orders`, `order_id` and `product_id` in `order_items`)
-  establish relationships between tables, ensuring referential integrity.
-
-- **Indexes for Performance**: Indexes are created on columns frequently used in `WHERE` clauses and `JOIN` conditions,
-  such as `customer_id` in `orders` and `order_id`, `product_id` in `order_items`, to improve query performance.
-
-- **Constraints**: Constraints like `NOT NULL` and `UNIQUE` are used to ensure data accuracy and reliability, preventing
-  null values in critical fields and enforcing uniqueness in the email field.
-
-A well-designed database model is crucial for building efficient and scalable applications. By following the best
-practices outlined in this guide, you can leverage PostgreSQL's powerful features to create a robust and
-high-performance database.
+- **Optimize for queries**: Design your database to efficiently handle read operations, as they are typically the most
+  frequent.
+- **Use indexes**: Ensure that columns used in `WHERE`, `JOIN`, and `ORDER BY` clauses are indexed to improve
+  performance.
 
 ## Prerequisites
 
@@ -273,61 +131,136 @@ In Windows, if you get an "Unrecognized application" warning, click "Run anyway"
 If you don't already have [VS Code](https://code.visualstudio.com/download) installed, install it and then install the
 [Hasura extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura).
 
-### Step 3. Create a new Hasura DDN project
+### Step 3. Install Docker
 
-Login to the CLI and then create a new project:
+Finally, install [Docker](https://docs.docker.com/engine/install/), which will be used for local development.
+
+## Create a project
+
+[**Projects**](/project-configuration/projects.mdx) contain all the configuration and metadata for your supergraph. A
+project will contain exactly one supergraph. When you create a project, you're creating a resource on Hasura DDN.
+Eventually, this can be used to serve your API. To create a project, run the following command:
 
 ```bash
-# Login using your Hasura Cloud account
-ddn login
+ddn project create
 ```
 
+The CLI will return the project name and console URL for your project. However, without completing any of the steps
+below, a project has no value.
+
+## Create a subgraph
+
+[**Subgraphs**](/project-configuration/subgraphs.mdx) are mapped to specific data domains within an organization. For
+example, if the PostgreSQL database which we'll be connecting in the next step is for customer profile data, it's a safe
+bet that the team responsible for this — and other data sources — is our User Experience team. As such, we could create
+a `ux` subgraph that will integrate this database (and possibly others) into our API using this command with the project
+name from the previous step:
+
 ```bash
-# Create a new project
-ddn create project --dir <path-to-project-dir>
+ddn project subgraph create <desired-subgraph-name> --project <project-name>
 ```
+
+The CLI will respond with your new subgraph's name.
+
+## Init your supergraph
+
+With a single subgraph created, we can initialize our [**supergraph**](/project-configuration/config.mdx#supergraph). A
+supergraph is equivalent to an API, and these terms can be used interchangeably. Your supergraph is the composite of all
+your subgraphs and their various data sources, including custom business logic.
+
+To init your supergraph, from an empty directory, run:
+
+```bash
+ddn supergraph init --dir . --with-project <project-name>
+```
+
+<details>
+  <summary>
+    The CLI will scaffold out all the files needed for local development and iteration, including a docker-compose. Click here to see the project structure.
+  </summary>
+
+```bash
+├── docker-compose.hasura.yaml
+├── engine
+│   ├── auth_config.json
+│   ├── metadata.json
+│   └── open_dd.json
+├── hasura.yaml
+├── supergraph
+│   ├── auth-config.hml
+│   ├── compatibility-config.hml
+│   └── graphql-config.hml
+├── supergraph.yaml
+└── <first-subgraph>
+```
+
+</details>
+
+You now have all the scaffolding necessary to start developing your supergraph by connecting your first data source.
 
 ## Connect your database
 
 You can connect both cloud-hosted and local PostgreSQL databases to Hasura DDN. Regardless of where your database is
-hosted, it will be connected to your project using a [data connector](/connectors/overview.mdx). Together, with the CLI,
-the PostgreSQL data connector will generate and use metadata that Hasura can understand to integrate your data source
-into your project.
+hosted, it will be connected to your project using a [**data connector**](/connectors/overview.mdx). Together, with the
+CLI, the PostgreSQL data connector will generate and use metadata that Hasura can understand to integrate your data
+source into your project.
 
-### Step 1. Create a connector manifest
+### Step 1. Init the PostgreSQL connector
 
-The connector manifest defines the configuration to build a data connector. You can think of this as a blueprint for the
-connector that will integrate your PostgreSQL database into your API. Run the following command to scaffold out the
-connector's structure and configuration files:
+To initialize the PostgreSQL connector, run the following, replacing `<subgraph-name>` with the name of the subgraph
+which will contain this connector and its eventual data source:
 
 ```bash
-ddn add connector-manifest pg_connector --subgraph app --hub-connector hasura/postgres --type cloud
+ddn connector init mypg --dir <subgraph-name>/connector/mypg --hub-connector hasura/postgres
 ```
 
 In this command, we're passing a few important values.
 
-#### Connector name
+**Connector name**
 
-First, we're naming our connector `pg_connector`, but you can call it whatever makes sense to your business outcome. For
+First, we're naming our connector `mypg`, but you can call it whatever makes sense to your business outcome. For
 example, if this connector is integrating a database all about users' profiles, it would make sense to name it
 `user_profile_connector` so you and your team know which data source this relates to. **Importantly, a data connector
 can only connect to a single data source.**
 
-#### Parent subgraph
+**Directory for the connector**
 
-Related to our connector's name is the value `app` — this is the **default** subgraph added to any Hasura DDN project.
-You can read more about subgraphs [here](/project-configuration/subgraphs.mdx), but for now, know that it's important to
-organize subgraphs around data domains within an organization. If our connector is for user profiles, it's a fair bet
-the team responsible for this data source — and others — is the UX team. Thus, we could rename this subgraph to `ux` or
-whatever makes the most sense.
+Second, we're passing the `--dir` flag to tell the CLI to which subgraph this connector belong _and_ that the
+configuration files it's generating should be organized in a `connector/mypg` directory. **Note: the name of the
+connector and the directory in which the configuration is stored — `mypg` in this example — should match.**
 
-#### Connector type
+**Connector type**
 
-Additionally, we're calling out two other values: `hasura/postrgres`, which is the connector from the
-[Connector Hub](https://hasura.io/connectors/postgres); and, `cloud`, which tells the CLI we want Hasura DDN to host
-this connector for us.
+Additionally, we're calling out another value: `hasura/postrgres`, which is the connector from the
+[Connector Hub](https://hasura.io/connectors/postgres).
 
-### Step 2. Update the connection string
+### Step 2. Modify the connector's published port
+
+By default, all connectors run on `8080`. However, to avoid port collisions, we'll change the connector's published port
+to `8081`. In the `docker-compose.mypg.yaml` file, which can be found in the directory you created in the last step,
+replace the existing `published` value with:
+
+```yaml
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: "8081"
+    #highlight-end
+    protocol: tcp
+```
+
+### Step 3. Include the PostgreSQL connector's compose file
+
+In our main `docker-compose.yaml` in the root of the project, add the following at the top taking care to replace
+`<subgraph-name>` with your subgraph:
+
+```yaml
+include:
+  - path: <subgraph-name>/connector/mypg/docker-compose.mypg.yaml
+```
+
+### Step 4. Add the connection URI
 
 Now that our connector has been scaffolded out for us, we need to provide a connection string so that the data source
 can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
@@ -348,60 +281,32 @@ allowlisted `0.0.0.0/0` so that DDN is able to reach it.
 
 :::
 
-You have a few options when updating the connection string for a PostgreSQL database to the PostgreSQL connector. Choose
-the method below which makes the most sense for you:
+Each connector automatically scaffolds out an env file. We can add a key-value pair of `CONNECTION_URI` along with the
+connection string itself to this file and our connector will use this to connect to our PostgreSQL database. The file,
+after adding the `CONNECTION_URI` should look like this:
 
-<Tabs groupId="string-preference" className="api-tabs">
-<TabItem value="EnvVar" label="Environment Variable">
-
-Open your project in VS Code and open the `base.env.yaml` file in the root of your project. Then, add the
-`PG_CONNECTOR_CONNECTION_URI` environment variable with the connection string under the `app` subgraph:
-
-```yaml
-supergraph: {}
-subgraphs:
-  app:
-    PG_CONNECTOR_CONNECTION_URI: "postgresql://<user>:<password>@<host>:<port>/<db_name>"
+```env
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local-dev.hasura.me:4317
+OTEL_SERVICE_NAME=mypg
+CONNECTION_URI=<postgres-connection-uri>
 ```
 
-Next, update your `/app/pg_connector/connector/pg_connector.build.hml` file to reference this new environment variable:
+:::tip o11y via OpenTelemetry
 
-```yaml
-# other configuration above
-CONNECTION_URI:
-  valueFromEnv: PG_CONNECTOR_CONNECTION_URI
-```
+Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
-Notice, when we use an environment variable, we must change the key to `valueFromEnv` instead of `value`. This tells
-Hasura DDN to look for the value in the environment variable we've defined instead of using the value directly.
+:::
 
-</TabItem>
-<TabItem value="RawString" label="Raw Connection String">
+### Step 5. Introspect your database
 
-Open your project in VS Code and open the `pg_connector.build.hml` file in our project. We can then add the
-`CONNECTION_URI`'s value:
-
-```yaml
-# other configuration above
-CONNECTION_URI:
-  value: "postgresql://<user>:<password>@<host>:<port>/<db_name>"
-```
-
-If you _are_ storing sensitive information, such as connection strings in your `.env.yaml` files, you should add these
-to your gitignore so as to avoid accidentally committing them to version control.
-
-</TabItem>
-</Tabs>
-
-At this point, you can now update your connector manifest, which will allow the connector to introspect your data source
-and bring in database-specific configuration to your project.
+With connector configured, we can now use the CLI to introspect our PostgreSQL database create a source-specific
+configuration file for our connector:
 
 ```bash
-ddn update data-connector-link pg_connector --subgraph app
+ddn connector introspect --connector ux/connector/mypg/connector.yaml
 ```
 
-This will also build and deploy your connector. In the next section, we'll create the first
-[**build**](/project-configuration/builds.mdx) of our supergraph and see an API in action.
+If you look at the `configuration.json` for your connector, you'll see metadata describing your PostgreSQL schema.
 
 :::tip Initialize a Git repository
 
@@ -410,27 +315,75 @@ your project.
 
 :::
 
+### Step 6. Create the Hasura metadata
+
+Hasura DDN uses a concept called a [`DataConnectorLink`](/supergraph-modeling/data-connectors.mdx) to take
+[NDC-compliant](https://github.com/hasura/ndc-spec) `configuration.json` and transform it into an `hml` (Hasura Metadata
+Language) file.
+
+You can create this file, which will be scaffolded out as `mypg.hml` in a new `metadata` subdirectory for your subgraph
+by running:
+
+```bash
+ddn connector-link add mypg
+```
+
+The generated file has two environment variables — one for reads and one for writes — that you'll need to add to your
+subgraph's `.env` file. As with the example we've followed so far, if we have a subgraph of `ux`, we'll need to add the
+following snippet to our `ux/.env.ux` file:
+
+```env
+UX_MYPG_READ_URL=http://local-dev.hasura.me:8081
+UX_MYPG_WRITE_URL=http://local-dev.hasura.me:8081
+```
+
+These values are for the PostgreSQL connector itself and utilize `local-dev.hasura.me` to ensure proper resolution
+within the docker container.
+
+### Step 7. Update the DataConnectorLink
+
+Finally, now that our DataConnectorLink has the correct environment variables configured for the PostgreSQL connector,
+we can update it to reflect our database's schema in `hml`:
+
+```bash
+ddn connector-link update mypg
+```
+
+After this command runs, you can open your `<subgraph>/connector/mypg/metadata/mypg/mypg.hml` file and see your metadata
+completely scaffolded out for you 🎉
+
 ## Basics
 
-In the previous section, we created a data connector and added a PostgreSQL database as a data source. If you were to
-navigate to your project at [https://hasura.console.io](https://hasura.console.io), you wouldn't see an API. Why not?
+### Step 1. Start the services
+
+With all our configuration taken care of, we have a blank slate with which to iterate on our API using this single
+source. Let's start developing our API by starting all our services, which includes the GraphQL engine, an
+authentication webhook provider, Jaeger for observability, and our connector. Run the following from the root of the
+project:
+
+```bash
+docker compose -f docker-compose.hasura.yaml watch
+```
+
+You should see your various services returned as `Running` or `Started` in the terminal. This provides a watch mode,
+which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops 🚀
+
+### Step 2. Add a model
 
 Hasura DDN works by creating immutable builds, similar to git commits, based on changes to your project's metadata. This
 frees you to iteratively and rapidly test incremental changes to your API without causing disruption to other
 collaborators or downstream consumers. Before we create a supergraph build, let's first add a
 [**model**](/supergraph-modeling/models.mdx) to our subgraph.
 
-### Step 1. Add a model
-
 Models serve as the link between your data connector and the API Hasura generates. For PostgreSQL, models typically
 correspond to tables, but you can also create them for views and
 [native queries](/connectors/postgresql/native-queries/index.mdx).
 
-If you look in your `app/pg_connector/connector/pg_connector.hml` file, you'll see `object_types` for each table in your
-PostgreSQL database. For each of these, you can run the following command to create a model:
+If you look in your `<subgraph>/connector/mypg/connector/mypg.hml` file, you'll see `object_types` for each table in
+your PostgreSQL database. For each of these, you can run the following command to create a model:
 
 ```bash
-ddn add model --data-connector-link pg_connector --name <object_type>
+ddn model add --connector-link mypg --name <object_type>
 ```
 
 :::tip Casing matters
@@ -590,24 +543,29 @@ definition:
 
 </details>
 
-### Step 2. Create a supergraph build
+### Step 3. Create a supergraph build
 
-Next, we'll create our first supergraph build:
+Next, we'll create our first supergraph build. We'll pass the `local` subcommand along with specifying the output
+directory as `./engine` in the root of the project. This directory is used by the docker-compose file to serve the
+engine locally:
 
 ```bash
-ddn build supergraph-manifest
+ddn-staging supergraph build local --output-dir ./engine
 ```
 
-The CLI will respond with informatin about our project, including a link to the project's console. Click on that to see
-the GraphiQL explorer and interact with your API.
+You can now navigate to [`http://localhost:3000`](http://localhost:3000) and interact with your API using the GraphiQL
+playground!
 
-### Step 3. Write your first query
+<!-- The CLI will respond with information about our project, including a link to the project's console. Click on that to see -->
+<!-- the GraphiQL explorer and interact with your API. -->
+
+### Step 4. Write your first query
 
 For the `Carts` example we've been using, we can run the following query:
 
 ```graphql
 query AllCartsQuery {
-  app_carts {
+  ux_carts {
     id
     isComplete
     userId
@@ -615,16 +573,26 @@ query AllCartsQuery {
 }
 ```
 
-All types are namespaced with the subgraph to which they belong. Here, you can see that `carts` belongs to the default
-`app` subgraph. Thus, the query above will return a response that looks like this:
+All types are namespaced with the subgraph to which they belong. Here, you can see that `carts` belongs to the `ux`
+subgraph. Thus, the query above will return a response that looks like this:
 
 <!-- TODO: Add screenshot of console -->
+
+:::tip Want to import every table and foreign-key relationship?
+
+You can run the following instead of atomically adding models to your API:
+
+```bash
+ddn connector-link update mypg --add-all-resources
+```
+
+:::
 
 ## Relationships
 
 Relationships unlock the true potential of GraphQL. And, with Hasura's
 [LSP](https://microsoft.github.io/language-server-protocol/) extension, you can quickly and easily create
-[relationships](/supergraph-modeling/relationships.mdx) between entites, allowing you to make deeply nested queries with
+[relationships](/supergraph-modeling/relationships.mdx) between entities, allowing you to make deeply nested queries with
 whatever access control rules you desire.
 
 ### Step 1. Add another model
@@ -633,13 +601,13 @@ Begin by adding at least one other model to your metadata. In our example, we'll
 create a query that returns a user's information and any carts belonging to them:
 
 ```bash
-ddn add model --data-connector-link pg_connector --name users
+ddn model add --connector-link mypg --name users
 ```
 
 ### Step 2. Create the relationship
 
-You'll see a new `hml` file for the new model; for our example, we'll create the relationship in the `Users.hml` file as
-a user **owns** a cart. To do this, we'll open the `Users.hml` file in VS Code and add the following:
+This will create a new `hml` file for the new model; for our example, we'll create the relationship in the `Users.hml`
+file as a user **owns** a cart. To do this, we'll open the `Users.hml` file in VS Code and add the following:
 
 ```yaml
 ---
@@ -670,23 +638,23 @@ will know which values are available to your models.
 
 :::
 
-### Step 3. Create a new supergrpah build
+### Step 3. Create a new supergraph build
 
 As we've changed our metadata, we'll need to create a new build of our supergraph based on those changes:
 
 ```bash
-ddn build supergraph-manifest
+ddn supergraph build local --output-dir ./engine
 ```
 
 ### Step 4. Run a nested query
 
-Afer selecting the most-recent build on your project's console, you can now execute a query using your relationship as a
+After selecting the most-recent build on your project's console, you can now execute a query using your relationship as a
 field on the type in which you created it earlier. As an example, using our data model, we can now query all users'
 information **and** their carts:
 
 ```graphql
 query AllUsersCartsQuery {
-  app_users {
+  ux_users {
     id
     name
     carts {
@@ -712,18 +680,18 @@ one.
 ### Add a new field
 
 As a model is supported by an underlying entity in your PostgreSQL database, you'll need to modify that first. If, for
-instance, you add a column — such as `last_online` to a table — you can then update your `dataConnectorLink` by running
+instance, you add a column — such as `last_online` to a table — you can then update your `DataConnectorLink` by running
 the following:
 
 ```bash
-ddn update data-connector-link pg_connector --subgraph app
+ddn connector-link update mypg
 ```
 
 This will instantly introspect your data source and update the connector's configuration to reflect the new `lastOnline`
 field. If this is part of our `Users` model, we'd then run the following to update the metadata:
 
 ```bash
-ddn update model Users
+ddn model update Users
 ```
 
 If you have no plans to deprecate an existing field, you can now generate a new supergraph build.
@@ -771,19 +739,87 @@ metadata.
 
 ### Step 1. Add the TypeScript connector
 
-Let's begin by adding the connector to our project. In the example below, we'll call it the `ts_connector` and add it to
-our `app` subgraph:
+Let's begin by adding the connector to our project. In the example below, you'll see some familiar flags with new values
+being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector hub:
 
 ```bash
-ddn add connector-manifest ts_connector --subgraph app --hub-connector hasura/nodejs --type cloud
+ddn connector init myts --dir <subgraph-name>/connector/myts --hub-connector hasura/nodejs
 ```
 
-### Step 2. Write business logic
+This will create the following directory structure in your subgraph's connector directory's new `myts` directory, with
+the `functions.ts` file being your connector's entrypoint:
 
-If we look inside the `app` directory, we'll see a new `ts_connector/connector` subdirectory that contains a
-`functions.ts` file. This is our entrypoint for all TypeScript functions related to this subgraph. In our example, we're
-going to transform the timestamp returned on our `createdAt` field from `Users` into a human-readable format. We'll
-replace the default `hello()` function with the following:
+```bash
+├── connector.yaml
+├── docker-compose.myts.yaml
+#highlight-start
+├── functions.ts
+#highlight-end
+├── package-lock.json
+├── package.json
+└── tsconfig.json
+```
+
+### Step 2. Modify the connector's published port
+
+Like with our PostgreSQL connector, to avoid port collisions, we'll change the connector's published port to `8082`. In
+the `docker-compose.myts.yaml` file, which can be found in the directory you created in the last step, replace the
+existing `published` value with:
+
+```yaml
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: "8082"
+    #highlight-end
+    protocol: tcp
+```
+
+Then, add the port's value to the `.env/.local` in your `myts` directory:
+
+```env
+HASURA_CONNECTOR_PORT=8082
+```
+
+### Step 3. Install dependencies
+
+Within our `myts` directory, let's install any necessary dependencies:
+
+```bash
+cd <subgraph>/connector/myts && npm i
+```
+
+Then, from the `myts` directory run this command to start and watch the connector for any changes:
+
+```bash
+env $(cat .env.local | xargs) npm run watch
+```
+
+### Step 4. Add the DataConnectorLink
+
+As with our PostgreSQL connector, and any connector, we'll now need to create the `DataConnectorLink` which will
+translate our TypeScript functions into commands that can be exposed as queries and mutations via our GraphQL API.
+Create this using:
+
+```bash
+ddn connector-link add myts
+```
+
+Then, update the `.env` values in your subgraph's env file to include this connector. The complete file should now look
+like this:
+
+```env
+UX_MYPG_READ_URL=http://local-dev.hasura.me:8081
+UX_MYPG_WRITE_URL=http://local-dev.hasura.me:8081
+UX_MYTS_READ_URL=http://local-dev.hasura.me:8082
+UX_MYTS_WRITE_URL=http://local-dev.hasura.me:8082
+```
+
+### Step 5. Write business logic
+
+In our example, we're going to transform the timestamp returned on our `createdAt` field from `Users` into a
+human-readable format. We'll replace the default `hello()` function in our `functions.ts` file with the following:
 
 ```ts
 import { Client } from "pg";
@@ -822,31 +858,30 @@ it to interact directly with our PostgreSQL data source.
 
 :::
 
-### Step 3. Track our function
+### Step 6. Track the new function
 
-Adding a new function like this is similar to adding a new table in our PostgreSQL database. This means we'll need to
-ensure our connector knows about the function. We can do that by updating the `dataConnectorLink` like this for our
-`humanReadableCreatedAt()` function:
+To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
+related Hasura metadata:
 
 ```bash
-ddn add command --data-connector-link ts_connector --name humanReadableCreatedAt
+ddn connector-link update myts --add-all-resources
 ```
 
-### Step 4. Create a new build and test
+### Step 7. Create a new build and test
 
 Next, let's create a new build of our supergraph:
 
 ```bash
-ddn build supergraph-manifest
+ddn supergraph build local --output-dir ./engine
 ```
 
 You should see your command available, along with its documentation, in the GraphiQL explorer:
 
 <!-- TODO: Add screenshot of console -->
 
-### Step 5. Create a relationship via a model
+### Step 8. Create a relationship via a model
 
-As it stands, our `humanReadableCreatedAt` command isn't super useful. It's preferrable to return this value when we're
+As it stands, our `humanReadableCreatedAt` command isn't super useful. It's preferable to return this value when we're
 querying for a user's information. We can easily utilize this business logic in a request from a client by creating a
 relationship.
 
@@ -875,13 +910,13 @@ definition:
 We can then update our `Users` model:
 
 ```bash
-ddn update model Users --subgraph app
+ddn model update Users
 ```
 
 And create a new build before testing this:
 
 ```bash
-ddn build supergraph-manifest
+ddn-staging supergraph build local --output-dir ./engine
 ```
 
 In our example, when querying a user's information, we can now return the transformed data as part of the simple query
@@ -986,7 +1021,7 @@ manipulates or inserts data and is exposed as a mutation via your GraphQL API.
 ### Step 1. Create a function
 
 In the earlier example, we marked our `humanReadableCreatedAt()` function as `@readOnly` using JSDoc to expose it as a
-query. However, omiting this value will expose the function as a mutation. We can even add documentation that will be
+query. However, omitting this value will expose the function as a mutation. We can even add documentation that will be
 visible in the GraphiQL explorer by tagging `@param` for the argument(s) and `@returns` for what will be returned by the
 mutation.
 
@@ -1028,10 +1063,16 @@ export async function insertUser(userData: { name: string; email: string }): Pro
 
 ### Step 2. Track the function
 
-Just as before, we'll track our function using the CLI:
+Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`:
 
 ```bash
-ddn add command --data-connector-link ts_connector --name insertUser
+ddn connector-link update myts
+```
+
+And then bringing in the new command:
+
+```bash
+ddn command add --connector-link myts --name insertUser
 ```
 
 ### Step 3. Create a new build and test
@@ -1039,7 +1080,7 @@ ddn add command --data-connector-link ts_connector --name insertUser
 Next, let's create a new build of our supergraph:
 
 ```bash
-ddn build supergraph-manifest
+ddn supergraph build local --output-dir ./engine
 ```
 
 Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation:
@@ -1062,7 +1103,7 @@ You can read more about these [here](/connectors/postgresql/native-queries/index
 
 ## Moving to production
 
-At this point, you have all the ingredients and knowledge to create a robust supergrpah that composes data across
+At this point, you have all the ingredients and knowledge to create a robust supergraph that composes data across
 various sources and aggregates them into a single, reliable, performant API. Before moving to production, consider the
 resources below:
 
@@ -1073,14 +1114,14 @@ migrations via CI/CD with [Flyaway](https://flywaydb.org/) or similar resources.
 
 :::info Doesn't Hasura manage migrations?
 
-In v2, Hasura provided a built-in migration tool. However, as v3 metadata is decoupled from the underyling data source,
+In v2, Hasura provided a built-in migration tool. However, as v3 metadata is decoupled from the underlying data source,
 you are free to manage your migrations however you wish.
 
 :::
 
 ### Performance optimizations
 
-Hasura provides a suite of observability tools direclty in a project's DDN console. You can view traces, query plans,
+Hasura provides a suite of observability tools directly in a project's DDN console. You can view traces, query plans,
 and general usage statistics. These are helpful for diagnosing common bottlenecks and problems with your application's
 performance. You can read more about these [here](/observability/overview.mdx).
 
