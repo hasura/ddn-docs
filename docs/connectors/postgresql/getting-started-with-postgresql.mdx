@@ -592,8 +592,8 @@ ddn connector-link update mypg --add-all-resources
 
 Relationships unlock the true potential of GraphQL. And, with Hasura's
 [LSP](https://microsoft.github.io/language-server-protocol/) extension, you can quickly and easily create
-[relationships](/supergraph-modeling/relationships.mdx) between entities, allowing you to make deeply nested queries with
-whatever access control rules you desire.
+[relationships](/supergraph-modeling/relationships.mdx) between entities, allowing you to make deeply nested queries
+with whatever access control rules you desire.
 
 ### Step 1. Add another model
 
@@ -648,8 +648,8 @@ ddn supergraph build local --output-dir ./engine
 
 ### Step 4. Run a nested query
 
-After selecting the most-recent build on your project's console, you can now execute a query using your relationship as a
-field on the type in which you created it earlier. As an example, using our data model, we can now query all users'
+After selecting the most-recent build on your project's console, you can now execute a query using your relationship as
+a field on the type in which you created it earlier. As an example, using our data model, we can now query all users'
 information **and** their carts:
 
 ```graphql
@@ -823,17 +823,16 @@ human-readable format. We'll replace the default `hello()` function in our `func
 
 ```ts
 import { Client } from "pg";
+import { config } from "dotenv";
+
+config();
 
 /**
  * @readonly
  */
 export async function humanReadableCreatedAt(userId: string): Promise<string> {
   const client = new Client({
-    host: "35.236.11.122",
-    port: 5432,
-    database: "v3-docs-sample-app",
-    user: "read_only_user",
-    password: "readonlyuser",
+    connectionString: process.env.PG_URI,
   });
 
   await client.connect();
@@ -851,10 +850,13 @@ export async function humanReadableCreatedAt(userId: string): Promise<string> {
 }
 ```
 
-:::tip Install any dependency
+:::tip Install any dependency and use environment varialbes
 
-As this is a Node.js project, you can install any dependency! You can see we've installed the `pg` package and are using
-it to interact directly with our PostgreSQL data source.
+As this is a Node.js project, you can install any dependency! You can see we've installed the `dotenv` and `pg` packages
+and are using the latter to interact directly with our PostgreSQL data source.
+
+You'll also notice that we're using `process.env.PG_URI`, which references the `.env.local` file in the `myts`
+subdirectory. You can add any values here you'd like and reference them in your functions.
 
 :::
 
@@ -1027,6 +1029,9 @@ mutation.
 
 ```ts
 import { Client } from "pg";
+import { config } from "dotenv";
+
+config();
 
 /**
  * @param userData An object containing the user's data.
@@ -1034,11 +1039,7 @@ import { Client } from "pg";
  */
 export async function insertUser(userData: { name: string; email: string }): Promise<string> {
   const client = new Client({
-    host: "<HOST>",
-    port: <PORT>,
-    database: "<DB_NAME>",
-    user: "<DB_USERNAME>",
-    password: "<DB_PASSWORD>",
+    connectionString: process.env.PG_URI,
   });
 
   await client.connect();
