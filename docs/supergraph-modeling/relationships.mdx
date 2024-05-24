@@ -28,14 +28,45 @@ import GraphiQLIDE from "@site/src/components/GraphiQLIDE";
 Defining a relationship allows you to query nested or linked information.
 
 Relationships are defined in metadata **from [object types](./types.mdx#objecttype-objecttype), to
-[model](./models.mdx) or [command](./commands.mdx) types**.
+[model](./models.mdx) or [commands](./commands.mdx)**.
 
 This enables you to create nested queries, where you can fetch related data in a single query.
 
-### Example 1 - Related Models
+By defining a `Relationship` object like the one below, all [models](./models.mdx) or [commands](./commands.mdx)
+whose output type is the source object type defined in the relationship will now have a connection to the target
+model or command defined in the relationship.
 
-In an e-commerce context, you might have `Order` and `Customer` models, and you want to link them using the `order`
-object type so that you can fetch a customer's details for a given order.
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: customer
+  sourceType: orders
+  target:
+    model:
+      name: customers
+      subgraph: customers
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: customerId
+      target:
+        modelField:
+          - fieldName: customerId
+  description: The customer details for an order
+```
+
+So from this relationship definition, all models or commands in the supergraph whose output type is the `orders` object
+type will now have a connection to the `customers` model.
+
+### Example 1 - Object Type to a Model.
+
+In an e-commerce context, you will likely have `Customers` and `Orders`, and you want to relate them so that when you
+query `Orders` you can easily fetch the `Customer` on that order.
+
+To do this in DDN metadata for this example, you might have an `orders` **model** which returns an `orders` **object
+type** and you want to relate that to a `customers` **model** and whatever object type it returns.
 
 **Example:** Fetch a list of orders along with the customer details for each order:
 
@@ -102,7 +133,7 @@ definition:
 
 This relationship configuration would best be located with your `orders` object type and model.
 
-### Example 2 - Related Model and Command
+### Example 2 - Object Type to a Command
 
 Let's say you have a `user` object type in your graph, and also a command which responds with the current
 logged-in user information (say `getLoggedInUserInfo`). Now you can link these two, by defining a relationship from the
