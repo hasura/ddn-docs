@@ -1102,6 +1102,136 @@ data models do not disrupt the application layer, fostering a more maintainable 
 
 You can read more about these [here](/connectors/postgresql/native-queries/index.mdx).
 
+## Deploying to Hasura DDN
+
+At this point, you'll have built and iterated on your supergraph locally. However, it's time to move it to Hasura DDN,
+our lightning-fast, globally-deployed, and highly-reliable data delivery network that serves your API at the edge.
+
+Deployments fall into two catgories: deploying connectors and deploying your supergrpah. Regardless of which entity
+we're deploying, it's important to note that **Hasura utilizes a system of immutable
+[builds](/project-configuration/builds.mdx)**. These builds work as snapshots allowing you to quickly rollout or
+rollback deployments to users, worldwide. The metadata powering these builds can easily be checked into version control,
+reviewed by team members, and automated using common CI/CD tools and workflows.
+
+### Connector deployment
+
+Connectors are deployed independently of your supergraph and of each other. Hasura DDN will host your connectors for
+you, ensuring rapid delivery of data from your API to your consumers. **For each connector in a project, follow the
+steps below:**
+
+#### Step 1. Create a cloud.connector.yaml
+
+Each connector utilizes a `connector.yaml` file for local development. When deploying a connector, start by creating a
+`cloud.connector.yaml` file in the same directory as the connector's local `connector.yaml`:
+
+```yaml
+# For example, in /ux/connector/mypg/cloud.connector.yaml
+kind: Connector
+version: v1
+definition:
+  project: <project-name>
+  name: mypg
+  subgraph: <subgraph-name>
+  source: hasura/postgres:<version>
+  context: .
+  envFile: .env.cloud
+```
+
+#### Step 2. Create a .env.cloud for the connector
+
+As the database you've used for development may be different from that which you wish to use on Hasura DDN — be it for
+staging or production — you'll now provide the connection string, just like in your `.env.local`, for the database you
+wish to use on Hasura DDN. Create a `.env.cloud` environment variable file in the same directory and add the connection
+string for your PostgreSQL database:
+
+```env
+CONNECTION_URI=<connection-uri-to-postgresql>
+```
+
+#### Step 3. Build and deploy your cloud connector
+
+At this stage, you can now build and deploy your connector Hasura DDN. Simply run the following replacing the directory
+names with those that reflect your project:
+
+```bash
+ddn connector build create --connector ./<subgraph>/connector/<connector-name>/cloud.connector.yaml
+```
+
+The CLI will respond with read and write URLs for your deployed connector.
+
+#### Step 4. Create a .env.cloud for the subgraph
+
+If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.<subgraph-name>` file in
+the root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
+like this example with a connector named `mypg` in the `ux` subgraph:
+
+```env
+# /ux/.env.cloud.ux
+UX_MYPG_READ_URL=<cloud-connector-read-url>
+UX_MYPG_WRITE_URL=<cloud-connector-write-url>
+```
+
+### Supergraph deployment
+
+Supergraphs can be rebuilt at any point to reflect changes made in connectors or other metadata related to models,
+commands, relationships, or permissions. To do so, you'll need complete the first two steps once and then, for each
+additional cloud build, you'll only need to complete the third step.
+
+#### Step 1. Configure authentication
+
+We'll start by creating a new [`AuthConfig`](/supergraph-modeling/auth-config.mdx) for your Hasura DDN project. You can
+use your own authentication configuration with webhooks or JWTs. However, in the example below, we'll use the webhook
+provided by Hasura DDN so you can test your project securely in the cloud:
+
+```yaml
+# /supergraph/cloud.auth-config.hml
+kind: AuthConfig
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  mode:
+    webhook:
+      url: http://auth-hook.default:8080/webhook/ddn?role=admin
+      method: Post
+```
+
+#### Step 2. Create a cloud supergraph configuration
+
+In the root of the project, create a `cloud.supergraph.yaml` file:
+
+```yaml
+kind: Supergraph
+version: v1
+definition:
+  project: <project-name>
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph
+    envFile: ./supergraph/.env.supergraph
+    includePaths:
+      - ./supergraph/cloud.auth-config.hml
+      - ./supergraph/compatibility-config.hml
+      - ./supergraph/graphql-config.hml
+  subgraphs:
+    # With each subgraph as a key — ux is used below as an example
+    ux:
+      generator:
+        rootPath: ux/metadata
+      envFile: ux/.env.cloud.ux
+      includePaths:
+        - ux
+```
+
+#### Step 3. Build the supergraph
+
+Finally, build your supergraph with the following command:
+
+```bash
+ddn supergraph build create --supergraph ./cloud.supergraph.yaml
+```
+
+The CLI will return the console URL for your project where you can test your API from anywhere 🎉
+
 ## Moving to production
 
 At this point, you have all the ingredients and knowledge to create a robust supergraph that composes data across
