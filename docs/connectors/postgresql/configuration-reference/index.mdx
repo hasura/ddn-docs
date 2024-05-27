@@ -42,20 +42,21 @@ along with the data connector and descriptions of the meanings of each configura
 
 ## Versioning policy
 
-The data connector configuration must be tagged with a version identifier given by a string.
+The PostgreSQL data connector and its configuration format are versioned independently.
 
-Versions are immutable. As the format evolves over time, any addition, removal or modification of fields will result in
-a new version being made available.
+The data connector will always support at least the latest two configuration versions, and tooling is provided to ease
+the upgrade of configurations. A hasura cloud project will always use the head version of the PostgreSQL data connector.
+We recommend doing the same for data connector instances used for local development as well.
 
-Certain fields have default values. The defaults are allowed to evolve over time without requiring a version bump. We
-justify this by having the tooling explcitly include the current defaults when creating a new configuration.
+During its lifetime, the head version of the configuration format may receive backwards-compatible extensions. The
+reference documentation of the configuration version will always list the version of the connector which introduced the
+configuration extension. The configuration version number is only bumped when it changes in a way that is not backwards
+compatible.
 
-An instance of the PostgreSQL data connector may support multiple configuration versions simultaneously, but you should
-expect that older versions will be phased out in the future.
-
-As much as possible, any versions that introduce changes in the behavior of the data connector will do so in an opt-in
-fashion. As such, we expect that upgrading the version of a configuration will be a straightforward matter assisted by
-tooling.
+Certain fields have default values. The defaults are allowed to evolve over time without requiring a version bump. 
+Whenever you initialize a new project or update an existing one, all unspecified fields will have their defaults output,
+ensuring that only intentional updates to default fields will ever affect the observable behavior of a project, save for
+enhancements to performance and security.
 
 The currently supported versions are:
 
