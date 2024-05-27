@@ -1,7 +1,9 @@
 ---
 sidebar_position: 2
 sidebar_label: Version 4
-description: "Reference documentation for the setup process for the Hasura PostgreSQL connector, including connection URI details, native queries, and mutations."
+description:
+  "Reference documentation for the setup process for the Hasura PostgreSQL connector, including connection URI details,
+  native queries, and mutations."
 keywords:
   - hasura postgresql setup
   - connector configuration
@@ -155,9 +157,9 @@ variable can be used.
 
 This version uses the string-value `"4"`.
 
-##  `connectionSettings`
+## `connectionSettings`
 
-###  `connectionUri`
+### `connectionUri`
 
 The `connectionUri` field indicates the uri of the database which the connector will be querying. This can be given
 either as a literal value, or sourced from an environment variable (to help with sound credentials storage for
@@ -166,6 +168,7 @@ instance).
 The PostgreSQL database URL should follow the [PostgreSQL connection URI form][libpq: Connection Strings]
 
 **Examples:**
+
 ```yaml
 "connectionUri": "postgresql://user:password@host/databasename"
 ```
@@ -182,12 +185,12 @@ variable can be used.
 
 [libpq: Connection Strings]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
 
-
 ### `poolSettings`
 
 This field indicates how the data connector should manage connection pooling.
 
 The default value is:
+
 ```yaml
 "poolSettings":
   {
@@ -199,9 +202,9 @@ The default value is:
   }
 ```
 
-The `idleTimeout` and `connectionLifetime` options may be set to `null`. This indicates that connections will never
-be retired from the pool.
-The `checkConnectionAfterIdle` option may also be set to `null`. This indicates that the connection should be checked each time we acquire it from the pool.
+The `idleTimeout` and `connectionLifetime` options may be set to `null`. This indicates that connections will never be
+retired from the pool. The `checkConnectionAfterIdle` option may also be set to `null`. This indicates that the
+connection should be checked each time we acquire it from the pool.
 
 Note the distinction between setting the fields to `null` versus omitting them. `null` indicates an indefinite value and
 omission indicates the default value.
@@ -211,9 +214,10 @@ omission indicates the default value.
 This field indicates the isolation level of the transaction in which a query is executed.
 
 It may take on the following values:
-* `ReadCommitted` (the default). Prevents reading data from another uncommitted transaction.
-* `RepeatableRead`. Reading the same data twice is guaranteed to return the same result.
-* `Serializable`. Concurrent transactions behave identically to serializing them one at a time.
+
+- `ReadCommitted` (the default). Prevents reading data from another uncommitted transaction.
+- `RepeatableRead`. Reading the same data twice is guaranteed to return the same result.
+- `Serializable`. Concurrent transactions behave identically to serializing them one at a time.
 
 ## `metadata`
 
@@ -460,8 +464,8 @@ The introspection process will generate the corresponding metadata declarations:
 The `metadata.scalarTypes` field captures the scalar types that end up appearing in the data connector schema and their
 associated comparison operators and aggregation functions.
 
-The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or input
-argument appear in the metadata.
+The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
+input argument appear in the metadata.
 
 **Example**
 
@@ -546,9 +550,8 @@ should be defined in the `search_path` of the database user used by the data con
 The `typeRepresentation` field defines the type representations of the scalar type. If a type does not have a defined
 type representation, the default type representation is opaque json.
 
-The type representation of a scalar type indicates what values are considered acceptable in requests, and what values are expected
-to be returned in the response.
-
+The type representation of a scalar type indicates what values are considered acceptable in requests, and what values
+are expected to be returned in the response.
 
 ## `introspectionOptions`
 
@@ -556,11 +559,12 @@ This field collects various options that may be used to drive the configuration 
 
 ### `excludedSchemas`
 
-The `introspectionOptions.excludedSchemas` field is a list of schema names that the introspection process will ignore. The default value
-includes schemas used for internal database bookkeeping and reflection, such as `information_schema`, for PostgreSQL and
-common extensions.
+The `introspectionOptions.excludedSchemas` field is a list of schema names that the introspection process will ignore.
+The default value includes schemas used for internal database bookkeeping and reflection, such as `information_schema`,
+for PostgreSQL and common extensions.
 
 **Example (default)**
+
 ```yaml
 "excludedSchemas":
   [
@@ -575,13 +579,14 @@ common extensions.
 
 ### `unqualifiedSchemasForTables`
 
-The `introspectionOptions.unqualifiedSchemasForTables` field identifies schemas for which the introspection process will generate table
-metadata entries that are not prefixed by the schema name.
+The `introspectionOptions.unqualifiedSchemasForTables` field identifies schemas for which the introspection process will
+generate table metadata entries that are not prefixed by the schema name.
 
-Tables defined in schemas in this list will have metadata entries that of the form `<table_name>`.
-Those defined in schemas not in this list will have metadata entries that of the form `<schema_name>_<table_name>`.
+Tables defined in schemas in this list will have metadata entries that of the form `<table_name>`. Those defined in
+schemas not in this list will have metadata entries that of the form `<schema_name>_<table_name>`.
 
 **Example (default)**
+
 ```yaml
 "unqualifiedSchemasForTables": [
   "public"
@@ -590,17 +595,19 @@ Those defined in schemas not in this list will have metadata entries that of the
 
 ### `unqualifiedSchemasForTypesAndProcedures`
 
-The `introspectionOptions.unqualifiedSchemasForTypesAndProcedures` field identifies schemas for which the introspection process will generate
-type and comparison operator metadata entries that are not prefixed by the schema name, similar to the same for tables.
+The `introspectionOptions.unqualifiedSchemasForTypesAndProcedures` field identifies schemas for which the introspection
+process will generate type and comparison operator metadata entries that are not prefixed by the schema name, similar to
+the same for tables.
 
 :::info Global scope
 
-Comparison operators and types only support unqualified access i.e. global scoping currently.
-Consequentially, types and operators defined in any schema not in this list will not be discoverable.
+Comparison operators and types only support unqualified access i.e. global scoping currently. Consequentially, types and
+operators defined in any schema not in this list will not be discoverable.
 
 :::
 
 **Example (default)**
+
 ```yaml
 "unqualifiedSchemasForTypesAndProcedures": [
   "public",
@@ -636,8 +643,8 @@ In order for the introspection process to discover a given operator it must have
 
 ### `introspectPrefixFunctionComparisonOperators` {#introspectPrefixFunctionComparisonOperators}
 
-The `introspectionOptions.introspectPrefixFunctionComparisonOperators` gives the list of prefix-functions that are candidates for comparison
-operators.
+The `introspectionOptions.introspectPrefixFunctionComparisonOperators` gives the list of prefix-functions that are
+candidates for comparison operators.
 
 Because of the wide variety of predefined functions in existence this is an inclusion list rather than an exclusion
 list. Functions not appearing in this list will not be discoverable by the introspection process.
@@ -692,12 +699,13 @@ Postgresql types `varchar`, `text` etc.
 
 #### `int8` and `numeric` types
 
-The default type representations of `int8` and `numeric` types are `int64AsString` and `bigDecimalAsString` respectively.
-These indicate that values accepted in requests and returned in response will have a string value json representation,
-to improve compatibility with common JavaScript clients.
+The default type representations of `int8` and `numeric` types are `int64AsString` and `bigDecimalAsString`
+respectively. These indicate that values accepted in requests and returned in response will have a string value json
+representation, to improve compatibility with common JavaScript clients.
 
-It is possible to configure this option to represent these types as numbers instead. To do so, configure the type representation
-of the `int8` type to `int64`, and/or configure the type representation of the `numeric` type to `bigDecimal` as follows:
+It is possible to configure this option to represent these types as numbers instead. To do so, configure the type
+representation of the `int8` type to `int64`, and/or configure the type representation of the `numeric` type to
+`bigDecimal` as follows:
 
 ## `mutationsVersion`
 
@@ -707,8 +715,8 @@ Developing support for mutations of tables is an ongoing effort that has still n
 `mutationsVersion` field is essentially a feature flag toggle that will let you opt-in to trying this feature as it
 evolves.
 
-Beware that the set of supported mutations versions is expected to have a rapid turnover, and there is no guarantee that two
-successive configuration versions will have any overlap in the mutations versions they support.
+Beware that the set of supported mutations versions is expected to have a rapid turnover, and there is no guarantee that
+two successive configuration versions will have any overlap in the mutations versions they support.
 
 :::
 

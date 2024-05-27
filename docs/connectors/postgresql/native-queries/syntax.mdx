@@ -22,9 +22,9 @@ are placeholders for the actual values.
 
 ## Arguments as scalar values only
 
-The arguments are not interpolated, but are translated to parameters of parameterized queries (arguments like
-`{{id}}` and `{{name}}` are translated to `$1`, `$2`, etc.) and passed as data, and therefore can only be used in
-place of scalar values, not table names, column names, or other arbitrary SQL.
+The arguments are not interpolated, but are translated to parameters of parameterized queries (arguments like `{{id}}`
+and `{{name}}` are translated to `$1`, `$2`, etc.) and passed as data, and therefore can only be used in place of scalar
+values, not table names, column names, or other arbitrary SQL.
 
 ## No quoting of string arguments
 
@@ -38,20 +38,24 @@ at the end, as the SQL is used inside another SQL query.
 
 ## String value arguments in patterns using concatenation
 
-Since you can't directly interpolate arguments (like variables) into your SQL statements in the same way
-you might in other contexts, in order to use a string argument inside a pattern, such as in a `LIKE` predicate, the
-argument can be concatenated with the relevant pattern parts.
+Since you can't directly interpolate arguments (like variables) into your SQL statements in the same way you might in
+other contexts, in order to use a string argument inside a pattern, such as in a `LIKE` predicate, the argument can be
+concatenated with the relevant pattern parts.
 
 For example:
+
 ```sql
 SELECT * FROM "Artist" WHERE "Name" LIKE '%John%'
 ```
+
 can be written as
+
 ```sql
 SELECT * FROM "Artist" WHERE "Name" LIKE '%' || {{name}} || '%'
 ```
+
 using the `||` concatenation operator to concatenate the parts of the pattern with the argument variable.
 
-## No "hasura_" prefixed arguments
+## No "hasura\_" prefixed arguments
 
 Argument names that begin with the prefix `hasura_` are reserved for internal use.
