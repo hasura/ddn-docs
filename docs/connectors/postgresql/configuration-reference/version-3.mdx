@@ -1,6 +1,6 @@
 ---
-sidebar_position: 3
-sidebar_label: Configuration
+sidebar_position: 1
+sidebar_label: Version 3
 description:
   "Reference documentation for the setup process for the Hasura PostgreSQL connector, including connection URI details,
   native queries, and mutations."
@@ -18,51 +18,7 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-# Configuration
-
-:::warning Subject to change
-
-During this active development phase, the configuration structure is subject to change.
-
-:::
-
-The format of the configuration data is described by a [json schema][Configuration JSON Schema].
-
-## Introduction
-
-This document is the reference documentation for the PostgreSQL data connector configuration.
-
-The configuration is a static object that lists all the database entities — such as tables — that the data connector has
-to know about in order to serve queries. It never changes during the lifetime of the data connector. When your database
-schema changes you will have to update the configuration accordingly.
-
-Below you will find information about how to work effectively with the configuration authoring tools provided by Hasura,
-along with the data connector and descriptions of the meanings of each configuration field.
-
-## Versioning policy
-
-The data connector configuration must be tagged with a version identifier given by a string.
-
-Versions are immutable. As the format evolves over time, any addition, removal or modification of fields will result in
-a new version being made available.
-
-Certain fields have default values. The defaults are allowed to evolve over time without requiring a version bump. We
-justify this by having the tooling explcitly include the current defaults when creating a new configuration.
-
-An instance of the PostgreSQL data connector may support multiple configuration versions simultaneously, but you should
-expect that older versions will be phased out in the future.
-
-As much as possible, any versions that introduce changes in the behavior of the data connector will do so in an opt-in
-fashion. As such, we expect that upgrading the version of a configuration will be a straightforward matter assisted by
-tooling.
-
-The currently supported versions are: `"3"`.
-
-:::warning Current status
-
-As of this writing there is not yet any tooling support for upgrading configuration versions implemented.
-
-:::
+# Configuration Reference, Version 3
 
 ## Configuration workflows
 
@@ -164,11 +120,11 @@ Running `ndc-postgres-cli update` in a configuration directory will do the follo
 Connect to the database with the specified `connectionUri`, and then overwrite all data in the `metadata` field (except
 for the native queries) based on the contents of the database and the values given in the `introspectionOptions` field.
 
-Fill in default values for any fields absent from the configuration, as descriped in the
-[Versioning Policy](#versioning-policy) section.
+Fill in default values for any fields absent from the configuration, as described in the
+[Versioning Policy](/connectors/postgresql/configuration-reference/index.mdx#versioning-policy) section.
 
 Various fields in the `introspectionOptions` object influence the outcome of the introspection process, See
-[Configure options](#introspectionoptions).
+[Configure options](#manually-editing).
 
 ### Manually editing
 
@@ -189,7 +145,7 @@ One section of the configuration that will always need manual authorship is the 
 ## `version`
 
 This field indicates the version of the configuration format that the configuration file adheres to. See
-[Versioning Policy](#versioning-policy).
+[Versioning Policy](/connectors/postgresql/configuration-reference/index.mdx#versioning-policy).
 
 The currently supported version is: `"3"`.
 
@@ -341,6 +297,52 @@ Note that the support for types is not yet aware of schema namespacing. User-def
 
 :::
 
+### `nativeQueries`
+
+The `nativeQueries` field collects user-specified SQL queries that that may become either queryable collections or
+mutations in the generated connector schema.
+
+Each query is specified as SQL, and the types of any query arguments and result columns must be specified explicitly.
+
+**Example**
+
+```json
+"nativeQueries": {
+  "artist_below_id": {
+    "sql": {
+      "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
+    },
+    "columns": {
+      "ArtistId": {
+        "name": "ArtistId",
+        "type": {
+          "scalarType": "int4"
+        }
+      },
+      "Name": {
+        "name": "Name",
+        "type": {
+          "scalarType": "varchar"
+        }
+      }
+    },
+    "arguments": {
+      "id": {
+        "name": "id",
+        "type": {
+          "scalarType": "int4"
+        }
+      }
+    }
+  }
+}
+```
+
+Note that the arguments are provided as query parameters - they are not textually interpolated into the query. As such,
+a native query argument are value expressions and cannot be used in the place of e.g. a table name.
+
+See also the main [Native Queries](/connectors/postgresql/native-queries/) documentation.
+
 ### `compositeTypes`
 
 The `compositeTypes` field collects information on all explicitly defined composite types (i.e., those that do not arise
@@ -420,7 +422,7 @@ Then you may make these types available with the following configuration counter
 The `metadata.aggregateFunctions` field captures the aggregation functions that are defined for the various **scalar
 types** that appear in a project.
 
-The introspection process is capabable of discovering all compatible aggregation functions.
+The introspection process is capable of discovering all compatible aggregation functions.
 
 The only aggregation functions supported are those that take a single argument (which include most of them). The
 configuration groups them by the type of their argument.
@@ -457,7 +459,7 @@ types** that appear in a project.
 
 In the configuration, the comparison operators are grouped by the type of their first argument.
 
-The introspection process is capabable of discovering most compatible comparison operators, including those accessible
+The introspection process is capable of discovering most compatible comparison operators, including those accessible
 through implicit casts.
 
 Many comparison operators in PostgreSQL are syntactically applied as binary infix operators and denoted by
