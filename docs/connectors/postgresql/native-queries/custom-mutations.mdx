@@ -15,8 +15,8 @@ seoFrontMatterUpdated: false
 ## Introduction
 
 Custom mutations allow you to run custom SQL queries on your PostgreSQL database that can be exposed via the Hasura
-GraphQL and modify the database state. As point-to-point mutations are not yet supported, this is one way to mutate data
-using your GraphQL API.
+GraphQL engine and modify the database state. As point-to-point mutations are not yet supported, this is one way to
+mutate data using your GraphQL API.
 
 ## Setup
 
@@ -52,42 +52,24 @@ Native Query mutations can be defined the same way as
 Here's an example which inserts into a table called `"Artist"`:
 
 ```yaml
-"nativeQueries": {
-  "insert_artist": {
-    "isProcedure": true,
-    "sql": {
-      "inline": "INSERT INTO public.\"Artist\" VALUES ({{id}}, {{name}}) RETURNING *"
-    },
-    "columns": {
-      "ArtistId": {
-        "name": "ArtistId",
-        "type": {
-          "scalarType": "int4"
-        }
+"nativeQueries":
+  {
+    "insert_artist":
+      {
+        "isProcedure": true,
+        "sql": { "inline": 'INSERT INTO public."Artist" VALUES ({{id}}, {{name}}) RETURNING *' },
+        "columns":
+          {
+            "ArtistId": { "name": "ArtistId", "type": { "scalarType": "int4" } },
+            "Name": { "name": "Name", "type": { "scalarType": "varchar" } },
+          },
+        "arguments":
+          {
+            "id": { "name": "id", "type": { "scalarType": "int4" } },
+            "name": { "name": "name", "type": { "scalarType": "varchar" } },
+          },
       },
-      "Name": {
-        "name": "Name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    },
-    "arguments": {
-      "id": {
-        "name": "id",
-        "type":{
-          "scalarType": "int4"
-        }
-      },
-      "name": {
-        "name": "name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    }
   }
-}
 ```
 
 :::tip Valid Native Query syntax
