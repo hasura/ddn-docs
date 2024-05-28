@@ -52,15 +52,21 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
       visitedRefs[refTitle] = getRefLink(metadataObject, rootTitle);
     }
 
-    if (isScalarType(metadataObject)) {
-      // Deal with const, enum, type (scalars)
-      typeDefinition = handleScalars(metadataObject);
-    } else if (isArrayType(metadataObject)) {
-      // Deal with items
-      typeDefinition = handleArrayType(metadataObject);
-    } else if (isObjectType(metadataObject)) {
-      // Deal with properties / additionalProperties
-      typeDefinition = handleObject(metadataObject, isSource);
+    if (metadataObject.type) {
+      if (Array.isArray(metadataObject.type)) {
+        typeDefinition = handleMultipleTypes(metadataObject);
+      } else {
+        if (isScalarType(metadataObject.type)) {
+          // Deal with const, enum, type (scalars)
+          typeDefinition = handleScalars(metadataObject);
+        } else if (isArrayType(metadataObject.type)) {
+          // Deal with items
+          typeDefinition = handleArray(metadataObject);
+        } else if (isObjectType(metadataObject.type)) {
+          // Deal with properties / additionalProperties
+          typeDefinition = handleObject(metadataObject, isSource);
+        }
+      }
     } else if (metadataObject.anyOf && isExternallyTaggedNullable(metadataObject)) {
       typeDefinition = handleExternallyTaggedNullable(metadataObject);
     } else if (metadataObject.oneOf && isExternallyTaggedOneOf(metadataObject)) {
@@ -77,75 +83,93 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
     return typeDefinition;
   }
 
-  function handleScalars(metadataObject: JSONSchema7Definition): string {
-    const type = getType(metadataObject);
-    if (type && isScalarType(metadataObject)) {
-      let value: string;
-      if (metadataObject.const) {
-        value = `\`${metadataObject.const.toString()}\``;
-      } else if (metadataObject.enum) {
-        value = metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
-      } else {
-        value = type;
-      }
+  function handleMultipleTypes(metadataObject: JSONSchema7Definition): string {
+    if (!Array.isArray(metadataObject.type)) return '';
 
-      const title = getTitle(metadataObject);
-      if (title) {
-        const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
-        markdownArray.push(markdown);
-
-        return getRefLink(metadataObject, rootTitle);
-      } else {
-        return value;
+    const typeRefs = metadataObject.type.map(type => {
+      if (isScalarType(type)) {
+        return type;
+      } else if (isArrayType(type)) {
+        return handleArray(metadataObject);
+      } else if (isObjectType(type)) {
+        return handleObject(metadataObject);
       }
+    });
+
+    const value = typeRefs.join(` / `);
+
+    const title = getTitle(metadataObject);
+    if (title) {
+      const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
+      markdownArray.push(markdown);
+
+      return getRefLink(metadataObject, rootTitle);
+    } else {
+      return value;
     }
   }
 
-  function handleArrayType(metadataObject: JSONSchema7Definition): string {
-    const type = getType(metadataObject);
-    if (type === 'array') {
-      const itemType = getArrayItemType(metadataObject);
-      const value = `[${handleSchemaDefinition(itemType)}]`;
+  function handleScalars(metadataObject: JSONSchema7Definition): string {
+    if (Array.isArray(metadataObject.type)) return '';
 
-      const title = getTitle(metadataObject);
-      if (title) {
-        const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
-        markdownArray.push(markdown);
+    let value: string;
+    if (metadataObject.const) {
+      value = `\`${metadataObject.const.toString()}\``;
+    } else if (metadataObject.enum) {
+      value = metadataObject.enum.map(enumVal => `\`${enumVal}\``).join(' / ');
+    } else {
+      value = metadataObject.type;
+    }
 
-        return getRefLink(metadataObject, rootTitle);
-      } else {
-        return value;
-      }
+    const title = getTitle(metadataObject);
+    if (title) {
+      const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
+      markdownArray.push(markdown);
+
+      return getRefLink(metadataObject, rootTitle);
+    } else {
+      return value;
+    }
+  }
+
+  function handleArray(metadataObject: JSONSchema7Definition): string {
+    const itemType = getArrayItemType(metadataObject);
+    const value = `[${handleSchemaDefinition(itemType)}]`;
+
+    const title = getTitle(metadataObject);
+    if (title) {
+      const markdown = generateScalarMarkdown(metadataObject, value, rootTitle);
+      markdownArray.push(markdown);
+
+      return getRefLink(metadataObject, rootTitle);
+    } else {
+      return value;
     }
   }
 
   function handleObject(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
-    const type = getType(metadataObject);
-    if (type === 'object') {
-      let markdownValue = '';
-      markdownValue += `| Key | Value | Required | Description |\n|-----|-----|-----|-----|\n`;
+    let markdownValue = '';
+    markdownValue += `| Key | Value | Required | Description |\n|-----|-----|-----|-----|\n`;
 
-      if (metadataObject.properties) {
-        for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
-          const propertyType = handleSchemaDefinition(propertySchema);
-          const requiredProp = metadataObject.required ? metadataObject.required.includes(propertyKey) : false;
-          markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
-        }
-      }
-
-      if (metadataObject.additionalProperties) {
-        const propertySchema = metadataObject.additionalProperties;
+    if (metadataObject.properties) {
+      for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
         const propertyType = handleSchemaDefinition(propertySchema);
-        markdownValue += `| \`<customKey>\` | ${propertyType} | false | ${getDescription(propertySchema)} |\n`;
+        const requiredProp = metadataObject.required ? metadataObject.required.includes(propertyKey) : false;
+        markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
       }
-
-      const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle, isSource);
-
-      markdownArray.push(markdown);
-
-      return getRefLink(metadataObject, rootTitle);
     }
-    return ``;
+
+    if (metadataObject.additionalProperties) {
+      const propertySchema = metadataObject.additionalProperties;
+      const propertyType = handleSchemaDefinition(propertySchema);
+      markdownValue += `| \`<customKey>\` | ${propertyType} | false | ${getDescription(propertySchema)} |\n`;
+    }
+
+    const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle, isSource);
+
+    markdownArray.push(markdown);
+
+    return getRefLink(metadataObject, rootTitle);
   }
 
   function handleAllOfAnyOfOneOf(metadataObject: JSONSchema7Definition): string {

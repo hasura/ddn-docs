@@ -222,29 +222,21 @@ export function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition
   return simplifiedSchema;
 }
 
-export function isObjectType(metadataObject: JSONSchema7Definition): boolean {
-  const type = getType(metadataObject);
-
-  return type && type === 'object';
+export function isObjectType(type: string): boolean {
+  return type === 'object';
 }
 
-export function isArrayType(metadataObject: JSONSchema7Definition): boolean {
-  const type = getType(metadataObject);
-
-  return type && type === 'array';
+export function isArrayType(type: string): boolean {
+  return type === 'array';
 }
 
-export function isScalarType(metadataObject: JSONSchema7Definition): boolean {
-  const type = getType(metadataObject);
-
+export function isScalarType(type: string): boolean {
   const scalarTypes = [`string`, `number`, `integer`, `null`, `boolean`];
 
-  return type && scalarTypes.includes(type);
+  return scalarTypes.includes(type);
 }
 
-export function isNullType(metadataObject: JSONSchema7Definition): boolean {
-  const type = getType(metadataObject);
-
+export function isNullType(type: string): boolean {
   return type === 'null';
 }
 
@@ -274,6 +266,6 @@ export function isExternallyTaggedNullable(metadataObject: JSONSchema7Definition
   return (
     metadataObject.anyOf &&
     metadataObject.anyOf.length === 2 &&
-    metadataObject.anyOf.some(sub_object => isNullType(sub_object))
+    metadataObject.anyOf.some(sub_object => !Array.isArray(sub_object.type) && isNullType(sub_object.type))
   );
 }

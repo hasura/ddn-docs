@@ -21,6 +21,7 @@ import SupergraphModeling from '@site/static/icons/cpu-chip-01.svg';
 import Faq from '@site/static/icons/help-square.svg';
 import Community from '@site/static/icons/announcement-02.svg';
 import Actions from '@site/static/icons/features/actions.svg';
+import Billing from '@site/static/icons/features/credit-card-check.svg';
 
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
@@ -90,6 +91,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'community-icon':
       icons = <Community />;
+      break;
+    case 'billing-icon':
+      icons = <Billing />;
       break;
     case 'logic-icon':
       icons = <Actions />;

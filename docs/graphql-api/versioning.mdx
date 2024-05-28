@@ -62,16 +62,16 @@ definition:
   orderableFields:
   - Id
   graphql:
-	selectUniques:
-	- queryRootField: selectCar
-  	  uniqueIdentifier:
-  	  - make
-  	  - model
-  	  deprecated:
-    	    reason: Use selectCarById instead
-	- queryRootField: selectCarById
-  	  uniqueIdentifier:
-  	  - Id
+    selectUniques:
+    - queryRootField: selectCar
+      uniqueIdentifier:
+      - make
+      - model
+      deprecated:
+        reason: Use selectCarById instead
+    - queryRootField: selectCarById
+      uniqueIdentifier:
+      - Id
 ```
 
 And the resulting schema:
@@ -94,10 +94,10 @@ definition:
   name: GetEngineSpec
   outputType: Engine
   graphql:
-	rootFieldName: getEngineSpec
-	rootFieldKind: Query
-	deprecated:
-  	  reason: "Fuel Engines are no longer supported from Jan 01 2035"
+    rootFieldName: getEngineSpec
+    rootFieldKind: Query
+    deprecated:
+      reason: "Fuel Engines are no longer supported from Jan 01 2035"
 ```
 
 And the resulting schema:
@@ -120,17 +120,17 @@ definition:
   name: Car
   fields:
   - name: Id
-	type: String
+    type: String
   - name: make
-	type: String
+    type: String
   - name: model
-	type: String
+    type: String
   - name: engine
-	type: String
-	deprecated:
-  	  reason: Use motor field instead
+    type: String
+    deprecated:
+      reason: Use motor field instead
   - name: motor
-	type: String
+    type: String
   graphql:
       typeName: Car
 ```
@@ -158,17 +158,17 @@ definition:
   name: engineSpec
   source: Car
   target:
-	command:
-  	name: GetEngineSpec
+    command:
+    name: GetEngineSpec
   mapping:
   - source:
-  	fieldPath:
-  	- fieldName: engine
-	target:
-  	argument:
-    	argumentName: name
+      fieldPath:
+      - fieldName: engine
+    target:
+      argument:
+        argumentName: name
   deprecated:
-	reason: Engines on cars are no longer supported from Jan 01 2035
+    reason: Engines on cars are no longer supported from Jan 01 2035
 ```
 
 And the resulting schema:
@@ -182,5 +182,45 @@ type Car {
   motor: String
   engineSpec: Engine @deprecated(reason: "Engines on cars are no longer supported from Jan 01 2035")
   motorSpec: Motor
+}
+```
+
+## Default Deprecation Reason
+
+In cases where no deprecation reason is explicitly provided, the `@deprecated` directive defaults to `No longer supported` as the reason.
+
+The following example from [ObjectType](/supergraph-modeling/types.mdx#objecttype-objecttype) metadata illustrates deprecating a field without specifying a reason.
+
+```yaml
+kind: ObjectType
+version: V1
+definition:
+  name: Car
+  fields:
+  - name: Id
+    type: String
+  - name: make
+    type: String
+  - name: model
+    type: String
+  - name: engine
+    type: String
+    deprecated:
+      reason: null
+  - name: motor
+    type: String
+  graphql:
+      typeName: Car
+```
+
+And the resulting schema:
+
+```graphql
+type Car {
+  Id: String
+
+  model: String
+  engine: String @deprecated(reason: "No longer supported")
+  motor: String
 }
 ```
