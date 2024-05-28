@@ -1,87 +1,107 @@
-### Step 1. Init the PostgreSQL connector
+### Step 1. Init the MongoDB connector
 
-To initialize the PostgreSQL connector, run the following, replacing `<subgraph-name>` with the name of the subgraph
-which will contain this connector and its eventual data source:
+To initialize the MongoDB connector, run the following, replacing `<subgraph-name>` with the name of the subgraph which
+you chose earlier and which will contain this connector and its eventual data source:
 
 ```bash
-ddn connector init mypg --dir <subgraph-name>/connector/mypg --hub-connector hasura/postgres
+ddn connector init mymongo --dir <subgraph-name>/connector/mymongo --hub-connector hasura/mongodb
 ```
 
 In this command, we're passing a few important values.
 
 **Connector name**
 
-First, we're naming our connector `mypg`, but you can call it whatever makes sense to your business outcome. For
-example, if this connector is integrating a database all about users' profiles, it would make sense to name it
-`user_profile_connector` so you and your team know which data source this relates to. **Importantly, a data connector
-can only connect to a single data source.**
+First, we're naming our connector `mymongo`, but you can call it whatever makes sense to your business outcome. For
+example, if this connector is integrating a database all about product metadata, it would make sense to name it
+something like `product_metadata_connector` so you and your team know which data source this relates to.
+
+:::note
+
+Importantly, a data connector can only connect to a single data source.
+
+:::
 
 **Directory for the connector**
 
-Second, we're passing the `--dir` flag to tell the CLI to which subgraph this connector belong _and_ that the
-configuration files it's generating should be organized in a `connector/mypg` directory. **Note: the name of the
-connector and the directory in which the configuration is stored — `mypg` in this example — should match.**
+Second, we're passing the `--dir` flag to tell the CLI to which subgraph this connector belongs _and_ that the
+configuration files it's generating should be organized in a `connector/mymongo` directory which the CLI should create
+if it doesn't exist.
+
+:::note
+
+The name of the connector and the directory in which the configuration is stored — `mymongo` in this example — should
+match for convenience and clarity sake.
+
+:::
 
 **Connector type**
 
-Additionally, we're calling out another value: `hasura/postrgres`, which is the connector from the
-[Connector Hub](https://hasura.io/connectors/postgres).
+Additionally, we're calling out another value: `hasura/mongodb`, which is the connector from the
+[Connector Hub](https://hasura.io/connectors/mongodb)
 
 ### Step 2. Modify the connector's published port
 
 By default, all connectors run on `8080`. However, to avoid port collisions, we'll change the connector's published port
-to `8081`. In the `docker-compose.mypg.yaml` file, which can be found in the directory you created in the last step,
+to `8081`. In the `docker-compose.mymongo.yaml` file, which can be found in the directory you created in the last step,
 replace the existing `published` value with:
 
 ```yaml
 ports:
   - mode: ingress
-    target: 8080
+    target: 8081
     #highlight-start
-    published: '8081'
+    published: "8081"
     #highlight-end
     protocol: tcp
 ```
 
-### Step 3. Include the PostgreSQL connector's compose file
+### Step 3. Include the MongoDB connector's compose file
 
 In our main `docker-compose.yaml` in the root of the project, add the following at the top taking care to replace
 `<subgraph-name>` with your subgraph:
 
 ```yaml
 include:
-  - path: <subgraph-name>/connector/mypg/docker-compose.mypg.yaml
+  - path: <subgraph-name>/connector/mymongo/docker-compose.mymongo.yaml
 ```
 
 ### Step 4. Add the connection URI
 
-Now that our connector has been scaffolded out for us, we need to provide a connection string so that the data source
-can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
-caveats to consider before continuing.
+Now that our connector has been scaffolded out for us, we need to provide a **connection string** so that the data
+source can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are
+a few caveats to consider before continuing.
 
 :::info Environment-specific caveats
 
-**Local PostgreSQL**
+**Local Mongo**
 
-If you're using a local PostgreSQL database — such as through [Docker](https://hub.docker.com/_/postgres) — you'll need
-to use a tool like [ngrok](https://ngrok.com/) to tunnel your database's connection. This will expose the port, most
-likely `5432`, on which the database is running and allow Hasura DDN to connect to it.
+If you're using a local MongoDB database — such as through [Docker](https://hub.docker.com/_/mongodb) — you'll need to
+use a tool like [ngrok](https://ngrok.com/) to tunnel your database's connection from Hasura DDN to your local database
+instance. With ngrok, you can expose the port, most likely `27017`, on which the database is running and allow Hasura
+DDN to connect to it.
 
-**Cloud-hosted PostgreSQL**
+**Cloud-hosted MongoDB**
 
-Alternatively, if you have a cloud-hosted database, as Hasura DDN will need to reach your database, ensure you've
-allowlisted `0.0.0.0/0` so that DDN is able to reach it.
+Alternatively, if you have a cloud-hosted database, perhaps with
+[MongoDB Atlas](https://www.mongodb.com/products/platform/atlas-database) as Hasura DDN will need to reach your
+database, ensure you've allowlisted `0.0.0.0/0` so that DDN is able to reach it.
 
 :::
 
 Each connector automatically scaffolds out an env file. We can add a key-value pair of `CONNECTION_URI` along with the
-connection string itself to this file and our connector will use this to connect to our PostgreSQL database. The file,
+connection string itself to this file and our connector will use this to connect to our MongoDB database. The file,
 after adding the `CONNECTION_URI` should look like this:
 
 ```env
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local-dev.hasura.me:4317
 OTEL_SERVICE_NAME=mypg
-CONNECTION_URI=<postgres-connection-uri>
+CONNECTION_URI=<mongodb-connection-uri>
+```
+
+for example:
+
+```env
+CONNECTION_URI="mongodb+srv://john:N2Mvjfd3DldRjVrP@mydemo.shh5x2t.mongodb.net/sample_demo?retryWrites=true&w=majority&appName=MyDemo"
 ```
 
 :::tip o11y via OpenTelemetry
@@ -92,18 +112,19 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 ### Step 5. Introspect your database
 
-With connector configured, we can now use the CLI to introspect our PostgreSQL database create a source-specific
+With connector configured, we can now use the CLI to introspect our MongoDB database to create a source-specific
 configuration file for our connector:
 
 ```bash
-ddn connector introspect --connector ux/connector/mypg/connector.yaml
+ddn connector introspect --connector <subgraph-name>/connector/mymongo/connector.yaml
 ```
 
-If you look at the `configuration.json` for your connector, you'll see metadata describing your PostgreSQL schema.
+If you look at the JSON files in the schema directory of your connector, you'll see metadata describing your MongoDB
+schema.
 
 :::tip Initialize a Git repository
 
 At this point, we recommend initializing a Git repository. This gives you a fallback point as you begin to iterate on
-your project.
+your project and easily surfaces what changes as you progress.
 
 :::
