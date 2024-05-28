@@ -14,9 +14,9 @@ seoFrontMatterUpdated: false
 
 ## Introduction
 
-Custom mutations allow you to run custom SQL queries on your PostgreSQL database that can be exposed via the Hasura 
-GraphQL and modify the database state. As point-to-point mutations are not yet supported, this is one way to mutate data
-using your GraphQL API.
+Custom mutations allow you to run custom SQL queries on your PostgreSQL database that can be exposed via the Hasura
+GraphQL engine and modify the database state. As point-to-point mutations are not yet supported, this is one way to
+mutate data using your GraphQL API.
 
 ## Setup
 
@@ -41,8 +41,8 @@ on this feature will be provided in an upcoming release.
 
 ## Example
 
-Native Query mutations can be defined the same way as [custom queries](/connectors/postgresql/native-queries/custom-queries.mdx), with 
-a few important tweaks:
+Native Query mutations can be defined the same way as
+[custom queries](/connectors/postgresql/native-queries/custom-queries.mdx), with a few important tweaks:
 
 1. The Native Query should include a field `isProcedure: true`.
 2. The SQL should include a `RETURNING` clause, listing the returned columns (use `RETURNING *` to return all columns).
@@ -52,42 +52,24 @@ a few important tweaks:
 Here's an example which inserts into a table called `"Artist"`:
 
 ```yaml
-"nativeQueries": {
-  "insert_artist": {
-    "isProcedure": true,
-    "sql": {
-      "inline": "INSERT INTO public.\"Artist\" VALUES ({{id}}, {{name}}) RETURNING *"
-    },
-    "columns": {
-      "ArtistId": {
-        "name": "ArtistId",
-        "type": {
-          "scalarType": "int4"
-        }
+"nativeQueries":
+  {
+    "insert_artist":
+      {
+        "isProcedure": true,
+        "sql": { "inline": 'INSERT INTO public."Artist" VALUES ({{id}}, {{name}}) RETURNING *' },
+        "columns":
+          {
+            "ArtistId": { "name": "ArtistId", "type": { "scalarType": "int4" } },
+            "Name": { "name": "Name", "type": { "scalarType": "varchar" } },
+          },
+        "arguments":
+          {
+            "id": { "name": "id", "type": { "scalarType": "int4" } },
+            "name": { "name": "name", "type": { "scalarType": "varchar" } },
+          },
       },
-      "Name": {
-        "name": "Name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    },
-    "arguments": {
-      "id": {
-        "name": "id",
-        "type":{
-          "scalarType": "int4"
-        }
-      },
-      "name": {
-        "name": "name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    }
   }
-}
 ```
 
 :::tip Valid Native Query syntax
