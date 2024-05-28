@@ -1,0 +1,58 @@
+---
+sidebar_position: 5
+sidebar_label: Get a local API
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Get a Local API
+
+## Step 1. Create a supergraph build
+
+Next, we'll create our first supergraph build. We'll pass the `local` subcommand along with specifying the output
+directory as `./engine` in the root of the project. This directory is used by the docker-compose file to serve the
+engine locally:
+
+```bash
+ddn-staging supergraph build local --output-dir ./engine
+```
+
+You can now navigate to [`http://localhost:3000`](http://localhost:3000) and interact with your API using the GraphiQL
+playground!
+
+<!-- The CLI will respond with information about our project, including a link to the project's console. Click on that to see -->
+<!-- the GraphiQL explorer and interact with your API. -->
+
+## Step 2. Write your first query
+
+For the `Carts` example we've been using, we can run the following query:
+
+```graphql
+query AllCartsQuery {
+  ux_carts {
+    id
+    isComplete
+    userId
+  }
+}
+```
+
+All types are namespaced with the subgraph to which they belong. Here, you can see that `carts` belongs to the `ux`
+subgraph. Thus, the query above will return a response that looks like this:
+
+<!-- TODO: Add screenshot of console -->
+
+:::tip Want to import every table and foreign-key relationship?
+
+You can run the following instead of atomically adding models to your API:
+
+```bash
+ddn connector-link update mypg --add-all-resources
+```
+
+:::

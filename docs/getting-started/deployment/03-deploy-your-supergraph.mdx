@@ -1,0 +1,104 @@
+---
+sidebar_position: 3
+sidebar_label: Deploy your supergraph
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Deploy your Supergraph
+
+Supergraphs can be rebuilt at any point to reflect changes made in connectors or other metadata related to models,
+commands, relationships, or permissions. To do so, you'll need complete the first two steps once and then, for each
+additional cloud build, you'll only need to complete the third step.
+
+## Step 1. Configure authentication
+
+We'll start by creating a new [`AuthConfig`](/supergraph-modeling/auth-config.mdx) for your Hasura DDN project. You can
+use your own authentication configuration with webhooks or JWTs. However, in the example below, we'll use the webhook
+provided by Hasura DDN so you can test your project securely in the cloud:
+
+```yaml
+# /supergraph/cloud.auth-config.hml
+kind: AuthConfig
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  mode:
+    webhook:
+      url: http://auth-hook.default:8080/webhook/ddn?role=admin
+      method: Post
+```
+
+## Step 2. Create a cloud supergraph configuration
+
+In the root of the project, create a `cloud.supergraph.yaml` file:
+
+```yaml
+kind: Supergraph
+version: v1
+definition:
+  project: <project-name>
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph
+    envFile: ./supergraph/.env.supergraph
+    includePaths:
+      - ./supergraph/cloud.auth-config.hml
+      - ./supergraph/compatibility-config.hml
+      - ./supergraph/graphql-config.hml
+  subgraphs:
+    # With each subgraph as a key — ux is used below as an example
+    ux:
+      generator:
+        rootPath: ux/metadata
+      envFile: ux/.env.cloud.ux
+      includePaths:
+        - ux
+```
+
+## Step 3. Build the supergraph
+
+Finally, build your supergraph with the following command:
+
+```bash
+ddn supergraph build create --supergraph ./cloud.supergraph.yaml
+```
+
+The CLI will return the console URL for your project where you can test your API from anywhere 🎉
+
+## Moving to production
+
+At this point, you have all the ingredients and knowledge to create a robust supergraph that composes data across
+various sources and aggregates them into a single, reliable, performant API. Before moving to production, consider the
+resources below:
+
+### Migrations
+
+Hasura recommends a number of third-party solutions for managing database migrations. Commonly, users implement
+migrations via CI/CD with [Flyaway](https://flywaydb.org/) or similar resources.
+
+:::info Doesn't Hasura manage migrations?
+
+In v2, Hasura provided a built-in migration tool. However, as v3 metadata is decoupled from the underlying data source,
+you are free to manage your migrations however you wish.
+
+:::
+
+### Performance optimizations
+
+Hasura provides a suite of observability tools directly in a project's DDN console. You can view traces, query plans,
+and general usage statistics. These are helpful for diagnosing common bottlenecks and problems with your application's
+performance. You can read more about these [here](/observability/overview.mdx).
+
+### CI/CD
+
+You can create a pipeline for deployments using any tools you wish. As we recommend initializing a git repository early
+in the project creation process, and provide operability with environment variables, you can follow any git-workflow
+best practices for moving between development, staging, and production environments. Additionally, we provide a
+configurable [GitHub Action](https://github.com/marketplace/actions/ddn-deployment) for automatically managing your
+deployments.

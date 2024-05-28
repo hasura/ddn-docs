@@ -1,0 +1,69 @@
+---
+sidebar_position: 2
+sidebar_label: Deploy a connector
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Deploy a Connector
+
+Connectors are deployed independently of your supergraph and of each other. Hasura DDN will host your connectors for
+you, ensuring rapid delivery of data from your API to your consumers. **For each connector in a project, follow the
+steps below:**
+
+## Step 1. Create a cloud.connector.yaml
+
+Each connector utilizes a `connector.yaml` file for local development. When deploying a connector, start by creating a
+`cloud.connector.yaml` file in the same directory as the connector's local `connector.yaml`:
+
+```yaml
+# For example, in /ux/connector/mypg/cloud.connector.yaml
+kind: Connector
+version: v1
+definition:
+  project: <project-name>
+  name: mypg
+  subgraph: <subgraph-name>
+  source: hasura/postgres:<version>
+  context: .
+  envFile: .env.cloud
+```
+
+## Step 2. Create a .env.cloud for the connector
+
+As the database you've used for development may be different from that which you wish to use on Hasura DDN — be it for
+staging or production — you'll now provide the connection string, just like in your `.env.local`, for the database you
+wish to use on Hasura DDN. Create a `.env.cloud` environment variable file in the same directory and add the connection
+string for your PostgreSQL database:
+
+```env
+CONNECTION_URI=<connection-uri-to-postgresql>
+```
+
+## Step 3. Build and deploy your cloud connector
+
+At this stage, you can now build and deploy your connector Hasura DDN. Simply run the following replacing the directory
+names with those that reflect your project:
+
+```bash
+ddn connector build create --connector ./<subgraph>/connector/<connector-name>/cloud.connector.yaml
+```
+
+The CLI will respond with read and write URLs for your deployed connector.
+
+## Step 4. Create a .env.cloud for the subgraph
+
+If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.<subgraph-name>` file in
+the root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
+like this example with a connector named `mypg` in the `ux` subgraph:
+
+```env
+# /ux/.env.cloud.ux
+UX_MYPG_READ_URL=<cloud-connector-read-url>
+UX_MYPG_WRITE_URL=<cloud-connector-write-url>
+```

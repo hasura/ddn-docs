@@ -14,58 +14,122 @@ hide_table_of_contents: true
 import { OverviewTopSectionIconNoVideo } from "@site/src/components/OverviewTopSectionIconNoVideo";
 import { OverviewPlainCard } from "@site/src/components/OverviewPlainCard";
 import Icon from "@site/static/icons/speedometer-04.svg";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 # Getting Started
 
-<OverviewTopSectionIconNoVideo
-  icon={<Icon />}
-  links={[]}
-  intro={
-    <div>
-      <p>
-        In this section, we'll get you up and running with your first secure, globally-scalable, GraphQL API deployed on
-        Hasura DDN 🎉
-      </p>
-      <h3>Introduction</h3>
-      <p>
-        Below, we'll break down some key concepts and terms before you dive in and start building. If you'd like a
-        high-level overview, check out this page on the <a href="/basics/core-concepts">core concepts</a> of DDN. On
-        this page, we'll cover constructs such as <b>supergraphs</b>, <b>subgraphs</b>, <b>types</b>, <b>models</b>,{" "}
-        <b>commands</b>, <b>permissions</b>, and <b>relationships</b>. These are the fundamental building blocks of your
-        DDN API.
-      </p>
-      <h3>Supergraph</h3>
-      <p>
-        Each Hasura project contains a single <b>supergraph</b>. A supergraph is an entity that acts as a graph,
-        composed of different data sources that — when built — is served over a single API. When you create a new Hasura
-        project, your supergraph is automatically created.
-      </p>
-      <h3>Subgraphs</h3>
-      <p>
-        In turn, your supergraph is composed of one or many <b>subgraphs</b>. It's helpful to think of subgraphs in
-        terms of business domains within your organization. For example, a <code>ux</code> subgraph may be created for a
-        User Experience team which owns a relational database <i>and</i> a microservice composed of many TypeScript
-        functions responsible for custom business logic. This means that a single subgraph can have <i>multiple</i> data
-        sources.
-      </p>
-      <h3>Models and commands</h3>
-      <p>
-        Your data sources are described by <b>models</b> and <b>commands</b> that represent the different collections
-        present in the source. For a relational database, these are things like tables and views. For a microservice,
-        this could be each function.
-      </p>
-      <h3>Relationships and access-control</h3>
-      <p>
-        You can create rich, deeply-integrated APIs using <b>relationships</b> within and across subgraphs using a
-        simple, declarative syntax. Further, you can limit who can access different models and commands by using the
-        same syntax to quickly and easily define <b>permissions</b> for your users.
-      </p>
-      <h3>Types</h3>
-      <p>
-        All of this is constructed using <b>types</b>, which can be primitives or defined by you as the architect of the
-        API.
-      </p>
-      <p>Let's get started building your first supergraph!</p>
-    </div>
-  }
-/>
+:::info Completing this guide
+
+This guide will take approximately 30 minutes. By the end, you'll walk away with an understanding of:
+
+- How the Hasura API authoring lifecycle works.
+- How to connect a PostgreSQL database.
+- How to run and develop with Hasura locally.
+- How to use the new Hasura DDN CLI to create, iterate on, and deploy a supergraph to Hasura DDN.
+
+:::
+
+## Introduction
+
+In this guide, you'll learn how you can build an API on PostgreSQL using Hasura DDN. As an experienced engineer, when
+building APIs on PostgreSQL, you understand that 50-90% of your API is already implicitly defined by the modeling work
+you've done within PostgreSQL. The remaining work — business logic — is what requires you to maintain custom code.
+
+Traditional API frameworks solve this by requiring you to write code and use ORMs to abstract away the database, leading
+to performance debt down the road. Hasura provides a revolutionary way of creating APIs on PostgreSQL that ensures the
+highest levels of performance upfront. Hasura helps you automatically maintain an API for parts of your API that can
+already be defined by the existing modeling work in PostgreSQL, and offers a lightweight and high-performance way to
+write business logic wherever required.
+
+Our approach is based on two key principles:
+
+1. **Query compilation that is native to the database with push-down**: This principle ensures that queries are
+   optimized and executed directly within the database, minimizing overhead and maximizing performance.
+
+2. **Lazy evaluation—only compute what is needed**: By evaluating only the necessary computations, Hasura minimizes
+   resource usage and enhances performance efficiency.
+
+This results in an API that your consumers will love because of its standardization and on-demand composability. When
+leveraging Hasura's capabilities, your API will approach theoretical optimal performance, as if you wrote a custom,
+optimized query for every single API endpoint 🚀
+
+## API authoring lifecycle
+
+The API authoring lifecycle with Hasura involves the following steps:
+
+1. **Definition by models and commands in Hasura metadata**: The API is defined through models and commands that are
+   stored within Hasura's metadata.
+
+2. **Backing by database entities, code, or queries**: These models and commands are backed by the underlying database
+   entities, custom code, or native queries.
+
+3. **CLI tooling for easy authoring**: Hasura's CLI makes it easy to author models and commands by introspecting the
+   database, code, or native queries.
+
+By following these steps, you can efficiently create and maintain high-performance APIs on PostgreSQL with Hasura DDN.
+
+## Modeling basics
+
+Designing your database to align with your API model is essential for creating efficient and scalable applications. By
+working backwards from the desired API, you can structure your database to optimize for read operations, which is often
+the primary use case for most consumers. This approach works well for greenfield applications, but existing databases
+can also be adapted using techniques like [views](https://www.postgresql.org/docs/current/tutorial-views.html).
+
+### Start with the API
+
+1. **Define the API**: Outline the resources, data structures, and relationships needed by your application.
+2. **Design the Database**: Create tables, columns, and relationships that map directly to the API model.
+
+### Focus on Reads
+
+- **Optimize for queries**: Design your database to efficiently handle read operations, as they are typically the most
+  frequent.
+- **Use indexes**: Ensure that columns used in `WHERE`, `JOIN`, and `ORDER BY` clauses are indexed to improve
+  performance.
+
+## Prerequisites
+
+Before continuing, ensure you've completed the following prerequisites:
+
+### Step 1. Install the Hasura CLI
+
+You can download the CLI binary below and start using it immediately. Please follow the instructions for your system.
+
+<Tabs groupId="os-preference" className="api-tabs">
+
+<TabItem value="macOS-or-linux" label="macOS and Linux">
+
+Simply run the installer script in your terminal:
+
+```bash
+curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v1/get.sh | bash
+```
+
+</TabItem>
+
+<TabItem value="windows" label="Windows">
+
+Download the latest `cli-ddn-windows-amd64.exe` binary and run it.
+
+```bash
+curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v1/latest/cli-ddn-windows-amd64.exe -o ddn.exe
+```
+
+:::info Unrecognized application warning
+
+In Windows, if you get an "Unrecognized application" warning, click "Run anyway".
+
+:::
+
+</TabItem>
+</Tabs>
+
+### Step 2. Install the Hasura VS Code extension
+
+If you don't already have [VS Code](https://code.visualstudio.com/download) installed, install it and then install the
+[Hasura extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura).
+
+### Step 3. Install Docker
+
+Finally, install [Docker](https://docs.docker.com/engine/install/), which will be used for local development.
