@@ -1,11 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
+import './styles.css';
+import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
+import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
+import PostgreSQLOverview from '@site/src/_databaseDocs/_postgreSQL/_00-overview.mdx';
 import PostgreSqlConnect from '@site/src/_databaseDocs/_postgreSQL/_01-connect-a-data-source.mdx';
 import PostgreSqlLink from '@site/src/_databaseDocs/_postgreSQL/_02-link-a-connector.mdx';
+import PostgreSQLExposition from '@site/src/_databaseDocs/_postgreSQL/_03-expose-source-entities.mdx';
+import PostgreSQLMutation from '@site/src/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
+
+const dataSources = {
+  PostgreSQL: {
+    name: 'PostgreSQL',
+    image: PostgreSqlLogo,
+  },
+  MongoDB: {
+    name: 'MongoDB',
+    image: MongoDbLogo,
+  },
+};
 
 const DatabaseContentLoader = () => {
   const location = useLocation();
-  const [dbPreference, setDbPreference] = useState(null);
+  const [dbPreference, setDbPreference] = useState('PostgreSQL');
 
   useEffect(() => {
     const savedPreference = localStorage.getItem('dbPreference');
@@ -14,28 +31,48 @@ const DatabaseContentLoader = () => {
     }
   }, []);
 
-  const savePreference = preference => {
+  const savePreference = (preference: string) => {
     localStorage.setItem('dbPreference', preference);
     setDbPreference(preference);
   };
 
   const getContent = () => {
     const route = location.pathname.split('/').pop();
-    console.log(route);
     switch (route) {
+      case 'overview':
+        switch (dbPreference) {
+          case 'PostgreSQL':
+            return <PostgreSQLOverview />;
+          default:
+            return <PostgreSQLOverview />;
+        }
       case 'connect-a-source':
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlConnect />;
           default:
-            return <div>Content not found...</div>;
+            return <PostgreSqlConnect />;
         }
-      case '02-create-a-data-link':
+      case 'link-a-connector':
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlLink />;
           default:
-            return <div>Content not found...</div>;
+            return <PostgreSqlLink />;
+        }
+      case 'expose-source-entities':
+        switch (dbPreference) {
+          case 'PostgreSQL':
+            return <PostgreSQLExposition />;
+          default:
+            return <PostgreSQLExposition />;
+        }
+      case 'mutate-data':
+        switch (dbPreference) {
+          case 'PostgreSQL':
+            return <PostgreSQLMutation />;
+          default:
+            return <PostgreSQLMutation />;
         }
       default:
         return <div>Content not found...</div>;
@@ -44,8 +81,27 @@ const DatabaseContentLoader = () => {
 
   return (
     <div>
-      <div>
-        <button onClick={() => savePreference('PostgreSQL')}>PostgreSQL</button>
+      <div className="picker-wrapper">
+        <small>
+          {dbPreference
+            ? `You are now reading ${dataSources[dbPreference].name}'s documentation`
+            : "Select a data source's documentation"}
+        </small>
+        <div className="button-wrapper">
+          {Object.keys(dataSources).map(key => (
+            <div
+              key={key}
+              onClick={() => savePreference(key)}
+              className={`data-source ${dbPreference === key ? 'selected' : ''}`}
+            >
+              {dataSources[key].image ? (
+                <img src={dataSources[key].image} alt={dataSources[key].name} />
+              ) : (
+                <button>{dataSources[key].name}</button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
       {dbPreference ? getContent() : <div>Please select your database preference.</div>}
     </div>

@@ -1,0 +1,99 @@
+---
+sidebar_position: 6
+sidebar_label: Add authorization
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Add Authorization
+
+Powerful authorization rules can be created simply using the same declarative metadata approach we've seen for
+relationships and versioning. By adding
+[`modelPermissions`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and
+[`typePermissions`](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions), you can easily control which
+rows and columns from PostgreSQL are returned via your API.
+
+### Step 1. Create a modelPermission
+
+By default, a role of `admin` exists for your API and can access all models. To create a new role, such as `user`,
+simply add the role to the list of `permissions` for a model and set up your access control rules. In the example below,
+we'll allow users with the role of `user` to access only their own rows of data by checking for a header value matching
+their `id`:
+
+```yaml
+# Users.hml
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Users
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        #highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+        #highlight-end
+```
+
+### Step 2. Create a typePermission
+
+The `admin` role also has access to all fields for each model. However, adding a new role and limiting what columns can
+be returned from your data source is just as simple. For example, let's restrict what a `user` can see by omitting
+several fields from the `typePermissions`:
+
+```yaml
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Users
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - email
+          - favoriteArtist
+          - id
+          - isEmailVerified
+          - lastSeen
+          - name
+          - password
+          - updatedAt
+    #highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - email
+          - favoriteArtist
+          - id
+          - name
+          - password
+    #highlight-end
+```
+
+Creating a new build after modifying this metadata will allow us to use two headers in our request: `x-hasura-role` and
+`x-hasura-user-id`. In this example, we're passing them as unencoded values, but you can make these part of your claims
+when utilizing [JWTs](/auth/authentication/jwt.mdx) or [webhooks](/auth/authentication/webhook.mdx) for authentication:
+
+<!-- TODO: Add screenshot from console -->
+
+:::tip Don't forget about LSP!
+
+Remember, the LSP will help you author any metadata objects or updates, including `modelPermissions` and
+`typePermissions`.
+
+:::

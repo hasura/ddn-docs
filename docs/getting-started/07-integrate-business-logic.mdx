@@ -1,0 +1,172 @@
+---
+sidebar_position: 7
+sidebar_label: Add custom business logic
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Add Custom Business Logic
+
+As we alluded to in the beginning of this guide, the remaining work on top of your existing data source modeling is
+authoring and maintaining custom code, or business logic. With Hasura, you can integrate — and even host — this business
+logic directly with Hasura DDN and your API.
+
+Hasura handles business logic using the TypeScript connector. This enables you to author you own custom code, written in
+TypeScript, and host it alongside your API. Using this connector, you can transform and enrich data before it reaches
+your consumers, unlocking you to simplify client applications and speed up your backend development.
+
+You can then integrate this custom code as individual [**commands**](/supergraph-modeling/commands.mdx) in your
+metadata.
+
+### Step 1. Add the TypeScript connector
+
+Let's begin by adding the connector to our project. In the example below, you'll see some familiar flags with new values
+being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector hub:
+
+```bash
+ddn connector init myts --dir <subgraph-name>/connector/myts --hub-connector hasura/nodejs
+```
+
+This will create the following directory structure in your subgraph's connector directory's new `myts` directory, with
+the `functions.ts` file being your connector's entrypoint:
+
+```bash
+├── connector.yaml
+├── docker-compose.myts.yaml
+#highlight-start
+├── functions.ts
+#highlight-end
+├── package-lock.json
+├── package.json
+└── tsconfig.json
+```
+
+### Step 2. Modify the connector's published port
+
+Like with our PostgreSQL connector, to avoid port collisions, we'll change the connector's published port to `8082`. In
+the `docker-compose.myts.yaml` file, which can be found in the directory you created in the last step, replace the
+existing `published` value with:
+
+```yaml
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: "8082"
+    #highlight-end
+    protocol: tcp
+```
+
+Then, add the port's value to the `.env/.local` in your `myts` directory:
+
+```env
+HASURA_CONNECTOR_PORT=8082
+```
+
+### Step 3. Install dependencies
+
+Within our `myts` directory, let's install any necessary dependencies:
+
+```bash
+cd <subgraph>/connector/myts && npm i
+```
+
+Then, from the `myts` directory run this command to start and watch the connector for any changes:
+
+```bash
+env $(cat .env.local | xargs) npm run watch
+```
+
+### Step 4. Add the DataConnectorLink
+
+As with our PostgreSQL connector, and any connector, we'll now need to create the `DataConnectorLink` which will
+translate our TypeScript functions into commands that can be exposed as queries and mutations via our GraphQL API.
+Create this using:
+
+```bash
+ddn connector-link add myts
+```
+
+Then, update the `.env` values in your subgraph's env file to include this connector. The complete file should now look
+like this:
+
+```env
+UX_MYPG_READ_URL=http://local-dev.hasura.me:8081
+UX_MYPG_WRITE_URL=http://local-dev.hasura.me:8081
+UX_MYTS_READ_URL=http://local-dev.hasura.me:8082
+UX_MYTS_WRITE_URL=http://local-dev.hasura.me:8082
+```
+
+### Step 5. Write business logic
+
+In our example, we're going to transform the timestamp returned on our `createdAt` field from `Users` into a
+human-readable format. For convenience, we're also demonstrating a PostgreSQL example here, but you can integrate these
+functions with whatever data source you wish.
+
+We'll replace the default `hello()` function in our `functions.ts` file with the following:
+
+```ts
+import { Client } from "pg";
+import { config } from "dotenv";
+
+config();
+
+/**
+ * @readonly
+ */
+export async function humanReadableCreatedAt(userId: string): Promise<string> {
+  const client = new Client({
+    connectionString: process.env.PG_URI,
+  });
+
+  await client.connect();
+
+  const queryText = "SELECT created_at FROM users WHERE id = $1";
+  const result = await client.query(queryText, [userId]);
+
+  if (result.rows.length > 0) {
+    const timestamp = result.rows[0].created_at;
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  } else {
+    return `Issue retrieving user`;
+  }
+}
+```
+
+:::tip Install any dependency and use environment varialbes
+
+As this is a Node.js project, you can install any dependency! You can see we've installed the `dotenv` and `pg` packages
+and are using the latter to interact directly with a PostgreSQL data source. **However, you can modify this to be any
+package you wish to use with your data source.**
+
+You'll also notice that we're using `process.env.PG_URI`, which references the `.env.local` file in the `myts`
+subdirectory. You can add any values here you'd like and reference them in your functions.
+
+:::
+
+### Step 6. Track the new function
+
+To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
+related Hasura metadata:
+
+```bash
+ddn connector-link update myts --add-all-resources
+```
+
+### Step 7. Create a new build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+You should see your command available, along with its documentation, in the GraphiQL explorer:
+
+<!-- TODO: Add screenshot of console -->

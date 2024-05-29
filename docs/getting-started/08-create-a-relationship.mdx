@@ -1,0 +1,56 @@
+---
+sidebar_position: 8
+sidebar_label: Create a relationship to a command
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Create a Relationship to a Command
+
+As it stands, our `humanReadableCreatedAt` command created in the previous step isn't super useful. It's preferable to
+return this value when we're querying for a user's information. We can easily utilize this business logic in a request
+from a client by creating a relationship.
+
+For our example, let's take our `Users.hml` file and create a new relationship. Remember, we can use the LSP to help us
+in authoring this:
+
+```yaml
+---
+kind: Relationship
+version: v1
+definition:
+  name: humanReadableCreatedAt
+  source: Users
+  target:
+    command:
+      name: HumanReadableCreatedAt
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        argument:
+          argumentName: userId
+```
+
+We can then update our `Users` model:
+
+```bash
+ddn model update Users
+```
+
+And create a new build before testing this:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+In our example, when querying a user's information, we can now return the transformed data as part of the simple query
+from the client 🎉
+
+<!-- TODO: Add screenshot -->
