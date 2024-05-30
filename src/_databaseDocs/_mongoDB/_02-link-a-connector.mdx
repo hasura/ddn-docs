@@ -2,38 +2,38 @@ import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
 
 ## Step 1. Create the Hasura metadata
 
-MONGO Hasura DDN uses a concept called a
+Hasura DDN uses a concept called a
 <BaseUrlLink to="/supergraph-modeling/data-connectors/" text="DataConnectorLink" /> to take
 [NDC-compliant](https://github.com/hasura/ndc-spec) `configuration.json` and transform it into an `hml` (Hasura Metadata
 Language) file.
 
-You can create this file, which will be scaffolded out as `mypg.hml` in a new `metadata` subdirectory for your subgraph
-by running:
+You can create this file with the Hasura CLI. It will be scaffolded out as `mymongo.hml` in a new `metadata`
+subdirectory for your subgraph by running:
 
 ```bash
-ddn connector-link add mypg
+ddn connector-link add mymongo
 ```
 
-The generated file has two environment variables — one for reads and one for writes — that you'll need to add to your
-subgraph's `.env` file. As with the example we've followed so far, if we have a subgraph of `ux`, we'll need to add the
-following snippet to our `ux/.env.ux` file:
+The generated file has two environment variables — one for reads and one for writes — that you'll need to add to your
+subgraph's `.env` file. As with the example we've followed so far, we'll need to add the following snippet to our
+`<subgraph-name>/.env.ux` file:
 
 ```env
-UX_MYPG_READ_URL=http://local-dev.hasura.me:8081
-UX_MYPG_WRITE_URL=http://local-dev.hasura.me:8081
+SUBGRAPH_NAME_MYMONGO_READ_URL=http://local-dev.hasura.me:8081
+SUBGRAPH_NAME_MYMONGO_WRITE_URL=http://local-dev.hasura.me:8081
 ```
 
-These values are for the PostgreSQL connector itself and utilize `local-dev.hasura.me` to ensure proper resolution
+These values are for the MongoDB connector itself and utilize `local-dev.hasura.me` to ensure proper resolution
 within the docker container.
 
 ## Step 2. Update the DataConnectorLink
 
-Finally, now that our DataConnectorLink has the correct environment variables configured for the PostgreSQL connector,
+Finally, now that our DataConnectorLink has the correct environment variables configured for the MongoDB connector,
 we can update it to reflect our database's schema in `hml`:
 
 ```bash
 ddn connector-link update mypg
 ```
 
-After this command runs, you can open your `<subgraph>/connector/mypg/metadata/mypg/mypg.hml` file and see your metadata
-completely scaffolded out for you 🎉
+After this command runs, you can open your `<subgraph>/connector/mymongo/metadata/mymongo/mymongo.hml` file and see
+your metadata completely scaffolded out for you 🎉
