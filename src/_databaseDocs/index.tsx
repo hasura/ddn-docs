@@ -4,10 +4,15 @@ import './styles.css';
 import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import PostgreSQLOverview from '@site/src/_databaseDocs/_postgreSQL/_00-overview.mdx';
+import MongoDBOverview from '@site/src/_databaseDocs/_mongoDB/_00-overview.mdx';
 import PostgreSqlConnect from '@site/src/_databaseDocs/_postgreSQL/_01-connect-a-data-source.mdx';
+import MongoDBConnect from '@site/src/_databaseDocs/_mongoDB/_01-connect-a-data-source.mdx';
 import PostgreSqlLink from '@site/src/_databaseDocs/_postgreSQL/_02-link-a-connector.mdx';
+import MongoDBLink from '@site/src/_databaseDocs/_mongoDB/_02-link-a-connector.mdx';
 import PostgreSqlExposition from '@site/src/_databaseDocs/_postgreSQL/_03-expose-source-entities.mdx';
+import MongoDBExposition from '@site/src/_databaseDocs/_mongoDB/_03-expose-source-entities.mdx';
 import PostgreSqlMutation from '@site/src/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
+import MongoDBMutation from '@site/src/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
 
 const dataSources = {
   PostgreSQL: {
@@ -44,6 +49,8 @@ const DatabaseContentLoader = () => {
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSQLOverview />;
+          case 'MongoDB':
+            return <MongoDBOverview />;
           default:
             return <PostgreSQLOverview />;
         }
@@ -51,6 +58,8 @@ const DatabaseContentLoader = () => {
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlConnect />;
+          case 'MongoDB':
+            return <MongoDBConnect />;
           default:
             return <PostgreSqlConnect />;
         }
@@ -58,6 +67,8 @@ const DatabaseContentLoader = () => {
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlLink />;
+          case 'MongoDB':
+            return <MongoDBLink />;
           default:
             return <PostgreSqlLink />;
         }
@@ -65,6 +76,8 @@ const DatabaseContentLoader = () => {
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlExposition />;
+          case 'MongoDB':
+            return <MongoDBExposition />;
           default:
             return <PostgreSqlExposition />;
         }
@@ -72,6 +85,8 @@ const DatabaseContentLoader = () => {
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlMutation />;
+          case 'MongoDB':
+            return <MongoDBMutation />;
           default:
             return <PostgreSqlMutation />;
         }

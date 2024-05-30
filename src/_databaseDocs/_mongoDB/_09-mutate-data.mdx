@@ -1,0 +1,73 @@
+MONGO
+
+You can easily write data to your database using the native PostgreSQL driver and the TypeScript connector. In the
+example below, we've truncated the code used in this section, but you follow these steps to create a function which
+manipulates or inserts data and is exposed as a mutation via your GraphQL API.
+
+## Step 1. Create a function
+
+In the earlier example, we marked our `humanReadableCreatedAt()` function as `@readOnly` using JSDoc to expose it as a
+query. However, omitting this value will expose the function as a mutation. We can even add documentation that will be
+visible in the GraphiQL explorer by tagging `@param` for the argument(s) and `@returns` for what will be returned by the
+mutation.
+
+```ts
+import { Client } from 'pg';
+import { config } from 'dotenv';
+
+config();
+
+/**
+ * @param userData An object containing the user's data.
+ * @returns The ID of the newly inserted user.
+ */
+export async function insertUser(userData: { name: string; email: string }): Promise<string> {
+  const client = new Client({
+    connectionString: process.env.PG_URI,
+  });
+
+  await client.connect();
+
+  const queryText = `
+    INSERT INTO users (name, email)
+    VALUES ($1, $2)
+    RETURNING id
+  `;
+  const values = [userData.name, userData.email];
+  const result = await client.query(queryText, values);
+
+  await client.end();
+
+  if (result.rows.length > 0) {
+    return result.rows[0].id;
+  } else {
+    throw new Error('Failed to insert user');
+  }
+}
+```
+
+## Step 2. Track the function
+
+Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`:
+
+```bash
+ddn connector-link update myts
+```
+
+And then bringing in the new command:
+
+```bash
+ddn command add --connector-link myts --name insertUser
+```
+
+## Step 3. Create a new build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation:
+
+<!-- TODO: Add screenshot of console -->
