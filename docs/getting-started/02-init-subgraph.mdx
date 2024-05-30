@@ -15,11 +15,13 @@ keywords:
 A [**Subgraph**](/project-configuration/subgraphs.mdx) allows you to define a part of your Supergraph
 completely separately from the rest of it.
 
+A supergraph must have at least one subgraph.
+
 This is useful to maintain a logical separation of concerns and/or to allow different teams to work on different
 parts of the Supergraph at the same time without stepping on each other's toes.
 
 Usually, a subgraph is "owned" and maintained by a team that owns the data source, (or more broadly "data domain")
-that it connects to. And usually, one data domain is allocated to one subgraph.
+that it connects to. And by convention, one data domain is allocated to one subgraph.
 
 <details>
   <summary>
@@ -27,23 +29,32 @@ that it connects to. And usually, one data domain is allocated to one subgraph.
   </summary>
   <h2>Subgraph independence</h2>
   Subgraphs have their own permission model and own development lifecycles separate to that of the supergraph. They
-  can be developed, tested, and built independently while the supergraph guarantees the integrity of the subgraph
-  composition. Meaning that the supergraph will only build if all subgraphs are in a valid state.
+  can be developed, tested, and built independently while the supergraph guarantees the integrity of subgraph
+  composition. Meaning that the supergraph will only build, and generate an API if all subgraphs are in a valid state.
 
   A subgraph is analogous to a microservice owned by a particular team.
 
+  When we talk about data domains, we're talking about the collection of data and operations for one area of the
+  business or team within the business. This could be a single database, a set of databases, a database and business
+  logic, some other 3rd party APIs, or a combination of all of these.
+
   Subgraphs can reference each other, allowing, for example, the creation of relationships between them.
+
+  The supergraph is the composition of all subgraphs and their relationships but it does not care how they are
+  structured or organised into directories. That is up to the developer. The supergraph only cares that all metadata
+  is valid and can be compiled and built into an API. In this getting started section we propose best-practice for
+  organising your subgraphs, but it can be done however you choose.
+
   <h2>Naming</h2>
   Let's say we're in an organisation and the data source we'll be connecting to is for customer
   profile data. The team responsible for this data and some services related to it is called the "Customer Data" team.
-
   As such, we could create a `customer_data_team` subgraph, reflecting the team's name, indicating that they're the ones
-  who will be working on it, or to be more specific, we could name it `customer_profile` to reflect the data domain.
+  who will be working on it. Or we could choose to be more specific, we could name it `customer_profile` to reflect
+  the data domain.
 
   Another example, if we're working with a data source for a small project which we plan on using to contain all the
-  data for our whole project, at least for the time being, and it's all in PostgreSQL, we could name it
-  `postgres_data`, to keep it simple. This one subgraph would contain all the data domain specific metadata for the
-  whole project.
+  data for our whole project and it's all in PostgreSQL, we could name it `postgres_data`, to keep it simple. This one
+  subgraph would contain all the data domain specific metadata for the whole project.
 </details>
 
 In the directory you've created your supergraph, run the following command to create a subgraph:
@@ -53,3 +64,22 @@ ddn subgraph init <subgraph-name>
 ```
 
 The CLI will respond with a success message.
+
+## What did this do?
+
+This command created a directory in your project with the name you provided with an empty `.env.<subgraph-name>` file
+in it.
+
+It also added an element to the subgraphs section of your `supergraph.yaml` file, which is the configuration file for
+your supergraph.
+
+Eg:
+```yaml
+subgraphs:
+    my-subgraph:
+      generator:
+        rootPath: my-subgraph/metadata
+      envFile: my-subgraph/.env.my-subgraph
+      includePaths:
+        - my-subgraph
+```
