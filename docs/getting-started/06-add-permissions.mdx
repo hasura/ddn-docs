@@ -14,11 +14,25 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 # Add Authorization
 
-Powerful authorization rules can be created simply using the same declarative metadata approach we've seen for
-relationships and versioning. By adding
-[`modelPermissions`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and
-[`typePermissions`](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions), you can easily control which
-rows and columns from PostgreSQL are returned via your API.
+## What's about to happen?
+
+If you've already created and tested your supergraph, you'll have seen that queries are executed by default using the
+`admin` role. However, you can easily add authorization rules — what we term permissions — by simply using the same
+declarative metadata approach we've seen for relationships and versioning.
+
+In the steps below, we'll add
+[`modelPermissions`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) to control which types can
+be accessed by a user role and [`typePermissions`](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions)
+to control what fields are returned by your API.
+
+:::tip Don't forget about LSP!
+
+Remember, the LSP will help you author any metadata objects or updates, including `modelPermissions` and
+`typePermissions`. You can activate it's autocomplete abilities using `CTRL+SPACEBAR`
+
+:::
+
+## Steps
 
 ### Step 1. Create a modelPermission
 
@@ -88,8 +102,7 @@ definition:
 ```
 
 Creating a new build after modifying this metadata will allow us to use two headers in our request: `x-hasura-role` and
-`x-hasura-user-id`. In this example, we're passing them as unencoded values, but you can make these part of your claims
-when utilizing [JWTs](/auth/authentication/jwt.mdx) or [webhooks](/auth/authentication/webhook.mdx) for authentication:
+`x-hasura-user-id`:
 
 <Thumbnail
   src="/img/get-started/beta/console_query-with-permissions.png"
@@ -97,9 +110,18 @@ when utilizing [JWTs](/auth/authentication/jwt.mdx) or [webhooks](/auth/authenti
   width="1000px"
 />
 
-:::tip Don't forget about LSP!
+## What did this do?
 
-Remember, the LSP will help you author any metadata objects or updates, including `modelPermissions` and
-`typePermissions`.
+By adding `modelPermissions` we've declared that our `user` role only has access to the `Users` model. As you can see in
+the screenshot above, this means _only_ this type is available to a consumer with the `x-hasura-role` value of `user`.
 
-:::
+Further, we've limited which rows can be returned from this model by writing a check that will validate the
+`x-hasura-user-id` value to that of the matching record with the same `id` in the data source.
+
+Finanlly, we limited the fields they can access to the ones listed above, thereby preventing someone with the `user`
+role accessing irrelevant system information, such as when they were last seen.
+
+In the example above, we're passing these headers as unencoded values, but you can make these part of your claims when
+utilizing [JWTs](/auth/authentication/jwt.mdx) or [webhooks](/auth/authentication/webhook.mdx) for authentication. You
+can read more about Hasura's approach to authentication [here.](/auth/overview.mdx) However, we recommend you keep going
+and check out the [custom business logic section](/getting-started/07-integrate-business-logic.mdx) next.
