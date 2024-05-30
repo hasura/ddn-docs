@@ -57,7 +57,7 @@ that it connects to. And by convention, one data domain is allocated to one subg
   subgraph would contain all the data domain specific metadata for the whole project.
 </details>
 
-In the directory you've created your supergraph, run the following command to create a subgraph:
+**_In the directory which you've created your supergraph_**, run the following command to create a subgraph:
 
 ```bash
 ddn subgraph init <subgraph-name>
@@ -67,19 +67,32 @@ The CLI will respond with a success message.
 
 ## What did this do?
 
-This command created a directory in your project with the name you provided with an empty `.env.<subgraph-name>` file
-in it.
+This command created a directory in your project with the subgraph name you provided with an empty
+`.env.<subgraph-name>` file in it.
 
 It also added an element to the subgraphs section of your `supergraph.yaml` file, which is the configuration file for
 your supergraph.
 
 Eg:
 ```yaml
-subgraphs:
+kind: Supergraph
+version: v1
+definition:
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph
+    envFile: ./supergraph/.env.supergraph
+    includePaths:
+      - ./supergraph/auth-config.hml
+      - ./supergraph/compatibility-config.hml
+      - ./supergraph/graphql-config.hml
+# highlight-start
+  subgraphs:
     my-subgraph:
       generator:
         rootPath: my-subgraph/metadata
       envFile: my-subgraph/.env.my-subgraph
       includePaths:
         - my-subgraph
+# highlight-end
 ```
