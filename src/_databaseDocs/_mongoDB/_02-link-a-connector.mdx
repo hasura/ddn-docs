@@ -2,38 +2,69 @@ import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
 
 ## Step 1. Create the Hasura metadata
 
-Hasura DDN uses a concept called a
-<BaseUrlLink to="/supergraph-modeling/data-connectors/" text="DataConnectorLink" /> to take
-[NDC-compliant](https://github.com/hasura/ndc-spec) `configuration.json` and transform it into an `hml` (Hasura Metadata
-Language) file.
+Hasura DDN uses a concept called connector linking to take [NDC-compliant](https://github.com/hasura/ndc-spec)
+configuration JSON files for a data connector and transform them into an `hml` (Hasura Metadata Language) file as a
+<BaseUrlLink to="/supergraph-modeling/data-connectors/" text="DataConnectorLink" /> metadata object.
 
-You can create this file with the Hasura CLI. It will be scaffolded out as `mymongo.hml` in a new `metadata`
-subdirectory for your subgraph by running:
+First we need to create this `hml` file with the `connector-link add` command and then convert our configuration files
+into `hml` syntax and add it to this file with the `connector-link update` command.
+
+Let's name the `hml` file the same as our connector, `my_mongo`:
 
 ```bash
-ddn connector-link add mymongo
+ddn connector-link add my_mongo
 ```
 
-The generated file has two environment variables — one for reads and one for writes — that you'll need to add to your
-subgraph's `.env` file. As with the example we've followed so far, we'll need to add the following snippet to our
-`<subgraph-name>/.env.ux` file:
+The new file is scaffolded out at `<subgraph-name>/metadata/my_mongo/my_mongo.hml`.
+
+```yaml
+kind: DataConnectorLink
+version: v1
+definition:
+  name: my_mongo
+  url:
+    readWriteUrls:
+      read:
+        valueFromEnv: MY_SUBGRAPH_MY_MONGO_READ_URL
+      write:
+        valueFromEnv: MY_SUBGRAPH_MY_MONGO_WRITE_URL
+  schema:
+    version: v0.1
+    schema:
+      scalar_types: {}
+      object_types: {}
+      collections: []
+      functions: []
+      procedures: []
+    capabilities:
+      version: ""
+      capabilities:
+        query: {}
+        mutation: {}
+```
+
+This file is pretty empty but you can see it speficifies the environment variables for the read and write URLs for the
+MongoDB connector. Because we started up these services in docker, we'll add these to our subgraph's `.env`
+file.
 
 ```env
-SUBGRAPH_NAME_MYMONGO_READ_URL=http://local-dev.hasura.me:8081
-SUBGRAPH_NAME_MYMONGO_WRITE_URL=http://local-dev.hasura.me:8081
+SUBGRAPH_NAME_MYMONGO_READ_URL=http://local-dev.hasura.me:8080
+SUBGRAPH_NAME_MYMONGO_WRITE_URL=http://local-dev.hasura.me:8080
 ```
-
-These values are for the MongoDB connector itself and utilize `local-dev.hasura.me` to ensure proper resolution
-within the docker container.
 
 ## Step 2. Update the DataConnectorLink
 
-Finally, now that our DataConnectorLink has the correct environment variables configured for the MongoDB connector,
-we can update it to reflect our database's schema in `hml`:
+Finally, now that our `DataConnectorLink` has the correct environment variables configured for the MongoDB connector,
+we can run the update command to look at the configuration JSON for our connector and transform it to reflect our
+database's schema in `hml` format:
 
 ```bash
-ddn connector-link update mypg
+ddn connector-link update my_mongo
 ```
 
-After this command runs, you can open your `<subgraph>/connector/mymongo/metadata/mymongo/mymongo.hml` file and see
+After this command runs, you can open the same `<subgraph-name>/metadata/my_mongo/my_mongo.hml` file and see
 your metadata completely scaffolded out for you 🎉
+
+### What did this do?
+
+`hml` files are...
