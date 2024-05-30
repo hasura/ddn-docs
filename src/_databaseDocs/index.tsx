@@ -3,7 +3,6 @@ import { useLocation } from '@docusaurus/router';
 import './styles.css';
 import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
-import PostgreSQLOverview from '@site/src/_databaseDocs/_postgreSQL/_00-overview.mdx';
 import PostgreSqlConnect from '@site/src/_databaseDocs/_postgreSQL/_01-connect-a-data-source.mdx';
 import PostgreSqlLink from '@site/src/_databaseDocs/_postgreSQL/_02-link-a-connector.mdx';
 import PostgreSqlExposition from '@site/src/_databaseDocs/_postgreSQL/_03-expose-source-entities.mdx';
@@ -39,14 +38,6 @@ const DatabaseContentLoader = () => {
   const getContent = () => {
     const route = location.pathname.split('/').pop();
     switch (route) {
-      case 'overview':
-      case '':
-        switch (dbPreference) {
-          case 'PostgreSQL':
-            return <PostgreSQLOverview />;
-          default:
-            return <PostgreSQLOverview />;
-        }
       case 'connect-a-source':
         switch (dbPreference) {
           case 'PostgreSQL':
