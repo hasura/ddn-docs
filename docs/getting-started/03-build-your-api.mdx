@@ -14,15 +14,25 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 # Build your API & Query Data
 
-## Step 1. Create a supergraph build
+## What's about to happen?
 
-Next, we'll create our first supergraph build. We'll pass the `local` subcommand along with specifying the output
-directory as `./engine` in the root of the project. This directory is used by the docker-compose file to serve the
-engine locally:
+After [connecting a data source](/getting-started/connect-to-data/01-connect-a-source.mdx) and
+[exposing a model](/getting-started/connect-to-data/03-expose-source-entities.mdx), you can now build your API locally.
+When you execute the command below, the CLI will create a new build for your supergraph. You'll then be able to execute
+a GraphQL query on your API.
+
+## Steps
+
+### Step 1. Create a supergraph build
+
+Pass the `local` subcommand along with specifying the output directory as `./engine` in the root of the project. This
+directory is used by the docker-compose file to serve the engine locally:
 
 ```bash
-ddn-staging supergraph build local --output-dir ./engine
+ddn supergraph build local --output-dir ./engine
 ```
+
+This will create a build and start the GraphQL engine.
 
 You can now navigate to [`http://localhost:3000`](http://localhost:3000) and interact with your API using the GraphiQL
 playground!
@@ -30,13 +40,13 @@ playground!
 <!-- The CLI will respond with information about our project, including a link to the project's console. Click on that to see -->
 <!-- the GraphiQL explorer and interact with your API. -->
 
-## Step 2. Write your first query
+### Step 2. Write your first query
 
 For example, if we have a `Carts` model, we can run the following query:
 
 ```graphql
 query AllCartsQuery {
-  ux_carts {
+  app_carts {
     id
     isComplete
     userId
@@ -44,7 +54,7 @@ query AllCartsQuery {
 }
 ```
 
-All types are namespaced with the subgraph to which they belong. Here, you can see that `carts` belongs to the `ux`
+All types are namespaced with the subgraph to which they belong. Here, you can see that `carts` belongs to the `app`
 subgraph. Thus, the query above will return a response that looks like this:
 
 <Thumbnail src="/img/get-started/beta/console_simple-carts-query.png" alt="Simple query with carts" width="1000px" />
@@ -58,3 +68,12 @@ ddn connector-link update mypg --add-all-resources
 ```
 
 :::
+
+## What did this do?
+
+When you executed the command above, the CLI used the Hasura metadata in your directory - generated based on your data
+source(s) — to create a local build of your supergraph. This local build is immutable and can be used to test the
+changes to your API before either making more changes or, eventually, creating a build on Hasura DDN.
+
+Next, we recommend learning how easy it is to add authorization rules, which limit a user's access to data, using
+permissions.

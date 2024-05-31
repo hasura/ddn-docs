@@ -1,13 +1,20 @@
-You can easily write data to your database using the native PostgreSQL driver and the TypeScript connector. In the
-example below, we've truncated the code used in this section, but you follow these steps to create a function which
-manipulates or inserts data and is exposed as a mutation via your GraphQL API.
+### Step 1. Install dependencies
 
-## Step 1. Create a function
+We'll use the `dotenv` and `pg` packages to access our connection string, saved as an environment variable, and to
+connect to our database:
 
-In the earlier example, we marked our `humanReadableCreatedAt()` function as `@readOnly` using JSDoc to expose it as a
-query. However, omitting this value will expose the function as a mutation. We can even add documentation that will be
-visible in the GraphiQL explorer by tagging `@param` for the argument(s) and `@returns` for what will be returned by the
-mutation.
+```bash
+npm i dotenv pg
+```
+
+### Step 2. Create a function
+
+The TypeScript connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
+query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
+expose the function as a mutation.
+
+We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
+`@returns` for what will be returned by the mutation.
 
 ```ts
 import { Client } from 'pg';
@@ -44,7 +51,7 @@ export async function insertUser(userData: { name: string; email: string }): Pro
 }
 ```
 
-## Step 2. Track the function
+### Step 3. Track the function
 
 Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`:
 
@@ -58,7 +65,7 @@ And then bringing in the new command:
 ddn command add --connector-link myts --name insertUser
 ```
 
-## Step 3. Create a new build and test
+### Step 4. Create a new build and test
 
 Next, let's create a new build of our supergraph:
 
