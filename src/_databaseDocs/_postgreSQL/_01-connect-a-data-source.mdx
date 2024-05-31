@@ -20,7 +20,7 @@ To initialize the PostgreSQL connector, run the following, replacing `<subgraph-
 which will contain this data connector:
 
 ```bash
-ddn connector init mypg --dir <subgraph-name>/connector/mypg --hub-connector hasura/postgres
+ddn connector init mypg  --subgraph <subgraph-name>  --hub-connector hasura/postgres
 ```
 
 In this command, we're passing a few important values.
@@ -65,7 +65,22 @@ In the `<subgraph-name>/connector/mypg` directory which we specified in the comm
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.
 
-## Step 2. Include the PostgreSQL connector's compose file
+## Step 2. Modify the port
+
+Change the value of your `mypg` connetor's published port to `8082` to avoid port collisions with other connectors
+running on port `8080`:
+
+```yaml
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: '8082'
+    #highlight-end
+    protocol: tcp
+```
+
+## Step 3. Include the PostgreSQL connector's compose file
 
 In our main `docker-compose.yaml` in the root of the project, add the following at the top taking care to replace
 `<subgraph-name>` with your subgraph:
@@ -75,7 +90,7 @@ include:
   - path: <subgraph-name>/connector/mypg/docker-compose.mypg.yaml
 ```
 
-## Step 3. Add the connection URI
+## Step 4. Add the connection URI
 
 Now that our connector has been scaffolded out for us, we need to provide a connection string so that the data source
 can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
@@ -86,7 +101,7 @@ key-value pair of `CONNECTION_URI` along with the connection string itself to th
 to connect to our PostgreSQL database. The file, after adding the `CONNECTION_URI` should look like this example:
 
 ```env
-OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local-dev.hasura.me:4317
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=<subgraph-name>_mypg
 CONNECTION_URI=<postgres-connection-uri>
 ```
@@ -118,18 +133,6 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 :::
 
-## Step 4. Start the services
-
-Let's start all of our Docker services, which includes the GraphQL engine, an authentication webhook provider, Jaeger
-for observability, and our connector. Run the following from the root of the project:
-
-```bash
-HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura.yaml watch
-```
-
-You should see your various services returned as `Running` or `Started` in the terminal. This provides a watch mode,
-which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops.
-
 ## Step 5. Introspect your database
 
 With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a source-specific
@@ -150,8 +153,7 @@ your project.
 
 ## What did this do?
 
-The commands above started the connector, along with other services, and introspected your data source to create a JSON
-configuration file.
+The commands above introspected your data source to create a JSON configuration file.
 
 ## Next steps
 

@@ -29,7 +29,7 @@ into `hml` syntax and add it to this file with the `connector-link update` comma
 Let's name the `hml` file the same as our connector, `mypg`:
 
 ```bash
-ddn connector-link add mypg
+ddn connector-link add mypg --subgraph <subgraph-name>
 ```
 
 The new file is scaffolded out at `<subgraph-name>/metadata/mypg/mypg.hml`.
@@ -69,14 +69,26 @@ The generated file has two environment variables — one for reads and one for w
 subgraph's `.env` file. If we have a subgraph of `ux`, we'll need to add the following snippet to our `ux/.env.ux` file:
 
 ```env
-UX_MYPG_READ_URL=http://local-dev.hasura.me:8081
-UX_MYPG_WRITE_URL=http://local-dev.hasura.me:8081
+UX_MYPG_READ_URL=http://local.hasura.dev:8082
+UX_MYPG_WRITE_URL=http://local.hasura.dev:8082
 ```
 
-These values are for the PostgreSQL connector itself and utilize `local-dev.hasura.me` to ensure proper resolution
-within the docker container.
+These values are for the PostgreSQL connector itself and utilize `local.hasura.dev` to ensure proper resolution within
+the docker container.
 
-## Step 2. Update the new DataConnectorLink object
+## Step 2. Start the services
+
+Let's start all of our Docker services, which includes the GraphQL engine, an authentication webhook provider, Jaeger
+for observability, and our connector. Run the following from the root of the project:
+
+```bash
+HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+You should see your various services returned as `Running` or `Started` in the terminal. This provides a watch mode,
+which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops.
+
+## Step 3. Update the new DataConnectorLink object
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the PostgreSQL connector,
 we can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
