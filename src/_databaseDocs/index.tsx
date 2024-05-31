@@ -99,7 +99,10 @@ const DatabaseContentLoader = () => {
               className={`data-source ${dbPreference === key ? 'selected' : ''}`}
             >
               {dataSources[key].image ? (
-                <img src={dataSources[key].image} alt={dataSources[key].name} />
+                <>
+                  <img src={dataSources[key].image} alt={dataSources[key].name} />
+                  <p>{dataSources[key].name}</p>
+                </>
               ) : (
                 <button>{dataSources[key].name}</button>
               )}
