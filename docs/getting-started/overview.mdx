@@ -10,133 +10,46 @@ keywords:
   - guide
 ---
 
-import { OverviewTopSectionIconNoVideo } from "@site/src/components/OverviewTopSectionIconNoVideo";
-import { OverviewPlainCard } from "@site/src/components/OverviewPlainCard";
-import Icon from "@site/static/icons/speedometer-04.svg";
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
-
 # Getting Started
-
-:::info Completing this guide
-
-This guide will take approximately 30 minutes. By the end, you'll walk away with an understanding of:
-
-- How the Hasura API authoring lifecycle works.
-- How to connect a data source.
-- How to run and develop with Hasura locally.
-- How to use the new Hasura DDN CLI to create, iterate on, and deploy a supergraph to Hasura DDN.
-
-:::
 
 ## Introduction
 
-In this guide, you'll learn how you can build an API on various data sources using Hasura DDN. As an experienced
-engineer, when building APIs on data sources such as PostgreSQL, MongoDB, or REST APIs, you understand that a
-significant portion of your API is already implicitly defined by the modeling work you've done within these data
-sources. The remaining work — business logic — is what requires you to maintain custom code.
+Let's build an API.
 
-Traditional API frameworks solve this by requiring you to write code and use ORMs to abstract away the data source,
-leading to performance debt down the road. Hasura provides a revolutionary way of creating APIs on various data sources
-that ensures the highest levels of performance upfront. Hasura helps you automatically maintain an API for parts of your
-API that can already be defined by the existing modeling work in your data source, and offers a lightweight and
-high-performance way to write business logic wherever required.
+In this guide we'll walk through combining multiple data sources into a single, high-performance API using Hasura DDN.
 
-Our approach is based on two key principles:
+If you're new here, you're likely going to be introduced to new terminology, tools and concepts in the next
+few pages. Don't worry, they will quickly become second nature to you. Let's do a quick summary here to get you started.
 
-1. **Query compilation that is native to the data source with push-down**: This principle ensures that queries are
-   optimized and executed directly within the data source, minimizing overhead and maximizing performance.
+:::info Hasura DDN
 
-2. **Lazy evaluation—only compute what is needed**: By evaluating only the necessary computations, Hasura minimizes
-   resource usage and enhances performance efficiency.
+Hasura DDN defines an entire API in a metadata format which conforms to the
+[Open Data Domain Specification](https://github.com/hasura/open-data-domain-specification), (Open DD Spec).
 
-This results in an API that your consumers will love because of its standardization and on-demand composability. When
-leveraging Hasura's capabilities, your API will approach theoretical optimal performance, as if you wrote a custom,
-optimized query for every single API endpoint 🚀
+The collection of these metadata objects together is known as a [Supergraph](/glossary.mdx#supergraph) and is separated
+into logical, self-contained sections called [Subgraphs](/glossary.mdx#subgraphs).
 
-## Primitive-first controls
+A valid Supergraph is compiled, or built, into an immutable API, which is run by the
+[Hasura Engine](/glossary.mdx#immutable-build-runtime-system) and can be hosted on
+[Hasura DDN](/glossary.mdx#hasura-data-delivery-network-ddn) (Data Delivery Network).
 
+Within Subgraphs, [Data Connectors](/glossary.mdx#native-data-connectors) are configured to facilitate the connection
+and communication with any kind of data source, (databases, APIs, business logic functions, etc...). Data Connectors
+are separate, decoupled, standalone pieces of software from the Hasura Engine and are authored by Hasura, the
+community or your can build your own.
 
+Subgraphs also contain configuration for [data types](/supergraph-modeling/types.mdx),
+[data models](/supergraph-modeling/models.mdx), [commands](/supergraph-modeling/commands.mdx) (think functions) data
+access [permissions](/supergraph-modeling/permissions.mdx), and
+[relationships](/supergraph-modeling/relationships.mdx) across data.
 
-## API authoring lifecycle
+Subgraphs have their own development lifecycle and allow different teams to work on different parts of the
+Supergraph at the same time without stepping on each other's toes.
 
-The API authoring lifecycle with Hasura involves the following steps:
-
-1. **Definition by models and commands in Hasura metadata**: The API is defined through models and commands that are
-   stored within Hasura's metadata.
-
-2. **Backing by data source entities, code, or queries**: These models and commands are backed by the underlying data
-   source entities, custom code, or native queries.
-
-3. **CLI tooling for easy authoring**: Hasura's CLI makes it easy to author models and commands by introspecting the
-   data source, code, or native queries.
-
-By following these steps, you can efficiently create and maintain high-performance APIs on various data sources with
-Hasura DDN.
-
-## Modeling basics
-
-Designing your data source to align with your API model is essential for creating efficient and scalable applications.
-By working backwards from the desired API, you can structure your data source to optimize for read operations, which is
-often the primary use case for most consumers. This approach works well for greenfield applications, but existing data
-sources can also be adapted using techniques like views or aggregations.
-
-### Start with the API
-
-1. **Define the API**: Outline the resources, data structures, and relationships needed by your application.
-2. **Design the Data Source**: Create tables, collections, entities, or endpoints that map directly to the API model.
-
-### Focus on Reads
-
-- **Optimize for queries**: Design your data source to efficiently handle read operations, as they are typically the
-  most frequent.
-- **Use indexes**: Ensure that columns or fields used in `WHERE`, `JOIN`, and `ORDER BY` clauses are indexed to improve
-  performance.
-
-## Prerequisites
-
-Before continuing, ensure you've completed the following prerequisites:
-
-### Step 1. Install the Hasura CLI
-
-You can download the CLI binary below and start using it immediately. Please follow the instructions for your system.
-
-<Tabs groupId="os-preference" className="api-tabs">
-
-<TabItem value="macOS-or-linux" label="macOS and Linux">
-
-Simply run the installer script in your terminal:
-
-```bash
-curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v1/get.sh | bash
-```
-
-</TabItem>
-
-<TabItem value="windows" label="Windows">
-
-Download the latest `cli-ddn-windows-amd64.exe` binary and run it.
-
-```bash
-curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v1/latest/cli-ddn-windows-amd64.exe -o ddn.exe
-```
-
-:::info Unrecognized application warning
-
-In Windows, if you get an "Unrecognized application" warning, click "Run anyway".
+Hasura DDN includes the [Hasura CLI](/cli/overview.mdx), which is used to create and manage all aspects of your project
+as well as a plugin for IDEs which help you author and validate your metadata objects.
 
 :::
 
-</TabItem>
-</Tabs>
-
-### Step 2. Install the Hasura VS Code extension
-
-If you don't already have [VS Code](https://code.visualstudio.com/download) installed, install it and then install the
-[Hasura extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura).
-
-### Step 3. Install Docker
-
-Finally, install [Docker](https://docs.docker.com/engine/install/), which will be used for local development.
-
-At this point, you're ready to create your first supergraph!
+Let's get started. Jump to the [Prerequisites](/getting-started/prerequisites.mdx) page with the forward arrow link
+below.
