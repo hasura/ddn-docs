@@ -1,29 +1,22 @@
 import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
 
-## Step 1. Start the services
-
-With all our configuration taken care of, we have a blank slate with which to iterate on our API using this single
-source. Let's start developing our API by starting all our services, which includes the GraphQL engine, an
-authentication webhook provider, Jaeger for observability, and our connector. Run the following from the root of the
-project:
-
-```bash
-docker compose -f docker-compose.hasura.yaml watch
-```
-
-You should see your various services returned as `Running` or `Started` in the terminal. This provides a watch mode,
-which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops 🚀
-
-## Step 2. Add a model
+## What's about to happen?
 
 <!-- prettier-ignore -->
-Hasura DDN works by creating immutable builds, similar to git commits, based on changes to your project's metadata. This
-frees you to iteratively and rapidly test incremental changes to your API without causing disruption to other
-collaborators or downstream consumers. Before we create a supergraph build, let's first add a <BaseUrlLink to="supergraph-modeling/models/" text="model" /> to our subgraph.
+Entities from your PostgreSQL database — such as tables, views, or <BaseUrlLink to="connectors/postgresql/native-queries/" text="native queries" /> — are exposed to your API via [models](/supergraph-modeling/models.mdx).
+You can use the CLI to generate an `hml` file which will represent a model, allowing you to easily and declaratively customize authorization rules, create relationships, or even deprecate certain fields.
 
-<!-- prettier-ignore -->
-Models serve as the link between your data connector and the API Hasura generates. For PostgreSQL, models typically
-correspond to tables, but you can also create them for views and <BaseUrlLink to="connectors/postgresql/native-queries/" text="native queries" />
+## Add a model
+
+:::tip Required
+
+- [DDN CLI](/getting-started/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
+- A <BaseUrlLink to="/getting-started/connect-to-data/connect-a-source" text="PostgreSQL connector"/> initted
+- A <BaseUrlLink to="/getting-started/connect-to-data/link-a-connector" text="DataConnectorLink"/> configured
+
+:::
 
 If you look in your `<subgraph>/connector/mypg/connector/mypg.hml` file, you'll see `object_types` for each table in
 your PostgreSQL database. For each of these, you can run the following command to create a model:
@@ -39,11 +32,15 @@ file.
 
 :::
 
+## What did this do?
+
+When you ran this command, the CLI generated an `hml` file in the `models` directory for the `object_type` you passed
+it. This `hml` file contains all the auto-configured information — such as the names and types of fields — along with
+serving as a file to which you can add new metadata objects to customize the model.
+
 <details>
   <summary>
-    Each time you add a model, you'll see a new named file in the `models` directory of your connector. For example, if we
-    ran the previous command on the `carts` type, we'd then see a `Carts.hml` file that contains all the metadata Hasura DDN
-    needs to add it to our API. Click here to see an example `hml` file.
+    Click here to see an example `hml` file for a model.
   </summary>
 
 ```yaml
@@ -188,3 +185,9 @@ definition:
 ```
 
 </details>
+
+## Next steps
+
+This model can now be used to <BaseUrlLink to="/getting-started/build-your-api" text="query data via your API" />. You
+can also customize the model by adding access-control rules, creating relationships to other entities, or deprecating
+certain fields.

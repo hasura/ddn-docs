@@ -12,11 +12,25 @@ keywords:
 
 # Deploy a Connector
 
+## What's about to happen?
+
 Connectors are deployed independently of your supergraph and of each other. Hasura DDN will host your connectors for
 you, ensuring rapid delivery of data from your API to your consumers. **For each connector in a project, follow the
-steps below:**
+steps below.**
 
-## Step 1. Create a cloud.connector.yaml
+## Steps
+
+:::tip Required
+
+- [DDN CLI](/getting-started/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
+- A new or existing [data connector](/getting-started/connect-to-data/01-connect-a-source.mdx)
+- A new or existing [project](/getting-started/01-create-a-project.mdx)
+
+:::
+
+### Step 1. Create a cloud.connector.yaml
 
 Each connector utilizes a `connector.yaml` file for local development. When deploying a connector, start by creating a
 `cloud.connector.yaml` file in the same directory as the connector's local `connector.yaml`:
@@ -36,18 +50,18 @@ definition:
 Ensure the project name matches the current project and that you correctly assign the subgraph to which the connector
 belongs.
 
-## Step 2. Create a .env.cloud for the connector
+### Step 2. Create a .env.cloud for the connector
 
 As the database you've used for development may be different from that which you wish to use on Hasura DDN — be it for
 staging or production — you'll now provide the connection string, just like in your `.env.local`, for the database you
 wish to use on Hasura DDN. Create a `.env.cloud` environment variable file in the same directory and add the connection
-string for your PostgreSQL database:
+string for your database:
 
 ```env
-CONNECTION_URI=<connection-uri-to-postgresql>
+CONNECTION_URI=<connection-uri>
 ```
 
-## Step 3. Build and deploy your cloud connector
+### Step 3. Build and deploy your cloud connector
 
 At this stage, you can now build and deploy your connector Hasura DDN. Simply run the following replacing the directory
 names with those that reflect your project:
@@ -58,7 +72,7 @@ ddn connector build create --connector ./<subgraph>/connector/<connector-name>/c
 
 The CLI will respond with read and write URLs for your deployed connector.
 
-## Step 4. Create a .env.cloud for the subgraph
+### Step 4. Create a .env.cloud for the subgraph
 
 If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.<subgraph-name>` file in
 the root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
@@ -71,3 +85,14 @@ UX_MYPG_WRITE_URL=<cloud-connector-write-url>
 ```
 
 At this stage, you're read to now build and deploy your supergraph!
+
+## What did this do?
+
+The steps above built and deployed your data connector to Hasura DDN. So long as the connection URI you provided is
+reachable by DDN, your connector will be able to communicate between your API and your data source.
+
+## Next steps
+
+If you have other connectors needed for a supergraph, repeat these steps for each connector. Otherwise, you're ready to
+[create a new build of your supergraph](/getting-started/deployment/03-deploy-your-supergraph.mdx) and deploy it to
+Hasura DDN!

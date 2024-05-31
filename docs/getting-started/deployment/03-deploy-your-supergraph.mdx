@@ -12,11 +12,29 @@ keywords:
 
 # Deploy your Supergraph
 
+## What's about to happen?
+
+You're about to deploy your API to our globally-distributed, highly-available, data delivery network: Hasura DDN.
+
+## Steps
+
 Supergraphs can be rebuilt at any point to reflect changes made in connectors or other metadata related to models,
 commands, relationships, or permissions. To do so, you'll need complete the first two steps once and then, for each
 additional cloud build, you'll only need to complete the third step.
 
-## Step 1. Configure authentication
+:::tip Required
+
+- [DDN CLI](/getting-started/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
+- A new or existing [data connector](/getting-started/connect-to-data/01-connect-a-source.mdx)
+- A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
+- For each connector related to a supergraph, a
+  [deployed data connector](/getting-started/deployment/02-deploy-a-connector.mdx)
+
+:::
+
+### Step 1. Configure authentication
 
 We'll start by creating a new [`AuthConfig`](/supergraph-modeling/auth-config.mdx) for your Hasura DDN project. You can
 use your own authentication configuration with webhooks or JWTs. However, in the example below, we'll use the webhook
@@ -34,7 +52,7 @@ definition:
       method: Post
 ```
 
-## Step 2. Create a cloud supergraph configuration
+### Step 2. Create a cloud supergraph configuration
 
 In the root of the project, create a `cloud.supergraph.yaml` file:
 
@@ -61,7 +79,7 @@ definition:
         - ux
 ```
 
-## Step 3. Build the supergraph
+### Step 3. Build the supergraph
 
 Finally, build your supergraph with the following command:
 
@@ -71,7 +89,17 @@ ddn supergraph build create --supergraph ./cloud.supergraph.yaml
 
 The CLI will return the console URL for your project where you can test your API from anywhere 🎉
 
-## Moving to production
+## What did this do?
+
+When you ran the command above, the CLI used the configuration you provided to create an immutable build of your
+supergraph on Hasura DDN. This build is now accessible via the build's GraphQL endpoint and in the Hasura Console for
+exploration.
+
+Teammates can explore the API, interact with it, and provide feedback before you iterate and create a new build for
+testing. Or, if you're ready, you can apply the build so that it's served by the project's endpoint. And, should you
+realize you applied it a _little_ early, you can easily roll it back by applying an older build.
+
+## Next steps
 
 At this point, you have all the ingredients and knowledge to create a robust supergraph that composes data across
 various sources and aggregates them into a single, reliable, performant API. Before moving to production, consider the
