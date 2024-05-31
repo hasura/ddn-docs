@@ -1,8 +1,10 @@
-We're assuming here that you've already [created your supergraph](/getting-started/01-init-supergraph.mdx), then
-[added a subgraph](/getting-started/02-init-subgraph.mdx) and are now ready to add a MongoDB database via the MongoDB
-Data Connector. If you haven't please go back and complete those steps.
+Now that you've:
+- [Created your Supergraph](/getting-started/01-init-supergraph.mdx)
+- [Added a Subgraph](/getting-started/02-init-subgraph.mdx)
 
-## Step 1. Init the MongoDB connector
+You're now ready to connect to your MongoDB database via the MongoDB data connector.
+
+## Step 1. Initialize the MongoDB connector
 
 To initialize the MongoDB connector, run the following, replacing `<subgraph-name>` with the name of the subgraph which
 you chose earlier and which will contain this connector and its eventual data source:
@@ -56,7 +58,7 @@ In the `<subgraph-name>/connector/my_mongo` directory which we specified in the 
 Right now, the connector is just scaffolded out configuration files. It knows nothing about the MongoDB database or the
 data it contains. That's coming up in the next steps.
 
-## Step 3. Include the MongoDB connector's compose file
+## Step 3. Include the MongoDB connector's Docker compose file
 
 In our main `docker-compose.yaml` in the **_root of the project_**, add the following at the top taking care to replace
 `<subgraph-name>` with your subgraph:
@@ -126,7 +128,19 @@ description: The URI for the MongoDB database
 ...
 ```
 
-## Step 5. Introspect your database
+## Step 5. Start the services
+
+Let's start all of our Docker services, which includes the GraphQL engine, an authentication webhook provider,
+Jaeger for observability, and our connector. Run the following from the root of the project:
+
+```bash
+docker compose -f docker-compose.hasura.yaml watch
+```
+
+You should see your various services returned as `Running` or `Started` in the terminal. This provides a watch mode,
+which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops.
+
+## Step 6. Introspect your database
 
 With connector configured, we can now use the CLI to introspect our MongoDB database to create a source-specific
 configuration file for our connector:
