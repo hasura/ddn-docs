@@ -67,7 +67,8 @@ about the PostgreSQL database or the data it contains. That's coming up in the n
 
 ## Step 2. Modify the port
 
-Change the value of your `mypg` connetor's published port to `8082` to avoid port collisions with other connectors
+Change the value of your `mypg` connetor's published port in your
+`<subgraph-name>/connector/mypg/docker-compose.mypg.yaml` to `8082` to avoid port collisions with other connectors
 running on port `8080`:
 
 ```yaml
@@ -96,14 +97,16 @@ Now that our connector has been scaffolded out for us, we need to provide a conn
 can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
 caveats to consider before continuing.
 
-The CLI has provided an `.env` file for our connector in the `<subgraph-name>/connector/mypg` directory. We can add a
-key-value pair of `CONNECTION_URI` along with the connection string itself to this file and our connector will use this
-to connect to our PostgreSQL database. The file, after adding the `CONNECTION_URI` should look like this example:
+The CLI has provided an `.env.local` file for our connector in the `<subgraph-name>/connector/mypg` directory. We can
+add a key-value pair of `CONNECTION_URI` along with the connection string itself to this file and our connector will use
+this to connect to our PostgreSQL database. The file, after adding the `CONNECTION_URI` should look like this example:
 
 ```env
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=<subgraph-name>_mypg
+#highlight-start
 CONNECTION_URI=<postgres-connection-uri>
+#highlight-end
 ```
 
 You can use a local PostgreSQL database or a cloud-hosted option. If you already have one you can connect to, you can go

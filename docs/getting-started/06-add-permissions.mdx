@@ -25,10 +25,11 @@ In the steps below, we'll add
 be accessed by a user role and [`typePermissions`](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions)
 to control what fields are returned by your API.
 
-:::tip Don't forget about LSP!
+:::tip You can use LSP!
 
-Remember, the LSP will help you author any metadata objects or updates, including `modelPermissions` and
-`typePermissions`. You can activate it's autocomplete abilities using `CTRL+SPACEBAR`
+You can use the VS Code extension, powered by LSP, to help you author any metadata objects or updates, including
+`modelPermissions` and `typePermissions`. You can activate it's autocomplete abilities using `CTRL+SPACEBAR` inside of
+any `hml` file.
 
 :::
 
@@ -38,8 +39,8 @@ Remember, the LSP will help you author any metadata objects or updates, includin
 
 By default, a role of `admin` exists for your API and can access all models. To create a new role, such as `user`,
 simply add the role to the list of `permissions` for a model and set up your access control rules. In the example below,
-we'll allow users with the role of `user` to access only their own rows of data by checking for a header value matching
-their `id`:
+we'll allow users with the role of `user` to access only their own rows from a `Users` model by checking for a header
+value matching their `id`:
 
 ```yaml
 # Users.hml
@@ -63,6 +64,12 @@ definition:
               sessionVariable: x-hasura-user-id
         #highlight-end
 ```
+
+:::tip Where are models?
+
+Remember, models are organized under a `models` subdirectory under the connector's named directory in a subgraph.
+
+:::
 
 ### Step 2. Create a typePermission
 
@@ -99,6 +106,14 @@ definition:
           - name
           - password
     #highlight-end
+```
+
+### Step 3. Create a new build
+
+As we've altered our metadata, create a new build to test it:
+
+```bash
+ddn supergraph build local --output-dir ./engine
 ```
 
 Creating a new build after modifying this metadata will allow us to use two headers in our request: `x-hasura-role` and

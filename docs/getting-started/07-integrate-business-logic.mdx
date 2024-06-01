@@ -56,7 +56,7 @@ the `functions.ts` file being your connector's entrypoint:
 
 ### Step 2. Modify the connector's published port
 
-Like with our PostgreSQL connector, to avoid port collisions, we'll change the connector's published port to `8082`. In
+Like with our PostgreSQL connector, to avoid port collisions, we'll change the connector's published port to `8083`. In
 the `docker-compose.myts.yaml` file, which can be found in the directory you created in the last step, replace the
 existing `published` value with:
 
@@ -65,15 +65,15 @@ ports:
   - mode: ingress
     target: 8080
     #highlight-start
-    published: "8082"
+    published: "8083"
     #highlight-end
     protocol: tcp
 ```
 
-Then, add the port's value to the `.env/.local` in your `myts` directory:
+Then, add the port's value to the `.env.local` in your `myts` directory:
 
 ```env
-HASURA_CONNECTOR_PORT=8082
+HASURA_CONNECTOR_PORT=8083
 ```
 
 ### Step 3. Install dependencies
@@ -84,10 +84,16 @@ Within our `myts` directory, let's install any necessary dependencies:
 cd <subgraph>/connector/myts && npm i
 ```
 
+Additionally, we'll add the dotenv-cli globally so we can load environment variables from our `.env.local` file:
+
+```bash
+npm i -g dotenv-cli
+```
+
 Then, from the `myts` directory run this command to start and watch the connector for any changes:
 
 ```bash
-env $(cat .env.local | xargs) npm run watch
+dotenv -e .env.local -- npm run watch
 ```
 
 ### Step 4. Add the DataConnectorLink
@@ -100,14 +106,14 @@ Create this using:
 ddn connector-link add myts
 ```
 
-Then, update the `.env` values in your subgraph's env file to include this connector. The complete file should now look
-like this:
+Then, update the values in your subgraph's `.env.<subgraph-name>` file to include this connector. The complete file
+should now look like this, as an example with an existing PostgreSQL connector in a `ux` subgraph:
 
 ```env
-UX_MYPG_READ_URL=http://local-dev.hasura.me:8081
-UX_MYPG_WRITE_URL=http://local-dev.hasura.me:8081
-UX_MYTS_READ_URL=http://local-dev.hasura.me:8082
-UX_MYTS_WRITE_URL=http://local-dev.hasura.me:8082
+UX_MYPG_READ_URL=http://local.hasura.dev:8082
+UX_MYPG_WRITE_URL=http://local.hasura.dev:8082
+UX_MYTS_READ_URL=http://local.hasura.dev:8083
+UX_MYTS_WRITE_URL=http://local.hasura.dev:8083
 ```
 
 ### Step 5. Write business logic
@@ -164,7 +170,7 @@ To add our function, similar to how we added our individual tables earlier, we c
 related Hasura metadata:
 
 ```bash
-ddn connector-link update myts --add-all-resources
+ddn connector-link update myts --subgraph <subgraph-name> --add-all-resources
 ```
 
 ### Step 7. Create a new build and test

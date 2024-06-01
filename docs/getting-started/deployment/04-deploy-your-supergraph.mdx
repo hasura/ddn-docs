@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 sidebar_label: Deploy your supergraph
 description: "Learn how to get started with Hasura DDN and your GraphQL API."
 keywords:
@@ -14,13 +14,10 @@ keywords:
 
 ## What's about to happen?
 
-You're about to deploy your API to our globally-distributed, highly-available, data delivery network: Hasura DDN.
+You're about to deploy your supergraph to Hasura DDN, our globally-distributed, highly-available, lightning-fast hosted
+service!
 
 ## Steps
-
-Supergraphs can be rebuilt at any point to reflect changes made in connectors or other metadata related to models,
-commands, relationships, or permissions. To do so, you'll need complete the first two steps once and then, for each
-additional cloud build, you'll only need to complete the third step.
 
 :::tip Required
 
@@ -29,8 +26,6 @@ additional cloud build, you'll only need to complete the third step.
 - A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
 - A new or existing [data connector](/getting-started/connect-to-data/01-connect-a-source.mdx)
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
-- For each connector related to a supergraph, a
-  [deployed data connector](/getting-started/deployment/02-deploy-a-connector.mdx)
 
 :::
 
@@ -41,7 +36,7 @@ use your own authentication configuration with webhooks or JWTs. However, in the
 provided by Hasura DDN so you can test your project securely in the cloud:
 
 ```yaml
-# /supergraph/cloud.auth-config.hml
+# /supergraph_globals/auth-config.cloud.hml
 kind: AuthConfig
 version: v1
 definition:
@@ -54,21 +49,20 @@ definition:
 
 ### Step 2. Create a cloud supergraph configuration
 
-In the root of the project, create a `cloud.supergraph.yaml` file:
+In the root of the project, create a `supergraph.cloud.yaml` file:
 
 ```yaml
 kind: Supergraph
 version: v1
 definition:
-  project: <project-name>
   supergraph_globals:
     generator:
-      rootPath: ./supergraph
-    envFile: ./supergraph/.env.supergraph
+      rootPath: ./supergraph_globals
+    envFile: ./supergraph_globals/.env.supergraph_globals
     includePaths:
-      - ./supergraph/cloud.auth-config.hml
-      - ./supergraph/compatibility-config.hml
-      - ./supergraph/graphql-config.hml
+      - ./supergraph_globals/cloud.auth-config.hml
+      - ./supergraph_globals/compatibility-config.hml
+      - ./supergraph_globals/graphql-config.hml
   subgraphs:
     # With each subgraph as a key — ux is used below as an example
     ux:
@@ -79,15 +73,11 @@ definition:
         - ux
 ```
 
-### Step 3. Build the supergraph
-
-Finally, build your supergraph with the following command:
+### Step 3. Build and deploy your supergraph
 
 ```bash
-ddn supergraph build create --supergraph ./cloud.supergraph.yaml
+ddn supergraph build create --supergraph ./supergraph.cloud.yaml
 ```
-
-The CLI will return the console URL for your project where you can test your API from anywhere 🎉
 
 ## What did this do?
 
