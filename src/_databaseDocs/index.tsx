@@ -25,7 +25,7 @@ const dataSources = {
 
 const DatabaseContentLoader = () => {
   const location = useLocation();
-  const [dbPreference, setDbPreference] = useState('PostgreSQL');
+  const [dbPreference, setDbPreference] = useState(null);
 
   useEffect(() => {
     const savedPreference = localStorage.getItem('dbPreference');
@@ -49,7 +49,7 @@ const DatabaseContentLoader = () => {
           case 'MongoDB':
             return <MongoDBConnect />;
           default:
-            return <PostgreSqlConnect />;
+            return <div />;
         }
       case 'link-a-connector':
         switch (dbPreference) {
@@ -58,7 +58,7 @@ const DatabaseContentLoader = () => {
           case 'MongoDB':
             return <MongoDBLink />;
           default:
-            return <PostgreSqlLink />;
+            return <div />;
         }
       case 'expose-source-entities':
         switch (dbPreference) {
@@ -67,7 +67,7 @@ const DatabaseContentLoader = () => {
           case 'MongoDB':
             return <MongoDBExposition />;
           default:
-            return <PostgreSqlExposition />;
+            return <div />;
         }
       case 'mutate-data':
         switch (dbPreference) {
@@ -76,7 +76,7 @@ const DatabaseContentLoader = () => {
           case 'MongoDB':
             return <MongoDBMutation />;
           default:
-            return <PostgreSqlMutation />;
+            return <div />;
         }
       default:
         return <div>Content not found...</div>;
