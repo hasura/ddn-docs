@@ -45,6 +45,36 @@ Next, as a feature of convenience, we'll set the `context` which replaces the ne
 ddn context set supergraph ./supergraph.yaml
 ```
 
+### Step 3. Build your supergraph
+
+You now have all the scaffolding necessary to start developing your Hasura supergraph. In fact, we can create a build
+and by running the following command:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+### Step 4. Start the services
+
+Then, we can start the `docker-compose.hasura.yaml` in the root of the directory to start the GraphQL engine and the
+accompanying services:
+
+```bash
+HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+You should see your various services returned as `Running` or `Started` in the terminal. This provides a watch mode,
+which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops.
+
+You can now navigate to
+[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
+and interact with your API using the Hasura Console!
+
+However, you'll see a very empty GraphQL schema. We're showing you this so you can see that your API starts off as a
+blank slate, allowing you to iteratively and collaboratively build it out. Hasura utilizes a system of
+[immutable builds](/project-configuration/builds.mdx) which provide a stable snapshot of your API at any point in the
+development process.
+
 ## What did this do?
 
 The CLI created all the files needed for local development and iteration in your local directory, including a
@@ -79,16 +109,13 @@ docker-compose for local development and helper files for VS Code.
 
 </details>
 
-You now have all the scaffolding necessary to start developing your Hasura supergraph.
-
 `ddn supergraph init` will always be the first command you run when starting a new project. However, you may have
 arrived here after being invited to join an existing project. In that case, your supergraph will already exist; you can
 simply clone the repository containing your supergraph and pick up with the next section.
 
+Regardless of how you've arrived at your supergraph, you'll have needed to create a build and then run it using Docker.
+This is the typical workflow when starting a new project or picking up with an existing one.
+
 ## Next steps
 
-At this point, you could very well start the GraphQL engine via the docker-compose in your directory. However, without
-any subgraphs or connected data sources, your supergraph is quite lacking.
-
 The most common next step from here is to [add a new subgraph](/getting-started/02-init-subgraph.mdx).
-
