@@ -40,7 +40,12 @@ const DatabaseContentLoader = () => {
   };
 
   const getContent = () => {
-    const route = location.pathname.split('/').pop();
+    // Split the path into parts, because sometimes we have a trailing slash with our nginx config
+    let pathParts = location.pathname.split('/').filter(Boolean);
+
+    // Get the last part of the path, which is the page we want
+    let route = pathParts.pop();
+
     switch (route) {
       case 'connect-a-source':
         switch (dbPreference) {
