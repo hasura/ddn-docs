@@ -1,61 +1,79 @@
-You can write data to your database using the native MongoDB driver and the TypeScript connector. In the
-example below, we've truncated the code used in this section, but you follow these steps to create a function which
-manipulates or inserts data and is exposed as a mutation via your GraphQL API.
+import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
+
+## What's about to happen?
+
+You can write data to your database using the native MongoDB driver and the TypeScript connector.
+
+Using a subgraph with a `hasura/nodejs` connector we'll create a function that writes data to a MongoDB database and
+make it available as a mutation in the metadata.
 
 ## Step 1. Create a function
 
-In the earlier example, we marked our `humanReadableCreatedAt()` function as `@readOnly` using JSDoc to expose it as a
-query. However, omitting this value will expose the function as a mutation. We can even add documentation that will be
-visible in the GraphiQL explorer by tagging `@param` for the argument(s) and `@returns` for what will be returned by the
-mutation.
+:::tip Required
+
+- <BaseUrlLink to="/getting-started/prerequisites" text="DDN CLI" />
+- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
+- A new or existing Node.js connector <BaseUrlLink to="/getting-started/integrate-business-logic" text="subgraph" />
+
+:::
+
+
+Let's create a dummy `insertProduct` function in the `functions.ts` file in the connector directory for a Node.js
+connector.
+
+If in the JSDoc for this function we omit the `@readOnly` tag, it will be
+exposed as a mutation function in the metadata. We can even add documentation that will be visible in the GraphiQL
+explorer by tagging `@param` for the argument(s) and `@returns` for what will be returned by the mutation.
 
 ```ts
-import { Client } from 'pg';
+import { MongoClient } from 'mongodb';
 import { config } from 'dotenv';
 
 config();
 
 /**
- * @param userData An object containing the user's data.
- * @returns The ID of the newly inserted user.
+ * @param productData An object containing the product's data.
+ * @returns The ID of the newly inserted product.
  */
-export async function insertUser(userData: { name: string; email: string }): Promise<string> {
-  const client = new Client({
-    connectionString: process.env.PG_URI,
+export async function insertProduct(productData: { title: string; description: string }): Promise<string> {
+  const client = new MongoClient(process.env.MONGODB_DATABASE_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
   });
 
-  await client.connect();
+  try {
+    await client.connect();
+    const database = client.db('yourDatabaseName'); // Replace with your database name
+    const collection = database.collection('product');
 
-  const queryText = `
-    INSERT INTO users (name, email)
-    VALUES ($1, $2)
-    RETURNING id
-  `;
-  const values = [userData.name, userData.email];
-  const result = await client.query(queryText, values);
+    const result = await collection.insertOne({
+      title: productData.title,
+      description: productData.description,
+    });
 
-  await client.end();
-
-  if (result.rows.length > 0) {
-    return result.rows[0].id;
-  } else {
-    throw new Error('Failed to insert user');
+    if (result.insertedId) {
+      return result.insertedId.toString();
+    } else {
+      throw new Error('Failed to insert product');
+    }
+  } finally {
+    await client.close();
   }
 }
 ```
 
 ## Step 2. Track the function
 
-Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`:
+We'll track our function using the CLI by first updating our `DataConnectorLink` for this data connector:
 
 ```bash
-ddn connector-link update myts
+ddn connector-link update <connector-name>
 ```
 
 And then bringing in the new command:
 
 ```bash
-ddn command add --connector-link myts --name insertUser
+ddn command add --connector-link <connector-link-name> --name insertProduct
 ```
 
 ## Step 3. Create a new build and test
@@ -66,6 +84,6 @@ Next, let's create a new build of our supergraph:
 ddn supergraph build local --output-dir ./engine
 ```
 
-Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation:
+Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
 
 <!-- TODO: Add screenshot of console -->
