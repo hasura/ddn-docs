@@ -65,6 +65,32 @@ In the `<subgraph-name>/connector/my_mongo` directory which we specified in the 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the MongoDB database or the data it contains. That's coming up in the next steps.
 
+## Step 2. Modify the port
+
+Typically, connectors default to port `8080`. Each time you add a connector, we recommend incrementing the published
+port by one to avoid port collisions. For example:
+
+Change the value of your `my_mongo` connector's published port in your
+`<subgraph-name>/connector/my_mongo/docker-compose.my_mongo.yaml` to `8082` to avoid port collisions with other
+connectors:
+
+```yaml
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: '8082'
+    #highlight-end
+    protocol: tcp
+```
+
+:::tip Consistency is important
+
+In subsequent steps, when running your connector locally, it's critical to ensure this port value matches the connection
+string you provide in your subgraph's `.env.<subgraph-name>` file.
+
+:::
+
 ## Step 3. Include the MongoDB connector's Docker compose file
 
 In our main `docker-compose.hasura.yaml` in the **_root of the project_**, add the following at the top taking care to replace
