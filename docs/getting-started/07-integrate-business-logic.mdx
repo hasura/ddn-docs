@@ -1,0 +1,217 @@
+---
+sidebar_position: 7
+sidebar_label: Add custom business logic
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Add Custom Business Logic
+
+## What's about to happen?
+
+As we alluded to in the beginning of this guide, the remaining work on top of your existing data source modeling is
+authoring and maintaining custom code, or business logic. With Hasura, you can integrate — and even host — this business
+logic directly with Hasura DDN and your API.
+
+Hasura handles business logic using the TypeScript data connector. This enables you to author you own custom code,
+written in TypeScript, and host it alongside your API. Using this connector, you can transform or enrich data
+before it reaches your consumers, or perform any other app business logic you may need.
+
+You can then integrate this custom code as individual [**commands**](/supergraph-modeling/commands.mdx) in your
+metadata. This process enables you to simplify client applications and speed up your backend development.
+
+In this guide we will:
+- Initialize the `hasura/nodejs` data connector
+- Work with Node.js and npm to create a simple script
+- Add a new `DataConnectorLink`
+- Update the `DataConnectorLink` to track the function script as a command in our metadata
+- Create a new API build and test it
+
+## Steps
+
+### Step 1. Initialize the TypeScript connector
+
+Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
+values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the
+connector hub:
+
+```bash
+ddn connector init my_ts --dir <subgraph-name>/connector/my_ts --hub-connector hasura/nodejs
+```
+
+This will create the following directory structure in your subgraph's connector directory's new `my_ts` directory, with
+the `functions.ts` file being your connector's entrypoint:
+
+```bash
+.
+├── .ddnignore
+├── .env.local
+├── .hasura-connector
+├── connector.yaml
+├── docker-compose.my_ts.yaml
+# highlight-start
+├── functions.ts
+# highlight-end
+├── package-lock.json
+├── package.json
+└── tsconfig.json
+```
+
+:::tip Modify the connector's published port
+
+Like with other connectors, to avoid port collisions, we can change the connector's published port to something else. In
+the `docker-compose.my_ts.yaml` file, which can be found in the directory you created in the last step, replace the
+existing `published` value with:
+
+```yaml
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: "8083"
+    #highlight-end
+    protocol: tcp
+```
+
+Then, add the port's value to the `.env.local` in your `my_ts` directory:
+
+```env
+HASURA_CONNECTOR_PORT=8083
+```
+
+:::
+
+### Step 2. Install npm package dependencies
+
+Within our `my_ts` directory, let's install any necessary dependencies:
+
+```bash
+cd <subgraph>/connector/my_ts && npm i
+```
+
+Then, from the `my_ts` directory run this command to start and watch the connector for any changes:
+
+```bash
+dotenv -e .env.local -- npm run watch
+```
+
+### Step 3. Write business logic
+
+In this simple example, we're going to transform a timestamp with timezone (eg: "2024-03-14T08:00:00Z") into a nicely
+formatted version for humans, eg: "8am, Thursday, March 14th, 2024."
+
+We'll replace the default `hello()` function in our `functions.ts` file with the following:
+
+```ts
+/**
+ * @readonly
+ */
+export async function formatTimezoneDate(dateString: string): Promise<string> {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        timeZoneName: 'short'
+    };
+
+    const day = date.getDate();
+    const nth = (d: number) => {
+        if (d > 3 && d < 21) return 'th';
+        switch (d % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
+
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const hour = hours % 12 || 12;
+    const minute = minutes.toString().padStart(2, '0');
+
+    const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' });
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+
+    return `${hour}${ampm}, ${dayOfWeek}, ${month} ${day}${nth(day)}, ${year}.`;
+}
+```
+
+:::tip Install any dependency and use environment variables
+
+As this is a Node.js project, you can install any dependency!
+
+You can also utilize any environment variable which is stored in the  `.env.local` file in the `my_ts` subdirectory.
+You can add any values here that you'd like and reference them in your functions. Add the dotenv-cli globally so
+that you can load environment variables from your `.env.local` file:
+
+```bash
+npm i -g dotenv-cli
+```
+
+:::
+
+### Step 4. Add the DataConnectorLink
+
+As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
+functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
+
+```bash
+ddn connector-link add my_ts
+```
+
+Then, update the values in your subgraph's `.env.<subgraph-name>` file to include this connector.
+
+```env
+UX_MY_TS_READ_URL=http://local.hasura.dev:8083
+UX_MY_TS_WRITE_URL=http://local.hasura.dev:8083
+```
+
+
+### Step 5. Track the new function
+
+To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
+related Hasura metadata:
+
+```bash
+ddn connector-link update my_ts --subgraph <subgraph-name> --add-all-resources
+```
+
+### Step 6. Create a new API build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+You should see your command available, along with its documentation, in the GraphiQL explorer.
+
+## What did this do?
+
+The commands above initialized a new TypeScript connector, installed dependencies, and created a new function to format a
+timestamp with timezone into a human-readable format. We then added this function to our metadata as a command, and
+created a new build of our supergraph.
+
+## Next Steps
+
+You can also create relationships between types in your supergraph and your commands. This enables you to pair custom
+business logic with — for example — database tables, and then transform or enrich data before sending it back to your
+consumers.
+
+You can learn more about creating these and other relationships on the
+[next page](/getting-started/08-create-a-relationship.mdx), or you can learn about
+[mutating data](/getting-started/09-mutate-data.mdx) using the TypeScript connector.

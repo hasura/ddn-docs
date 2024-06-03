@@ -1,0 +1,142 @@
+---
+sidebar_position: 6
+sidebar_label: Add authorization
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Add Authorization
+
+## What's about to happen?
+
+If you've already created and tested your supergraph, you'll have seen that queries are executed by default using the
+`admin` role. However, you can easily add authorization rules — what we term permissions — by simply using the same
+declarative metadata approach we've seen for relationships and versioning.
+
+In the steps below, we'll add
+[`modelPermissions`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) to control which types can
+be accessed by a user role and [`typePermissions`](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions)
+to control what fields are returned by your API.
+
+:::tip You can use LSP!
+
+You can use the VS Code extension, powered by LSP, to help you author any metadata objects or updates, including
+`modelPermissions` and `typePermissions`. You can activate it's autocomplete abilities using `CTRL+SPACEBAR` inside of
+any `hml` file.
+
+:::
+
+## Steps
+
+### Step 1. Create a modelPermission
+
+By default, a role of `admin` exists for your API and can access all models. To create a new role, such as `user`,
+simply add the role to the list of `permissions` for a model and set up your access control rules. In the example below,
+we'll allow users with the role of `user` to access only their own rows from a `Users` model by checking for a header
+value matching their `id`:
+
+```yaml
+# Users.hml
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Users
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        #highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+        #highlight-end
+```
+
+:::tip Where are models?
+
+Remember, models are organized under a `models` subdirectory under the connector's named directory in a subgraph.
+
+:::
+
+### Step 2. Create a typePermission
+
+The `admin` role also has access to all fields for each model. However, adding a new role and limiting what columns can
+be returned from your data source is just as simple. For example, let's restrict what a `user` can see by omitting
+several fields from the `typePermissions`:
+
+```yaml
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Users
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - email
+          - favoriteArtist
+          - id
+          - isEmailVerified
+          - lastSeen
+          - name
+          - password
+          - updatedAt
+    #highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - email
+          - favoriteArtist
+          - id
+          - name
+          - password
+    #highlight-end
+```
+
+### Step 3. Create a new build
+
+As we've altered our metadata, create a new build to test it:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+Creating a new build after modifying this metadata will allow us to use two headers in our request: `x-hasura-role` and
+`x-hasura-user-id`:
+
+<Thumbnail
+  src="/img/get-started/beta/console_query-with-permissions.png"
+  alt="Query with authorization"
+  width="1000px"
+/>
+
+## What did this do?
+
+By adding `modelPermissions` we've declared that our `user` role only has access to the `Users` model. As you can see in
+the screenshot above, this means _only_ this type is available to a consumer with the `x-hasura-role` value of `user`.
+
+Further, we've limited which rows can be returned from this model by writing a check that will validate the
+`x-hasura-user-id` value to that of the matching record with the same `id` in the data source.
+
+Finally, we limited the fields they can access to the ones listed above, thereby preventing someone with the `user` role
+accessing irrelevant system information, such as when they were last seen.
+
+In the example above, we're passing these headers as unencoded values, but you can make these part of your claims when
+utilizing [JWTs](/auth/authentication/jwt.mdx) or [webhooks](/auth/authentication/webhook.mdx) for authentication. You
+can read more about Hasura's approach to authentication [here.](/auth/overview.mdx) However, we recommend you keep going
+and check out the [custom business logic section](/getting-started/07-integrate-business-logic.mdx) next.
