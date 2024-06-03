@@ -96,12 +96,6 @@ Within our `my_ts` directory, let's install any necessary dependencies:
 cd <subgraph>/connector/my_ts && npm i
 ```
 
-Additionally, we'll add the dotenv-cli globally so that we can load environment variables from our `.env.local` file:
-
-```bash
-npm i -g dotenv-cli
-```
-
 Then, from the `my_ts` directory run this command to start and watch the connector for any changes:
 
 ```bash
@@ -110,49 +104,63 @@ dotenv -e .env.local -- npm run watch
 
 ### Step 3. Write business logic
 
-In our example, we're going to transform the timestamp returned on our `createdAt` field from `Users` into a
-human-readable format. For convenience, we're also demonstrating a PostgreSQL example here, but you can integrate these
-functions with whatever data source you wish.
+In this simple example, we're going to transform a timestamp with timezone (eg: "2024-03-14T08:00:00Z") into a nicely
+formatted version for humans, eg: "8am, Thursday, March 14th, 2024."
 
 We'll replace the default `hello()` function in our `functions.ts` file with the following:
 
 ```ts
-import { Client } from "pg";
-import { config } from "dotenv";
-
-config();
-
 /**
  * @readonly
  */
-export async function humanReadableCreatedAt(userId: string): Promise<string> {
-  const client = new Client({
-    connectionString: process.env.PG_URI,
-  });
+export async function formatTimezoneDate(dateString: string): Promise<string> {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        timeZoneName: 'short'
+    };
 
-  await client.connect();
+    const day = date.getDate();
+    const nth = (d: number) => {
+        if (d > 3 && d < 21) return 'th';
+        switch (d % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
 
-  const queryText = "SELECT created_at FROM users WHERE id = $1";
-  const result = await client.query(queryText, [userId]);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const hour = hours % 12 || 12;
+    const minute = minutes.toString().padStart(2, '0');
 
-  if (result.rows.length > 0) {
-    const timestamp = result.rows[0].created_at;
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  } else {
-    return `Issue retrieving user`;
-  }
+    const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' });
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+
+    return `${hour}${ampm}, ${dayOfWeek}, ${month} ${day}${nth(day)}, ${year}.`;
 }
 ```
 
 :::tip Install any dependency and use environment variables
 
-As this is a Node.js project, you can install any dependency! You can see we've installed the `dotenv` and `pg` packages
-and are using the latter to interact directly with a PostgreSQL data source. **However, you can modify this to be any
-package you wish to use with your data source.**
+As this is a Node.js project, you can install any dependency!
 
-You'll also notice that we're using `process.env.PG_URI`, which references the `.env.local` file in the `my_ts`
-subdirectory. You can add any values here you'd like and reference them in your functions.
+You can also utilize any environment variable which is stored in the  `.env.local` file in the `my_ts` subdirectory.
+You can add any values here that you'd like and reference them in your functions. Add the dotenv-cli globally so
+that you can load environment variables from your `.env.local` file:
+
+```bash
+npm i -g dotenv-cli
+```
 
 :::
 
@@ -190,17 +198,15 @@ Next, let's create a new build of our supergraph:
 ddn supergraph build local --output-dir ./engine
 ```
 
-You should see your command available, along with its documentation, in the GraphiQL explorer:
-
-<Thumbnail
-  src="/img/get-started/beta/console_human-readable_simple.png"
-  alt="Command as a query in GraphiQL"
-  width="1000px"
-/>
+You should see your command available, along with its documentation, in the GraphiQL explorer.
 
 ## What did this do?
 
-You just...
+The commands above initialized a new TypeScript connector, installed dependencies, and created a new function to format a
+timestamp with timezone into a human-readable format. We then added this function to our metadata as a command, and
+created a new build of our supergraph.
+
+## Next Steps
 
 You can also create relationships between types in your supergraph and your commands. This enables you to pair custom
 business logic with — for example — database tables, and then transform or enrich data before sending it back to your
