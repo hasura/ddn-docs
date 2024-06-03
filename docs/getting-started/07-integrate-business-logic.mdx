@@ -20,44 +20,64 @@ As we alluded to in the beginning of this guide, the remaining work on top of yo
 authoring and maintaining custom code, or business logic. With Hasura, you can integrate — and even host — this business
 logic directly with Hasura DDN and your API.
 
-Hasura handles business logic using the TypeScript connector. This enables you to author you own custom code, written in
-TypeScript, and host it alongside your API. Using this connector, you can transform and enrich data before it reaches
-your consumers, unlocking you to simplify client applications and speed up your backend development.
+Hasura handles business logic using the TypeScript data connector. This enables you to author you own custom code,
+written in TypeScript, and host it alongside your API. Using this connector, you can transform or enrich data
+before it reaches your consumers, or perform any other app business logic you may need.
 
 You can then integrate this custom code as individual [**commands**](/supergraph-modeling/commands.mdx) in your
-metadata.
+metadata. This process enables you to simplify client applications and speed up your backend development.
 
-In the example below, you'll...
+In this guide we will:
+- Initialize the connector
+- Work with node.js and npm to create a simple script
+- Add a new DataConnectorLink
+- Update the DataConnectorLink to track the function script as a command in our metadata
+- Create a new API build and test it
 
 ## Steps
 
-### Step 1. Add the TypeScript connector
+### Step 1. Initialize the TypeScript connector
 
-Let's begin by adding the connector to our project. In the example below, you'll see some familiar flags with new values
-being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector hub:
+Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
+values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the
+connector hub:
 
 ```bash
-ddn connector init myts --dir <subgraph-name>/connector/myts --hub-connector hasura/nodejs
+ddn connector init my_ts --dir <subgraph-name>/connector/my_ts --hub-connector hasura/nodejs
 ```
 
-This will create the following directory structure in your subgraph's connector directory's new `myts` directory, with
+This will create the following directory structure in your subgraph's connector directory's new `my_ts` directory, with
 the `functions.ts` file being your connector's entrypoint:
 
 ```bash
+.
+├── .ddnignore
+├── .env.local
+├── .hasura-connector
+│  ├── check-reqs.ps1
+│  ├── check-reqs.sh
+│  ├── connector-metadata.yaml
+│  ├── Dockerfile
+│  ├── Dockerfile.dockerignore
+│  ├── read-package-script.js
+│  ├── start.ps1
+│  ├── start.sh
+│  ├── watch.ps1
+│  └── watch.sh
 ├── connector.yaml
-├── docker-compose.myts.yaml
-#highlight-start
+├── docker-compose.my_ts.yaml
+# highlight-start
 ├── functions.ts
-#highlight-end
+# highlight-end
 ├── package-lock.json
 ├── package.json
 └── tsconfig.json
 ```
 
-### Step 2. Modify the connector's published port
+:::tip Modify the connector's published port
 
-Like with our PostgreSQL connector, to avoid port collisions, we'll change the connector's published port to `8083`. In
-the `docker-compose.myts.yaml` file, which can be found in the directory you created in the last step, replace the
+Like with other connectors, to avoid port collisions, we can change the connector's published port to something else. In
+the `docker-compose.my_ts.yaml` file, which can be found in the directory you created in the last step, replace the
 existing `published` value with:
 
 ```yaml
@@ -70,53 +90,35 @@ ports:
     protocol: tcp
 ```
 
-Then, add the port's value to the `.env.local` in your `myts` directory:
+Then, add the port's value to the `.env.local` in your `my_ts` directory:
 
 ```env
 HASURA_CONNECTOR_PORT=8083
 ```
 
-### Step 3. Install dependencies
+:::
 
-Within our `myts` directory, let's install any necessary dependencies:
+### Step 2. Install npm package dependencies
+
+Within our `my_ts` directory, let's install any necessary dependencies:
 
 ```bash
-cd <subgraph>/connector/myts && npm i
+cd <subgraph>/connector/my_ts && npm i
 ```
 
-Additionally, we'll add the dotenv-cli globally so we can load environment variables from our `.env.local` file:
+Additionally, we'll add the dotenv-cli globally so that we can load environment variables from our `.env.local` file:
 
 ```bash
 npm i -g dotenv-cli
 ```
 
-Then, from the `myts` directory run this command to start and watch the connector for any changes:
+Then, from the `my_ts` directory run this command to start and watch the connector for any changes:
 
 ```bash
 dotenv -e .env.local -- npm run watch
 ```
 
-### Step 4. Add the DataConnectorLink
-
-As with our PostgreSQL connector, and any connector, we'll now need to create the `DataConnectorLink` which will
-translate our TypeScript functions into commands that can be exposed as queries and mutations via our GraphQL API.
-Create this using:
-
-```bash
-ddn connector-link add myts
-```
-
-Then, update the values in your subgraph's `.env.<subgraph-name>` file to include this connector. The complete file
-should now look like this, as an example with an existing PostgreSQL connector in a `ux` subgraph:
-
-```env
-UX_MYPG_READ_URL=http://local.hasura.dev:8082
-UX_MYPG_WRITE_URL=http://local.hasura.dev:8082
-UX_MYTS_READ_URL=http://local.hasura.dev:8083
-UX_MYTS_WRITE_URL=http://local.hasura.dev:8083
-```
-
-### Step 5. Write business logic
+### Step 3. Write business logic
 
 In our example, we're going to transform the timestamp returned on our `createdAt` field from `Users` into a
 human-readable format. For convenience, we're also demonstrating a PostgreSQL example here, but you can integrate these
@@ -153,27 +155,44 @@ export async function humanReadableCreatedAt(userId: string): Promise<string> {
 }
 ```
 
-:::tip Install any dependency and use environment varialbes
+:::tip Install any dependency and use environment variables
 
 As this is a Node.js project, you can install any dependency! You can see we've installed the `dotenv` and `pg` packages
 and are using the latter to interact directly with a PostgreSQL data source. **However, you can modify this to be any
 package you wish to use with your data source.**
 
-You'll also notice that we're using `process.env.PG_URI`, which references the `.env.local` file in the `myts`
+You'll also notice that we're using `process.env.PG_URI`, which references the `.env.local` file in the `my_ts`
 subdirectory. You can add any values here you'd like and reference them in your functions.
 
 :::
 
-### Step 6. Track the new function
+### Step 4. Add the DataConnectorLink
+
+As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
+functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
+
+```bash
+ddn connector-link add my_ts
+```
+
+Then, update the values in your subgraph's `.env.<subgraph-name>` file to include this connector.
+
+```env
+UX_MY_TS_READ_URL=http://local.hasura.dev:8083
+UX_MY_TS_WRITE_URL=http://local.hasura.dev:8083
+```
+
+
+### Step 5. Track the new function
 
 To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
 related Hasura metadata:
 
 ```bash
-ddn connector-link update myts --subgraph <subgraph-name> --add-all-resources
+ddn connector-link update my_ts --subgraph <subgraph-name> --add-all-resources
 ```
 
-### Step 7. Create a new build and test
+### Step 6. Create a new API build and test
 
 Next, let's create a new build of our supergraph:
 
