@@ -67,9 +67,11 @@ about the PostgreSQL database or the data it contains. That's coming up in the n
 
 ## Step 2. Modify the port
 
-Change the value of your `my_pg` connetor's published port in your
-`<subgraph-name>/connector/my_pg/docker-compose.my_pg.yaml` to `8082` to avoid port collisions with other connectors
-running on port `8080`:
+Typically, connectors default to port `8080`. Each time you add a connector, we recommend incrementing the published
+port by one to avoid port collisions. For example:
+
+Change the value of your `my_pg` connector's published port in your
+`<subgraph-name>/connector/my_pg/docker-compose.my_pg.yaml` to `8082` to avoid port collisions with other connectors:
 
 ```yaml
 ports:
@@ -81,9 +83,16 @@ ports:
     protocol: tcp
 ```
 
+:::tip Consistency is important
+
+In subsequent steps, when running your connector locally, it's critical to ensure this port value matches the connection
+string you provide in your subgraph's `.env.<subgraph-name>` file.
+
+:::
+
 ## Step 3. Include the PostgreSQL connector's compose file
 
-In our main `docker-compose.yaml` in the root of the project, add the following at the top taking care to replace
+In our main `docker-compose.hasura.yaml` in the root of the project, add the following at the top taking care to replace
 `<subgraph-name>` with your subgraph:
 
 ```yaml
@@ -118,7 +127,7 @@ database without any worries.
 **Local PostgreSQL**
 
 If you're using a local PostgreSQL database — such as through [Docker](https://hub.docker.com/_/postgres) — you can
-connect to it directly from the data connector. However, if you deploy your connector to Hasura DDN, the cloud-hotsed
+connect to it directly from the data connector. However, if you deploy your connector to Hasura DDN, the cloud-hosted
 version of your data connector won't be able to find your database. You'll need to use a tool like
 [ngrok](https://ngrok.com/) to tunnel your database's connection. This will expose the port, most likely `5432`, on
 which the database is running and allow Hasura DDN to connect to it.
