@@ -77,17 +77,39 @@ connector. Ensure the port value matches what is published in your connector's d
 These values are for the PostgreSQL connector itself and utilize `local.hasura.dev` to ensure proper resolution within
 the docker container.
 
-## Step 2. Start the services
+## Step 2. Start the connector's docker compose
 
-Let's start all of our Docker services, which includes the GraphQL engine, an authentication webhook provider, Jaeger
-for observability, and our connector. Run the following from the root of the project:
+Let's start our connector's docker compose file. Run the following from the connector's subdirectory inside a subgraph:
+
+```bash
+docker compose -f docker-compose.my_pg.yaml up
+```
+
+This starts our PostgreSQL connector on the specified port. We can navigate to the following address, with the port
+modified, to see the schema of our PostgreSQL database:
+
+```bash
+http://localhost:<PORT>/schema
+```
+
+:::tip Prefer to start all your services together?
+
+In your `docker-compose.hasura.yaml` file found in the root of your project's directory, you can add the following at
+the top, taking care to modify the `subgraph-name`:
+
+```yaml
+include:
+  - path: <subgraph-name>/connector/my_pg/docker-compose.my_pg.yaml
+```
+
+Then, whenever running the following, you'll bring up the GraphQL engine, observability tools, and any connectors you've
+included:
 
 ```bash
 HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura.yaml watch
 ```
 
-You should see your various services returned as `Running` or `Started` in the terminal. This provides a watch mode,
-which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops.
+:::
 
 ## Step 3. Update the new DataConnectorLink object
 
