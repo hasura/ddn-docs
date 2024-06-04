@@ -28,11 +28,18 @@ const DatabaseContentLoader = () => {
   const [dbPreference, setDbPreference] = useState(null);
 
   useEffect(() => {
-    const savedPreference = localStorage.getItem('dbPreference');
-    if (savedPreference) {
-      setDbPreference(savedPreference);
+    const params = new URLSearchParams(location.search);
+    const dbParam = params.get('db');
+
+    if (dbParam && dataSources[dbParam]) {
+      savePreference(dbParam);
+    } else {
+      const savedPreference = localStorage.getItem('dbPreference');
+      if (savedPreference) {
+        setDbPreference(savedPreference);
+      }
     }
-  }, []);
+  }, [location.search]);
 
   const savePreference = (preference: string) => {
     localStorage.setItem('dbPreference', preference);
