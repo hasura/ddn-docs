@@ -1,0 +1,73 @@
+import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
+
+## Step 1. Create a function
+
+Let's create a dummy `insertProduct` function in the `functions.ts` file in the connector directory for a Node.js
+connector.
+
+If in the JSDoc for this function we omit the `@readOnly` tag, it will be
+exposed as a mutation function in the metadata. We can even add documentation that will be visible in the GraphiQL
+explorer by tagging `@param` for the argument(s) and `@returns` for what will be returned by the mutation.
+
+```ts
+import { MongoClient } from 'mongodb';
+import { config } from 'dotenv';
+
+config();
+
+/**
+ * @param productData An object containing the product's data.
+ * @returns The ID of the newly inserted product.
+ */
+export async function insertProduct(productData: { title: string; description: string }): Promise<string> {
+  const client = new MongoClient(process.env.MONGODB_DATABASE_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('yourDatabaseName'); // Replace with your database name
+    const collection = database.collection('product');
+
+    const result = await collection.insertOne({
+      title: productData.title,
+      description: productData.description,
+    });
+
+    if (result.insertedId) {
+      return result.insertedId.toString();
+    } else {
+      throw new Error('Failed to insert product');
+    }
+  } finally {
+    await client.close();
+  }
+}
+```
+
+## Step 2. Track the function
+
+We'll track our function using the CLI by first updating our `DataConnectorLink` for this data connector:
+
+```bash
+ddn connector-link update <connector-name>
+```
+
+And then bringing in the new command:
+
+```bash
+ddn command add --connector-link <connector-link-name> --name insertProduct
+```
+
+## Step 3. Create a new build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
+
+<!-- TODO: Add screenshot of console -->

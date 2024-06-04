@@ -1,0 +1,202 @@
+import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
+
+## What's about to happen?
+
+We want to connect our MongoDB database to our API. To do this, we use the Hasura MongoDB data connector to facilitate
+the connection and then introspect the database to generate JSON which the Hasura CLI will then use to create metadata
+which can then define your API.
+
+## Step 1. Initialize the MongoDB connector
+
+:::tip Required
+
+- <BaseUrlLink to="/getting-started/prerequisites" text="DDN CLI" />
+- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
+- A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
+
+:::
+
+To initialize the MongoDB connector, run the following, replacing `<subgraph-name>` with the name of the subgraph which
+will contain this data connector:
+
+```bash
+ddn connector init my_mongo --dir <subgraph-name>/connector/my_mongo --hub-connector hasura/mongodb
+```
+
+In this command, we're passing a few important values.
+
+**Connector name**
+
+We're naming the connector `my_mongo` in this example, but you can call it whatever makes sense to you. For example, if
+this connector is integrating a database all about product metadata, it would make sense to name it something like
+`product_metadata_mongodb_connector`.
+
+**Directory for the connector**
+
+We want to keep our project organized with each data connector's configuration located in a relevant subgraph directory.
+To do this we're passing the required `--dir` flag to tell the CLI that the configuration files it's generating should
+be saved in the subgraph directory. In this example the CLI will create a `connector/my_mongo` directory if it doesn't
+exist.
+
+:::note Best practice
+
+Importantly, a data connector can only connect to one data source.
+
+The name of the connector and the directory in which the configuration is stored, `my_mongo` in this example, should
+match for convenience and clarity sake.
+
+:::
+
+**Connector type**
+
+We're specifying that this connector should be the: `hasura/mongodb`, connector listed in the
+[Connector Hub](https://hasura.io/connectors/mongodb).
+
+### What did this do?
+
+In the `<subgraph-name>/connector/my_mongo` directory which we specified in the command, the CLI created:
+
+- A `connector.yaml` file which contains the configuration for the connector.
+- A `connector-metadata.yaml` file which contains extra metadata for the connector.
+- A `docker-compose.my_mongo.yaml` a file to run the MongoDB data connector locally in Docker.
+- A placeholder `.buildignore` file to prevent unnecessary files from being included in the build.
+- An `.env.local` placeholder file for environment variables for pertaining to running this connector locally.
+
+Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
+about the MongoDB database or the data it contains. That's coming up in the next steps.
+
+## Step 2. Modify the port
+
+Typically, connectors default to port `8080`. Each time you add a connector, we recommend incrementing the published
+port by one to avoid port collisions. For example:
+
+Change the value of your `my_mongo` connector's published port in your
+`<subgraph-name>/connector/my_mongo/docker-compose.my_mongo.yaml` to `8082` to avoid port collisions with other
+connectors:
+
+```yaml
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: '8082'
+    #highlight-end
+    protocol: tcp
+```
+
+:::tip Consistency is important
+
+In subsequent steps, when running your connector locally, it's critical to ensure this port value matches the connection
+string you provide in your subgraph's `.env.<subgraph-name>` file.
+
+:::
+
+## Step 3. Include the MongoDB connector's Docker compose file
+
+In our main `docker-compose.hasura.yaml` in the **_root of the project_**, add the following at the top taking care to
+replace `<subgraph-name>` with your subgraph:
+
+```yaml
+include:
+  - path: <subgraph-name>/connector/my_mongo/docker-compose.my_mongo.yaml
+```
+
+### What did this do?
+
+We want to be able to start our MongoDB connector when we start our main top-level Hasura engine services in Docker. By
+including the connector's compose file in the main `docker-compose.yaml`, we're telling Docker Compose to start the
+MongoDB connector alongside those main services.
+
+## Step 4. Add the MongoDB connection URI
+
+Now that our MongoDB data connector has been scaffolded out for us, we need to provide a **connection string** so that
+we can connect to it. To do this we'll first need a MongoDB database to connect to.
+
+The CLI has provided an `.env` file for our connector. We can add a key-value pair of `MONGODB_DATABASE_URI` along with
+the connection string itself to this file and our connector will use this to connect to our MongoDB database. The file,
+after adding the `MONGODB_DATABASE_URI` should look like this example:
+
+```env
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
+OTEL_SERVICE_NAME=my_pg
+MONGODB_DATABASE_URI="mongodb+srv://john:N2Mvjfd3DldRjVrP@mydemo.shh5x2t.mongodb.net/sample_demo?retryWrites=true&w=majority&appName=MyDemo"
+```
+
+Remember to use quotes as the string will likely have some characters which will break the `.env` file if not enclosed.
+
+This value is already referenced in the scaffolded out
+`<subgraph-name>/connector/my_mongo/hasura-connector/connector-metadata.yaml` file. Eg:
+
+```yaml
+---
+supportedEnvironmentVariables:
+  - name: MONGODB_DATABASE_URI
+description: The URI for the MongoDB database
+```
+
+You can use a local MongoDB database, or a cloud-hosted one like MongoDB Atlas. Check out
+[this page](https://www.mongodb.com/docs/manual/installation/) for a list of options for running a MongoDB database if
+you don't already have one. If you already have one you can connect to, you can go ahead and do that. Hasura DDN will
+not modify your database in any way, so you can use an existing database without any worries.
+
+:::info Environment-specific caveats
+
+**Local Mongo**
+
+If you're using a local MongoDB database — such as through [Docker](https://hub.docker.com/_/mongodb) — you can connect
+to it directly from the data connector. However, if you deploy your supergraph to Hasura DDN the cloud-hosted version of
+your data connector won't be able to find your database. So tunneling that connection from the start with a tool like
+[ngrok](https://ngrok.com/) is a good idea.
+
+**Cloud-hosted MongoDB**
+
+Alternatively, if you have a cloud-hosted database, perhaps with
+[MongoDB Atlas](https://www.mongodb.com/products/platform/atlas-database) as Hasura DDN will need to reach your
+database, ensure you've allowlisted `0.0.0.0/0` so that DDN is able to reach it. To learn how to deploy a MongoDB Atlas
+cluster, see the [official documentation](https://www.mongodb.com/docs/atlas/getting-started/).
+
+:::
+
+## Step 5. Introspect your database
+
+With the connector configured, we can now use the CLI to introspect our MongoDB database to create a source-specific
+configuration file for our connector:
+
+```bash
+ddn connector introspect --connector <subgraph-name>/connector/my_mongo/connector.yaml
+```
+
+### What did this do?
+
+We specify the connector (and by proxy, the data source) that we want to introspect with the `--connector` flag and
+provide it with the location of that `connector.yaml` configuration file.
+
+The CLI will introspect the MongoDB database and generate a few new files in the `connector/my_mongo/` directory.
+
+These include a `configuration.json` file and a new `schema` directory with a definition of all collections found in
+MongoDB in a JSON [NDC-compliant](https://github.com/hasura/ndc-spec) Hasura metadata format.
+
+Eg:
+
+```text
+.
+├── comments.json
+├── embedded_movies.json
+├── movies.json
+├── sessions.json
+├── theaters.json
+└── users.json
+```
+
+:::tip o11y via OpenTelemetry
+
+Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
+
+:::
+
+## Next steps
+
+With this JSON configuration, which represents the collections in MongoDB, we can now use it to
+
+<BaseUrlLink to="/getting-started/connect-to-data/link-a-connector" text="generate Hasura metadata" />.
+
