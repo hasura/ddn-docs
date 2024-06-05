@@ -21,13 +21,14 @@ authoring and maintaining custom code, or business logic. With Hasura, you can i
 logic directly with Hasura DDN and your API.
 
 Hasura handles business logic using the TypeScript data connector. This enables you to author you own custom code,
-written in TypeScript, and host it alongside your API. Using this connector, you can transform or enrich data
-before it reaches your consumers, or perform any other app business logic you may need.
+written in TypeScript, and host it alongside your API. Using this connector, you can transform or enrich data before it
+reaches your consumers, or perform any other app business logic you may need.
 
 You can then integrate this custom code as individual [**commands**](/supergraph-modeling/commands.mdx) in your
 metadata. This process enables you to simplify client applications and speed up your backend development.
 
 In this guide we will:
+
 - Initialize the `hasura/nodejs` data connector
 - Work with Node.js and npm to create a simple script
 - Add a new `DataConnectorLink`
@@ -39,8 +40,8 @@ In this guide we will:
 ### Step 1. Initialize the TypeScript connector
 
 Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
-values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the
-connector hub:
+values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector
+hub:
 
 ```bash
 ddn connector init my_ts --dir <subgraph-name>/connector/my_ts --hub-connector hasura/nodejs
@@ -96,6 +97,13 @@ Within our `my_ts` directory, let's install any necessary dependencies:
 cd <subgraph>/connector/my_ts && npm i
 ```
 
+Also, install the `dotenv-cli` package globally so that if you want to, you can load and use environment variables in
+your local functions from your `.env.local` file:
+
+```bash
+npm install -g dotenv-cli
+````
+
 Then, from the `my_ts` directory run this command to start and watch the connector for any changes:
 
 ```bash
@@ -114,55 +122,37 @@ We'll replace the default `hello()` function in our `functions.ts` file with the
  * @readonly
  */
 export async function formatTimezoneDate(dateString: string): Promise<string> {
-    const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        timeZoneName: 'short'
-    };
+  const date = new Date(dateString);
 
-    const day = date.getDate();
-    const nth = (d: number) => {
-        if (d > 3 && d < 21) return 'th';
-        switch (d % 10) {
-            case 1: return 'st';
-            case 2: return 'nd';
-            case 3: return 'rd';
-            default: return 'th';
-        }
-    };
+  const day = date.getDate();
+  const nth = (d: number) => {
+    if (d > 3 && d < 21) return "th";
+    switch (d % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
+  };
 
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    const hour = hours % 12 || 12;
-    const minute = minutes.toString().padStart(2, '0');
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? "pm" : "am";
+  const hour = hours % 12 || 12;
 
-    const dayOfWeek = date.toLocaleString('en-US', { weekday: 'long' });
-    const month = date.toLocaleString('en-US', { month: 'long' });
-    const year = date.getFullYear();
+  const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
+  const month = date.toLocaleString("en-US", { month: "long" });
+  const year = date.getFullYear();
 
-    return `${hour}${ampm}, ${dayOfWeek}, ${month} ${day}${nth(day)}, ${year}.`;
+  return `${hour}${ampm}, ${dayOfWeek}, ${month} ${day}${nth(day)}, ${year}.`;
 }
 ```
 
-:::tip Install any dependency and use environment variables
-
 As this is a Node.js project, you can install any dependency!
-
-You can also utilize any environment variable which is stored in the  `.env.local` file in the `my_ts` subdirectory.
-You can add any values here that you'd like and reference them in your functions. Add the dotenv-cli globally so
-that you can load environment variables from your `.env.local` file:
-
-```bash
-npm i -g dotenv-cli
-```
-
-:::
 
 ### Step 4. Add the DataConnectorLink
 
@@ -176,10 +166,9 @@ ddn connector-link add my_ts
 Then, update the values in your subgraph's `.env.<subgraph-name>` file to include this connector.
 
 ```env
-UX_MY_TS_READ_URL=http://local.hasura.dev:8083
-UX_MY_TS_WRITE_URL=http://local.hasura.dev:8083
+<subgraph-name>_<connector-name>_READ_URL=http://local.hasura.dev:<PORT>
+<subgraph-name>_<connector-name>_WRITE_URL=http://local.hasura.dev:<PORT>
 ```
-
 
 ### Step 5. Track the new function
 
@@ -198,12 +187,22 @@ Next, let's create a new build of our supergraph:
 ddn supergraph build local --output-dir ./engine
 ```
 
+:::tip Start your engines!
+
+Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command:
+
+```bash
+HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+:::
+
 You should see your command available, along with its documentation, in the GraphiQL explorer.
 
 ## What did this do?
 
-The commands above initialized a new TypeScript connector, installed dependencies, and created a new function to format a
-timestamp with timezone into a human-readable format. We then added this function to our metadata as a command, and
+The commands above initialized a new TypeScript connector, installed dependencies, and created a new function to format
+a timestamp with timezone into a human-readable format. We then added this function to our metadata as a command, and
 created a new build of our supergraph.
 
 ## Next Steps
