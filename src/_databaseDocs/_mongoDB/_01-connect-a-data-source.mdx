@@ -91,34 +91,18 @@ string you provide in your subgraph's `.env.<subgraph-name>` file.
 
 :::
 
-## Step 3. Include the MongoDB connector's Docker compose file
-
-In our main `docker-compose.hasura.yaml` in the **_root of the project_**, add the following at the top taking care to
-replace `<subgraph-name>` with your subgraph:
-
-```yaml
-include:
-  - path: <subgraph-name>/connector/my_mongo/docker-compose.my_mongo.yaml
-```
-
-### What did this do?
-
-We want to be able to start our MongoDB connector when we start our main top-level Hasura engine services in Docker. By
-including the connector's compose file in the main `docker-compose.yaml`, we're telling Docker Compose to start the
-MongoDB connector alongside those main services.
-
-## Step 4. Add the MongoDB connection URI
+## Step 3. Add the MongoDB connection URI
 
 Now that our MongoDB data connector has been scaffolded out for us, we need to provide a **connection string** so that
 we can connect to it. To do this we'll first need a MongoDB database to connect to.
 
-The CLI has provided an `.env` file for our connector. We can add a key-value pair of `MONGODB_DATABASE_URI` along with
-the connection string itself to this file and our connector will use this to connect to our MongoDB database. The file,
-after adding the `MONGODB_DATABASE_URI` should look like this example:
+The CLI has provided an `.env.local` file for our connector. We can add a key-value pair of `MONGODB_DATABASE_URI` along
+with the connection string itself to this file and our connector will use this to connect to our MongoDB database. The
+file, after adding the `MONGODB_DATABASE_URI` should look like this example:
 
 ```env
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
-OTEL_SERVICE_NAME=my_pg
+OTEL_SERVICE_NAME=my_mongo
 MONGODB_DATABASE_URI="mongodb+srv://john:N2Mvjfd3DldRjVrP@mydemo.shh5x2t.mongodb.net/sample_demo?retryWrites=true&w=majority&appName=MyDemo"
 ```
 
@@ -157,7 +141,7 @@ cluster, see the [official documentation](https://www.mongodb.com/docs/atlas/get
 
 :::
 
-## Step 5. Introspect your database
+## Step 4. Introspect your database
 
 With the connector configured, we can now use the CLI to introspect our MongoDB database to create a source-specific
 configuration file for our connector:
@@ -196,7 +180,6 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 ## Next steps
 
+<!-- prettier-ignore -->
 With this JSON configuration, which represents the collections in MongoDB, we can now use it to
-
-<BaseUrlLink to="/getting-started/connect-to-data/link-a-connector" text="generate Hasura metadata" />.
-
+<BaseUrlLink to="/getting-started/connect-to-data/create-source-metadata" text="generate Hasura metadata" />.

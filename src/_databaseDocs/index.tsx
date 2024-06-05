@@ -5,10 +5,10 @@ import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import PostgreSqlConnect from '@site/src/_databaseDocs/_postgreSQL/_01-connect-a-data-source.mdx';
 import MongoDBConnect from '@site/src/_databaseDocs/_mongoDB/_01-connect-a-data-source.mdx';
-import PostgreSqlLink from '@site/src/_databaseDocs/_postgreSQL/_02-link-a-connector.mdx';
-import MongoDBLink from '@site/src/_databaseDocs/_mongoDB/_02-link-a-connector.mdx';
-import PostgreSqlExposition from '@site/src/_databaseDocs/_postgreSQL/_03-expose-source-entities.mdx';
-import MongoDBExposition from '@site/src/_databaseDocs/_mongoDB/_03-expose-source-entities.mdx';
+import PostgreSqlLink from '@site/src/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
+import MongoDBLink from '@site/src/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
+import PostgreSqlExposition from '@site/src/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
+import MongoDBExposition from '@site/src/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
 import PostgreSqlMutation from '@site/src/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
 import MongoDBMutation from '@site/src/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
 
@@ -28,11 +28,18 @@ const DatabaseContentLoader = () => {
   const [dbPreference, setDbPreference] = useState(null);
 
   useEffect(() => {
-    const savedPreference = localStorage.getItem('dbPreference');
-    if (savedPreference) {
-      setDbPreference(savedPreference);
+    const params = new URLSearchParams(location.search);
+    const dbParam = params.get('db');
+
+    if (dbParam && dataSources[dbParam]) {
+      savePreference(dbParam);
+    } else {
+      const savedPreference = localStorage.getItem('dbPreference');
+      if (savedPreference) {
+        setDbPreference(savedPreference);
+      }
     }
-  }, []);
+  }, [location.search]);
 
   const savePreference = (preference: string) => {
     localStorage.setItem('dbPreference', preference);
@@ -56,7 +63,7 @@ const DatabaseContentLoader = () => {
           default:
             return <div />;
         }
-      case 'link-a-connector':
+      case 'create-source-metadata':
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlLink />;
@@ -65,7 +72,7 @@ const DatabaseContentLoader = () => {
           default:
             return <div />;
         }
-      case 'expose-source-entities':
+      case 'add-source-entities':
         switch (dbPreference) {
           case 'PostgreSQL':
             return <PostgreSqlExposition />;
