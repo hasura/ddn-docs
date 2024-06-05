@@ -72,7 +72,24 @@ Add the port's value to the `my_subgraph/connector/my_ts/.env.local` in your `my
 ```env
 HASURA_CONNECTOR_PORT=8083
 ```
-:::
+
+### Step 5. Add the DataConnectorLink
+
+As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
+functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
+
+```bash
+ddn connector-link add my_ts
+```
+
+Then, update the values in your subgraph's `.env.my_subgraph` file to include this connector.
+
+```env
+MY_SUBGRAPH_MY_TS_READ_URL=http://local.hasura.dev:<port>
+MY_SUBGRAPH_MY_TS_WRITE_URL=http://local.hasura.dev:<port>
+```
+
+These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
 
 ### Step 3. Install npm package dependencies
 
@@ -151,24 +168,6 @@ export async function formatTimezoneDate(dateString: string): Promise<string> {
 
 As this is a Node.js project, you can install any dependency!
 
-### Step 5. Add the DataConnectorLink
-
-As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
-functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
-
-```bash
-ddn connector-link add my_ts
-```
-
-Then, update the values in your subgraph's `.env.my_subgraph` file to include this connector.
-
-```env
-MY_SUBGRAPH_MY_TS_READ_URL=http://local.hasura.dev:<port>
-MY_SUBGRAPH_MY_TS_WRITE_URL=http://local.hasura.dev:<port>
-```
-
-These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
-
 ### Step 6. Track the new function
 
 To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
@@ -196,7 +195,10 @@ HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura
 
 :::
 
-You should see your command available, along with its documentation, in the GraphiQL explorer.
+You should see your command available, along with its documentation, in the GraphiQL explorer which you should be
+able to access at `https://console.hasura.io/local/graphql?url=http://localhost:3000`.
+
+<Thumbnail src="/img/get-started/beta/console_business_logic_demo_query.png" alt="Demo Business Logic query" width="1000px" />
 
 ## What did this do?
 
