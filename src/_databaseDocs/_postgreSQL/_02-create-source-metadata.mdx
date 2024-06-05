@@ -29,10 +29,10 @@ into `hml` syntax and add it to this file with the `connector-link update` comma
 Let's name the `hml` file the same as our connector, `my_pg`:
 
 ```bash title="Run the following from the root of your project"
-ddn connector-link add my_pg --subgraph <subgraph-name>
+ddn connector-link add my_pg --subgraph my_subgraph
 ```
 
-The new file is scaffolded out at `<subgraph-name>/metadata/my_pg/my_pg.hml`.
+The new file is scaffolded out at `my_subgraph/metadata/my_pg/my_pg.hml`.
 
 <details>
   <summary>Click here for an example `hml` `DataConnectorLink` file</summary>
@@ -65,13 +65,13 @@ schema:
 
 </details>
 
-The generated file has two environment variables — one for reads and one for writes — that you'll need to add to your
-subgraph's `.env.<subgraph-name>` file. Each key is prefixed by the subgraph name, an underscore, and the name of the
+The generated file has two environment variables — one for reads and one for writes — that you'll need to add to your
+subgraph's `.env.my_subgraph` file. Each key is prefixed by the subgraph name, an underscore, and the name of the
 connector. Ensure the port value matches what is published in your connector's docker compose file.
 
 ```env
-<SUBGRAPH_NAME>_<CONNECTOR_NAME>_READ_URL=http://local.hasura.dev:<port>
-<SUBGRAPH_NAME>_<CONNECTOR_NAME>_WRITE_URL=http://local.hasura.dev:<port>
+MY_SUBGRAPH_MY_PG_READ_URL=http://local.hasura.dev:<port>
+MY_SUBGRAPH_MY_PG_WRITE_URL=http://local.hasura.dev:<port>
 ```
 
 These values are for the PostgreSQL connector itself and utilize `local.hasura.dev` to ensure proper resolution within
@@ -95,11 +95,11 @@ http://localhost:<PORT>/schema
 :::tip Prefer to start all your services together?
 
 In your `docker-compose.hasura.yaml` file found in the root of your project's directory, you can add the following at
-the top, taking care to modify the `subgraph-name`:
+the top:
 
 ```yaml
 include:
-  - path: <subgraph-name>/connector/my_pg/docker-compose.my_pg.yaml
+  - path: my_subgraph/connector/my_pg/docker-compose.my_pg.yaml
 ```
 
 Then, whenever running the following, you'll bring up the GraphQL engine, observability tools, and any connectors you've
@@ -118,10 +118,10 @@ we can run the update command to have the CLI look at the configuration JSON and
 schema in `hml` format. In a new terminal tab, run:
 
 ```bash
-ddn connector-link update my_pg --subgraph <subgraph-name>
+ddn connector-link update my_pg --subgraph my_subgraph
 ```
 
-After this command runs, you can open your `<subgraph>/my_pg/metadata/my_pg.hml` file and see your metadata completely
+After this command runs, you can open your `my_subgraph/my_pg/metadata/my_pg.hml` file and see your metadata completely
 scaffolded out for you 🎉
 
 ## What did this do?
