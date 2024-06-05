@@ -22,11 +22,11 @@ deprecate certain fields.
 
 :::
 
-If you look in your `<subgraph>/connector/my_pg/metadata/my_pg.hml` file, you'll see `object_types` for each table in
+If you look in your `my_subgraph/metadata/my_pg.hml` file, you'll see `object_types` for each table in
 your PostgreSQL database. For each of these, you can run the following command to create a model:
 
-```bash
-ddn model add --connector-link my_pg --name <object_type>
+```bash title="For example, with an object_type of users"
+ddn model add --connector-link my_pg --name users
 ```
 
 :::tip Casing matters
@@ -44,11 +44,10 @@ serving as a file to which you can add new metadata objects to customize the mod
 
 <details>
   <summary>
-    Click here to see an example `hml` file for a model.
+    Click here to see an example `hml` file for a model called `Carts`.
   </summary>
 
-```yaml
-# Carts.hml
+```yaml title="Carts.hml"
 ---
 kind: ObjectType
 version: v1
@@ -68,8 +67,8 @@ definition:
     - name: userId
       type: Uuid!
   graphql:
-    typeName: App_Carts
-    inputTypeName: App_CartsInput
+    typeName: MySubgraph_Carts
+    inputTypeName: MySubgraph_CartsInput
   dataConnectorTypeMapping:
     - dataConnectorName: pg_connector
       dataConnectorObjectType: carts
@@ -137,7 +136,7 @@ definition:
       operators:
         enableAll: true
   graphql:
-    typeName: App_CartsBoolExp
+    typeName: MySubgraph_CartsBoolExp
 
 ---
 kind: Model
@@ -170,12 +169,12 @@ definition:
         enableAll: true
   graphql:
     selectMany:
-      queryRootField: app_carts
+      queryRootField: mySubgraph_carts
     selectUniques:
-      - queryRootField: app_cartsById
+      - queryRootField: mySubgraph_cartsById
         uniqueIdentifier:
           - id
-    orderByExpressionType: App_CartsOrderBy
+    orderByExpressionType: MySubgraph_CartsOrderBy
 
 ---
 kind: ModelPermissions
@@ -194,10 +193,10 @@ definition:
 
 :::tip Ready to import _all_ your tables?
 
-You can do this in one convenience command, which will also bring in _all_ foreign-key relationships:
+You can do this in one convenience command, which will also bring in _all_ foreign-key relationships.
 
-```bash
-ddn connector-link update <connector-name> --subgraph <subgraph-name> --add-all-resources
+```bash title="From the root of your project, run:"
+ddn connector-link update <connector-name> --subgraph my_subgraph --add-all-resources
 ```
 
 :::

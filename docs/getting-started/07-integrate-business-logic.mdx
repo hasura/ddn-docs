@@ -44,11 +44,11 @@ values being passed to them. We'll call this the `ts_connector` and use the `has
 hub:
 
 ```bash
-ddn connector init my_ts --dir <subgraph-name>/connector/my_ts --hub-connector hasura/nodejs
+ddn connector init my_ts --subgraph my_subgraph --hub-connector hasura/nodejs
 ```
 
-This will create the following directory structure in your subgraph's connector directory's new `my_ts` directory, with
-the `functions.ts` file being your connector's entrypoint:
+This will create the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts`
+file being your connector's entrypoint:
 
 ```bash
 .
@@ -65,36 +65,38 @@ the `functions.ts` file being your connector's entrypoint:
 └── tsconfig.json
 ```
 
-:::tip Modify the connector's published port
+### Step 2. Modify the connector's port
 
-Like with other connectors, to avoid port collisions, we can change the connector's published port to something else. In
-the `docker-compose.my_ts.yaml` file, which can be found in the directory you created in the last step, replace the
-existing `published` value with:
-
-```yaml
-ports:
-  - mode: ingress
-    target: 8080
-    #highlight-start
-    published: "8083"
-    #highlight-end
-    protocol: tcp
-```
-
-Then, add the port's value to the `.env.local` in your `my_ts` directory:
+Add the port's value to the `my_subgraph/connector/my_ts/.env.local` in your `my_ts` directory:
 
 ```env
 HASURA_CONNECTOR_PORT=8083
 ```
 
-:::
+### Step 3. Add the DataConnectorLink
 
-### Step 2. Install npm package dependencies
+As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
+functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
+
+```bash
+ddn connector-link add my_ts
+```
+
+Then, update the values in your subgraph's `.env.my_subgraph` file to include this connector.
+
+```env
+MY_SUBGRAPH_MY_TS_READ_URL=http://local.hasura.dev:<port>
+MY_SUBGRAPH_MY_TS_WRITE_URL=http://local.hasura.dev:<port>
+```
+
+These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
+
+### Step 4. Install npm package dependencies
 
 Within our `my_ts` directory, let's install any necessary dependencies:
 
 ```bash
-cd <subgraph>/connector/my_ts && npm i
+cd my_subgraph/connector/my_ts && npm i
 ```
 
 Also, install the `dotenv-cli` package globally so that if you want to, you can load and use environment variables in
@@ -110,7 +112,20 @@ Then, from the `my_ts` directory run this command to start and watch the connect
 dotenv -e .env.local -- npm run watch
 ```
 
-### Step 3. Write business logic
+:::info Node.js version and Permissions
+
+The `hasura/nodejs` connector uses Node.js version `>=20`. Please make sure you have the correct version installed.
+
+If you get a warning about needing permissions to install globally, you can use `sudo` to install the package with
+your user system password:
+
+```bash
+sudo npm install -g dotenv-cli
+```
+
+:::
+
+### Step 5. Write business logic
 
 In this simple example, we're going to transform a timestamp with timezone (eg: "2024-03-14T08:00:00Z") into a nicely
 formatted version for humans, eg: "8am, Thursday, March 14th, 2024."
@@ -140,7 +155,6 @@ export async function formatTimezoneDate(dateString: string): Promise<string> {
   };
 
   const hours = date.getHours();
-  const minutes = date.getMinutes();
   const ampm = hours >= 12 ? "pm" : "am";
   const hour = hours % 12 || 12;
 
@@ -154,32 +168,16 @@ export async function formatTimezoneDate(dateString: string): Promise<string> {
 
 As this is a Node.js project, you can install any dependency!
 
-### Step 4. Add the DataConnectorLink
-
-As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
-functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
-
-```bash
-ddn connector-link add my_ts
-```
-
-Then, update the values in your subgraph's `.env.<subgraph-name>` file to include this connector.
-
-```env
-<subgraph-name>_<connector-name>_READ_URL=http://local.hasura.dev:<PORT>
-<subgraph-name>_<connector-name>_WRITE_URL=http://local.hasura.dev:<PORT>
-```
-
-### Step 5. Track the new function
+### Step 6. Track the new function
 
 To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
 related Hasura metadata:
 
 ```bash
-ddn connector-link update my_ts --subgraph <subgraph-name> --add-all-resources
+ddn connector-link update my_ts --subgraph my_subgraph --add-all-resources
 ```
 
-### Step 6. Create a new API build and test
+### Step 7. Create a new API build and test
 
 Next, let's create a new build of our supergraph:
 
@@ -197,7 +195,10 @@ HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura
 
 :::
 
-You should see your command available, along with its documentation, in the GraphiQL explorer.
+You should see your command available, along with its documentation, in the GraphiQL explorer which you should be
+able to access at `https://console.hasura.io/local/graphql?url=http://localhost:3000`.
+
+<Thumbnail src="/img/get-started/beta/console_business_logic_demo_query.png" alt="Demo Business Logic query" width="1000px" />
 
 ## What did this do?
 
