@@ -17,7 +17,7 @@ keywords:
 We're going to add a subgraph to our supergraph.
 
 A [**subgraph**](/project-configuration/subgraphs.mdx) is a way of organizing your data and allows you to connect data
-sources to your supergraph. A supergraph must have at least one subgraph.
+sources to your supergraph. A supergraph must have at least one subgraph, at least if you want it to do anything 😉.
 
 ## Steps
 
@@ -27,24 +27,25 @@ sources to your supergraph. A supergraph must have at least one subgraph.
 
 :::
 
-**Inside your existing supergraph directory**, run the following command to create a new Subgraph:
+Creating a subgraph is simple.
 
-```bash
-ddn subgraph init <subgraph-name>
+```bash title="At the root of your project, run:"
+ddn subgraph init my_subgraph
 ```
 
 The CLI will respond with a success message.
 
+You can read more about appropriate [subgraph naming](#naming) below.
+
 ## What did this do?
 
-This command created a directory in your supergraph directory with the subgraph name you provided with an empty
-`.env.<subgraph-name>` file in it.
+This command creates a sub-directory within your supergraph directory, named after the subgraph you specified. Inside
+this new sub-directory, it also creates an empty `.env.my_subgraph` file.
 
 It also added an object including your new subgraph in the `subgraphs` section of your `supergraph.yaml` file, which is
 the configuration file for your supergraph and can be found in the root of your project's directory.
 
 However, without a data connector in our subgraph it's just a placeholder right now...which doesn't do much.
-
 
 :::info More about subgraphs
 
@@ -52,9 +53,9 @@ However, without a data connector in our subgraph it's just a placeholder right 
 
 Subgraphs are used to maintain a logical separation of concerns and/or to allow different teams to work on different
 parts of the supergraph at the same time without stepping on each other's toes. Usually, a subgraph is "owned" and
-maintained by a team that is responsible for the data source, or more broadly: "data domain", that it connects to.
-And by convention, one data domain is allocated to one subgraph. A subgraph is analogous to a microservice owned by
-a particular team.
+maintained by a team that is responsible for the data source, or more broadly: "data domain", that it connects to. And
+by convention, one data domain is allocated to one subgraph. A subgraph is analogous to a microservice owned by a
+particular team.
 
 When we talk about data domains, we're talking about the collection of data and operations for one area of the business,
 or team within the business. This could be a single database, a set of databases, a database and business logic, some
@@ -63,26 +64,26 @@ other 3rd party APIs, or a combination of all of these.
 Subgraphs can reference each other, allowing, for example, the creation of relationships between them.
 
 The supergraph is the composition of all subgraphs and their relationships, but it does not care how the metadata is
-structured or organized into directories. That is up to the developer. The supergraph only cares that all metadata
-is valid and can be compiled into an API build.
+structured or organized into directories. That is up to the developer. The supergraph only cares that all metadata is
+valid and can be compiled into an API build.
 
-Subgraphs have their own permission models and development lifecycles separate to that of the supergraph. They can
-be developed, tested, and built independently while the supergraph guarantees the integrity of subgraph composition.
-Meaning that the supergraph will only build, and generate an API if all subgraphs are in a valid state. In this
-Getting Started section we propose best-practice for organizing your subgraphs, but it can be done however you choose.
+Subgraphs have their own permission models and development lifecycles separate to that of the supergraph. They can be
+developed, tested, and built independently while the supergraph guarantees the integrity of subgraph composition.
+Meaning that the supergraph will only build, and generate an API if all subgraphs are in a valid state. In this Getting
+Started section we propose best-practice for organizing your subgraphs, but it can be done however you choose.
 
 ### Naming
 
 Let's say we're in an organization and the data source we'll be connecting to is for customer profile data. The team
-responsible for this data and some services related to it is called the "Customer Data" team. As such, we could
-create a `customer_data_team` subgraph, reflecting the team's name, indicating that they're the ones who will be
-working on it. Or, we could choose to be more specific and name it `customer_profile` to reflect the data domain
-itself, if multiple teams are going to work on it.
+responsible for this data and some services related to it is called the "Customer Data" team. As such, we could create a
+`customer_data_team` subgraph, reflecting the team's name, indicating that they're the ones who will be working on it.
+Or, we could choose to be more specific and name it `customer_profile` to reflect the data domain itself, if multiple
+teams are going to work on it.
 
 Another example is, if we're working with a data source for a small project which we plan on using to contain all the
 data for our whole project, and it's all in PostgreSQL, with some business logic in TypeScript, we could name it
-`postgres_data`, or `app` to keep it simple. This one subgraph would contain all the data domain specific metadata
-for the whole project, at least for the time being.
+`postgres_data`, or `app` to keep it simple. This one subgraph would contain all the data domain specific metadata for
+the whole project, at least for the time being.
 
 :::
 
