@@ -16,9 +16,9 @@ metadata which can then define your API.
 
 :::
 
-To initialize the PostgreSQL connector, run the following:
+To initialize the PostgreSQL connector, run the following.
 
-```bash
+```bash title="From the root of your project, run:"
 ddn connector init my_pg  --subgraph my_subgraph  --hub-connector hasura/postgres
 ```
 
@@ -33,9 +33,7 @@ this connector is integrating a database all about product metadata, it would ma
 **Directory for the connector**
 
 We want to keep our project organized with each data connector's configuration located in a relevant subgraph directory.
-To do this we're passing the required `--dir` flag to tell the CLI that the configuration files it's generating should
-be saved in the subgraph directory. In this example the CLI will create a `connector/my_pg` directory if it doesn't
-exist.
+In this example the CLI will create a `connector/my_pg` directory if it doesn't exist.
 
 :::note Best practice
 
@@ -72,7 +70,7 @@ port by one to avoid port collisions. For example:
 Change the value of your `my_pg` connector's published port in your
 `my_subgraph/connector/my_pg/docker-compose.my_pg.yaml` to `8082` to avoid port collisions with other connectors:
 
-```yaml
+```yaml title="my_subgraph/connector/my_pg/docker-compose.my_pg.yaml"
 ports:
   - mode: ingress
     target: 8080
@@ -95,11 +93,11 @@ Now that our connector has been scaffolded out for us, we need to provide a conn
 can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
 caveats to consider before continuing.
 
-The CLI has provided an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. We can
-add a key-value pair of `CONNECTION_URI` along with the connection string itself to this file and our connector will use
-this to connect to our PostgreSQL database. The file, after adding the `CONNECTION_URI` should look like this example:
+The CLI has provided an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. We can add a
+key-value pair of `CONNECTION_URI` along with the connection string itself to this file and our connector will use this
+to connect to our PostgreSQL database. The file, after adding the `CONNECTION_URI` should look like this example:
 
-```env
+```env title="my_subgraph/connector/my_pg/.env.local"
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=my_subgraph_my_pg
 #highlight-start
@@ -143,9 +141,9 @@ allowlisted `0.0.0.0/0` so that DDN is able to reach it.
 ## Step 4. Introspect your database
 
 With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a source-specific
-configuration file for our connector. In a new tab, run:
+configuration file for our connector.
 
-```bash
+```bash title="From the root of your project run:"
 ddn connector introspect --connector my_subgraph/connector/my_pg/connector.yaml
 ```
 

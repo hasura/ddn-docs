@@ -28,7 +28,7 @@ into `hml` syntax and add it to this file with the `connector-link update` comma
 
 Let's name the `hml` file the same as our connector, `my_pg`:
 
-```bash title="Run the following from the root of your project"
+```bash title="Run the following from the root of your project:"
 ddn connector-link add my_pg --subgraph my_subgraph
 ```
 
@@ -37,7 +37,7 @@ The new file is scaffolded out at `my_subgraph/metadata/my_pg/my_pg.hml`.
 <details>
   <summary>Click here for an example `hml` `DataConnectorLink` file</summary>
 
-```yaml
+```yaml title="my_pg.hml"
 kind: DataConnectorLink
 version: v1
 definition:
@@ -69,7 +69,7 @@ The generated file has two environment variables — one for reads and one for w
 subgraph's `.env.my_subgraph` file. Each key is prefixed by the subgraph name, an underscore, and the name of the
 connector. Ensure the port value matches what is published in your connector's docker compose file.
 
-```env
+```env title="my_subgraph/.env.my_subgraph"
 MY_SUBGRAPH_MY_PG_READ_URL=http://local.hasura.dev:<port>
 MY_SUBGRAPH_MY_PG_WRITE_URL=http://local.hasura.dev:<port>
 ```
@@ -79,9 +79,9 @@ the docker container.
 
 ## Step 2. Start the connector's docker compose
 
-Let's start our connector's docker compose file. Run the following from the connector's subdirectory inside a subgraph:
+Let's start our connector's docker compose file.
 
-```bash
+```bash title="Run the following from the connector's subdirectory inside a subgraph:"
 docker compose -f docker-compose.my_pg.yaml up
 ```
 
@@ -94,10 +94,10 @@ http://localhost:<PORT>/schema
 
 :::tip Prefer to start all your services together?
 
-In your `docker-compose.hasura.yaml` file found in the root of your project's directory, you can add the following at
-the top:
+You can add the following inclusion to the docker compose in your project's root directory, taking care to modify the
+subgraph's name.
 
-```yaml
+```yaml title="docker-compose.hasura.yaml"
 include:
   - path: my_subgraph/connector/my_pg/docker-compose.my_pg.yaml
 ```
@@ -105,7 +105,7 @@ include:
 Then, whenever running the following, you'll bring up the GraphQL engine, observability tools, and any connectors you've
 included:
 
-```bash
+```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura.yaml watch
 ```
 
@@ -117,7 +117,7 @@ Finally, now that our `DataConnectorLink` has the correct environment variables 
 we can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
 schema in `hml` format. In a new terminal tab, run:
 
-```bash
+```bash title="From the root of your project, run:"
 ddn connector-link update my_pg --subgraph my_subgraph
 ```
 
