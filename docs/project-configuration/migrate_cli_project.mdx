@@ -31,7 +31,7 @@ This page contains some information on what has changed and instructions to migr
 - Local dev workflows using Docker have been introduced.
 - The DDN CLI commands. See details on the new commands [here](/cli/commands/ddn).
 - The local project directory structure. See details on the new structure [here](/project-configuration/config).
-- SupergraphManifest and ConnectorManifest objects are now called Supergraph and Connector respectively
+- SupergraphManifest and ConnectorManifest objects are now called Supergraph and Connector respectively.
 
 We **strongly recommend** you to go through our [new getting started guide](/getting-started/overview) to learn
 about all the changes and experience the new workflow to develop your API with DDN.
@@ -50,31 +50,61 @@ and builds and also be able to create new builds using the new CLI revision (wit
 
 Follow the instructions [here](/cli/installation) to get the new DDN CLI.
 
-### Step 2: Create a fresh project directory
+Also, update your Hasura VS Code extension to `v0.6.0` if not done automatically.
 
+### Step 2: Set up a fresh project directory
+
+#### Step 2.1: Initialize a new project directory
+
+Run:
 ```
 ddn supergraph init --dir <new-proj-dir>
 ```
 
-Set the default supergraph config file to the CLI context to avoid having to repeat it in future commands.
+Set the default supergraph config file to the CLI context to avoid having to repeat it in future commands. This file
+contains the `Supergraph` object similar to the `SupergraphManifest` object in your existing project.
 ```
 cd <new-proj-dir> && ddn context set supergraph ./supergraph.yaml
 ```
 
+#### Step 2.2: Copy over supergraph global objects
+
+Copy the files containing the supergraph global objects `CompatibilityConfig`, `GraphqlConfig` and `AuthConfig` from
+your existing project directory to the `supergraph_globals` directory in the new project directory. These should
+typically be in the `supergraph` directory in your existing project directory.
+
+Note that these objects are already created in the `supergraph_globals` directory of your new project directory.
+The `AuthConfig` object created here is used for local development. To avoid overwriting it, while copying your auth
+config file from the existing project directory rename it to `auth-config.cloud.hml` instead.
+The `graphql-config.hml` and `compatibility-config.hml` files on the other hand can be overwritten.
+
 ### Step 3: Add your subgraphs
 
 For each subgraph in your project:
+
+Follow the below steps:
+
+#### Step 3.1: Initialize the subgraph
 
 Run:
 ```
 ddn subgraph init <subgraph-name>
 ```
 
+#### Step 3.2: Add an env file for deploying to DDN
+
+A `.env.<subgraph-name>` file is created in the `<subgraph-nam>` directory to be used during local development. Create a
+file `.env.cloud.<subgraph-name>` along side it to used for deployments to DDN. You can leave this file empty for now.
+
 ### Step 4: Set up your data connectors
+
+**Case 1:**
 
 For self-deployed data connectors in your subgraphs, i.e. `ConnectorManifest` of type `endpoints`:
 
 You can skip this step.
+
+**Case 2:**
 
 For each data connector deployed on Hasura DDN in your subgraphs, i.e. `ConnectorManifest` of type `cloud`:
 
@@ -89,41 +119,56 @@ ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <
 
 Ensure you use the same connector name and type from your existing `ConnectorManifest`.
 
-#### Step 4.2: Add data connector configuration
+#### Step 4.2: Create connector configuration files for deploying to DDN
+
+##### Step 4.2.1: Create a connector.cloud.yaml
+
+Each connector utilizes a `connector.yaml` file for local development. To deploy your connector to DDN create a
+`connector.cloud.yaml` file in the same directory as the connector's local `connector.yaml`. This file
+contains the `Connector` object similar to the `ConnectorManifest` object in your existing project. You can simply copy
+the contents of `connector.yaml` file and replace the `envFile` key to `.env.cloud`.
+
+```yaml title="For example, <subgraph-name>/connector/<connector-name>/connector.cloud.yaml"
+kind: Connector
+version: v1
+definition:
+  name: <connector-name>
+  subgraph: <subgraph-name>
+  source: hasura/<connector-type>:<version>
+  context: .
+  envFile: .env.cloud
+```
+
+##### Step 4.2.2: Create a .env.cloud for the connector
+
+Create a `.env.cloud` environment variable file in the same directory as your `.env.local` file for the connector. You
+can leave this file empty for now.
+
+#### Step 4.3: Add data connector configuration
 
 ##### Case 1: For hasura/postgres connectors
   
-###### Step 4.2.1: Set database connection string
+###### Step 4.3.1: Set database connection string
   
-Add a new key `CONNECTION_URI` to the file `<subgraph_name>/connector/<connector_name>/.env.local` and
+Add a new key `CONNECTION_URI` to the file `<subgraph_name>/connector/<connector_name>/.env.cloud` and
 set your database connection string as the value.
 
 For example:
 ```
-OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
-OTEL_SERVICE_NAME=mysubgraph_mypg
 CONNECTION_URI=<your_pg_url>
 ```
   
-###### Step 4.2.2: Introspect the database schema
+###### Step 4.3.2: Introspect the database schema
   
 Run:
 
 ```
-ddn connector introspect --connector <subgraph-name>/connector/<connector-name>/connector.yaml
+ddn connector introspect --connector <subgraph-name>/connector/<connector-name>/connector.cloud.yaml
 ```
-
-#### Step 4.3: Create connector configuration file for DDN deployment
-
-TODO
-
-Create .env.cloud
-
-Create cloud.connector.yaml
 
 ##### Case 2: For hasura/nodejs connectors
 
-###### Step 4.2.1: Copy over functions
+###### Step 4.3.1: Copy over functions
 
 Copy your functions file, typically `functions.ts` in the `<subgraph-name>/<connector-name>/connector` directory, from
 your existing project directory to `<subgraph-name>/connector/<connector-name>/functions.ts` in the new project
@@ -157,23 +202,102 @@ url:
 
 We will set the values of these env vars in the next step.
 
-### Step 6: Deploy and test migration
+### Step 6: Deploy to DDN project
 
-TODO
+#### Step 6.1: Set the DDN project to deploy to
 
-Deploy connectors
+Run the following command to set your DDN project to the CLI context to avoid having to repeat it in future commands.
 
-Update .env files with url endpoints
+```
+ddn context set project <project-name>
+```
 
-Deploy supergraph
+#### Step 6.2: Deploy the data connectors
 
-### Step x: Update VSCode extension
+For each data connector deployed on Hasura DDN in your subgraphs, i.e. `ConnectorManifest` of type `cloud`:
 
-Update your Hasura VS Code extension to `v0.6.0` if not done automatically.
+Run:
+
+```
+ddn connector build create --connector <subgraph-name>/connector/<connector-name>/connector.cloud.yaml
+```
+
+On deployment completion, the read and write URLs for your deployed connector will be returned as a response. You will
+need these in the next step.
+
+#### Step 6.3: Set connector endpoints in env files
+
+For each subgraph:
+
+Update the file `<subgraph-name>/.env.cloud.<subgraph-name>` with the read and write urls of the data connectors in the
+subgraph.
+
+For self-deployed data connector in your subgraph, i.e. `ConnectorManifest` of type `endpoints`, use the connector URL
+provided in the existing `ConnectorManifest` as both the read and write URLs.
+
+For data connectors deployed on Hasura DDN in your subgraph, use the connector URLs returned in the previous deploy step.
+
+For example:
+
+```env title="<subgraph-name>/.env.cloud.<subgraph-name>:"
+<CONNECTOR_NAME_1>_READ_URL=<connector1-read-url>
+<CONNECTOR_NAME_1>_WRITE_URL=<connector1-write-url>
+<CONNECTOR_NAME_2>_READ_URL=<connector2-read-url>
+<CONNECTOR_NAME_2>_WRITE_URL=<connector2-write-url>
+```
+
+#### Step 6.4: Deploy the supergraph
+
+##### Step 6.4.1: Create a supergraph config file for deploying to DDN
+
+In the root of the new project directory, create a new file `supergraph.cloud.yaml` and copy the contents of the
+existing `supergraph.yaml` file to it.
+
+Update the following values in the new file:
+- `./supergraph_globals/auth-config.hml` -> To the name of the AuthConfig file copied earlier. e.g. `./supergraph_globals/auth-config.cloud.hml`
+- For each subgraph: `envFile: <subgraph-name>/.env.<subgraph-name>` -> To the name of the cloud enf files created earlier. e.g. `envFile: <subgraph-name>/.env.cloud.<subgraph-name>`
+
+```yaml title="supergraph.cloud.yaml"
+kind: Supergraph
+version: v1
+definition:
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph_globals
+    envFile: ./supergraph_globals/.env.supergraph_globals
+    includePaths:
+      #highlight-start
+      - ./supergraph_globals/auth-config.cloud.hml
+      #highlight-end
+      - ./supergraph_globals/compatibility-config.hml
+      - ./supergraph_globals/graphql-config.hml
+  subgraphs:
+    <subgraph-name>:
+      generator:
+        rootPath: <subgraph-name>/metadata
+      #highlight-start
+      envFile: <subgraph-name>/.env.cloud.<subgraph-name>
+      #highlight-end
+      includePaths:
+        - <subgraph-name>/metadata
+```
+
+### Step 3. Build and deploy your supergraph
+
+Run:
+```
+ddn supergraph build create --supergraph ./supergraph.cloud.yaml
+```
+
+On build completion, the build version, API endpoint and console URLs will be returned as response.
+
+#### Step 6.5: Verify migration
+
+You can now head to your project console using the console URL returned in the previous step and verify the API
+generated with the above build is the same as what you had earlier.
 
 ## Need help migrating?
 
-[//]: <> (TODO: put proper reach out link)
-
 If you need help migrating your project or have any other questions please reach out to us on
 our [Discord](https://hasura.io/discord).
+
