@@ -62,7 +62,7 @@ ddn supergraph init --dir <new-proj-dir>
 ```
 
 Set the default supergraph config file to the CLI context to avoid having to repeat it in future commands. This file
-contains the `Supergraph` object similar to the `SupergraphManifest` object in your existing project.
+contains the `Supergraph` object similar to the `SupergraphManifest` object in your existing project directory.
 ```
 cd <new-proj-dir> && ddn context set supergraph ./supergraph.yaml
 ```
@@ -74,9 +74,9 @@ your existing project directory to the `supergraph_globals` directory in the new
 typically be in the `supergraph` directory in your existing project directory.
 
 Note that these objects are already created in the `supergraph_globals` directory of your new project directory.
-The `AuthConfig` object created here is used for local development. To avoid overwriting it, while copying your auth
-config file from the existing project directory rename it to `auth-config.cloud.hml` instead.
-The `graphql-config.hml` and `compatibility-config.hml` files on the other hand can be overwritten.
+The `AuthConfig` object created here is to be used for local development. To avoid overwriting it, while copying your
+`auth-config.hml` file from the existing project directory rename it to `auth-config.cloud.hml` instead.
+The `graphql-config.hml` and `compatibility-config.hml` files on the other hand should be overwritten.
 
 ### Step 3: Add your subgraphs
 
@@ -93,8 +93,9 @@ ddn subgraph init <subgraph-name>
 
 #### Step 3.2: Add an env file for deploying to DDN
 
-A `.env.<subgraph-name>` file is created in the `<subgraph-nam>` directory to be used during local development. Create a
-file `.env.cloud.<subgraph-name>` along side it to used for deployments to DDN. You can leave this file empty for now.
+A `.env.<subgraph-name>` file is created in the `<subgraph-name>` directory to be used during local development.
+
+Create a new file `.env.cloud.<subgraph-name>` alongside it to be used for deployments to DDN. You can leave this file empty for now.
 
 ### Step 4: Set up your data connectors
 
@@ -123,10 +124,11 @@ Ensure you use the same connector name and type from your existing `ConnectorMan
 
 ##### Step 4.2.1: Create a connector.cloud.yaml
 
-Each connector utilizes a `connector.yaml` file for local development. To deploy your connector to DDN create a
-`connector.cloud.yaml` file in the same directory as the connector's local `connector.yaml`. This file
-contains the `Connector` object similar to the `ConnectorManifest` object in your existing project. You can simply copy
-the contents of `connector.yaml` file and replace the `envFile` key to `.env.cloud`.
+Each connector utilizes a `connector.yaml` file for local development. This file
+contains the `Connector` object similar to the `ConnectorManifest` object in your existing project.
+
+To deploy your connector to DDN create a `connector.cloud.yaml` file alongside the connector's local `connector.yaml`.
+You can simply copy the contents of the `connector.yaml` file and update the `envFile` key's value to `.env.cloud`.
 
 ```yaml title="For example, <subgraph-name>/connector/<connector-name>/connector.cloud.yaml"
 kind: Connector
@@ -136,12 +138,14 @@ definition:
   subgraph: <subgraph-name>
   source: hasura/<connector-type>:<version>
   context: .
+  #highlight-start
   envFile: .env.cloud
+  #highlight-end
 ```
 
 ##### Step 4.2.2: Create a .env.cloud for the connector
 
-Create a `.env.cloud` environment variable file in the same directory as your `.env.local` file for the connector. You
+Create an environment variable file `.env.cloud` alongside the `.env.local` file for the connector. You
 can leave this file empty for now.
 
 #### Step 4.3: Add data connector configuration
@@ -170,8 +174,9 @@ ddn connector introspect --connector <subgraph-name>/connector/<connector-name>/
 
 ###### Step 4.3.1: Copy over functions
 
-Copy your functions file, typically `functions.ts` in the `<subgraph-name>/<connector-name>/connector` directory, from
-your existing project directory to `<subgraph-name>/connector/<connector-name>/functions.ts` in the new project
+Copy the file containing the functions from your existing project directory to
+`<subgraph-name>/connector/<connector-name>/functions.ts` in the new project directory. This file should typically
+be the `functions.ts` file in the `<subgraph-name>/<connector-name>/connector` directory in your existing project
 directory.
 
 ### Step 5: Copy over connector related metadata
@@ -181,7 +186,7 @@ For each data connector:
 Copy the files containing metadata objects related to the connector from your existing
 project directory to the `<subgraph-name>/metadata` directory in the new project directory (the directory might need
 to be created). These files should typically be in the `<subgraph-name>/<connector-name>` directory in your existing
-project.
+project directory.
 
 - the file with the DataConnectorLink object. Typically `<connector-name>.hml`
 - the file with the data connector type objects. Typically `<connector-name>-types.hml`
@@ -200,7 +205,7 @@ url:
         valueFromEnv: <CONNECTOR_NAME>_WRITE_URL
 ```
 
-We will set the values of these env vars in the next step.
+We will set the values of these env vars in the following steps.
 
 ### Step 6: Deploy to DDN project
 
@@ -257,6 +262,8 @@ Update the following values in the new file:
 - `./supergraph_globals/auth-config.hml` -> To the name of the AuthConfig file copied earlier. e.g. `./supergraph_globals/auth-config.cloud.hml`
 - For each subgraph: `envFile: <subgraph-name>/.env.<subgraph-name>` -> To the name of the cloud enf files created earlier. e.g. `envFile: <subgraph-name>/.env.cloud.<subgraph-name>`
 
+For example:
+
 ```yaml title="supergraph.cloud.yaml"
 kind: Supergraph
 version: v1
@@ -282,7 +289,7 @@ definition:
         - <subgraph-name>/metadata
 ```
 
-### Step 3. Build and deploy your supergraph
+##### Step 6.4.2: Build and deploy your supergraph
 
 Run:
 ```
