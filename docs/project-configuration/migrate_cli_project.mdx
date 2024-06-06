@@ -1,6 +1,6 @@
 ---
 sidebar_position: 200
-sidebar_label: Migrating to new CLI
+sidebar_label: Migrating to new DDN CLI
 description: "Guide to migrate local projects created by CLI versions <= v2024.05.23"
 keywords:
   - hasura ddn
@@ -46,7 +46,7 @@ and builds and also be able to create new builds using the new CLI revision (wit
 
 ## Migrate an existing local project
 
-Below are steps to convert a local project created with the DDN CLI versions <= `v2024.05.23` to the new project structure.
+Below are steps to convert a local project created with the DDN CLI versions `<= v2024.05.23` to the new project structure.
 
 ### Step 1: Get the new CLI
 
@@ -56,16 +56,16 @@ Also, update your Hasura VS Code extension to `v0.6.0` if not done automatically
 
 ### Step 2: Set up a fresh local project
 
-#### Step 2.1: Initialize a new project directory
+#### Step 2.1: Initialize a new supergraph
 
 Run:
-```
+```bash
 ddn supergraph init --dir <new-proj-dir>
 ```
 
 Set the default supergraph config file to the CLI context to avoid having to repeat it in future commands. This file
 contains the `Supergraph` object similar to the `SupergraphManifest` object in your existing project directory.
-```
+```bash
 cd <new-proj-dir> && ddn context set supergraph ./supergraph.yaml
 ```
 
@@ -89,7 +89,7 @@ Follow the below steps:
 #### Step 3.1: Initialize the subgraph
 
 Run:
-```
+```bash
 ddn subgraph init <subgraph-name>
 ```
 
@@ -116,7 +116,7 @@ Follow the steps below:
 #### Step 4.1: Initialize data connector
 
 Run:
-```
+```bash
 ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <connector-type>
 ```
 
@@ -160,7 +160,7 @@ Add a new key `CONNECTION_URI` to the file `<subgraph_name>/connector/<connector
 set your database connection string as the value.
 
 For example:
-```
+```env
 CONNECTION_URI=<your_pg_url>
 ```
   
@@ -168,7 +168,7 @@ CONNECTION_URI=<your_pg_url>
   
 Run:
 
-```
+```bash
 ddn connector introspect --connector <subgraph-name>/connector/<connector-name>/connector.cloud.yaml
 ```
 
@@ -190,14 +190,14 @@ project directory to the `<subgraph-name>/metadata` directory in the new project
 to be created). These files should typically be in the `<subgraph-name>/<connector-name>` directory in your existing
 project directory.
 
-- the file with the DataConnectorLink object. Typically `<connector-name>.hml`
+- the file with the `DataConnectorLink` object. Typically `<connector-name>.hml`
 - the file with the data connector type objects. Typically `<connector-name>-types.hml`
 - the files with Models, Commands, Relationships, etc. Typically in `models`/`commands` directory.
 
 Within the `<subgraph-name>/metadata` directory you can choose to arrange these
 files however you like.
 
-In the DataConnectorLink object replace the `url` section with:
+In the `DataConnectorLink` object replace the `url` section with:
 ```
 url:
     readWriteUrls:
@@ -209,7 +209,7 @@ url:
 
 We will set the values of these env vars in the following steps.
 
-### Step 6: Deploy to DDN project
+### Step 6: Deploy to a DDN project
 
 #### Step 6.1: Set the DDN project to deploy to
 
@@ -225,7 +225,7 @@ For each data connector deployed on Hasura DDN in your subgraphs, i.e. `Connecto
 
 Run:
 
-```
+```bash
 ddn connector build create --connector <subgraph-name>/connector/<connector-name>/connector.cloud.yaml
 ```
 
@@ -236,10 +236,10 @@ need these in the next step.
 
 For each subgraph:
 
-Update the file `<subgraph-name>/.env.cloud.<subgraph-name>` with the read and write urls of the data connectors in the
+Update the file `<subgraph-name>/.env.cloud.<subgraph-name>` with the read and write URLs of the data connectors in the
 subgraph.
 
-For self-deployed data connector in your subgraph, i.e. `ConnectorManifest` of type `endpoints`, use the connector URL
+For a self-deployed data connector in your subgraph, i.e. `ConnectorManifest` of type `endpoints`, use the connector URL
 provided in the existing `ConnectorManifest` as both the read and write URLs.
 
 For data connectors deployed on Hasura DDN in your subgraph, use the connector URLs returned in the previous deploy step.
@@ -294,7 +294,7 @@ definition:
 ##### Step 6.4.2: Build and deploy your supergraph
 
 Run:
-```
+```bash
 ddn supergraph build create --supergraph ./supergraph.cloud.yaml
 ```
 
