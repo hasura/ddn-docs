@@ -53,12 +53,12 @@ Follow the instructions [here](/cli/installation) to get the new DDN CLI.
 ### Step 2: Create a fresh project directory
 
 ```
-ddn supergraph init --dir <new_proj_dir>
+ddn supergraph init --dir <new-proj-dir>
 ```
 
 Set the default supergraph config file to the CLI context to avoid having to repeat it in future commands.
 ```
-cd <new_proj_dir> && ddn context set supergraph ./supergraph.yaml
+cd <new-proj-dir> && ddn context set supergraph ./supergraph.yaml
 ```
 
 ### Step 3: Add your subgraphs
@@ -107,7 +107,7 @@ CONNECTION_URI=<your_pg_url>
 Run:
 
 ```
-ddn connector introspect --connector <subgraph_name>/connector/<connector_name>/connector.yaml
+ddn connector introspect --connector <subgraph-name>/connector/<connector-name>/connector.yaml
 ```
 
 ##### Option 2: For hasura/nodejs connectors
@@ -115,26 +115,41 @@ ddn connector introspect --connector <subgraph_name>/connector/<connector_name>/
 ###### Step 4.2.1: Copy over functions
 
 Copy your functions file, typically `functions.ts`, from your existing project directory to
-`<subgraph_name>/connector/<connector_name>/functions.ts` in the new project directory.
+`<subgraph-name>/connector/<connector-name>/functions.ts` in the new project directory.
 
 ### Step 5: Copy over connector metadata
 
-For each data connector, copy the following from your existing project directory to the new project directory.
+For each data connector, copy the following files from your existing project directory to the `<subgraph-name>/metadata`
+directory in the new project directory.
 
-- the DataConnectorLink object. Typically in `<connector_name>.hml`
-- the Models and Commands. Typically in `<connector_name>.hml`
+- the file with the DataConnectorLink object. Typically `<connector-name>.hml`
+- the file with the data connector type objects. Typically `<connector-name>-types.hml`
+- the files with Models and Commands. Typically in `models`/`commands` directory.
+
+These files should typically be in the `<subgraph-name>/<connector-name>` directory in your existing project.
+
+Within the `<subgraph-name>/metadata` directory you can choose to arrange these
+files however you like.
 
 In the DataConnectorLink object replace the `url` section with:
-
+```
+url:
+    readWriteUrls:
+      read:
+        valueFromEnv: <CONNECTOR_NAME>_READ_URL
+      write:
+        valueFromEnv: <CONNECTOR_NAME>_WRITE_URL
 ```
 
-```
+TODO: Set url values in .env
+
+### Step 6: Deploy and test migration
+
+TODO
 
 ### Step x: Update VSCode extension
 
 Update your Hasura VS Code extension to `v0.6.0` if not done automatically.
-
-### Test your migration
 
 ## Need help migrating?
 
