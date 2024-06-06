@@ -27,7 +27,7 @@ the following types of files:
 
 | File type                                    | Description                                                                                                                |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| [`hasura.yaml`](#hasurayaml)                 | The file that denotes the entrypoint to a Hasura project.                                                                  |
+| [`hasura.yaml`](#hasurayaml)                 | The file that denotes the root of a Hasura project.                                                                        |
 | [`.env.*`](#envyaml)                         | Files that stores environment variables.                                                                                   |
 | [`supergraph.yaml`](#supergraph-manifests)   | File that describes the supergraph.                                                                                        |
 | [`connector.yaml`]                           | File that describes the connector.                                                                                         |
@@ -41,7 +41,7 @@ the following types of files:
 
 ### hasura.yaml
 
-This is the entrypoint to a Hasura project.
+`hasura.yaml` appears at the root of a Hasura project.
 
 ```yaml
 version: v2
@@ -126,30 +126,42 @@ The `.env.supergraph_globals` file contains all the environment variables requir
 
 ### Subgraphs
 
-Each subgraph is listed as a top-level directory in the root of the project. The CLI will init your project with an
-`app` subgraph.
-
-Each subgraph directory will contain the following folder structure when a new connector manifest is added for the
-subgraph:
-
-```bash
-└── <CONNECTOR_NAME>
-│   ├── <CONNECTOR_NAME>-types.hml
-│   ├── <CONNECTOR_NAME>.hml
-│   ├── connector
-│   │   ├── <CONNECTOR_NAME>.build.hml
-│   │   ├── configuration.json
-│   │   └── schema.json
-│   └── models
-```
-
-| File/Folder                             | Description                                                                        |
-| --------------------------------------- | ---------------------------------------------------------------------------------- |
-| `<CONNECTOR_NAME>`                      | The directory containing the build artifacts for the connector.                    |
-| `<CONNECTOR_NAME>-types.html`           | The metadata file for the connector's types.                                       |
-| `<CONNECTOR_NAME>.hml`                  | The metadata file for the connector based on the introspection of the data source. |
-| `<CONNECTOR_NAME>/configuration.json`   | The configuration file for the connector.                                          |
-| `<CONNECTOR_NAME>/schema.json`          | The schema file for the connector.                                                 |
-| `/connector/<CONNECTOR_NAME>.build.hml` | The build manifest for the connector.                                              |
+Each subgraph is listed in the `subgraphs` section of the supergraph file and the directories and files that contain resources
+for the subgraph is specified under `includePaths`. All *.hml files within the include paths are used as metadata for the subgraph.
 
 [devcontainer]: https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers#devcontainerjson
+
+### connector.yaml
+
+Specifies the connector name, context directory, .env file and souce.
+
+```yaml
+kind: Connector
+version: v1
+definition:
+  name: mypg
+  source: hasura/postgres:v0.7.0
+  context: .
+  envFile: .env.local
+```
+
+### .hasura/context.yaml
+
+This specifies the default DDN project and supergraph file path. The default values are used by all commands that accept a `--supergraph` flag and `--project` flag.
+The flags can be used to override the default values.
+
+### Engine
+
+The `engine` directory contains the files required for Hasura v3 engine container. This directory has the following structure:
+
+```bash
+├── .env.engine
+├── auth_config.json
+├── metadata.json
+└── open_dd.json
+```
+
+The `.env.engine` file specifies environment variables required by the Hasura v3 engine container.
+
+The `auth_config.json`, `metadata.json` and `open_dd.json` are generated as a result of `ddn supergraph build local` command and does
+not need to be edited by the user.
