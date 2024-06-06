@@ -29,11 +29,11 @@ the following types of files:
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [`hasura.yaml`](#hasurayaml)                 | The file that denotes the root of a Hasura project.                                                                        |
 | [`.env.*`](#envfiles)                        | Files that store environment variables.                                                                                    |
-| [`supergraph.yaml`](#supergraphfiles)        | File that describes the supergraph.                                                                                        |
-| [`connector.yaml`](#connectoryaml)           | File that describes the connector.                                                                                         |
+| [`supergraph.yaml`](#supergraphfiles)        | Files that describe how to build the supergraph.                                                                           |
+| [`connector.yaml`](#connectoryaml)           | Files that describe how to build a data connector.                                                                         |
 | `*.hml`                                      | Hasura metadata files for a project.                                                                                       |
 | [`supergraph_globals`](#supergraph)          | A directory, containing all the necessary configuration and metadata files, for the supergraph-level scope of a project.   |
-| [`.hasura/context.yaml`](#contextfile)       | File that specifies the default project and supergraph of a project.                                                       |
+| [`.hasura/context.yaml`](#contextfile)       | File that stores certain default values of a project.                                                                      |
 | `docker-compose.*.yaml`                      | Docker Compose files for local development.                                                                                |
 | [`engine`](#engine)                          | Files mounted to the engine container for local development.                                                               |
 | `otel-collector-config.yaml`                 | Configuration for OpenTelemetry Collector used for seeing traces during local development.                                 |
@@ -46,7 +46,7 @@ the following types of files:
 version: v2
 ```
 
-The `version` section is used to specify the version of the configuration file.
+The `version` section is used to specify the version of the project directory structure.
 
 ### .env.* {#envfiles}
 
@@ -60,13 +60,15 @@ ENV2=val2
 These files are referenced inside:
 - Docker Compose files: Docker Compose files use *.env files to specify environment variables needed for containers.
 - Supergraph files (such as `supergraph.yaml`): Supergraph files use *.env files to specify environment variables needed by `supergraph_globals` and subgraphs. Each subgraph can have its own .env file.
-- Connector files (such as `connector.yaml`): Connector files use *.env files to specify environment variables needed for introspecting the data source and building the connector.
+- Connector files (such as `connector.yaml`): Connector files use *.env files to specify environment variables needed for building the connector.
 
 ### Supergraph files {#supergraph-manifests}
 
 These files tell Hasura DDN how to construct your supergraph. It will contain information such as which
 subgraphs to include and which resources to use for the build.
 
+
+For example:
 ```yaml
 kind: Supergraph
 version: v1
@@ -95,7 +97,7 @@ and referenced in CLI commands.
 If a directory is specified, all the *.hml files inside the directory and its subdirectories will be used to construct
 the metadata.
 
-`generator`.`rootPath` is specifies the directory into which any new files will be generated.
+`generator`.`rootPath` specifies the directory into which any new files will be generated.
 
 ### Supergraph Globals {#supergraphfiles}
 
@@ -127,12 +129,13 @@ supergraph.
 The `graphql-config.hml` file contains the GraphQL configuration for the supergraph, which allows you to customize the
 available query and mutation capabilities along with the schema.
 
-The `.env.supergraph_globals` file contains all the environment variables required by the supergraph.
+The `.env.supergraph_globals` file contains all the environment variables required by the supergraph global objects.
 
 ### connector.yaml {#connectoryaml}
 
 Specifies the connector details.
 
+For example:
 ```yaml
 kind: Connector
 version: v1
