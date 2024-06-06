@@ -1,0 +1,128 @@
+---
+sidebar_position: 200
+sidebar_label: Migrating to new CLI
+description: "Guide to migrate local projects created by CLI versions <= v2024.05.23"
+keywords:
+  - hasura ddn
+  - data delivery network
+  - hasura cli
+  - project configuration
+  - hasura metadata management
+  - yaml configuration
+  - api development
+  - hasura build profiles
+  - hasura subgraphs
+  - hasura project management
+seoFrontMatterUpdated: true
+---
+
+# Migrating to new CLI
+
+## What has happened?
+
+A new revision of the DDN CLI has been released. With this release the local project directory
+structure created by versions `<= v2024.05.23` is now deprecated.
+
+This page contains some information on what has changed and instructions to migrate your existing local projects.
+
+
+## What has changed?
+
+- Local dev workflows using Docker have been introduced.
+- The DDN CLI commands. See details on the new commands [here](/cli/commands/ddn).
+- The local project directory structure. See details on the new structure [here](/project-configuration/config).
+- SupergraphManifest and ConnectorManifest objects are now called Supergraph and Connector respectively
+
+We **strongly recommend** you to go through our [new getting started guide](/getting-started/overview) to learn
+about all the changes and experience the new workflow to develop your API with DDN.
+
+:::note No changes made to DDN projects
+
+Note that this a CLI only change and does not impact Hasura DDN projects. You can continue using existing DDN projects
+and builds and also be able to create new builds using the new CLI revision (with the new local project structure).
+
+:::
+
+
+## How to migrate an existing local project?
+
+### Step 1: Get the new CLI
+
+Follow the instructions [here](/cli/installation) to get the new DDN CLI.
+
+### Step 2: Create a fresh project directory
+
+```
+ddn supergraph init --dir <new_proj_dir>
+```
+
+Set the default supergraph config file to the CLI context to avoid having to repeat it in future commands.
+```
+cd <new_proj_dir> && ddn context set supergraph ./supergraph.yaml
+```
+
+### Step 3: Add your subgraphs
+
+For each subgraph in your project, run:
+
+```
+ddn subgraph init <subgraph-name>
+```
+
+### Step 4: Add your data connectors
+
+For self-deployed data connectors in your subgraphs, ie. `ConnectorManifest` of type `endpoints`, you can skip this step.
+
+For each data connector deployed on Hasura DDN in your subgraphs, ie. `ConnectorManifest` of type `cloud`, run:
+
+```
+ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <connector-type>
+```
+
+Post that follow the following steps based on your connector type
+
+#### FOR hasura/postgres connectors
+
+##### Set database connection string
+
+Add a new key: `CONNECTION_URI=<pg_url>` to the file: `<subgraph_name>/metadata/connector/<connector_name>/.env.local`
+
+TODO: add example block
+
+##### Introspect the database schema
+
+Run:
+
+```
+ddn connector introspect –connector <subgraph_name>/metadata/connector/<connector_name>/connector.yaml
+```
+
+#### FOR TS connectors
+
+TODO
+
+### Step 5: Copy over metadata
+
+For each data connector, copy the following from your existing project directory to the new project directory.
+
+- the DataConnectorLink object. Typically `<connector_name>.hml`
+- the Models and Commands. Typically `<connector_name>.hml`
+
+In the DataConnectorLink object replace the `url` section with:
+
+```
+
+```
+
+### Step x: Update VSCode extension
+
+Update your Hasura VS Code extension to `v0.6.0` if not done automatically.
+
+### Test your migration
+
+## Need help migrating?
+
+[//]: <> (TODO: put proper reach out link)
+
+If you need help migrating your project or have any other questions please reach out to us on
+our [Discord](https://hasura.io/discord).
