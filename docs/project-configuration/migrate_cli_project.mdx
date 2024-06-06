@@ -71,33 +71,39 @@ ddn subgraph init <subgraph-name>
 
 ### Step 4: Add your data connectors
 
-For self-deployed data connectors in your subgraphs, ie. `ConnectorManifest` of type `endpoints`, you can skip this step.
+- For self-deployed data connectors in your subgraphs, ie. `ConnectorManifest` of type `endpoints`, you can skip this step.
 
-For each data connector deployed on Hasura DDN in your subgraphs, ie. `ConnectorManifest` of type `cloud`, run:
+- For each data connector deployed on Hasura DDN in your subgraphs, ie. `ConnectorManifest` of type `cloud`, run:
 
-```
-ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <connector-type>
-```
+  ```
+  ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <connector-type>
+  ```
 
-Post that follow the following steps based on your connector type
+  Ensure you use the same connector name and type from your existing `ConnectorManifest`.
 
-#### FOR hasura/postgres connectors
+- Post that follow the following steps based on your connector type
+
+#### For hasura/postgres connectors
 
 ##### Set database connection string
 
-Add a new key: `CONNECTION_URI=<pg_url>` to the file: `<subgraph_name>/metadata/connector/<connector_name>/.env.local`
+Add a new key `CONNECTION_URI=<my_pg_url>` to the file `<subgraph_name>/connector/<connector_name>/.env.local`
 
-TODO: add example block
+```
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
+OTEL_SERVICE_NAME=app_mypg
+CONNECTION_URI=<my_pg_url>
+```
 
 ##### Introspect the database schema
 
 Run:
 
 ```
-ddn connector introspect –connector <subgraph_name>/metadata/connector/<connector_name>/connector.yaml
+ddn connector introspect --connector <subgraph_name>/connector/<connector_name>/connector.yaml
 ```
 
-#### FOR TS connectors
+#### For hasura/nodejs connectors
 
 TODO
 
