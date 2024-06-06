@@ -10,7 +10,7 @@ our PostgreSQL database — to create metadata which Hasura can use to construct
 
 :::tip Required
 
-- <BaseUrlLink to="/getting-started/prerequisites" text="DDN CLI" />
+- <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
 - A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
 - A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
 - A <BaseUrlLink to="/getting-started/connect-to-data/connect-a-source" text="PostgreSQL connector"/> initialized
@@ -92,9 +92,11 @@ modified, to see the schema of our PostgreSQL database:
 http://localhost:<PORT>/schema
 ```
 
-:::tip Prefer to start all your services together?
+## Step 3. Include the connector in your docker compose
 
-You can add the following inclusion to the docker compose in your project's root directory, taking care to modify the
+Kill the connector by pressing `CTRL+C` in the terminal tab in which the connector is running.
+
+Then, add the following inclusion to the docker compose in your project's root directory, taking care to modify the
 subgraph's name.
 
 ```yaml title="docker-compose.hasura.yaml"
@@ -102,16 +104,14 @@ include:
   - path: my_subgraph/connector/my_pg/docker-compose.my_pg.yaml
 ```
 
-Then, whenever running the following, you'll bring up the GraphQL engine, observability tools, and any connectors you've
+Now, whenever running the following, you'll bring up the GraphQL engine, observability tools, and any connectors you've
 included:
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn internal print-pat) docker compose -f docker-compose.hasura.yaml watch
 ```
 
-:::
-
-## Step 3. Update the new DataConnectorLink object
+## Step 4. Update the new DataConnectorLink object
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the PostgreSQL connector,
 we can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
