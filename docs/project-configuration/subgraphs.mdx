@@ -1,10 +1,7 @@
 ---
 sidebar_position: 5
 sidebar_label: Subgraphs
-description:
-  "Explore Hasura's subgraphs functionality designed for multi-team projects. Understand the process of metadata object
-  management, subgraph-specific guidelines, and data source ownership within Hasura. Discover how subgraphs facilitate
-  efficient organization and controlled access to project metadata, enhancing team collaboration on Hasura projects."
+description: "Managing DDN subgraphs"
 keywords:
   - hasura
   - data source ownership
@@ -23,59 +20,31 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-For a multi-team organization working on a Hasura project, it can make sense for any one team to not have access to all
-metadata objects. Subgraphs introduces the notion of a module system for your Hasura metadata.
+Subgraphs allow you to manage your Hasura metadata more efficiently by allowing it to be split based on ownership.
 
-A project can have a collection of subgraphs and the project becomes the 'union' of metadata objects across all
-subgraphs of the project. Each subgraph can then be accessed and updated independently.
+A project can have multiple subgraphs and the project metadata becomes the 'union' of the metadata across all
+subgraphs of the project. Each subgraph can then be managed independently.
 
-A manifest file with subgraphs looks something like the following:
+## Create a new subgraph
 
-```yaml
-kind: SupergraphManifest
-version: v1
-definition:
-  name: base
-  envfile: base.env.yaml
-  #highlight-start
-  subgraphs:
-    - app
-    - chinook
-  #highlight-end
-```
-
-## Subgraph Lifecycle
-
-### Create
-
-You can create a subgraph for a project on Hasura DDN using the CLI:
+You can create a subgraph for a project on Hasura DDN using the CLI by running:
 
 ```bash
-ddn create subgraph
+ddn project subgraph create <subgraph-name> --project <project-name>
 ```
 
-This will launch a wizard allowing you to create and configure your subgraph. You'll so need to create a connector
-manifest locally in the subgraph's metadata directory. To do so, run the following command:
+## List all subgraphs
+
+You can list all the subgraphs for a project using the CLI by running:
 
 ```bash
-ddn add connector-manifest <NAME_FOR_CONNECTOR> --subgraph <SUBGRAPH_NAME_FROM_PREVIOUS_STEP>
+ddn project subgraph get --project <project-name>
 ```
 
-### Manage
+## Delete a subgraph
 
-You can easily list all the available subgraphs for a project using the CLI:
-
-```bash
-ddn get subgraph
-```
-
-You can connect new data sources, add new types, etc. to a subgraph. Any files you add to the subgraph directory will be
-picked up by the metadata build and associated with the subgraph.
-
-### Delete
-
-Delete a subgraph by running:
+You can delete a subgraph for a project using the CLI by running:
 
 ```bash
-ddn delete subgraph <SUBGRAPH_NAME>
+ddn project subgraph delete <subbgraph-name>  --project <project-name>
 ```
