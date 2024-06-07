@@ -36,6 +36,8 @@ setting up a new project from scratch by following the new [getting started guid
 - The DDN CLI commands. See details on the new commands [here](/cli/commands/ddn).
 - The local project directory structure. See details on the new structure [here](/project-configuration/config).
 - `SupergraphManifest` and `ConnectorManifest` objects are now called `Supergraph` and `Connector` respectively.
+- The `source` field for `Relationship` objects has been deprecated in favour of the `sourceType` field. Though
+  `Relationship` objects with the `source` field will continue to be supported.
 
 We **strongly recommend** you go through our [new getting started guide](/getting-started/overview) to learn
 about all the changes and experience the new workflow to develop your API with DDN.
@@ -57,6 +59,14 @@ Below are steps to convert a local project created with the DDN CLI versions `<=
 <InstallTheCli />
 
 Also, update your Hasura VS Code extension to `v0.6.0` if not done automatically.
+
+
+:::info Need the previous CLI revision?
+
+Note that the above will overwrite your current DDN CLI revision. You can re-install the previous revision by replacing
+`/ddn/cli/v2/` with `/ddn/cli/v1/` in the above download command.
+:::
+
 
 ### Step 2: Set up a fresh local project
 
@@ -186,9 +196,13 @@ the `<subgraph-name>/connector/<connector-name>` directory in the new project di
 be the `functions.ts` file in the `<subgraph-name>/<connector-name>/connector` directory in your existing project
 directory.
 
-### Step 5: Copy over connector related metadata
+### Step 5: Bring over connector related metadata
 
 For each data connector:
+
+Follow the below steps:
+
+#### Step 5.1: Copy over connector related metadata files
 
 Copy the files containing metadata objects related to the connector from your existing
 project directory to the `<subgraph-name>/metadata` directory in the new project directory (the directory might need
@@ -202,6 +216,8 @@ project directory and be suffixed as `.hml`.
 Within the `<subgraph-name>/metadata` directory you can choose to arrange these
 files however you like.
 
+#### Step 5.2: Update DataConnectorLink object
+
 In the `DataConnectorLink` object replace the `url` section with:
 ```
 url:
@@ -213,6 +229,28 @@ url:
 ```
 
 We will set the values of these env vars in the following steps.
+
+#### Step 5.3: (Optional) Update Relationship objects
+
+As mentioned earlier in the what-has-changed section, the `source` field for `Relationship` objects has been deprecated
+in favour of the `sourceType` field. Though `Relationship` objects with the `source` field will continue to be supported,
+it is recommended to update them.
+
+To update the relationship objects, rename the `source` key in your objects to `sourceType`.
+
+For example:
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: <rel-name>
+  #highlight-start
+  sourceType: <source-object-type>
+  #highlight-end
+  target:
+    ...
+
+```
 
 ### Step 6: Deploy to a DDN project
 

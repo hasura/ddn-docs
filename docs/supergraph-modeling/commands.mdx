@@ -81,6 +81,26 @@ semantics of a command are opaque to the Open DD specification.
 | `version`    | `v1`                            | true     |                                                                                                                                                              |
 | `definition` | [CommandV1](#command-commandv1) | true     | Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD. |
 
+**Example:**
+
+```yaml
+kind: Command
+version: v1
+definition:
+  name: get_latest_article
+  outputType: commandArticle
+  arguments: []
+  source:
+    dataConnectorName: data_connector
+    dataConnectorCommand:
+      function: latest_article
+    argumentMapping: {}
+  graphql:
+    rootFieldName: getLatestArticle
+    rootFieldKind: Query
+  description: Get the latest article
+```
+
 #### CommandV1 {#command-commandv1}
 
 Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The
@@ -93,24 +113,7 @@ semantics of a command are opaque to OpenDD.
 | `arguments`   | [[ArgumentDefinition](#command-argumentdefinition)]                  | false    | The list of arguments accepted by this command. Defaults to no arguments.                                        |
 | `source`      | [CommandSource](#command-commandsource) / null                       | false    | The source configuration for this command.                                                                       |
 | `graphql`     | [CommandGraphQlDefinition](#command-commandgraphqldefinition) / null | false    | Configuration for how this command should appear in the GraphQL schema.                                          |
-| `description` | string / null                                                        | false    | The description of the command. Gets added to the description of the command's root field in the graphql schema. |
-
-**Example:**
-
-```yaml
-name: get_latest_article
-outputType: commandArticle
-arguments: []
-source:
-  dataConnectorName: data_connector
-  dataConnectorCommand:
-    function: latest_article
-  argumentMapping: {}
-graphql:
-  rootFieldName: getLatestArticle
-  rootFieldKind: Query
-description: Get the latest article
-```
+| `description` | string / null                                                        | false    | The description of the command. Gets added to the description of the command's root field in the GraphQL schema. |
 
 #### CommandGraphQlDefinition {#command-commandgraphqldefinition}
 
@@ -222,4 +225,3 @@ and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array 
 The name of a command.
 
 **Value:** string
-
