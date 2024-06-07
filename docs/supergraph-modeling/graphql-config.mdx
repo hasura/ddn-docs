@@ -28,128 +28,138 @@ Specifically, it allows you to configure:
 
 ## Metadata structure
 
-
 ### GraphqlConfig {#graphqlconfig-graphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `GraphqlConfig` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [GraphqlConfigV1](#graphqlconfig-graphqlconfigv1) | true |  |
+GraphqlConfig object tells us two things:
 
+1. How the Graphql schema should look like for the features (`where`, `order_by` etc) Hasura provides 2. What features
+   should be enabled/disabled across the subgraphs
 
+| Key          | Value                                             | Required | Description                                                                                                                                                                                                      |
+| ------------ | ------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kind`       | `GraphqlConfig`                                   | true     |                                                                                                                                                                                                                  |
+| `version`    | `v1`                                              | true     |                                                                                                                                                                                                                  |
+| `definition` | [GraphqlConfigV1](#graphqlconfig-graphqlconfigv1) | true     | GraphqlConfig object tells us two things: 1. How the Graphql schema should look like for the features (`where`, `order_by` etc) Hasura provides 2. What features should be enabled/disabled across the subgraphs |
 
 #### GraphqlConfigV1 {#graphqlconfig-graphqlconfigv1}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `query` | [QueryGraphqlConfig](#graphqlconfig-querygraphqlconfig) | true |  |
-| `mutation` | [MutationGraphqlConfig](#graphqlconfig-mutationgraphqlconfig) | true |  |
-| `apolloFederation` | [GraphqlApolloFederationConfig](#graphqlconfig-graphqlapollofederationconfig) / null | false |  |
+GraphqlConfig object tells us two things:
 
+1. How the Graphql schema should look like for the features (`where`, `order_by` etc) Hasura provides 2. What features
+   should be enabled/disabled across the subgraphs
 
+| Key                | Value                                                                                | Required | Description                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------ |
+| `query`            | [QueryGraphqlConfig](#graphqlconfig-querygraphqlconfig)                              | true     | Configuration for the GraphQL schema of Hasura features for queries. `None` means disable the feature. |
+| `mutation`         | [MutationGraphqlConfig](#graphqlconfig-mutationgraphqlconfig)                        | true     | Configuration for the GraphQL schema of Hasura features for mutations.                                 |
+| `apolloFederation` | [GraphqlApolloFederationConfig](#graphqlconfig-graphqlapollofederationconfig) / null | false    |                                                                                                        |
 
 #### GraphqlApolloFederationConfig {#graphqlconfig-graphqlapollofederationconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `enableRootFields` | boolean | true |  |
+Configuration for the GraphQL schema of Hasura features for Apollo Federation.
 
-
+| Key                | Value   | Required | Description                                                                      |
+| ------------------ | ------- | -------- | -------------------------------------------------------------------------------- |
+| `enableRootFields` | boolean | true     | Adds the `_entities` and `_services` root fields required for Apollo Federation. |
 
 #### MutationGraphqlConfig {#graphqlconfig-mutationgraphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `rootOperationTypeName` | string | true |  |
+Configuration for the GraphQL schema of Hasura features for mutations.
 
-
+| Key                     | Value  | Required | Description                                                                 |
+| ----------------------- | ------ | -------- | --------------------------------------------------------------------------- |
+| `rootOperationTypeName` | string | true     | The name of the root operation type name for mutations. Usually `mutation`. |
 
 #### QueryGraphqlConfig {#graphqlconfig-querygraphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `rootOperationTypeName` | string | true |  |
-| `argumentsInput` | [ArgumentsInputGraphqlConfig](#graphqlconfig-argumentsinputgraphqlconfig) / null | false |  |
-| `limitInput` | [LimitInputGraphqlConfig](#graphqlconfig-limitinputgraphqlconfig) / null | false |  |
-| `offsetInput` | [OffsetInputGraphqlConfig](#graphqlconfig-offsetinputgraphqlconfig) / null | false |  |
-| `filterInput` | [FilterInputGraphqlConfig](#graphqlconfig-filterinputgraphqlconfig) / null | false |  |
-| `orderByInput` | [OrderByInputGraphqlConfig](#graphqlconfig-orderbyinputgraphqlconfig) / null | false |  |
+Configuration for the GraphQL schema of Hasura features for queries. `None` means disable the feature.
 
-
+| Key                     | Value                                                                            | Required | Description                                                            |
+| ----------------------- | -------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| `rootOperationTypeName` | string                                                                           | true     | The name of the root operation type name for queries. Usually `query`. |
+| `argumentsInput`        | [ArgumentsInputGraphqlConfig](#graphqlconfig-argumentsinputgraphqlconfig) / null | false    | Configuration for the arguments input.                                 |
+| `limitInput`            | [LimitInputGraphqlConfig](#graphqlconfig-limitinputgraphqlconfig) / null         | false    | Configuration for the limit operation.                                 |
+| `offsetInput`           | [OffsetInputGraphqlConfig](#graphqlconfig-offsetinputgraphqlconfig) / null       | false    | Configuration for the offset operation.                                |
+| `filterInput`           | [FilterInputGraphqlConfig](#graphqlconfig-filterinputgraphqlconfig) / null       | false    | Configuration for the filter operation.                                |
+| `orderByInput`          | [OrderByInputGraphqlConfig](#graphqlconfig-orderbyinputgraphqlconfig) / null     | false    | Configuration for the sort operation.                                  |
 
 #### OrderByInputGraphqlConfig {#graphqlconfig-orderbyinputgraphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-| `enumDirectionValues` | [OrderByDirectionValues](#graphqlconfig-orderbydirectionvalues) | true |  |
-| `enumTypeNames` | [[OrderByEnumTypeName](#graphqlconfig-orderbyenumtypename)] | true |  |
+Configuration for the sort operation.
 
-
+| Key                   | Value                                                           | Required | Description                                                 |
+| --------------------- | --------------------------------------------------------------- | -------- | ----------------------------------------------------------- |
+| `fieldName`           | string                                                          | true     | The name of the filter operation field. Usually `order_by`. |
+| `enumDirectionValues` | [OrderByDirectionValues](#graphqlconfig-orderbydirectionvalues) | true     | The names of the direction parameters.                      |
+| `enumTypeNames`       | [[OrderByEnumTypeName](#graphqlconfig-orderbyenumtypename)]     | true     |                                                             |
 
 #### OrderByEnumTypeName {#graphqlconfig-orderbyenumtypename}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `directions` | [[OrderByDirection](#graphqlconfig-orderbydirection)] | true |  |
-| `typeName` | string | true |  |
-
-
+| Key          | Value                                                 | Required | Description |
+| ------------ | ----------------------------------------------------- | -------- | ----------- |
+| `directions` | [[OrderByDirection](#graphqlconfig-orderbydirection)] | true     |             |
+| `typeName`   | string                                                | true     |             |
 
 #### OrderByDirection {#graphqlconfig-orderbydirection}
 
+Sort direction.
 
-**Value:** `Asc` / `Desc`
+**One of the following values:**
 
+| Value  | Description |
+| ------ | ----------- |
+| `Asc`  | Ascending.  |
+| `Desc` | Descending. |
 
 #### OrderByDirectionValues {#graphqlconfig-orderbydirectionvalues}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `asc` | string | true |  |
-| `desc` | string | true |  |
+The names of the direction parameters.
 
-
+| Key    | Value  | Required | Description                                           |
+| ------ | ------ | -------- | ----------------------------------------------------- |
+| `asc`  | string | true     | The name of the ascending parameter. Usually `Asc`.   |
+| `desc` | string | true     | The name of the descending parameter. Usually `Desc`. |
 
 #### FilterInputGraphqlConfig {#graphqlconfig-filterinputgraphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
-| `operatorNames` | [FilterInputOperatorNames](#graphqlconfig-filterinputoperatornames) | true |  |
+Configuration for the filter operation.
 
-
+| Key             | Value                                                               | Required | Description                                              |
+| --------------- | ------------------------------------------------------------------- | -------- | -------------------------------------------------------- |
+| `fieldName`     | string                                                              | true     | The name of the filter operation field. Usually `where`. |
+| `operatorNames` | [FilterInputOperatorNames](#graphqlconfig-filterinputoperatornames) | true     | The names of built-in filter operators.                  |
 
 #### FilterInputOperatorNames {#graphqlconfig-filterinputoperatornames}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `and` | string | true |  |
-| `or` | string | true |  |
-| `not` | string | true |  |
-| `isNull` | string | true |  |
+The names of built-in filter operators.
 
-
+| Key      | Value  | Required | Description                                             |
+| -------- | ------ | -------- | ------------------------------------------------------- |
+| `and`    | string | true     | The name of the `and` operator. Usually `_and`.         |
+| `or`     | string | true     | The name of the `or` operator. Usually `_or`.           |
+| `not`    | string | true     | The name of the `not` operator. Usually `_not`.         |
+| `isNull` | string | true     | The name of the `is null` operator. Usually `_is_null`. |
 
 #### OffsetInputGraphqlConfig {#graphqlconfig-offsetinputgraphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
+Configuration for the offset operation.
 
-
+| Key         | Value  | Required | Description                                               |
+| ----------- | ------ | -------- | --------------------------------------------------------- |
+| `fieldName` | string | true     | The name of the offset operation field. Usually `offset`. |
 
 #### LimitInputGraphqlConfig {#graphqlconfig-limitinputgraphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
+Configuration for the limit operation.
 
-
+| Key         | Value  | Required | Description                                             |
+| ----------- | ------ | -------- | ------------------------------------------------------- |
+| `fieldName` | string | true     | The name of the limit operation field. Usually `limit`. |
 
 #### ArgumentsInputGraphqlConfig {#graphqlconfig-argumentsinputgraphqlconfig}
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `fieldName` | string | true |  |
+Configuration for the arguments input.
+
+| Key         | Value  | Required | Description                                          |
+| ----------- | ------ | -------- | ---------------------------------------------------- |
+| `fieldName` | string | true     | The name of arguments passing field. Usually `args`. |
