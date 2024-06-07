@@ -21,6 +21,10 @@ const dataSources = {
     name: 'MongoDB',
     image: MongoDbLogo,
   },
+  TypeScript: {
+    name: 'TypeScript',
+    image: PostgreSqlLogo,
+  },
 };
 
 const DatabaseContentLoader = () => {
@@ -95,6 +99,9 @@ const DatabaseContentLoader = () => {
     }
   };
 
+  // We'll use this to exclude the TS connector from any of the data connection pages
+  const isTypeScriptExcluded = location.pathname.includes('connect-to-data');
+
   return (
     <div>
       <div className="picker-wrapper">
@@ -104,22 +111,24 @@ const DatabaseContentLoader = () => {
             : "Select a data source's documentation"}
         </small>
         <div className="button-wrapper">
-          {Object.keys(dataSources).map(key => (
-            <div
-              key={key}
-              onClick={() => savePreference(key)}
-              className={`data-source ${dbPreference === key ? 'selected' : ''}`}
-            >
-              {dataSources[key].image ? (
-                <>
-                  <img src={dataSources[key].image} alt={dataSources[key].name} />
-                  <p>{dataSources[key].name}</p>
-                </>
-              ) : (
-                <button>{dataSources[key].name}</button>
-              )}
-            </div>
-          ))}
+          {Object.keys(dataSources).map(key =>
+            !isTypeScriptExcluded || key !== 'TypeScript' ? (
+              <div
+                key={key}
+                onClick={() => savePreference(key)}
+                className={`data-source ${dbPreference === key ? 'selected' : ''}`}
+              >
+                {dataSources[key].image ? (
+                  <>
+                    <img src={dataSources[key].image} alt={dataSources[key].name} />
+                    <p>{dataSources[key].name}</p>
+                  </>
+                ) : (
+                  <button>{dataSources[key].name}</button>
+                )}
+              </div>
+            ) : null
+          )}
         </div>
       </div>
       {dbPreference ? getContent() : <div>Please select your database preference.</div>}
