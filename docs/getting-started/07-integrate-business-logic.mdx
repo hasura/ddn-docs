@@ -51,7 +51,7 @@ Let's begin by initializing the connector on our project. In the example below, 
 values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector
 hub:
 
-```bash
+```bash title="From the root of your project, run:"
 ddn connector init my_ts --subgraph my_subgraph --hub-connector hasura/nodejs
 ```
 
@@ -86,8 +86,8 @@ HASURA_CONNECTOR_PORT=8083
 As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
 functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
-```bash
-ddn connector-link add my_ts
+```bash title="From the root of your project, run:"
+ddn connector-link add my_ts --subgraph my_subgraph
 ```
 
 Then, update the values in your subgraph's `.env.my_subgraph` file to include this connector.
@@ -101,29 +101,22 @@ These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
 
 ### Step 4. Install npm package dependencies
 
-Within our `my_ts` directory, let's install any necessary dependencies:
+Within our `my_ts` connector directory, let's install any necessary dependencies:
 
 ```bash
 cd my_subgraph/connector/my_ts && npm i
 ```
 
-Then, from the `my_ts` directory run this command to use the `dotenv` package to load environment variables from the
-`. env.local` file, start the connector, and watch for any changes:
+Then, from the `my_ts` directory run this command to use the included `dotenv` package to load environment variables
+from the `. env.local` file, start the connector, and watch for any changes:
 
 ```bash
 npx dotenv -e .env.local -- npm run watch
 ```
 
-:::info Node.js version and Permissions
+:::info Node.js version
 
 The `hasura/nodejs` connector uses Node.js version `>=20`. Please make sure you have the correct version installed.
-
-If you get a warning about needing permissions to install globally, you can use `sudo` to install the package with your
-user system password:
-
-```bash
-sudo npm install -g dotenv-cli
-```
 
 :::
 
@@ -201,7 +194,8 @@ HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yam
 :::
 
 You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
-to access at `https://console.hasura.io/local/graphql?url=http://localhost:3000`.
+to access at `https://console.hasura.io/local/graphql?url=http://localhost:3000`. You can then test your new command
+with a string such as: `"2024-03-14T08:00:00Z"`.
 
 <Thumbnail
   src="/img/get-started/beta/console_business_logic_demo_query.png"
