@@ -117,6 +117,46 @@ more CRUD operations.
 | `version`    | `v1`                      | true     |                                                                                                                                               |
 | `definition` | [ModelV1](#model-modelv1) | true     | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
 
+**Example:**
+
+```yaml
+kind: Model
+version: v1
+definition:
+  name: Articles
+  objectType: article
+  globalIdSource: true
+  arguments: []
+  source:
+    dataConnectorName: data_connector
+    collection: articles
+    argumentMapping: {}
+  filterExpressionType: Article_bool_exp
+  orderableFields:
+    - fieldName: article_id
+      orderByDirections:
+        enableAll: true
+    - fieldName: title
+      orderByDirections:
+        enableAll: true
+    - fieldName: author_id
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectUniques:
+      - queryRootField: ArticleByID
+        uniqueIdentifier:
+          - article_id
+        description: Description for the select unique ArticleByID
+    selectMany:
+      queryRootField: ArticleMany
+      description: Description for the select many ArticleMany
+    orderByExpressionType: Article_Order_By
+    apolloFederation:
+      entitySource: true
+  description: Description for the model Articles
+```
+
 #### ModelV1 {#model-modelv1}
 
 The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
@@ -133,43 +173,6 @@ more CRUD operations.
 | `orderableFields`      | [[OrderableField](#model-orderablefield)]                      | true     | A list of fields that can be used to order the objects in this model.                           |
 | `graphql`              | [ModelGraphQlDefinition](#model-modelgraphqldefinition) / null | false    | Configuration for how this model should appear in the GraphQL schema.                           |
 | `description`          | string / null                                                  | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
-
-**Example:**
-
-```yaml
-name: Articles
-objectType: article
-globalIdSource: true
-arguments: []
-source:
-  dataConnectorName: data_connector
-  collection: articles
-  argumentMapping: {}
-filterExpressionType: Article_bool_exp
-orderableFields:
-  - fieldName: article_id
-    orderByDirections:
-      enableAll: true
-  - fieldName: title
-    orderByDirections:
-      enableAll: true
-  - fieldName: author_id
-    orderByDirections:
-      enableAll: true
-graphql:
-  selectUniques:
-    - queryRootField: ArticleByID
-      uniqueIdentifier:
-        - article_id
-      description: Description for the select unique ArticleByID
-  selectMany:
-    queryRootField: ArticleMany
-    description: Description for the select many ArticleMany
-  orderByExpressionType: Article_Order_By
-  apolloFederation:
-    entitySource: true
-description: Description for the model Articles
-```
 
 #### ModelGraphQlDefinition {#model-modelgraphqldefinition}
 
@@ -334,4 +337,3 @@ The name of a user-defined type.
 The name of data model.
 
 **Value:** string
-
