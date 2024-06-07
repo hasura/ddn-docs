@@ -24,8 +24,6 @@ configuration JSON files for a data connector and transform them into an `hml` (
 
 Basically, metadata objects in `hml` files define our API.
 
-[//]: # 'TODO links'
-
 First we need to create this `hml` file with the `connector-link add` command and then convert our configuration files
 into `hml` syntax and add it to this file with the `connector-link update` command.
 
@@ -75,9 +73,19 @@ subgraph's `.env.my_subgraph` file. Each key is prefixed by the subgraph name, a
 connector. Ensure the port value matches what is published in your connector's docker compose file.
 
 ```env
-MY_SUBGRAPH_MY_MONGO_READ_URL=http://local.hasura.dev:<port>
-MY_SUBGRAPH_MY_MONGO_WRITE_URL=http://local.hasura.dev:<port>
+MY_SUBGRAPH_MY_MONGO_READ_URL=http://local.hasura.dev:8082
+MY_SUBGRAPH_MY_MONGO_WRITE_URL=http://local.hasura.dev:8082
 ```
+
+These values are for the MongoDB connector itself and utilize `local.hasura.dev` to ensure proper resolution within the
+docker container.
+
+:::tip Don't forget to modify the port number
+
+To avoid port conflicts, you should modify the port number in the `.env.my_subgraph` file to match the port number you
+set in the Docker Compose for the connector.
+
+:::
 
 ## Step 2. Start the connector's docker compose
 
@@ -92,7 +100,7 @@ This starts our MongoDB connector on the specified port. We can navigate to the 
 modified, to see the schema of our MongoDB database:
 
 ```bash
-http://localhost:<PORT>/schema
+http://localhost:8082/schema
 ```
 
 :::tip Prefer to start all your services together?
