@@ -154,7 +154,7 @@ const DatabaseContentLoader = () => {
       {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript') ? (
         getContent()
       ) : (
-        <div>Please select your database preference.</div>
+        <div>Please select your source preference.</div>
       )}
     </div>
   );
