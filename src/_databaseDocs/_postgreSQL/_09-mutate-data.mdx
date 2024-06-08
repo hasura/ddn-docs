@@ -21,7 +21,16 @@ connect to our database.
 npm i dotenv pg
 ```
 
-### Step 2. Create a function
+### Step 2. Add the connection URI
+
+We'll add our PostgreSQL connection string as an environment variable to our connector's `.env.local` file. This will
+allow us to access the connection string in our function.
+
+```env title="my_subgraph/connectors/my_ts/.env.local"
+CONNECTION_URI=<your-postgres-connection-string>
+```
+
+### Step 3. Create a function
 
 The TypeScript connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
 query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
@@ -30,11 +39,12 @@ expose the function as a mutation.
 We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
 `@returns` for what will be returned by the mutation.
 
-```ts title="my_subgraph/connectors/ts_connector/functions.ts"
+```ts title="my_subgraph/connectors/my_ts/functions.ts"
 import { Client } from 'pg';
 import { config } from 'dotenv';
 
-config();
+// Load environment variables from .env.local
+dotenv.config({ path: '.env.local' });
 
 /**
  * @param userData An object containing the user's data.
@@ -42,7 +52,7 @@ config();
  */
 export async function insertUser(userData: { name: string; email: string }): Promise<string> {
   const client = new Client({
-    connectionString: process.env.PG_URI,
+    connectionString: process.env.CONNECTION_URI,
   });
 
   await client.connect();
