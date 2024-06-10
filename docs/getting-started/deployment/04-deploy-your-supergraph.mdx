@@ -1,0 +1,131 @@
+---
+sidebar_position: 4
+sidebar_label: Deploy your supergraph
+description: "Learn how to get started with Hasura DDN and your GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Deploy your Supergraph
+
+## What's about to happen?
+
+You're about to deploy your supergraph to Hasura DDN, our globally-distributed, highly-available, lightning-fast hosted
+service!
+
+## Steps
+
+:::tip Required
+
+- [DDN CLI](/getting-started/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
+- A new or existing [data connector](/getting-started/connect-to-data/01-connect-a-source.mdx)
+- A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
+
+:::
+
+### Step 1. Configure authentication
+
+We'll start by creating a new [`AuthConfig`](/supergraph-modeling/auth-config.mdx) for your Hasura DDN project. You can
+use your own authentication configuration with webhooks or JWTs. However, in the example below, we'll use the webhook
+provided by Hasura DDN so you can test your project securely in the cloud.
+
+```yaml title="supergraph_globals/auth-config.cloud.hml"
+kind: AuthConfig
+version: v1
+definition:
+  allowRoleEmulationBy: admin
+  mode:
+    webhook:
+      url: http://auth-hook.default:8080/webhook/ddn?role=admin
+      method: Post
+```
+
+### Step 2. Create a cloud supergraph configuration
+
+In the root of the project, create a `supergraph.cloud.yaml` file:
+
+```yaml title="supergraph.cloud.yaml"
+kind: Supergraph
+version: v1
+definition:
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph_globals
+    envFile: ./supergraph_globals/.env.supergraph_globals
+    includePaths:
+      - ./supergraph_globals/auth-config.cloud.hml
+      - ./supergraph_globals/compatibility-config.hml
+      - ./supergraph_globals/graphql-config.hml
+  subgraphs:
+    # With each subgraph as a key — my_subgraph is used below as an example
+    my_subgraph:
+      generator:
+        rootPath: my_subgraph/metadata
+      envFile: my_subgraph/.env.cloud.my_subgraph
+      includePaths:
+        - my_subgraph
+```
+
+### Step 3. Build and deploy your supergraph
+
+```bash title="From the root of your project, run:"
+ddn supergraph build create --supergraph ./supergraph.cloud.yaml
+```
+
+The CLI will respond with a build version and build URL.
+
+### Step 4. Apply your supergraph
+
+An applied build is the one that is served by your Hasura DDN's project endpoint.
+
+```bash title="To apply a build, run:"
+ddn supergraph build apply <supergraph-build-version>
+```
+
+## What did this do?
+
+When you ran the command above, the CLI used the configuration you provided to create an immutable build of your
+supergraph on Hasura DDN. This build is now accessible via the build's GraphQL endpoint and in the Hasura Console for
+exploration.
+
+Teammates can explore the API, interact with it, and provide feedback before you iterate and create a new build for
+testing. Or, if you're ready, you can apply the build so that it's served by the project's endpoint. And, should you
+realize you applied it a _little_ early, you can easily roll it back by applying an older build.
+
+## Next steps
+
+At this point, you have all the ingredients and knowledge to create a robust supergraph that composes data across
+various sources and aggregates them into a single, reliable, performant API. Before moving to production, consider the
+resources below:
+
+### Migrations
+
+Hasura recommends a number of third-party solutions for managing database migrations. Commonly, users implement
+migrations via CI/CD with [Flyaway](https://flywaydb.org/) or similar resources.
+
+:::info Doesn't Hasura manage migrations?
+
+In v2, Hasura provided a built-in migration tool. However, as v3 metadata is decoupled from the underlying data source,
+you are free to manage your migrations however you wish.
+
+:::
+
+### Performance optimizations
+
+Hasura provides a suite of observability tools directly in a project's DDN console. You can view traces, query plans,
+and general usage statistics. These are helpful for diagnosing common bottlenecks and problems with your application's
+performance. You can read more about these [here](/observability/overview.mdx).
+
+### CI/CD
+
+You can create a pipeline for deployments using any tools you wish. As we recommend initializing a git repository early
+in the project creation process, and provide operability with environment variables, you can follow any git-workflow
+best practices for moving between development, staging, and production environments. Additionally, we provide a
+configurable [GitHub Action](https://github.com/marketplace/actions/ddn-deployment) for automatically managing your
+deployments.

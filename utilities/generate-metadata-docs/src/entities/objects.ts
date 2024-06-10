@@ -23,8 +23,8 @@ export const topLevelMetadataObjects: Record<string, string> = {
   CommandPermissions: 'permissions',
   DataConnectorLink: 'data-connectors',
   DataConnectorScalarRepresentation: 'data-connectors',
-  SupergraphManifest: 'build-manifests',
-  ConnectorManifest: 'build-manifests',
+  Supergraph: 'build-manifests',
+  Connector: 'build-manifests',
 };
 
 export const topLevelMetadataRefs: Record<string, string> = {};

@@ -22,105 +22,123 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-Hasura v3 introduces new configuration for projects on the Hasura Data Delivery Network (DDN). This config relies on
-four types of files:
+Hasura v3 introduces a new configuration for local projects.
 
-| File type                                    | Description                                                                                                                |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| [`hasura.yaml`](#hasurayaml)                 | The main configuration file.                                                                                               |
-| [`*.env.yaml`](#envyaml)                     | A file that stores environment variables.                                                                                  |
-| [`*.supergraph.yaml`](#supergraph-manifests) | Build manifest file(s) for a project.                                                                                      |
-| `*.hml`                                      | Hasura metadata files for a project.                                                                                       |
-| [`supergraph`](#supergraph)                  | A directory, containing all the necessary configuration and metadata files, for the supergraph-level scope of a project.   |
-| [`<SUBGRAPH_DIRECTORY>`](#subgraphs)         | A directory, containing all the necessary configuration and metadata files, for a corresponding subgraph within a project. |
+## Sample project directory structure
 
-### hasura.yaml
-
-This is the entrypoint to a Hasura project.
-
-```yaml
-version: v1
-project: <PROJECT_NAME>
-subgraphs:
-  app:
-    path: ./app
-defaultSupergraphManifest: base
-```
-
-The `version` section is used to specify the version of the configuration file. The `project` field is used to specify
-the project name.
-
-The `hasura.yaml` file also contains a `subgraphs` section. This section is used to specify the various
-[subgraphs](#subgraphs) associated with the project.
-
-### \*.env.yaml
-
-This file is used to store environment variables. The CLI generates a `base.env.yaml` for you by default. You can add
-environment variables by adding key-value pairs under a particular subgraph:
-
-```yaml
-supergraph: {}
-subgraphs:
-  #highlight-start
-  app:
-    APP_CONNECTOR_CONNECTION_URI: "CONNECTION_URI"
-#highlight-end
-```
-
-And then referencing them in your metadata using `valueFromEnv`:
-
-```yaml
-kind: ConnectorManifest
-version: v1
-spec:
-  supergraphManifests:
-    - base
-definition:
-  name: app_connector
-  type: cloud
-  connector:
-    type: hub
-    name: <CONNECTOR_NAME>
-  deployments:
-    - context: .
-      env:
-        CONNECTION_URI:
-          #highlight-start
-          valueFromEnv: APP_CONNECTOR_CONNECTION_URI
-#highlight-end
-```
-
-:::info Accessing environment variables
-
-In the example above, our `supergraphManifests` array references our `base.supergraph.hml` file, which contains an
-`envfile` key that maps to our `base.env.yaml`. Thus, any environment variables present in this YAML file will then be
-accessible in our HML.
-
-If these files contain sensitive information, you should add them to your gitignore so as to avoid accidentally
-committing them to version control.
-
-:::
-
-### Supergraph manifests {#supergraph-manifests}
-
-Supergraph manifests tell Hasura DDN how to construct your supergraph. A manifest will contain information such as which
-subgraphs to include and which resources to use for the build.
-
-```yaml
-kind: SupergraphManifest
-version: v1
-definition:
-  name: base
-  envfile: base.env.yaml
-  subgraphs:
-    - app
-```
-
-### Supergraph
-
-The `supergraph` directory contains the supergraph configuration files. The three included files are:
+The following is a sample directory structure of a local project:
 
 ```bash
+.
+├── .devcontainer
+│  └── devcontainer.json
+├── .env.engine
+├── .gitattributes
+├── .hasura
+│  └── context.yaml
+├── .vscode
+├── docker-compose.hasura.yaml
+├── engine
+│  ├── auth_config.json
+│  ├── metadata.json
+│  └── open_dd.json
+├── hasura.yaml
+├── otel-collector-config.yaml
+├── supergraph.yaml
+└── supergraph_globals
+   ├── .env.supergraph_globals
+   ├── auth-config.hml
+   ├── compatibility-config.hml
+   └── graphql-config.hml
+```
+
+## Types of files
+
+The new configuration relies on the following types of files:
+
+| File type                                | Description                                                                                                              |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [`hasura.yaml`](#hasurayaml)             | The file that denotes the root of a Hasura project.                                                                      |
+| [`.env.*`](#envfiles)                    | Files that store environment variables.                                                                                  |
+| [`supergraph.yaml`](#supergraphfiles)    | Files that describe how to build the supergraph.                                                                         |
+| [`connector.yaml`](#connectoryaml)       | Files that describe how to build a data connector.                                                                       |
+| `*.hml`                                  | Hasura metadata files for a project.                                                                                     |
+| [`supergraph_globals`](#supergraphfiles) | A directory, containing all the necessary configuration and metadata files, for the supergraph-level scope of a project. |
+| [`.hasura/context.yaml`](#contextfile)   | File that stores certain default values of a project.                                                                    |
+| `docker-compose.*.yaml`                  | Docker Compose files for local development.                                                                              |
+| [`engine`](#engine)                      | Files mounted to the engine container for local development.                                                             |
+| `otel-collector-config.yaml`             | Configuration for OpenTelemetry Collector used for seeing traces during local development.                               |
+
+### hasura.yaml {#hasurayaml}
+
+`hasura.yaml` appears at the root of a Hasura project.
+
+```yaml
+version: v2
+```
+
+The `version` section is used to specify the version of the project directory structure.
+
+### .env.\* {#envfiles}
+
+This file is used to store environment variables. The file should be in the format:
+
+```.env
+ENV1=val1
+ENV2=val2
+```
+
+These files are referenced inside:
+
+- Docker Compose files: Docker Compose files use \*.env files to specify environment variables needed for containers.
+- Supergraph files (such as `supergraph.yaml`): Supergraph files use \*.env files to specify environment variables
+  needed by `supergraph_globals` and subgraphs. Each subgraph can have its own .env file.
+- Connector files (such as `connector.yaml`): Connector files use \*.env files to specify environment variables needed
+  for building the connector.
+
+### Supergraph files {#supergraph-manifests}
+
+These files tell Hasura DDN how to construct your supergraph. It will contain information such as which subgraphs to
+include and which resources to use for the build.
+
+For example:
+
+```yaml
+kind: Supergraph
+version: v1
+definition:
+  supergraph_globals:
+    generator:
+      rootPath: ./supergraph_globals
+    envFile: ./supergraph_globals/.env.supergraph_globals
+    includePaths:
+      - ./supergraph_globals/auth-config.hml
+      - ./supergraph_globals/compatibility-config.hml
+      - ./supergraph_globals/graphql-config.hml
+  subgraphs:
+    app:
+      generator:
+        rootPath: app
+      envFile: app/.env.app
+      includePaths:
+        - app/metadata
+```
+
+By default, the CLI generates a file called `supergraph.yaml` but any number of Supergraph files can be created and
+referenced in CLI commands.
+
+`includePaths` specify the directories and files where metadata for the `supergraph_globals` and subgraphs can be found.
+If a directory is specified, all the \*.hml files inside the directory and its subdirectories will be used to construct
+the metadata.
+
+`generator`.`rootPath` specifies the directory into which any new files will be generated.
+
+### Supergraph Globals {#supergraphfiles}
+
+The `supergraph_globals` directory contains the supergraph configuration files. The four included files are:
+
+```bash
+├── .env.supergraph_globals
 ├── auth-config.hml
 ├── compatibility-config.hml
 └── graphql-config.hml
@@ -145,41 +163,54 @@ supergraph.
 The `graphql-config.hml` file contains the GraphQL configuration for the supergraph, which allows you to customize the
 available query and mutation capabilities along with the schema.
 
-### Subgraphs
+The `.env.supergraph_globals` file contains all the environment variables required by the supergraph global objects.
 
-Each subgraph is listed as a top-level directory in the root of the project. The CLI will init your project with an
-`app` subgraph.
+### connector.yaml {#connectoryaml}
 
-Each subgraph directory will contain the following folder structure when a new connector manifest is added for the
-subgraph:
+Specifies the connector details.
 
-```bash
-└── <CONNECTOR_NAME>
-│   ├── <CONNECTOR_NAME>-types.hml
-│   ├── <CONNECTOR_NAME>.hml
-│   ├── connector
-│   │   ├── <CONNECTOR_NAME>.build.hml
-│   │   ├── configuration.json
-│   │   └── schema.json
-│   └── models
+For example:
+
+```yaml
+kind: Connector
+version: v1
+definition:
+  name: mypg
+  source: hasura/postgres:v0.7.0
+  context: .
+  envFile: .env.local
 ```
 
-| File/Folder                             | Description                                                                        |
-| --------------------------------------- | ---------------------------------------------------------------------------------- |
-| `<CONNECTOR_NAME>`                      | The directory containing the build artifacts for the connector.                    |
-| `<CONNECTOR_NAME>-types.html`           | The metadata file for the connector's types.                                       |
-| `<CONNECTOR_NAME>.hml`                  | The metadata file for the connector based on the introspection of the data source. |
-| `<CONNECTOR_NAME>/configuration.json`   | The configuration file for the connector.                                          |
-| `<CONNECTOR_NAME>/schema.json`          | The schema file for the connector.                                                 |
-| `/connector/<CONNECTOR_NAME>.build.hml` | The build manifest for the connector.                                              |
+`version` is the version of the connector, `name` is a name given to the connector, `source` is the connector to use
+specific to the data source, `context` specifies the connector directory and `envFile` specifies the connector specific
+environment variables to use for introspecting and building the connector.
 
-:::info customize the default subgraph
+### .hasura/context.yaml {#contextfile}
 
-You can customize the default subgraph by:
+This specifies the default DDN project and supergraph file path. The default values are used by all commands that accept
+a `--supergraph` flag and `--project` flag. The flags can be used to override the default values.
 
-1. [Deleting the `app` subgraph](/cli/commands/delete-subgraph.mdx) on DDN.
-2. [Creating a new subgraph](/cli/commands/create-subgraph.mdx) with the desired name.
-3. Renaming the `app` subgraph directory to the new subgraph name.
-4. Updating any `app` references for subgraphs in your metadata to the new subgraph name.
+```yaml
+context:
+  project: emerging-stag-9129
+  supergraph: ../supergraph.yaml
+```
 
-:::
+This file is configured by the `ddn context set` command.
+
+### Engine {#engine}
+
+The `engine` directory contains the files required for Hasura v3 engine container. This directory has the following
+structure:
+
+```bash
+├── .env.engine
+├── auth_config.json
+├── metadata.json
+└── open_dd.json
+```
+
+The `.env.engine` file specifies environment variables required by the Hasura v3 engine container.
+
+The `auth_config.json`, `metadata.json` and `open_dd.json` are generated as a result of `ddn supergraph build local`
+command and does not need to be edited by the user.
