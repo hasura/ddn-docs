@@ -30,3 +30,101 @@ your supergraph.
 the connector. This allows you to configure the capabilities of the connector and tailor it to your needs.
 
 ## Metadata structure
+
+### Supergraph {#supergraph-supergraph}
+
+Defines the configuration used to build the Supergraph.
+
+| Key          | Value                                                        | Required | Description |
+| ------------ | ------------------------------------------------------------ | -------- | ----------- |
+| `kind`       | `Supergraph`                                                 | true     |             |
+| `version`    | `v1`                                                         | true     |             |
+| `definition` | [SupergraphDefinitionV1](#supergraph-supergraphdefinitionv1) | true     |             |
+
+#### SupergraphDefinitionV1 {#supergraph-supergraphdefinitionv1}
+
+Supergraph Definition.
+
+| Key                  | Value                                            | Required | Description               |
+| -------------------- | ------------------------------------------------ | -------- | ------------------------- |
+| `supergraph_globals` | [SupergraphConfig](#supergraph-supergraphconfig) | false    | Supergraph Configuration. |
+| `subgraphs`          | [SubgraphsConfig](#supergraph-subgraphsconfig)   | false    | Subgraphs configuration.  |
+
+#### SubgraphsConfig {#supergraph-subgraphsconfig}
+
+Subgraphs Configuration.
+
+| Key           | Value                                        | Required | Description |
+| ------------- | -------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [SubgraphConfig](#supergraph-subgraphconfig) | false    |             |
+
+#### SubgraphConfig {#supergraph-subgraphconfig}
+
+Subgraph Configuration.
+
+| Key            | Value                                                          | Required | Description                                          |
+| -------------- | -------------------------------------------------------------- | -------- | ---------------------------------------------------- |
+| `generator`    | [SubgraphGeneratorConfig](#supergraph-subgraphgeneratorconfig) | true     | Subgraph generator Configuration.                    |
+| `envFile`      | string                                                         | false    | Path to the Subgraph .env file.                      |
+| `includePaths` | [string]                                                       | true     | Paths to be included to construct Subgraph metadata. |
+
+#### SubgraphGeneratorConfig {#supergraph-subgraphgeneratorconfig}
+
+Subgraph generator Configuration.
+
+| Key                      | Value  | Required | Description                                                  |
+| ------------------------ | ------ | -------- | ------------------------------------------------------------ |
+| `rootPath`               | string | true     | Path to the directory which holds all the Subgraph metadata. |
+| `graphqlRootFieldPrefix` | string | false    | Prefix to use while generating GraphQL root fields.          |
+| `graphqlTypeNamePrefix`  | string | false    | Prefix to use while generating GraphQL type names.           |
+
+#### SupergraphConfig {#supergraph-supergraphconfig}
+
+Supergraph Configuration.
+
+| Key            | Value                                                              | Required | Description                                            |
+| -------------- | ------------------------------------------------------------------ | -------- | ------------------------------------------------------ |
+| `generator`    | [SupergraphGeneratorConfig](#supergraph-supergraphgeneratorconfig) | true     | Supergraph Generator Configuration                     |
+| `envFile`      | string                                                             | false    | Path to the Supergraph .env file.                      |
+| `includePaths` | [string]                                                           | true     | Paths to be included to construct Supergraph metadata. |
+
+#### SupergraphGeneratorConfig {#supergraph-supergraphgeneratorconfig}
+
+Supergraph Generator Configuration.
+
+| Key        | Value  | Required | Description                                                    |
+| ---------- | ------ | -------- | -------------------------------------------------------------- |
+| `rootPath` | string | true     | Path to the directory which holds all the Supergraph metadata. |
+
+### Connector {#connector-connector}
+
+Defines the configuration used to build the connector.
+
+| Key          | Value                                                     | Required | Description |
+| ------------ | --------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `Connector`                                               | true     |             |
+| `version`    | `v1`                                                      | true     |             |
+| `definition` | [ConnectorDefinitionV1](#connector-connectordefinitionv1) | true     |             |
+
+#### ConnectorDefinitionV1 {#connector-connectordefinitionv1}
+
+Connector deployment definition.
+
+| Key                   | Value                                                   | Required | Description                               |
+| --------------------- | ------------------------------------------------------- | -------- | ----------------------------------------- |
+| `name`                | string                                                  | true     | Connector name.                           |
+| `subgraph`            | string                                                  | false    | DDN project subgraph name.                |
+| `source`              | string                                                  | true     | Connector Hub ID.                         |
+| `context`             | string                                                  | true     | Path to the context directory.            |
+| `envFile`             | string                                                  | false    | Path to the shared .env file.             |
+| `regionConfiguration` | [[RegionConfiguration](#connector-regionconfiguration)] | false    | Connector deployment Region configuration |
+
+#### RegionConfiguration {#connector-regionconfiguration}
+
+Connector deployment Region Configuration.
+
+| Key       | Value                    | Required | Description                        |
+| --------- | ------------------------ | -------- | ---------------------------------- |
+| `region`  | string                   | true     | Region to deploy the connector to. |
+| `mode`    | `ReadOnly` / `ReadWrite` | true     | Connector deployment mode.         |
+| `envFile` | string                   | false    | Path to the regional .env file.    |
