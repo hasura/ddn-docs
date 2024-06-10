@@ -151,22 +151,6 @@ const DatabaseContentLoader = () => {
               </div>
             ) : null
           )}
-          {Object.keys(dataSources).map(key => (
-            <div
-              key={key}
-              onClick={() => savePreference(key)}
-              className={`data-source ${dbPreference === key ? 'selected' : ''}`}
-            >
-              {dataSources[key].image ? (
-                <>
-                  <img src={dataSources[key].image} alt={dataSources[key].name} />
-                  <p>{dataSources[key].name}</p>
-                </>
-              ) : (
-                <button>{dataSources[key].name}</button>
-              )}
-            </div>
-          ))}
           <Link to="/connectors/overview#supported-sources" className="data-source">
             <Icon />
             <p>Other connectors</p>
