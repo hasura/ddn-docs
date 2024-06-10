@@ -112,7 +112,7 @@ JWT Secret config according to which the incoming JWT will be decoded.
 
 | Key         | Value                                            | Required | Description                           |
 | ----------- | ------------------------------------------------ | -------- | ------------------------------------- |
-| `algorithm` | [JWTAlgorithm](#authconfig-jwtalgorithm)         | true     | The algorithm used to decode the JWT. |
+| `algorithm` | [Algorithm](#authconfig-algorithm)               | true     | The algorithm used to decode the JWT. |
 | `key`       | [EnvironmentValue](#authconfig-environmentvalue) | true     | The key to use for decoding the JWT.  |
 
 #### EnvironmentValue {#authconfig-environmentvalue}
@@ -126,7 +126,7 @@ Either a literal string or a reference to a Hasura secret
 | `value`        | string | false    |             |
 | `valueFromEnv` | string | false    |             |
 
-#### JWTAlgorithm {#authconfig-jwtalgorithm}
+#### Algorithm {#authconfig-algorithm}
 
 The algorithm used to decode the JWT.
 
@@ -221,23 +221,41 @@ Format in which the Hasura claims will be present.
 Can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON
 pointer within the decoded JWT and optionally a default value.
 
-| Key                      | Value                                                      | Required | Description                                                      |
-| ------------------------ | ---------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| `x-hasura-default-role`  | [JWTClaimsMappingEntry](#authconfig-jwtclaimsmappingentry) | true     | JSON pointer to lookup the default role within the decoded JWT.  |
-| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry](#authconfig-jwtclaimsmappingentry) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
+| Key                      | Value                                                                                          | Required | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `x-hasura-default-role`  | [JWTClaimsMappingEntry_for_Role](#authconfig-jwtclaimsmappingentry_for_role)                   | true     | JSON pointer to lookup the default role within the decoded JWT.  |
+| `x-hasura-allowed-roles` | [JWTClaimsMappingEntry_for_Array_of_Role](#authconfig-jwtclaimsmappingentry_for_array_of_role) | true     | JSON pointer to lookup the allowed roles within the decoded JWT. |
 
-#### JWTClaimsMappingEntry {#authconfig-jwtclaimsmappingentry}
+#### JWTClaimsMappingEntry_for_Array_of_Role {#authconfig-jwtclaimsmappingentry_for_array_of_role}
+
+JSON pointer to lookup the allowed roles within the decoded JWT.
+
+**Must have exactly one of the following fields:**
+
+| Key       | Value                                                                                                  | Required | Description |
+| --------- | ------------------------------------------------------------------------------------------------------ | -------- | ----------- |
+| `literal` | [string]                                                                                               | false    |             |
+| `path`    | [JWTClaimsMappingPathEntry_for_Array_of_Role](#authconfig-jwtclaimsmappingpathentry_for_array_of_role) | false    |             |
+
+#### JWTClaimsMappingPathEntry_for_Array_of_Role {#authconfig-jwtclaimsmappingpathentry_for_array_of_role}
+
+| Key       | Value           | Required | Description                                                                                 |
+| --------- | --------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `path`    | string          | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
+| `default` | [string] / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
+
+#### JWTClaimsMappingEntry_for_Role {#authconfig-jwtclaimsmappingentry_for_role}
 
 JSON pointer to lookup the default role within the decoded JWT.
 
 **Must have exactly one of the following fields:**
 
-| Key       | Value                                                              | Required | Description |
-| --------- | ------------------------------------------------------------------ | -------- | ----------- |
-| `literal` | string                                                             | false    |             |
-| `path`    | [JWTClaimsMappingPathEntry](#authconfig-jwtclaimsmappingpathentry) | false    |             |
+| Key       | Value                                                                                | Required | Description |
+| --------- | ------------------------------------------------------------------------------------ | -------- | ----------- |
+| `literal` | string                                                                               | false    |             |
+| `path`    | [JWTClaimsMappingPathEntry_for_Role](#authconfig-jwtclaimsmappingpathentry_for_role) | false    |             |
 
-#### JWTClaimsMappingPathEntry {#authconfig-jwtclaimsmappingpathentry}
+#### JWTClaimsMappingPathEntry_for_Role {#authconfig-jwtclaimsmappingpathentry_for_role}
 
 | Key       | Value         | Required | Description                                                                                 |
 | --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
