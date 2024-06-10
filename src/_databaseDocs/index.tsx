@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
+import Link from '@docusaurus/Link';
 import './styles.css';
+import Icon from '@site/static/icons/event-triggers.svg';
 import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
@@ -149,6 +151,26 @@ const DatabaseContentLoader = () => {
               </div>
             ) : null
           )}
+          {Object.keys(dataSources).map(key => (
+            <div
+              key={key}
+              onClick={() => savePreference(key)}
+              className={`data-source ${dbPreference === key ? 'selected' : ''}`}
+            >
+              {dataSources[key].image ? (
+                <>
+                  <img src={dataSources[key].image} alt={dataSources[key].name} />
+                  <p>{dataSources[key].name}</p>
+                </>
+              ) : (
+                <button>{dataSources[key].name}</button>
+              )}
+            </div>
+          ))}
+          <Link to="/connectors/overview#supported-sources" className="data-source">
+            <Icon />
+            <p>Other connectors</p>
+          </Link>
         </div>
       </div>
       {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript') ? (
