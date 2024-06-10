@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
+import Link from '@docusaurus/Link';
 import './styles.css';
+import Icon from '@site/static/icons/event-triggers.svg';
 import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import PostgreSqlConnect from '@site/src/_databaseDocs/_postgreSQL/_01-connect-a-data-source.mdx';
@@ -120,6 +122,10 @@ const DatabaseContentLoader = () => {
               )}
             </div>
           ))}
+          <Link to="/connectors/overview#supported-sources" className="data-source">
+            <Icon />
+            <p>Other connectors</p>
+          </Link>
         </div>
       </div>
       {dbPreference ? getContent() : <div>Please select your database preference.</div>}
