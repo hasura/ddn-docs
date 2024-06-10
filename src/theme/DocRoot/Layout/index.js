@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from '@docusaurus/router';
 import { useDocsSidebar } from '@docusaurus/theme-common/internal';
 import BackToTopButton from '@theme/BackToTopButton';
 import DocRootLayoutSidebar from '@theme/DocRoot/Layout/Sidebar';
@@ -11,6 +12,7 @@ import posthog from 'posthog-js';
 
 export default function DocRootLayout({ children }) {
   const sidebar = useDocsSidebar();
+  const location = useLocation();
   const [hiddenSidebarContainer, setHiddenSidebarContainer] = useState(false);
 
   useEffect(() => {
@@ -18,6 +20,12 @@ export default function DocRootLayout({ children }) {
       posthog.init('phc_MZpdcQLGf57lyfOUT0XA93R3jaCxGsqftVt4iI4MyUY', {
         api_host: 'https://analytics-posthog.hasura-app.io',
       });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      posthog.capture('$pageview');
     }
 
     const getUser = async () => {
@@ -31,7 +39,7 @@ export default function DocRootLayout({ children }) {
     };
 
     getUser();
-  }, []);
+  }, [location]);
 
   return (
     <div className={styles.docsWrapper}>
