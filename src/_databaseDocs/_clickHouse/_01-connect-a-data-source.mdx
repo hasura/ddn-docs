@@ -1,0 +1,159 @@
+import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
+
+## What's about to happen?
+
+We want to connect our [ClickHouse](https://clickhouse.com/) instance to our API. To do this, we use the Hasura
+ClickHouse data connector to facilitate the connection and then introspect the database to generate JSON which the
+Hasura CLI will then use to create metadata which can then define your API.
+
+## Step 1. Init the ClickHouse connector
+
+:::tip Required
+
+- <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
+- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
+- A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
+
+:::
+
+To initialize the ClickHouse connector, run the following.
+
+```bash title="From the root of your project, run:"
+ddn connector init my_clickhouse --subgraph my_subgraph --hub-connector hasura/clickhouse
+```
+
+In this command, we're passing a few important values.
+
+**Connector name**
+
+We're naming the connector `my_clickhouse` in this example, but you can call it whatever makes sense to you. For
+example, if this connector is integrating a database all about tracking courier delivery events, it would make sense to
+name it something like `courier_events_clickhouse_connector`.
+
+**Connector type**
+
+We're specifying that this connector should be the: `hasura/clickhouse`, connector listed in the
+[Connector Hub](https://hasura.io/connectors/clickhouse).
+
+:::note Best practice
+
+Importantly, a data connector can only connect to one data source.
+
+The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
+this example the CLI will create a `my_subgraph/connector/my_clickhouse` directory if it doesn't exist. You can also
+change this directory by passing a `--dir` flag to the CLI.
+
+The name of the connector and the directory in which the configuration is stored, `my_clickhouse` in this example,
+should match for convenience and clarity sake.
+
+:::
+
+### What did this do?
+
+In the `my_subgraph/connector/my_clickhouse` directory which we specified in the command, the CLI created:
+
+- A `connector.yaml` file which contains the configuration for the connector.
+- A `.hasura-connector` folder which contains the connector definition used to build and run it.
+- A `docker-compose.my_clickhouse.yaml` a file to run the ClickHouse data connector locally in Docker.
+- A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
+- An `.env.local` file for environment variables for pertaining to running this connector locally.
+
+Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
+about the ClickHouse database or the data it contains. That's coming up in the next steps.
+
+## Step 2. Modify the port
+
+Typically, connectors default to port `8080`. Each time you add a connector, we recommend incrementing the published
+port by one to avoid port collisions. For example:
+
+Change the value of your `my_clickhouse` connector's published port in your
+`my_subgraph/connector/my_clickhouse/docker-compose.my_clickhouse.yaml` to `8082` to avoid port collisions with other
+connectors:
+
+```yaml title="my_subgraph/connector/my_clickhouse/docker-compose.my_clickhouse.yaml"
+ports:
+  - mode: ingress
+    target: 8080
+    #highlight-start
+    published: '8082'
+    #highlight-end
+    protocol: tcp
+```
+
+:::tip Consistency is important
+
+In subsequent steps, when running your connector locally, it's critical to ensure this port value matches the connection
+string you provide in your subgraph's `.env.my_subgraph` file.
+
+:::
+
+## Step 3. Add the required environment variables
+
+Now that our connector has been scaffolded out for us, we need to provide a connection string, username, and password so
+that the data source can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note
+that there are a few caveats to consider before continuing.
+
+The CLI has provided an `.env.local` file for our connector in the `my_subgraph/connector/my_clickhouse` directory. We
+can add a key-value pair of `CONNECTION_URI` along with the connection string itself to this file and our connector will
+use this to connect to our ClickHouse database. Then, add your username and password.
+
+The file, after adding the `CONNECTION_URI` should look like this example:
+
+```env title="my_subgraph/connector/my_clickhouse/.env.local"
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
+OTEL_SERVICE_NAME=my_subgraph_my_clickhouse
+#highlight-start
+CONNECTION_URI=<clickhouse-connection-uri>
+CLICKHOUSE_USERNAME=<your-username>
+CLICKHOUSE_PASSWORD=<your-passowrd>
+#highlight-end
+```
+
+You can use a local ClickHouse database or a cloud-hosted option. If you already have one you can connect to, you can go
+ahead and do that using the steps above. Hasura DDN will not modify your database in any way, so you can use an existing
+database without any worries.
+
+:::info Environment-specific caveats
+
+**Local ClickHouse**
+
+If you're using a local ClickHouse database — such as through
+[Docker](https://hub.docker.com/r/clickhouse/clickhouse-server/) — you can connect to it directly from the data
+connector. However, if you deploy your connector to Hasura DDN, the cloud-hosted version of your data connector won't be
+able to find your database. You'll need to use a tool like [ngrok](https://ngrok.com/) to tunnel your database's
+connection. This will expose the port, most likely `9000`, on which the database is running and allow Hasura DDN to
+connect to it.
+
+**Cloud-hosted ClickHouse**
+
+Alternatively, if you have a cloud-hosted database, as Hasura DDN will need to reach your database, ensure you've
+allowlisted `0.0.0.0/0` (for now) so that DDN is able to reach it.
+
+:::
+
+## Step 4. Introspect your database
+
+With the connector configured, we can now use the CLI to introspect our ClickHouse database and create a source-specific
+configuration file for our connector.
+
+```bash title="From the root of your project run:"
+ddn connector introspect --connector my_subgraph/connector/my_clickhouse/connector.yaml
+```
+
+If you look at the `configuration.json` for your connector, you'll see metadata describing your ClickHouse schema.
+
+:::tip Initialize a Git repository
+
+At this point, we recommend initializing a Git repository. This gives you a fallback point as you begin to iterate on
+your project.
+
+:::
+
+## What did this do?
+
+The commands above introspected your data source to create a JSON configuration file.
+
+## Next steps
+
+<!-- prettier-ignore -->
+With this JSON configuration, which represents the tables in ClickHouse, we can now use it to <BaseUrlLink to="/getting-started/connect-to-data/create-source-metadata" text="generate Hasura metadata" />.
