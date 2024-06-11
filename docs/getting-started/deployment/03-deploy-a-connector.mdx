@@ -27,20 +27,21 @@ steps below.**
 - A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
 - A new or existing [data connector](/getting-started/connect-to-data/01-connect-a-source.mdx)
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
+- A new or existing [subgraph on Hasura DDN](/getting-started/deployment/02-create-a-subgraph.mdx)
 
 :::
 
-### Step 1. Create a cloud.connector.yaml
+### Step 1. Create a connector.cloud.yaml
 
 Each connector utilizes a `connector.yaml` file for local development. When deploying a connector, start by creating a
-`connector.cloud.yaml` file in the same directory as the connector's local `connector.yaml`:
+`connector.cloud.yaml` file in the same directory as the connector's local `connector.yaml`.
 
-```yaml
+```yaml title="For example, my_subgraph/connector/my_connector/connector.cloud.yaml"
 kind: Connector
 version: v1
 definition:
-  name: <connector-name>
-  subgraph: <subgraph-name>
+  name: my_connector
+  subgraph: my_subgraph
   source: hasura/<connector-type>:<version>
   context: .
   envFile: .env.cloud
@@ -48,34 +49,31 @@ definition:
 
 ### Step 2. Create a .env.cloud for the connector
 
-As the database you've used for development may be different from that which you wish to use on Hasura DDN — be it for
-staging or production — you'll now provide the connection string, just like in your `.env.local`, for the database you
-wish to use on Hasura DDN. Create a `.env.cloud` environment variable file in the same directory and add the connection
-string for your database:
+Create a `.env.cloud` environment variable file in the same directory as your `.env.local` file for the connector. In
+the next step, we'll build the cloud connector and use the returned URLs for the `read` and `write` environment
+variables.
 
-```env
-CONNECTION_URI=<connection-uri>
-```
+Additionally, if your connector requires a `CONNECTION_URI`, you may have used a development database while iterating
+locally. You can now replace that value with your staging or production database, depending on your needs.
 
 ### Step 3. Build and deploy your cloud connector
 
 At this stage, you can now build and deploy your connector Hasura DDN. Simply run the following replacing the directory
-names with those that reflect your project:
+names with those that reflect your project.
 
-```bash
-ddn connector build create --connector ./<subgraph>/connector/<connector-name>/connector.cloud.yaml
+```bash title="From the root of your project, run:"
+ddn connector build create --connector ./my_subgraph/connector/<connector-name>/connector.cloud.yaml
 ```
 
 The CLI will respond with read and write URLs for your deployed connector.
 
 ### Step 4. Create a .env.cloud for the subgraph
 
-If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.<subgraph-name>` file in
-the root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
-like this example with a connector named `my_pg` in the `ux` subgraph:
+If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.my_subgraph` file in the
+root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs like
+this example with a connector named `my_pg` in the `ux` subgraph.
 
-```env
-# /ux/.env.cloud.ux
+```env title="For example, my_subgraph/.env.cloud.my_subgraph:"
 UX_MY_PG_READ_URL=<cloud-connector-read-url>
 UX_MY_PG_WRITE_URL=<cloud-connector-write-url>
 ```

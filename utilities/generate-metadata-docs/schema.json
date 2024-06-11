@@ -1,386 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "DDNTypes",
+  "title": "MetadataObject",
   "anyOf": [
     {
-      "$ref": "#/definitions/MetadataObject"
-    },
-    {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "type": "object",
-      "properties": {
-        "version": {
-          "type": "string"
-        },
-        "project": {
-          "type": "string"
-        },
-        "subgraphs": {
-          "$ref": "#/anyOf/1/definitions/SubgraphsConfig"
-        },
-        "defaultSupergraphManifest": {
-          "type": "string"
-        }
-      },
-      "required": ["version", "project", "subgraphs", "defaultSupergraphManifest"],
-      "additionalProperties": false,
-      "description": "DDN Project Configuration.",
-      "title": "DDNProjectConfig",
-      "definitions": {
-        "SubgraphsConfig": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/anyOf/1/definitions/SubgraphInfo"
-          },
-          "description": "DDN Subgraph Configuration.",
-          "title": "SubgraphsConfig"
-        },
-        "SubgraphInfo": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string"
-            }
-          },
-          "required": ["path"],
-          "additionalProperties": false,
-          "description": "DDN Subgraph Info",
-          "title": "SubgraphInfo"
-        }
-      }
+      "$ref": "#/definitions/SupergraphOrSubgraphObject"
     }
   ],
   "definitions": {
-    "MetadataObject": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "MetadataObject",
-      "anyOf": [
-        {
-          "$ref": "#/definitions/SupergraphOrSubgraphObject"
-        },
-        {
-          "$schema": "http://json-schema.org/draft-07/schema#",
-          "title": "CliManifestObject",
-          "anyOf": [
-            {
-              "title": "CliSupergraphObject",
-              "anyOf": [
-                {
-                  "$schema": "http://json-schema.org/draft-07/schema#",
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "const": "SupergraphManifest"
-                    },
-                    "version": {
-                      "type": "string",
-                      "const": "v1"
-                    },
-                    "definition": {
-                      "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/0/anyOf/0/definitions/SupergraphManifestDefinition",
-                      "description": "Details of how to build the Supergraph."
-                    }
-                  },
-                  "required": ["kind", "version", "definition"],
-                  "additionalProperties": false,
-                  "description": "Details of how to build the Supergraph.",
-                  "title": "SupergraphManifest",
-                  "definitions": {
-                    "SupergraphManifestDefinition": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Name of the supergraph manifest."
-                        },
-                        "envfile": {
-                          "type": "string",
-                          "description": "Path to the YAML file containing environment variables."
-                        }
-                      },
-                      "required": ["name"],
-                      "additionalProperties": false,
-                      "description": "Details of how to build the Supergraph.",
-                      "title": "SupergraphManifestDefinition"
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "title": "CliSubgraphObject",
-              "anyOf": [
-                {
-                  "$schema": "http://json-schema.org/draft-07/schema#",
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "const": "ConnectorManifest"
-                    },
-                    "version": {
-                      "type": "string",
-                      "const": "v1"
-                    },
-                    "spec": {
-                      "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/ConnectorManifestSpec",
-                      "description": "Connector Manifest Spec"
-                    },
-                    "definition": {
-                      "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/ConnectorManifestDefinition",
-                      "description": "Connector Manifest Definition"
-                    }
-                  },
-                  "required": ["kind", "version", "definition"],
-                  "additionalProperties": false,
-                  "description": "Defines the configuration used to build the connector.",
-                  "title": "ConnectorManifest",
-                  "definitions": {
-                    "ConnectorManifestSpec": {
-                      "type": "object",
-                      "properties": {
-                        "supergraphManifests": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          },
-                          "description": "List of SupergraphManifests this ConnectorManifest is a part of.",
-                          "minItems": 1
-                        }
-                      },
-                      "required": ["supergraphManifests"],
-                      "additionalProperties": false,
-                      "description": "Connector Manifest Spec",
-                      "title": "ConnectorManifestSpec"
-                    },
-                    "ConnectorManifestDefinition": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudConnectorManifestDefinition"
-                        },
-                        {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/EndpointConnectorManifestDefinition"
-                        }
-                      ],
-                      "description": "Defines the configuration used to build a connector.",
-                      "title": "ConnectorManifestDefinition"
-                    },
-                    "CloudConnectorManifestDefinition": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Name of the connector."
-                        },
-                        "type": {
-                          "type": "string",
-                          "const": "cloud",
-                          "description": "Deployment type of the connector."
-                        },
-                        "connector": {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/ConnectorType",
-                          "description": "Type of connector."
-                        },
-                        "deployments": {
-                          "type": "array",
-                          "items": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudDeployment"
-                              },
-                              {
-                                "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudRegionDeployment"
-                              }
-                            ],
-                            "description": "Kind for cloud deployment.",
-                            "title": "CloudDeploymentKind"
-                          },
-                          "description": "Details about the cloud deployments for the connector.",
-                          "minItems": 1
-                        }
-                      },
-                      "required": ["name", "type", "connector", "deployments"],
-                      "additionalProperties": false,
-                      "description": "Defines the configuration used to build a cloud connector.",
-                      "title": "CloudConnectorManifestDefinition"
-                    },
-                    "ConnectorType": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "enum": ["hub", "inline"],
-                          "description": "Type of connector."
-                        },
-                        "name": {
-                          "type": "string",
-                          "description": "Hub connector ID (Name and version)"
-                        }
-                      },
-                      "required": ["type"],
-                      "additionalProperties": false,
-                      "description": "Connector Type information.",
-                      "title": "ConnectorType"
-                    },
-                    "CloudDeployment": {
-                      "type": "object",
-                      "properties": {
-                        "context": {
-                          "type": "string",
-                          "description": "Path of the connector context directory."
-                        },
-                        "env": {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/Envs",
-                          "description": "Environment variables for the connector build."
-                        }
-                      },
-                      "required": ["context", "env"],
-                      "additionalProperties": false,
-                      "description": "Details about the cloud deployments for the connector.",
-                      "title": "CloudDeployment"
-                    },
-                    "Envs": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/ValueOrFromEnv"
-                      },
-                      "description": "Environment variables for the connector deployment.",
-                      "title": "Envs"
-                    },
-                    "ValueOrFromEnv": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/EnvValue"
-                        },
-                        {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/EnvValueFromEnv"
-                        }
-                      ],
-                      "description": "Specifies an explicit value for the Env var or loads it from provided Env vars to the command.",
-                      "title": "ValueOrFromEnv"
-                    },
-                    "EnvValue": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["value"],
-                      "additionalProperties": false,
-                      "description": "Explicit value of an Env var.",
-                      "title": "EnvValue"
-                    },
-                    "EnvValueFromEnv": {
-                      "type": "object",
-                      "properties": {
-                        "valueFromEnv": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["valueFromEnv"],
-                      "additionalProperties": false,
-                      "description": "Load Env var value from the provided Env vars to the command.",
-                      "title": "EnvValueFromEnv"
-                    },
-                    "CloudRegionDeployment": {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "properties": {
-                        "region": {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudDeploymentRegions",
-                          "description": "Region of the connector build"
-                        },
-                        "mode": {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/CloudDeploymentMode",
-                          "description": "Connector build deployment mode"
-                        },
-                        "context": {
-                          "type": "string",
-                          "description": "Path of the connector context directory."
-                        },
-                        "env": {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/Envs",
-                          "description": "Environment variables for the connector build."
-                        }
-                      },
-                      "required": ["context", "env", "mode", "region"],
-                      "description": "Details about the regional cloud deployments for the connector.",
-                      "title": "CloudRegionDeployment"
-                    },
-                    "CloudDeploymentRegions": {
-                      "type": "string",
-                      "enum": [
-                        "gcp-asia-northeast1",
-                        "gcp-asia-south1",
-                        "gcp-asia-southeast1",
-                        "gcp-australia-southeast1",
-                        "gcp-europe-west1",
-                        "gcp-europe-west3",
-                        "gcp-southamerica-east1",
-                        "gcp-us-central1",
-                        "gcp-us-east4",
-                        "gcp-us-west1",
-                        "gcp-us-west2"
-                      ],
-                      "description": "Specifies region for the cloud connector deployment.",
-                      "title": "CloudDeploymentRegions"
-                    },
-                    "CloudDeploymentMode": {
-                      "type": "string",
-                      "enum": ["ReadWrite", "ReadOnly"],
-                      "description": "Specifies mode for the cloud connector deployment.",
-                      "title": "CloudDeploymentMode"
-                    },
-                    "EndpointConnectorManifestDefinition": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Name of the connector."
-                        },
-                        "type": {
-                          "type": "string",
-                          "const": "endpoints",
-                          "description": "Deployment type of the connector."
-                        },
-                        "deployments": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/EndpointDeployment"
-                          },
-                          "description": "Details about the connector endpoint.",
-                          "minItems": 1,
-                          "maxItems": 1
-                        }
-                      },
-                      "required": ["name", "type", "deployments"],
-                      "additionalProperties": false,
-                      "description": "Defines the configuration used to build a local connector.",
-                      "title": "EndpointConnectorManifestDefinition"
-                    },
-                    "EndpointDeployment": {
-                      "type": "object",
-                      "properties": {
-                        "endpoint": {
-                          "$ref": "#/definitions/MetadataObject/anyOf/1/anyOf/1/anyOf/0/definitions/ValueOrFromEnv",
-                          "description": "Endpoint of the connector."
-                        }
-                      },
-                      "required": ["endpoint"],
-                      "additionalProperties": false,
-                      "description": "Details about the connector endpoint.",
-                      "title": "EndpointDeployment"
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
     "SupergraphOrSubgraphObject": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SupergraphOrSubgraphObject",
@@ -933,6 +559,7 @@
                 {
                   "$id": "https://hasura.io/jsonschemas/metadata/GraphqlConfig",
                   "title": "GraphqlConfig",
+                  "description": "GraphqlConfig object tells us two things:\n\n1. How the Graphql schema should look like for the features (`where`, `order_by` etc) Hasura provides 2. What features should be enabled/disabled across the subgraphs",
                   "oneOf": [
                     {
                       "type": "object",
@@ -949,27 +576,33 @@
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/GraphqlConfigV1",
                           "title": "GraphqlConfigV1",
+                          "description": "GraphqlConfig object tells us two things:\n\n1. How the Graphql schema should look like for the features (`where`, `order_by` etc) Hasura provides 2. What features should be enabled/disabled across the subgraphs",
                           "type": "object",
                           "required": ["mutation", "query"],
                           "properties": {
                             "query": {
                               "$id": "https://hasura.io/jsonschemas/metadata/QueryGraphqlConfig",
                               "title": "QueryGraphqlConfig",
+                              "description": "Configuration for the GraphQL schema of Hasura features for queries. `None` means disable the feature.",
                               "type": "object",
                               "required": ["rootOperationTypeName"],
                               "properties": {
                                 "rootOperationTypeName": {
+                                  "description": "The name of the root operation type name for queries. Usually `query`.",
                                   "type": "string"
                                 },
                                 "argumentsInput": {
+                                  "description": "Configuration for the arguments input.",
                                   "anyOf": [
                                     {
                                       "$id": "https://hasura.io/jsonschemas/metadata/ArgumentsInputGraphqlConfig",
                                       "title": "ArgumentsInputGraphqlConfig",
+                                      "description": "Configuration for the arguments input.",
                                       "type": "object",
                                       "required": ["fieldName"],
                                       "properties": {
                                         "fieldName": {
+                                          "description": "The name of arguments passing field. Usually `args`.",
                                           "type": "string"
                                         }
                                       },
@@ -981,14 +614,17 @@
                                   ]
                                 },
                                 "limitInput": {
+                                  "description": "Configuration for the limit operation.",
                                   "anyOf": [
                                     {
                                       "$id": "https://hasura.io/jsonschemas/metadata/LimitInputGraphqlConfig",
                                       "title": "LimitInputGraphqlConfig",
+                                      "description": "Configuration for the limit operation.",
                                       "type": "object",
                                       "required": ["fieldName"],
                                       "properties": {
                                         "fieldName": {
+                                          "description": "The name of the limit operation field. Usually `limit`.",
                                           "type": "string"
                                         }
                                       },
@@ -1000,14 +636,17 @@
                                   ]
                                 },
                                 "offsetInput": {
+                                  "description": "Configuration for the offset operation.",
                                   "anyOf": [
                                     {
                                       "$id": "https://hasura.io/jsonschemas/metadata/OffsetInputGraphqlConfig",
                                       "title": "OffsetInputGraphqlConfig",
+                                      "description": "Configuration for the offset operation.",
                                       "type": "object",
                                       "required": ["fieldName"],
                                       "properties": {
                                         "fieldName": {
+                                          "description": "The name of the offset operation field. Usually `offset`.",
                                           "type": "string"
                                         }
                                       },
@@ -1019,36 +658,49 @@
                                   ]
                                 },
                                 "filterInput": {
+                                  "description": "Configuration for the filter operation.",
                                   "anyOf": [
                                     {
                                       "$id": "https://hasura.io/jsonschemas/metadata/FilterInputGraphqlConfig",
                                       "title": "FilterInputGraphqlConfig",
+                                      "description": "Configuration for the filter operation.",
                                       "type": "object",
                                       "required": ["fieldName", "operatorNames"],
                                       "properties": {
                                         "fieldName": {
+                                          "description": "The name of the filter operation field. Usually `where`.",
                                           "type": "string"
                                         },
                                         "operatorNames": {
-                                          "$id": "https://hasura.io/jsonschemas/metadata/FilterInputOperatorNames",
-                                          "title": "FilterInputOperatorNames",
-                                          "type": "object",
-                                          "required": ["and", "isNull", "not", "or"],
-                                          "properties": {
-                                            "and": {
-                                              "type": "string"
-                                            },
-                                            "or": {
-                                              "type": "string"
-                                            },
-                                            "not": {
-                                              "type": "string"
-                                            },
-                                            "isNull": {
-                                              "type": "string"
+                                          "description": "The names of built-in filter operators.",
+                                          "allOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/FilterInputOperatorNames",
+                                              "title": "FilterInputOperatorNames",
+                                              "description": "The names of built-in filter operators.",
+                                              "type": "object",
+                                              "required": ["and", "isNull", "not", "or"],
+                                              "properties": {
+                                                "and": {
+                                                  "description": "The name of the `and` operator. Usually `_and`.",
+                                                  "type": "string"
+                                                },
+                                                "or": {
+                                                  "description": "The name of the `or` operator. Usually `_or`.",
+                                                  "type": "string"
+                                                },
+                                                "not": {
+                                                  "description": "The name of the `not` operator. Usually `_not`.",
+                                                  "type": "string"
+                                                },
+                                                "isNull": {
+                                                  "description": "The name of the `is null` operator. Usually `_is_null`.",
+                                                  "type": "string"
+                                                }
+                                              },
+                                              "additionalProperties": false
                                             }
-                                          },
-                                          "additionalProperties": false
+                                          ]
                                         }
                                       },
                                       "additionalProperties": false
@@ -1059,30 +711,41 @@
                                   ]
                                 },
                                 "orderByInput": {
+                                  "description": "Configuration for the sort operation.",
                                   "anyOf": [
                                     {
                                       "$id": "https://hasura.io/jsonschemas/metadata/OrderByInputGraphqlConfig",
                                       "title": "OrderByInputGraphqlConfig",
+                                      "description": "Configuration for the sort operation.",
                                       "type": "object",
                                       "required": ["enumDirectionValues", "enumTypeNames", "fieldName"],
                                       "properties": {
                                         "fieldName": {
+                                          "description": "The name of the filter operation field. Usually `order_by`.",
                                           "type": "string"
                                         },
                                         "enumDirectionValues": {
-                                          "$id": "https://hasura.io/jsonschemas/metadata/OrderByDirectionValues",
-                                          "title": "OrderByDirectionValues",
-                                          "type": "object",
-                                          "required": ["asc", "desc"],
-                                          "properties": {
-                                            "asc": {
-                                              "type": "string"
-                                            },
-                                            "desc": {
-                                              "type": "string"
+                                          "description": "The names of the direction parameters.",
+                                          "allOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/OrderByDirectionValues",
+                                              "title": "OrderByDirectionValues",
+                                              "description": "The names of the direction parameters.",
+                                              "type": "object",
+                                              "required": ["asc", "desc"],
+                                              "properties": {
+                                                "asc": {
+                                                  "description": "The name of the ascending parameter. Usually `Asc`.",
+                                                  "type": "string"
+                                                },
+                                                "desc": {
+                                                  "description": "The name of the descending parameter. Usually `Desc`.",
+                                                  "type": "string"
+                                                }
+                                              },
+                                              "additionalProperties": false
                                             }
-                                          },
-                                          "additionalProperties": false
+                                          ]
                                         },
                                         "enumTypeNames": {
                                           "type": "array",
@@ -1097,8 +760,19 @@
                                                 "items": {
                                                   "$id": "https://hasura.io/jsonschemas/metadata/OrderByDirection",
                                                   "title": "OrderByDirection",
-                                                  "type": "string",
-                                                  "enum": ["Asc", "Desc"]
+                                                  "description": "Sort direction.",
+                                                  "oneOf": [
+                                                    {
+                                                      "description": "Ascending.",
+                                                      "type": "string",
+                                                      "enum": ["Asc"]
+                                                    },
+                                                    {
+                                                      "description": "Descending.",
+                                                      "type": "string",
+                                                      "enum": ["Desc"]
+                                                    }
+                                                  ]
                                                 }
                                               },
                                               "typeName": {
@@ -1122,10 +796,12 @@
                             "mutation": {
                               "$id": "https://hasura.io/jsonschemas/metadata/MutationGraphqlConfig",
                               "title": "MutationGraphqlConfig",
+                              "description": "Configuration for the GraphQL schema of Hasura features for mutations.",
                               "type": "object",
                               "required": ["rootOperationTypeName"],
                               "properties": {
                                 "rootOperationTypeName": {
+                                  "description": "The name of the root operation type name for mutations. Usually `mutation`.",
                                   "type": "string"
                                 }
                               },
@@ -1136,10 +812,12 @@
                                 {
                                   "$id": "https://hasura.io/jsonschemas/metadata/GraphqlApolloFederationConfig",
                                   "title": "GraphqlApolloFederationConfig",
+                                  "description": "Configuration for the GraphQL schema of Hasura features for Apollo Federation.",
                                   "type": "object",
                                   "required": ["enableRootFields"],
                                   "properties": {
                                     "enableRootFields": {
+                                      "description": "Adds the `_entities` and `_services` root fields required for Apollo Federation.",
                                       "type": "boolean"
                                     }
                                   },
@@ -1174,6 +852,40 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorLink",
                   "title": "DataConnectorLink",
                   "description": "Definition of a data connector, used to bring in sources of data and connect them to OpenDD models and commands.",
+                  "examples": [
+                    {
+                      "kind": "DataConnectorLink",
+                      "version": "v1",
+                      "definition": {
+                        "name": "data_connector",
+                        "url": {
+                          "singleUrl": {
+                            "value": "http://data_connector:8100"
+                          }
+                        },
+                        "headers": {},
+                        "schema": {
+                          "version": "v0.1",
+                          "schema": {
+                            "scalar_types": {},
+                            "object_types": {},
+                            "collections": [],
+                            "functions": [],
+                            "procedures": []
+                          },
+                          "capabilities": {
+                            "version": "0.1.0",
+                            "capabilities": {
+                              "query": {
+                                "variables": {}
+                              },
+                              "mutation": {}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -1191,36 +903,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorLinkV1",
                           "title": "DataConnectorLinkV1",
                           "description": "Definition of a data connector - version 1.",
-                          "examples": [
-                            {
-                              "name": "data_connector",
-                              "url": {
-                                "singleUrl": {
-                                  "value": "http://data_connector:8100"
-                                }
-                              },
-                              "headers": {},
-                              "schema": {
-                                "version": "v0.1",
-                                "schema": {
-                                  "scalar_types": {},
-                                  "object_types": {},
-                                  "collections": [],
-                                  "functions": [],
-                                  "procedures": []
-                                },
-                                "capabilities": {
-                                  "version": "0.1.0",
-                                  "capabilities": {
-                                    "query": {
-                                      "variables": {}
-                                    },
-                                    "mutation": {}
-                                  }
-                                }
-                              }
-                            }
-                          ],
                           "type": "object",
                           "required": ["name", "schema", "url"],
                           "properties": {
@@ -1238,8 +920,7 @@
                             },
                             "url": {
                               "description": "The url(s) to access the data connector.",
-                              "title": "DataConnectorUrlRef",
-                              "oneOf": [
+                              "allOf": [
                                 {
                                   "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorUrlV1",
                                   "title": "DataConnectorUrlV1",
@@ -1277,19 +958,6 @@
                                       "additionalProperties": false
                                     }
                                   ]
-                                },
-                                {
-                                  "$id": "https://hasura.io/jsonschemas/metadata/FnManifestRef",
-                                  "title": "Fn::ManifestRef",
-                                  "description": "Refer a ConnectorManifest to build and derive the connector URL from",
-                                  "type": "object",
-                                  "required": ["Fn::ManifestRef"],
-                                  "properties": {
-                                    "Fn::ManifestRef": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "additionalProperties": false
                                 }
                               ]
                             },
@@ -1352,13 +1020,7 @@
                                           "$schema": "http://json-schema.org/draft-07/schema#",
                                           "title": "Schema Response",
                                           "type": "object",
-                                          "required": [
-                                            "collections",
-                                            "functions",
-                                            "object_types",
-                                            "procedures",
-                                            "scalar_types"
-                                          ],
+                                          "required": ["collections", "functions", "object_types", "procedures", "scalar_types"],
                                           "properties": {
                                             "scalar_types": {
                                               "description": "A list of scalar types which will be used as the types of collection columns",
@@ -1840,13 +1502,7 @@
                                             "CollectionInfo": {
                                               "title": "Collection Info",
                                               "type": "object",
-                                              "required": [
-                                                "arguments",
-                                                "foreign_keys",
-                                                "name",
-                                                "type",
-                                                "uniqueness_constraints"
-                                              ],
+                                              "required": ["arguments", "foreign_keys", "name", "type", "uniqueness_constraints"],
                                               "properties": {
                                                 "name": {
                                                   "description": "The name of the collection\n\nNote: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database.",
@@ -2154,6 +1810,50 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/ObjectType",
                   "title": "ObjectType",
                   "description": "Definition of a user-defined Open DD object type.",
+                  "examples": [
+                    {
+                      "kind": "ObjectType",
+                      "version": "v1",
+                      "definition": {
+                        "name": "Author",
+                        "fields": [
+                          {
+                            "name": "author_id",
+                            "type": "Int!",
+                            "description": "The id of the author"
+                          },
+                          {
+                            "name": "first_name",
+                            "type": "String",
+                            "description": "The first name of the author"
+                          },
+                          {
+                            "name": "last_name",
+                            "type": "String",
+                            "description": "The last name of the author"
+                          }
+                        ],
+                        "description": "An author of a book",
+                        "globalIdFields": ["author_id"],
+                        "graphql": {
+                          "typeName": "Author"
+                        },
+                        "dataConnectorTypeMapping": [
+                          {
+                            "dataConnectorName": "my_db",
+                            "dataConnectorObjectType": "author",
+                            "fieldMapping": {
+                              "author_id": {
+                                "column": {
+                                  "name": "id"
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -2171,46 +1871,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/ObjectTypeV1",
                           "title": "ObjectTypeV1",
                           "description": "Definition of a user-defined Open DD object type.",
-                          "examples": [
-                            {
-                              "name": "Author",
-                              "fields": [
-                                {
-                                  "name": "author_id",
-                                  "type": "Int!",
-                                  "description": "The id of the author"
-                                },
-                                {
-                                  "name": "first_name",
-                                  "type": "String",
-                                  "description": "The first name of the author"
-                                },
-                                {
-                                  "name": "last_name",
-                                  "type": "String",
-                                  "description": "The last name of the author"
-                                }
-                              ],
-                              "description": "An author of a book",
-                              "globalIdFields": ["author_id"],
-                              "graphql": {
-                                "typeName": "Author"
-                              },
-                              "dataConnectorTypeMapping": [
-                                {
-                                  "dataConnectorName": "my_db",
-                                  "dataConnectorObjectType": "author",
-                                  "fieldMapping": {
-                                    "author_id": {
-                                      "column": {
-                                        "name": "id"
-                                      }
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          ],
                           "type": "object",
                           "required": ["fields", "name"],
                           "properties": {
@@ -2377,7 +2037,7 @@
                                     "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/0/oneOf/0/properties/definition/properties/name/allOf/0"
                                   },
                                   "dataConnectorObjectType": {
-                                    "type": "string"
+                                    "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/3/oneOf/0/properties/definition/properties/dataConnectorObjectType/allOf/0"
                                   },
                                   "fieldMapping": {
                                     "default": {},
@@ -2405,7 +2065,12 @@
                                                   "properties": {
                                                     "name": {
                                                       "description": "The name of the target column",
-                                                      "type": "string"
+                                                      "allOf": [
+                                                        {
+                                                          "description": "The name of a column in a data connector.",
+                                                          "type": "string"
+                                                        }
+                                                      ]
                                                     }
                                                   },
                                                   "additionalProperties": false
@@ -2434,6 +2099,17 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/ScalarType",
                   "title": "ScalarType",
                   "description": "Definition of a user-defined scalar type that that has opaque semantics.",
+                  "examples": [
+                    {
+                      "kind": "ScalarType",
+                      "version": "v1",
+                      "name": "CustomString",
+                      "graphql": {
+                        "typeName": "CustomString"
+                      },
+                      "description": "A custom string type"
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -2451,15 +2127,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/ScalarTypeV1",
                           "title": "ScalarTypeV1",
                           "description": "Definition of a user-defined scalar type that that has opaque semantics.",
-                          "examples": [
-                            {
-                              "name": "CustomString",
-                              "graphql": {
-                                "typeName": "CustomString"
-                              },
-                              "description": "A custom string type"
-                            }
-                          ],
                           "type": "object",
                           "required": ["name"],
                           "properties": {
@@ -2513,6 +2180,41 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/ObjectBooleanExpressionType",
                   "title": "ObjectBooleanExpressionType",
                   "description": "Definition of a type representing a boolean expression on an Open DD object type.",
+                  "examples": [
+                    {
+                      "kind": "ObjectBooleanExpressionType",
+                      "version": "v1",
+                      "definition": {
+                        "name": "AuthorBoolExp",
+                        "objectType": "Author",
+                        "dataConnectorName": "my_db",
+                        "dataConnectorObjectType": "author",
+                        "comparableFields": [
+                          {
+                            "fieldName": "article_id",
+                            "operators": {
+                              "enableAll": true
+                            }
+                          },
+                          {
+                            "fieldName": "title",
+                            "operators": {
+                              "enableAll": true
+                            }
+                          },
+                          {
+                            "fieldName": "author_id",
+                            "operators": {
+                              "enableAll": true
+                            }
+                          }
+                        ],
+                        "graphql": {
+                          "typeName": "Author_bool_exp"
+                        }
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -2530,45 +2232,8 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/ObjectBooleanExpressionTypeV1",
                           "title": "ObjectBooleanExpressionTypeV1",
                           "description": "Definition of a type representing a boolean expression on an Open DD object type.",
-                          "examples": [
-                            {
-                              "name": "AuthorBoolExp",
-                              "objectType": "Author",
-                              "dataConnectorName": "my_db",
-                              "dataConnectorObjectType": "author",
-                              "comparableFields": [
-                                {
-                                  "fieldName": "article_id",
-                                  "operators": {
-                                    "enableAll": true
-                                  }
-                                },
-                                {
-                                  "fieldName": "title",
-                                  "operators": {
-                                    "enableAll": true
-                                  }
-                                },
-                                {
-                                  "fieldName": "author_id",
-                                  "operators": {
-                                    "enableAll": true
-                                  }
-                                }
-                              ],
-                              "graphql": {
-                                "typeName": "Author_bool_exp"
-                              }
-                            }
-                          ],
                           "type": "object",
-                          "required": [
-                            "comparableFields",
-                            "dataConnectorName",
-                            "dataConnectorObjectType",
-                            "name",
-                            "objectType"
-                          ],
+                          "required": ["comparableFields", "dataConnectorName", "dataConnectorObjectType", "name", "objectType"],
                           "properties": {
                             "name": {
                               "description": "The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.",
@@ -2596,7 +2261,14 @@
                             },
                             "dataConnectorObjectType": {
                               "description": "The object type in the data connector's schema this boolean expression type is based on.",
-                              "type": "string"
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorObjectType",
+                                  "title": "DataConnectorObjectType",
+                                  "description": "The name of an object type in a data connector.",
+                                  "type": "string"
+                                }
+                              ]
                             },
                             "comparableFields": {
                               "description": "The list of fields of the object type that can be used for comparison when evaluating this boolean expression.",
@@ -2721,7 +2393,14 @@
                             },
                             "dataConnectorScalarType": {
                               "description": "The name of the scalar type coming from the data connector.",
-                              "type": "string"
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorScalarType",
+                                  "title": "DataConnectorScalarType",
+                                  "description": "The name of a scalar type in a data connector.",
+                                  "type": "string"
+                                }
+                              ]
                             },
                             "representation": {
                               "description": "The name of the Open DD type that this data connector scalar type should be represented as.",
@@ -2783,6 +2462,62 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/Model",
                   "title": "Model",
                   "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.",
+                  "examples": [
+                    {
+                      "kind": "Model",
+                      "version": "v1",
+                      "definition": {
+                        "name": "Articles",
+                        "objectType": "article",
+                        "globalIdSource": true,
+                        "arguments": [],
+                        "source": {
+                          "dataConnectorName": "data_connector",
+                          "collection": "articles",
+                          "argumentMapping": {}
+                        },
+                        "filterExpressionType": "Article_bool_exp",
+                        "orderableFields": [
+                          {
+                            "fieldName": "article_id",
+                            "orderByDirections": {
+                              "enableAll": true
+                            }
+                          },
+                          {
+                            "fieldName": "title",
+                            "orderByDirections": {
+                              "enableAll": true
+                            }
+                          },
+                          {
+                            "fieldName": "author_id",
+                            "orderByDirections": {
+                              "enableAll": true
+                            }
+                          }
+                        ],
+                        "graphql": {
+                          "selectUniques": [
+                            {
+                              "queryRootField": "ArticleByID",
+                              "uniqueIdentifier": ["article_id"],
+                              "description": "Description for the select unique ArticleByID"
+                            }
+                          ],
+                          "selectMany": {
+                            "queryRootField": "ArticleMany",
+                            "description": "Description for the select many ArticleMany"
+                          },
+                          "orderByExpressionType": "Article_Order_By",
+                          "apolloFederation": {
+                            "entitySource": true
+                          }
+                        },
+                        "description": "Description for the model Articles"
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -2800,58 +2535,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelV1",
                           "title": "ModelV1",
                           "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.",
-                          "examples": [
-                            {
-                              "name": "Articles",
-                              "objectType": "article",
-                              "globalIdSource": true,
-                              "arguments": [],
-                              "source": {
-                                "dataConnectorName": "data_connector",
-                                "collection": "articles",
-                                "argumentMapping": {}
-                              },
-                              "filterExpressionType": "Article_bool_exp",
-                              "orderableFields": [
-                                {
-                                  "fieldName": "article_id",
-                                  "orderByDirections": {
-                                    "enableAll": true
-                                  }
-                                },
-                                {
-                                  "fieldName": "title",
-                                  "orderByDirections": {
-                                    "enableAll": true
-                                  }
-                                },
-                                {
-                                  "fieldName": "author_id",
-                                  "orderByDirections": {
-                                    "enableAll": true
-                                  }
-                                }
-                              ],
-                              "graphql": {
-                                "selectUniques": [
-                                  {
-                                    "queryRootField": "ArticleByID",
-                                    "uniqueIdentifier": ["article_id"],
-                                    "description": "Description for the select unique ArticleByID"
-                                  }
-                                ],
-                                "selectMany": {
-                                  "queryRootField": "ArticleMany",
-                                  "description": "Description for the select many ArticleMany"
-                                },
-                                "orderByExpressionType": "Article_Order_By",
-                                "apolloFederation": {
-                                  "entitySource": true
-                                }
-                              },
-                              "description": "Description for the model Articles"
-                            }
-                          ],
                           "type": "object",
                           "required": ["name", "objectType", "orderableFields"],
                           "properties": {
@@ -3195,6 +2878,29 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/Command",
                   "title": "Command",
                   "description": "The definition of a command. A command is a user-defined operation which can take arguments and returns an output. The semantics of a command are opaque to the Open DD specification.",
+                  "examples": [
+                    {
+                      "kind": "Command",
+                      "version": "v1",
+                      "definition": {
+                        "name": "get_latest_article",
+                        "outputType": "commandArticle",
+                        "arguments": [],
+                        "source": {
+                          "dataConnectorName": "data_connector",
+                          "dataConnectorCommand": {
+                            "function": "latest_article"
+                          },
+                          "argumentMapping": {}
+                        },
+                        "graphql": {
+                          "rootFieldName": "getLatestArticle",
+                          "rootFieldKind": "Query"
+                        },
+                        "description": "Get the latest article"
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -3212,25 +2918,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/CommandV1",
                           "title": "CommandV1",
                           "description": "Definition of an OpenDD Command, which is a custom operation that can take arguments and returns an output. The semantics of a command are opaque to OpenDD.",
-                          "examples": [
-                            {
-                              "name": "get_latest_article",
-                              "outputType": "commandArticle",
-                              "arguments": [],
-                              "source": {
-                                "dataConnectorName": "data_connector",
-                                "dataConnectorCommand": {
-                                  "function": "latest_article"
-                                },
-                                "argumentMapping": {}
-                              },
-                              "graphql": {
-                                "rootFieldName": "getLatestArticle",
-                                "rootFieldKind": "Query"
-                              },
-                              "description": "Get the latest article"
-                            }
-                          ],
                           "type": "object",
                           "required": ["name", "outputType"],
                           "properties": {
@@ -3402,7 +3089,7 @@
                               ]
                             },
                             "description": {
-                              "description": "The description of the command. Gets added to the description of the command's root field in the graphql schema.",
+                              "description": "The description of the command. Gets added to the description of the command's root field in the GraphQL schema.",
                               "type": ["string", "null"]
                             }
                           },
@@ -3417,6 +3104,42 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/Relationship",
                   "title": "Relationship",
                   "description": "Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.",
+                  "examples": [
+                    {
+                      "kind": "Relationship",
+                      "version": "v1",
+                      "definition": {
+                        "name": "Articles",
+                        "source": "author",
+                        "target": {
+                          "model": {
+                            "name": "Articles",
+                            "subgraph": null,
+                            "relationshipType": "Array"
+                          }
+                        },
+                        "mapping": [
+                          {
+                            "source": {
+                              "fieldPath": [
+                                {
+                                  "fieldName": "author_id"
+                                }
+                              ]
+                            },
+                            "target": {
+                              "modelField": [
+                                {
+                                  "fieldName": "author_id"
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        "description": "Articles written by an author"
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -3434,40 +3157,8 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/RelationshipV1",
                           "title": "RelationshipV1",
                           "description": "Definition of a relationship on an OpenDD type which allows it to be extended with related models or commands.",
-                          "examples": [
-                            {
-                              "name": "Articles",
-                              "source": "author",
-                              "target": {
-                                "model": {
-                                  "name": "Articles",
-                                  "subgraph": null,
-                                  "relationshipType": "Array"
-                                }
-                              },
-                              "mapping": [
-                                {
-                                  "source": {
-                                    "fieldPath": [
-                                      {
-                                        "fieldName": "author_id"
-                                      }
-                                    ]
-                                  },
-                                  "target": {
-                                    "modelField": [
-                                      {
-                                        "fieldName": "author_id"
-                                      }
-                                    ]
-                                  }
-                                }
-                              ],
-                              "description": "Articles written by an author"
-                            }
-                          ],
                           "type": "object",
-                          "required": ["mapping", "name", "source", "target"],
+                          "required": ["mapping", "name", "sourceType", "target"],
                           "properties": {
                             "name": {
                               "description": "The name of the relationship.",
@@ -3481,7 +3172,7 @@
                                 }
                               ]
                             },
-                            "source": {
+                            "sourceType": {
                               "description": "The source type of the relationship.",
                               "allOf": [
                                 {
@@ -3655,6 +3346,17 @@
                                                       }
                                                     },
                                                     "additionalProperties": false
+                                                  },
+                                                  {
+                                                    "title": "BooleanExpression",
+                                                    "type": "object",
+                                                    "required": ["booleanExpression"],
+                                                    "properties": {
+                                                      "booleanExpression": {
+                                                        "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/9/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
                                                   }
                                                 ]
                                               }
@@ -3775,6 +3477,29 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/TypePermissions",
                   "title": "TypePermissions",
                   "description": "Definition of permissions for an OpenDD type.",
+                  "examples": [
+                    {
+                      "kind": "TypePermissions",
+                      "version": "v1",
+                      "definition": {
+                        "typeName": "article",
+                        "permissions": [
+                          {
+                            "role": "admin",
+                            "output": {
+                              "allowedFields": ["article_id", "author_id", "title"]
+                            }
+                          },
+                          {
+                            "role": "user",
+                            "output": {
+                              "allowedFields": ["article_id", "author_id"]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -3792,25 +3517,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/TypePermissionsV1",
                           "title": "TypePermissionsV1",
                           "description": "Definition of permissions for an OpenDD type.",
-                          "examples": [
-                            {
-                              "typeName": "article",
-                              "permissions": [
-                                {
-                                  "role": "admin",
-                                  "output": {
-                                    "allowedFields": ["article_id", "author_id", "title"]
-                                  }
-                                },
-                                {
-                                  "role": "user",
-                                  "output": {
-                                    "allowedFields": ["article_id", "author_id"]
-                                  }
-                                }
-                              ]
-                            }
-                          ],
                           "type": "object",
                           "required": ["permissions", "typeName"],
                           "properties": {
@@ -3834,6 +3540,16 @@
                                     "role": "user",
                                     "output": {
                                       "allowedFields": ["article_id", "author_id"]
+                                    },
+                                    "input": {
+                                      "fieldPresets": [
+                                        {
+                                          "field": "author_id",
+                                          "value": {
+                                            "sessionVariable": "x-hasura-user-id"
+                                          }
+                                        }
+                                      ]
                                     }
                                   }
                                 ],
@@ -3873,6 +3589,54 @@
                                         "type": "null"
                                       }
                                     ]
+                                  },
+                                  "input": {
+                                    "description": "Permissions for this role when this type is used in an input context. If null, this type is accessible for this role in an input context.",
+                                    "anyOf": [
+                                      {
+                                        "$id": "https://hasura.io/jsonschemas/metadata/TypeInputPermission",
+                                        "title": "TypeInputPermission",
+                                        "description": "Permissions for a type for a particular role when used in an input context.",
+                                        "type": "object",
+                                        "properties": {
+                                          "fieldPresets": {
+                                            "description": "Preset values for fields of the type",
+                                            "default": [],
+                                            "type": "array",
+                                            "items": {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/FieldPreset",
+                                              "title": "FieldPreset",
+                                              "description": "Preset value for a field",
+                                              "type": "object",
+                                              "required": ["field", "value"],
+                                              "properties": {
+                                                "field": {
+                                                  "description": "Field name for preset",
+                                                  "allOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/1/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                    }
+                                                  ]
+                                                },
+                                                "value": {
+                                                  "description": "Value for preset",
+                                                  "allOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/10/oneOf/0/properties/definition/properties/permissions/items/properties/argumentPresets/items/properties/value/allOf/0"
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            }
+                                          }
+                                        },
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
                                   }
                                 },
                                 "additionalProperties": false
@@ -3890,6 +3654,37 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/ModelPermissions",
                   "title": "ModelPermissions",
                   "description": "Definition of permissions for an OpenDD model.",
+                  "examples": [
+                    {
+                      "kind": "ModelPermissions",
+                      "version": "v1",
+                      "definition": {
+                        "modelName": "Articles",
+                        "permissions": [
+                          {
+                            "role": "admin",
+                            "select": {
+                              "filter": null
+                            }
+                          },
+                          {
+                            "role": "user",
+                            "select": {
+                              "filter": {
+                                "fieldComparison": {
+                                  "field": "author_id",
+                                  "operator": "_eq",
+                                  "value": {
+                                    "sessionVariable": "x-hasura-user-id"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -3907,33 +3702,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelPermissionsV1",
                           "title": "ModelPermissionsV1",
                           "description": "Definition of permissions for an OpenDD model.",
-                          "examples": [
-                            {
-                              "modelName": "Articles",
-                              "permissions": [
-                                {
-                                  "role": "admin",
-                                  "select": {
-                                    "filter": null
-                                  }
-                                },
-                                {
-                                  "role": "user",
-                                  "select": {
-                                    "filter": {
-                                      "fieldComparison": {
-                                        "field": "author_id",
-                                        "operator": "_eq",
-                                        "value": {
-                                          "sessionVariable": "x-hasura-user-id"
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          ],
                           "type": "object",
                           "required": ["modelName", "permissions"],
                           "properties": {
@@ -4205,6 +3973,25 @@
                   "$id": "https://hasura.io/jsonschemas/metadata/CommandPermissions",
                   "title": "CommandPermissions",
                   "description": "Definition of permissions for an OpenDD command.",
+                  "examples": [
+                    {
+                      "kind": "CommandPermissions",
+                      "version": "v1",
+                      "definition": {
+                        "commandName": "get_article_by_id",
+                        "permissions": [
+                          {
+                            "role": "admin",
+                            "allowExecution": true
+                          },
+                          {
+                            "role": "user",
+                            "allowExecution": true
+                          }
+                        ]
+                      }
+                    }
+                  ],
                   "oneOf": [
                     {
                       "type": "object",
@@ -4222,21 +4009,6 @@
                           "$id": "https://hasura.io/jsonschemas/metadata/CommandPermissionsV1",
                           "title": "CommandPermissionsV1",
                           "description": "Definition of permissions for an OpenDD command.",
-                          "examples": [
-                            {
-                              "commandName": "get_article_by_id",
-                              "permissions": [
-                                {
-                                  "role": "admin",
-                                  "allowExecution": true
-                                },
-                                {
-                                  "role": "user",
-                                  "allowExecution": true
-                                }
-                              ]
-                            }
-                          ],
                           "type": "object",
                           "required": ["commandName", "permissions"],
                           "properties": {
@@ -4328,6 +4100,17 @@
                                                     "sessionVariable": {
                                                       "description": "Used to represent the name of a session variable, like \"x-hasura-role\".",
                                                       "type": "string"
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "title": "BooleanExpression",
+                                                  "type": "object",
+                                                  "required": ["booleanExpression"],
+                                                  "properties": {
+                                                    "booleanExpression": {
+                                                      "$ref": "#/definitions/SupergraphOrSubgraphObject/anyOf/1/anyOf/0/oneOf/9/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
                                                     }
                                                   },
                                                   "additionalProperties": false

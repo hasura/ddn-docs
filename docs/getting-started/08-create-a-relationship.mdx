@@ -27,12 +27,12 @@ to the target `model` or `command`.
 
 :::tip Required
 
-- [DDN CLI](/getting-started/00-prerequisites.mdx)
+- [The DDN CLI, VS Code extension, and Docker installed](/getting-started/00-prerequisites.mdx)
 - A new or existing [supergraph](/getting-started/01-init-supergraph.mdx)
 - A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
 - Existing models or commands in your supergraph which can be related to an `ObjectType`. For more information on
   creating a model in your supergraph you can see the sections on
-  [adding data source entities to the API](/getting-started/connect-to-data/03-expose-source-entities.mdx) for your data
+  [adding data source entities to the API](/getting-started/connect-to-data/03-add-source-entities.mdx) for your data
   source. And for commands you can see the
   [integrating business logic](/getting-started/07-integrate-business-logic.mdx) section.
 
@@ -50,7 +50,7 @@ If we type out the `---` object delineation marker below the last object in our 
 `Relationsh...` the IDE plugin will popup and assist us with scaffolding out some options. Select
 `Relationship (to model)` from the list and press enter, the plugin will output an empty object like the one below:
 
-```yaml
+```yaml title="In any HML file, use the Hasura VS Code extension to create this scaffold"
 ---
 kind: Relationship
 version: v1
@@ -80,9 +80,9 @@ Now we can fill out these fields. To enable an Orders to Customers relationship:
   not an Array.
 - We know that when we query this relationship on an order, we want it to be named: "customer".
 
-So from this we can fill in this object like the following:
+So, from this we can fill in this object like the following:
 
-```yaml
+```yaml title="For example, in Orders.hml"
 kind: Relationship
 version: v1
 definition:
@@ -105,29 +105,35 @@ definition:
 
 :::tip Intellisense autocomplete
 
-The Hasura LSP IDE plugin is powerful. At any point in authoring your object you can press `ctrl + space` to trigger
+The Hasura VS Code extension is powerful. At any point in authoring your object you can press `ctrl + space` to trigger
 Intellisense and see the available options you have.
 
 :::
 
-Once our `Relationship` object is defined we need to update our model from the CLI. `Orders` is the model which returns
-the `Orders` object type where we defined the relationship to the customer. So that is the model we need to update:
+Create a new build to test this.
 
-```bash
-ddn model update Orders
-```
-
-And create a new build before testing this:
-
-```bash
+```bash title="From the root of your project, run:"
 ddn supergraph build local --output-dir ./engine
 ```
+
+:::tip Start your engines!
+
+Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+**If you haven't [included your connector(s)](/getting-started/01-init-supergraph.mdx) in your
+`docker-compose.hasura.yaml`, don't forget to start it as well.**
+
+:::
 
 ## What did this do?
 
 From our example, we can now get customer related information when we query our orders. 🎉
 
-```graphql
+```graphql title="Assuming the structure above, we can run the following nested query:"
 query {
   orders {
     orderId
@@ -144,8 +150,8 @@ query {
 Also, from enabling this on the `Orders` `ObjectType` , any other model or command which returns this `ObjectType` now
 has the ability to return related customers.
 
-There are many other configurations of Relationships which you can enable. See the [supergraph modeling]
-(/supergraph-modeling/relationships.mdx) section for more info.
+There are many other configurations of Relationships which you can enable. See the
+[supergraph modeling](/supergraph-modeling/relationships.mdx) section for more info.
 
 ## Next Steps
 

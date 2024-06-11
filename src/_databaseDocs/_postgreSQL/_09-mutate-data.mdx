@@ -1,15 +1,36 @@
 import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
 
-### Step 1. Install dependencies
+### Step 1. Install node packages
+
+The TypeScript connector is a regular TypeScript project. We can use any node packages we want.
+
+:::tip Required
+
+- <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
+- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
+- A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
+- A <BaseUrlLink to="/getting-started/connect-to-data/connect-a-source" text="PostgreSQL connector"/> initialized
+- A <BaseUrlLink to="/getting-started/connect-to-data/create-source-metadata" text="DataConnectorLink"/> configured
+
+:::
 
 We'll use the `dotenv` and `pg` packages to access our connection string, saved as an environment variable, and to
-connect to our database:
+connect to our database.
 
-```bash
+```bash title="From the my_subgraph/connector/my_ts directory, run:"
 npm i dotenv pg
 ```
 
-### Step 2. Create a function
+### Step 2. Add the connection URI
+
+We'll add our PostgreSQL connection string as an environment variable to our connector's `.env.local` file. This will
+allow us to access the connection string in our function.
+
+```env title="my_subgraph/connectors/my_ts/.env.local"
+CONNECTION_URI=<your-postgres-connection-string>
+```
+
+### Step 3. Create a function
 
 The TypeScript connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
 query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
@@ -18,11 +39,12 @@ expose the function as a mutation.
 We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
 `@returns` for what will be returned by the mutation.
 
-```ts
+```ts title="my_subgraph/connectors/my_ts/functions.ts"
 import { Client } from 'pg';
 import { config } from 'dotenv';
 
-config();
+// Load environment variables from .env.local
+dotenv.config({ path: '.env.local' });
 
 /**
  * @param userData An object containing the user's data.
@@ -30,7 +52,7 @@ config();
  */
 export async function insertUser(userData: { name: string; email: string }): Promise<string> {
   const client = new Client({
-    connectionString: process.env.PG_URI,
+    connectionString: process.env.CONNECTION_URI,
   });
 
   await client.connect();
@@ -55,25 +77,38 @@ export async function insertUser(userData: { name: string; email: string }): Pro
 
 ### Step 3. Track the function
 
-Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`:
+Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`.
 
-```bash
+```bash title="From any directory in the project, run:"
 ddn connector-link update myts
 ```
 
-And then bringing in the new command:
+And then bringing in the new command.
 
-```bash
+```bash title="From any directory in the project, run:"
 ddn command add --connector-link myts --name insertUser
 ```
 
 ### Step 4. Create a new build and test
 
-Next, let's create a new build of our supergraph:
+Next, let's create a new build of our supergraph.
 
-```bash
+```bash title="From the root of the project, run:"
 ddn supergraph build local --output-dir ./engine
 ```
+
+:::tip Start your engines!
+
+Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+**If you haven't [included your connector(s)](/getting-started/01-init-supergraph.mdx) in your
+`docker-compose.hasura.yaml`, don't forget to start it as well.**
+
+:::
 
 Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
 
