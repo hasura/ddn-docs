@@ -37,7 +37,6 @@ const config: Config = {
 
   customFields: {
     docsBotEndpointURL: (() => {
-      console.log('process.env.release_mode docs-bot', process.env.release_mode);
       if (process.env.CF_PAGES === '1') {
         return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
       } else {
