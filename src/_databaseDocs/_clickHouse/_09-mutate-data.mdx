@@ -15,8 +15,9 @@ import BaseUrlLink from '@site/src/_databaseDocs/baseLink';
 
 The TypeScript connector is a regular TypeScript project. We can use any node packages we want.
 
-We'll use the `dotenv` and `@clickhouse/client` packages to access our ClickHouse credentials and connection string,
-saved as an environment variables, and to connect to our database.
+We'll use the `dotenv` and
+[`@clickhouse/client` packages](https://clickhouse.com/docs/en/integrations/language-clients/javascript) to access our
+ClickHouse credentials and connection string, saved as an environment variables, and to connect to our database.
 
 ```bash title="From the my_subgraph/connector/my_ts directory, run:"
 npm i dotenv @clickhouse/client
@@ -28,7 +29,7 @@ We'll add our ClickHouse connection string and credentials as an environment var
 file. This will allow us to access the connection string in our function.
 
 ```env title="my_subgraph/connectors/my_ts/.env.local"
-CONNECTION_URI=<your-postgres-connection-string>
+CLICKHOUSE_URL=<your-postgres-connection-string>
 CLICKHOUSE_USERNAME=<your-username>
 CLICKHOUSE_PASSWORD=<your-passowrd>
 ```
@@ -61,26 +62,30 @@ export async function insertUser(userData: { name: string; email: string }): Pro
 
   const insertQuery = `
     INSERT INTO users (name, email)
-    VALUES (?, ?)
+    VALUES ({name: String}, {email: String})
   `;
 
-  await client.exec({
-    query: insertQuery,
-    query_params: [userData.name, userData.email],
+  await client.insert({
+    table: 'users',
+    values: [{ name: userData.name, email: userData.email }],
+    format: 'JSONEachRow',
   });
 
   const selectQuery = `
     SELECT id
     FROM users
-    WHERE name = ? AND email = ?
+    WHERE name = {name: String} AND email = {email: String}
     ORDER BY id DESC
     LIMIT 1
   `;
 
   const result = await client.query({
     query: selectQuery,
-    query_params: [userData.name, userData.email],
     format: 'JSON',
+    query_params: {
+      name: userData.name,
+      email: userData.email,
+    },
   });
 
   const data = await result.json();
