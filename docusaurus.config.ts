@@ -64,7 +64,6 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           // editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
-          exclude: ['**/*.wip'],
           breadcrumbs: true,
           // showLastUpdateAuthor: true,
           // showLastUpdateTime: true,

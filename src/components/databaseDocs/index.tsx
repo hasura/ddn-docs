@@ -5,14 +5,14 @@ import './styles.css';
 import Icon from '@site/static/icons/event-triggers.svg';
 import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
-import PostgreSqlConnect from '@site/src/_databaseDocs/_postgreSQL/_01-connect-a-data-source.mdx';
-import MongoDBConnect from '@site/src/_databaseDocs/_mongoDB/_01-connect-a-data-source.mdx';
-import PostgreSqlLink from '@site/src/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
-import MongoDBLink from '@site/src/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
-import PostgreSqlExposition from '@site/src/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
-import MongoDBExposition from '@site/src/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
-import PostgreSqlMutation from '@site/src/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
-import MongoDBMutation from '@site/src/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
+import PostgreSqlConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
+import MongoDBConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
+import PostgreSqlLink from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
+import MongoDBLink from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
+import PostgreSqlExposition from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
+import MongoDBExposition from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
+import PostgreSqlMutation from '@site/docs/getting-started/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
+import MongoDBMutation from '@site/docs/getting-started/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
 
 const dataSources = {
   PostgreSQL: {
@@ -27,7 +27,7 @@ const dataSources = {
 
 const DatabaseContentLoader = () => {
   const location = useLocation();
-  const [dbPreference, setDbPreference] = useState(null);
+  const [dbPreference, setDbPreference] = useState<string>("");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -36,15 +36,21 @@ const DatabaseContentLoader = () => {
     if (dbParam && dataSources[dbParam]) {
       savePreference(dbParam);
     } else {
-      const savedPreference = localStorage.getItem('dbPreference');
+      const savedPreference = localStorage.getItem('hasuraV3DbPreference');
       if (savedPreference) {
-        setDbPreference(savedPreference);
+        // Check if the saved preference is a valid data source
+        if (dataSources[savedPreference]) {
+          setDbPreference(savedPreference);
+        }
+        else {
+          localStorage.removeItem('hasuraV3DbPreference');
+        }
       }
     }
   }, [location.search]);
 
   const savePreference = (preference: string) => {
-    localStorage.setItem('dbPreference', preference);
+    localStorage.setItem('hasuraV3DbPreference', preference);
     setDbPreference(preference);
   };
 
