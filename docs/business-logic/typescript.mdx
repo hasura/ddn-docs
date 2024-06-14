@@ -21,12 +21,11 @@ import Thumbnail from "@site/src/components/Thumbnail";
 The [Node.js Lambda Connector](https://github.com/hasura/ndc-nodejs-lambda) can be added to any project to incorporate
 custom business logic directly into your supergraph.
 
-This can be used to enrich data returned to clients, or to write custom mutations in TypeScript with Node.js using a
-pattern known as [**Command Query Separation (CQS)**](https://en.wikipedia.org/wiki/Command%E2%80%93query_separation).
+This can be used to enrich data returned to clients, or to write custom mutations in TypeScript with Node.js.
 
 :::info Prerequisites
 
-If you've never used Hasura DDN, we recommend that you first go through the [quickstart](/getting-started/overview.mdx).
+If you've never used Hasura DDN, we recommend that you first go through the [getting started](/getting-started/overview.mdx).
 😊
 
 :::
@@ -36,50 +35,100 @@ If you've never used Hasura DDN, we recommend that you first go through the [qui
 TypeScript functions exported from a file in the [Node.js Lambda Connector](https://github.com/hasura/ndc-nodejs-lambda)
 will then be available from your Hasura DDN GraphQL API in the form of either **functions** or **procedures**.
 
-In Hasura metadata, **functions** are used for read operations. They will not modify the data in the database and can only be
-used to retrieve data.
+In Hasura metadata, **functions** are used for read operations. They will not modify the data in the database and can
+only be used to retrieve data.
 
 Conversely, **procedures** are used for write operations. They can modify the data in the database and can be used to
 create, update, or delete data.
 
-The distinction is important in metadata because it allows the system to know what types to expect for arguments and return values. 
+The distinction is important in metadata because it allows the system to know what types to expect for arguments and
+return values.
 
 ## Add the TypeScript connector to a project
 
-Using [the CLI](/cli/overview.mdx) in a project's directory, add the Node.js Lambda connector:
+### Step 1. Initialize the TypeScript connector
+
+Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
+values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector
+hub:
 
 ```bash
-ddn add connector-manifest fx_connector --type cloud --hub-connector hasura/nodejs:v1.2.0 --subgraph app
+ddn connector init my_ts --subgraph my_subgraph --hub-connector hasura/nodejs
 ```
 
-This will add a connector manifest — which contains the configuration for a connector — named `fx_connector` to the
-default `app` subgraph for a project. Additionally, the CLI will create a `functions.ts` file within the connector's new
-subdirectory:
+This will create the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts` file
+being your connector's entrypoint:
 
 ```bash
-├── app
-│   └── fx_connector
-│       ├── fx_connector.hml
-│       └── connector
-│           ├── fx_connector.build.hml
-    # highlight-start
-│           ├── functions.ts
-    # highlight-end
-│           ├── package-lock.json
-│           ├── package.json
-│           └── tsconfig.json
+.
+├── .ddnignore
+├── .env.local
+├── .hasura-connector
+├── connector.yaml
+├── docker-compose.my_ts.yaml
+# highlight-start
+├── functions.ts
+# highlight-end
+├── package-lock.json
+├── package.json
+└── tsconfig.json
 ```
 
-We can then run the following command to build and deploy our connector to Hasura DDN:
+### Step 2. Modify the connector's port
+
+Add the port's value to the `my_subgraph/connector/my_ts/.env.local` in your `my_ts` directory:
+
+```env
+HASURA_CONNECTOR_PORT=8083
+```
+
+### Step 3. Add the DataConnectorLink
+
+As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
+functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
 ```bash
-ddn dev
+ddn connector-link add my_ts
 ```
 
-With the development server running, we can iterate on our files locally with each file save triggering a new build which is
-visible on our project's console.
+Then, update the values in your subgraph's `.env.my_subgraph` file to include this connector.
 
-### Add a function
+```env
+MY_SUBGRAPH_MY_TS_READ_URL=http://local.hasura.dev:<port>
+MY_SUBGRAPH_MY_TS_WRITE_URL=http://local.hasura.dev:<port>
+```
+
+These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
+
+### Step 4. Install npm package dependencies
+
+Within our `my_ts` directory, let's install any necessary dependencies:
+
+```bash
+cd my_subgraph/connector/my_ts && npm i
+```
+
+Then, from the `my_ts` directory run this command to use the `dotenv` package to load environment variables from the
+`. env.local` file, start the connector, and watch for any changes:
+
+```bash
+npx dotenv -e .env.local -- npm run watch
+```
+
+:::info Node.js version and Permissions
+
+The `hasura/nodejs` connector uses Node.js version `>=20`. Please make sure you have the correct version installed.
+
+If you get a warning about needing permissions to install globally, you can use `sudo` to install the package with your
+user system password:
+
+```bash
+sudo npm install -g dotenv-cli
+```
+
+:::
+
+## Add a function
 
 By default a **function** — in the nomenclature of DDN — is already present in our `functions.ts` file. It's designated
 as a function by the JSDoc comment using the `@readonly` tag:
@@ -93,9 +142,12 @@ export function hello(name?: string) {
 }
 ```
 
-You can add another function simply by exporting a valid TypeScript function. If `ddn dev` is running, the change will automatically be
-picked up the CLI, the associated metadata for the command will be generated, and you will be able to use your function
-by name in the GraphQL API.
+You can add another function simply by exporting a valid TypeScript function.
+
+Generate the relevant metadata objects for your functions:
+```bash
+ddn connector-link update my_ts --add-all-resources
+```
 
 :::info Each function or procedure has tracked metadata
 
@@ -135,7 +187,7 @@ definition:
 
 :::
 
-### Add a procedure
+## Add a procedure
 
 Inside the same `functions.ts` file, let's add a custom mutation in the form of a **procedure**.
 
@@ -178,7 +230,7 @@ export async function insertUser(user: User): Promise<Omit<User, "password">> {
 
   const result = await client.query(
     `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *`,
-    [user.name, user.email, hashedPassword] // Use the hashed password here
+    [user.name, user.email, hashedPassword], // Use the hashed password here
   );
 
   const rows = result.rows.map((row) => ({
@@ -206,12 +258,6 @@ We're using the [`pg` PostgreSQL client](https://www.npmjs.com/package/pg) to co
 and [`bcrypt` to hash the password](https://www.npmjs.com/package/bcrypt), but since this is a Node.js Lambda function,
 you can use any combination of Node.js libraries you want.
 
-After you've tracked the function and created a new build, you can use the function in your GraphQL API.
-
-[//]: # "<Thumbnail"
-[//]: # '  src="/img/graphql-api/mutations/0.1.1_console_insert-user-mutation.png"'
-[//]: # '  alt="Insert user mutation using CQS"'
-[//]: # '  className="no-shadow overview-img"'
-[//]: # "/>"
+After you've generated the metadata for the function and created a new build, you can use the function in your GraphQL API.
 
 You can then repeat this process to scale your mutations independently.

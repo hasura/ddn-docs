@@ -22,25 +22,26 @@ seoFrontMatterUpdated: true
 You can deploy any verified connector available on the [Connector Hub](https://hasura.io/connectors) to Hasura DDN using
 the CLI.
 
-### Step 1: Create a new connector manifest
+### Step 1: Initialize a new connector
 
-To create a new connector manifest, run the following in a project directory:
+To initialize a new connector, run the following in a project directory:
 
 ```bash
-ddn add connector-manifest <connector-name> --subgraph <subgraph-name> --hub-connector <connector> --type cloud
+ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <connector>  --supergraph <supergraph.yaml>
 ```
 
-| Argument           | Description                                                           |
-| ------------------ | --------------------------------------------------------------------- |
-| `<connector-name>` | Whatever name you would like to assign to this connector.             |
-| `<subgraph-name>`  | The name of the subgraph to which the connector belongs.              |
-| `<connector>`      | The connector from the [Connector Hub](https://hasura.io/connectors). |
-| `--type`           | The type of connector. In this case, it's `cloud`.                    |
+| Argument            | Description                                                           |
+|---------------------|-----------------------------------------------------------------------|
+| `<connector-name>`  | Whatever name you would like to assign to this connector.             |
+| `<subgraph-name>`   | The name of the subgraph to which the connector belongs.              |
+| `<connector>`       | The connector from the [Connector Hub](https://hasura.io/connectors). |
+| `<supergraph.yaml>` | Path to supergraph config file                                        |
 
-You'll then need to add the connection URI for your connector's data source in the `base.env.yaml` file for the project:
+You'll then need to add the connection URI for your connector's data source in the `.env` file of the connector:
 
-```yaml
-<SUBGRAPH_NAME>_<CONNECTOR_NAME>_CONNECTION_URI: <CONNECTION_URI>
+For example:
+```env
+CONNECTION_URI=<CONNECTION_URI>
 ```
 
 :::info Some connectors don't require any connection URIs
@@ -55,5 +56,9 @@ You can then build and deploy your connector to Hasura DDN using the following c
 the previous step:
 
 ```bash
-ddn build connector <connector-name> --subgraph <subgraph-name>
+ddn connector build create --connector <connector.yaml> --project <project-name>
 ```
+| Argument           | Description                    |
+|--------------------|--------------------------------|
+| `<connector.yaml>` | Path to connector config file. |
+| `<project>`        | DDN project to deploy to       |

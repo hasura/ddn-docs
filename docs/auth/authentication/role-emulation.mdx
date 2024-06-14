@@ -34,26 +34,32 @@ the HTTP request headers instead of from the JWT or webhook.
 
 ### Role emulation scenario setup
 
-In the example below, we set up role emulation for the `user` role, allowing a `user` to emulate any other role:
+In the example below, we set up role emulation for the `api_admin` role, allowing an `api_admin` to emulate any other
+role:
 
 ```yaml
 ---
 kind: AuthConfig
 version: v1
 definition:
-  allowRoleEmulationBy: user
+  #highlight-start
+  allowRoleEmulationBy: api_admin
+  #highlight-end
   webhook:
     webhookUrl: https://myauth.service.com/validate-request
 
 ```
 
-Then, the following GraphQL request is made:
+Then, the following GraphQL request is made with some session variables in the headers:
 
 ```http
 POST /graphql HTTP/2.0
 Content-Type: application/json
+Authorization: Bearer <user-token>
+#highlight-start
 x-hasura-role: author
 x-hasura-author-id: 2
+#highlight-end
 
 {
   "query": "query GetAuthor { author { id name } }",
@@ -62,9 +68,8 @@ x-hasura-author-id: 2
 }
 ```
 
-This request will be executed normally using the `author` role and access-control rules related to the `author` role 
-will be applied to the request, for example: returning only the `id` and `name` fields of the author with `id` 2.
-
+The session variables actually used in this request will depend on the values provided in the request headers and the
+values returned by the authentication webhook.
 
 ### Role emulation scenario 1
 
@@ -72,17 +77,50 @@ Now, let's assume the authentication webhook responds with the following session
 
 ```json
 {
-  "x-hasura-role": "user"
+  "x-hasura-role": "api_admin"
 }
 ```
 
-Then, because the `user` role is allowed to emulate other roles, (as per the `allowRoleEmulationBy: user` value in our 
-AuthConfig) the GraphQL request will be executed as the `author` role, because the `x-hasura-role: author` value is set 
-in the headers of the request, along with `x-hasura-author-id: 2`. 
+Then, because the `api_admin` role is allowed to emulate other roles, (as per the `allowRoleEmulationBy: api_admin`
+value in our `AuthConfig`) the GraphQL request will be executed as the `author` role, because the `x-hasura-role: author`
+value is set in the headers of the request, along with `x-hasura-author-id: 2`.
+
+i.e. the query will be executed with:
+```json
+{
+  "x-hasura-role": "author",
+  "x-hasura-author-id": 2
+}
+```
 
 ### Role emulation scenario 2
 
 If the authentication webhook response is as follows:
+
+```json
+{
+  "x-hasura-role": "api_admin",
+  "x-hasura-author-id": 1
+}
+```
+
+Then even in this case, because the `api_admin` role is making the request and is allowed to emulate other roles,
+the GraphQL request will be executed as the `author` role, as that is the role stipulated in the request headers. 
+
+Also, the value of the session variable `x-hasura-author-id` will be 2 and not 1, as that is the value stipulated in the
+request headers.
+
+i.e. the query will be executed with:
+```json
+{
+  "x-hasura-role": "author",
+  "x-hasura-author-id": 2
+}
+```
+
+### Role emulation scenario 3
+
+To illustrate an unsuccessful emulation scenario; if the webhook response were the following:
 
 ```json
 {
@@ -91,27 +129,15 @@ If the authentication webhook response is as follows:
 }
 ```
 
-Then even in this case, because the `user` role is making the request and is allowed to emulate other roles, 
-the GraphQL request will be executed as the `author` role, as that is the role stipulated in the request headers. 
-
-Thus, the value of the session variable `x-hasura-author-id` will be 2 and not 1.
-
-### Role emulation scenario 3
-
-To illustrate an unsuccessful emulation scenario; if the webhook response were the following:
-
-```json
-{
-  "x-hasura-role": "author",
-  "x-hasura-author-id": 1
-}
-```
-
-Then, the GraphQL query will be executed as the `author` role and **only** the session variables from the authentication
+Then, the GraphQL query will be executed as the `user` role and **only** the session variables from the authentication
 webhook response will be considered. 
 
-This is because the author role is not allowed to emulate other roles via HTTP request headers. All session variables 
-for this role will be extracted from either a verified JWT or authentication webhook response.
+This is because the `user` role is not allowed to emulate other roles via HTTP request headers. All session variables
+for this request will be extracted from the authentication webhook response
 
-Therefore, in this case, the value of the session variable `x-hasura-author-id` will be 1 as returned by the 
-authentication webhook response and not 2 as specified in the request headers.
+i.e. the query will be executed with:
+```json
+{
+  "x-hasura-role": "user",
+  "x-hasura-author-id": 1
+}
