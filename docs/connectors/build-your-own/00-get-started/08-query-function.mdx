@@ -7,16 +7,10 @@ metaDescription: 'Learn how to build a data connector in Typescript for Hasura D
 Let's modify our query function to log out the request it receives, and this will give us a goal to work towards.
 
 ```typescript
-async function query(configuration: RawConfiguration, state: State, request: QueryRequest): Promise<QueryResponse> {
+async function query(configuration: Configuration, state: State, request: QueryRequest): Promise<QueryResponse> {
   console.log(JSON.stringify(request, null, 2));
   throw new Error("Function not implemented.");
 }
-```
-
-Remember to rebuild and restart the connector:
-
-```shell
-npm run build && node dist/index.js serve --configuration .
 ```
 
 Let's run the tests again. In the `ndc-test` directory:
@@ -68,7 +62,7 @@ The query function is going to delegate to a function called `fetch_rows`, but o
 indicated by the presence of the query fields property. Let's do that:
 
 ```typescript
-async function query(configuration: RawConfiguration, state: State, request: QueryRequest): Promise<QueryResponse> {
+async function query(configuration: Configuration, state: State, request: QueryRequest): Promise<QueryResponse> {
   console.log(JSON.stringify(request, null, 2));
   const rows = request.query.fields && await fetch_rows(state, request);
   return [{ rows }];
@@ -77,7 +71,7 @@ async function query(configuration: RawConfiguration, state: State, request: Que
 
 Later, we'll also implement aggregates here.
 
-Let's define the `fetch_rows` function the `query` function is delegating to:
+Let's also define the `fetch_rows` function in our file which the `query` function is delegating to:
 
 ```typescript
 async function fetch_rows(state: State, request: QueryRequest): Promise<{
