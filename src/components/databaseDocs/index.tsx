@@ -50,12 +50,19 @@ const DatabaseContentLoader = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const dbParam = params.get('db');
-    const savedPreference = localStorage.getItem('dbPreference');
+    const savedPreference = localStorage.getItem('hasuraV3DbPreference');
     const isTypeScriptExcluded = location.pathname.includes('connect-to-data');
 
     if (dbParam && dataSources[dbParam]) {
       savePreference(dbParam);
     } else if (savedPreference) {
+      // Check if the saved preference is a valid data source
+      if (dataSources[savedPreference]) {
+        setDbPreference(savedPreference);
+      }
+      else {
+        localStorage.removeItem('hasuraV3DbPreference');
+      }
       // If TypeScript is excluded and the saved preference is TypeScript, set preference to null
       // to avoid text at the top of our component
       if (isTypeScriptExcluded && savedPreference === 'TypeScript') {
@@ -67,7 +74,7 @@ const DatabaseContentLoader = () => {
   }, [location.search, location.pathname]);
 
   const savePreference = (preference: string) => {
-    localStorage.setItem('dbPreference', preference);
+    localStorage.setItem('hasuraV3DbPreference', preference);
     setDbPreference(preference);
   };
 

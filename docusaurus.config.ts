@@ -37,7 +37,6 @@ const config: Config = {
 
   customFields: {
     docsBotEndpointURL: (() => {
-      console.log('process.env.release_mode docs-bot', process.env.release_mode);
       if (process.env.CF_PAGES === '1') {
         return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
       } else {
@@ -64,7 +63,6 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           // editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
-          exclude: ['**/*.wip'],
           breadcrumbs: true,
           // showLastUpdateAuthor: true,
           // showLastUpdateTime: true,
