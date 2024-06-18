@@ -84,41 +84,26 @@ set in the Docker Compose for the connector.
 
 :::
 
-## Step 2. Start the connector's docker compose
+## Step 2. Start the services
 
-Let's start our connector's docker compose file.
-
-```bash title="Run the following from the connector's subdirectory inside a subgraph:"
-docker compose -f docker-compose.my_pg.yaml up
-```
-
-This starts our PostgreSQL connector on the specified port. We can navigate to the following address, with the port
-modified, to see the schema of our PostgreSQL database:
-
-```bash
-http://localhost:8082/schema
-```
-
-## Step 3. Include the connector in your docker compose
-
-Kill the connector by pressing `CTRL+C` in the terminal tab in which the connector is running.
-
-Then, add the following inclusion to the docker compose in your project's root directory, taking care to modify the
-subgraph's name.
-
-```yaml title="docker-compose.hasura.yaml"
-include:
-  - path: my_subgraph/connector/my_pg/docker-compose.my_pg.yaml
-```
-
-Now, whenever running the following, you'll bring up the GraphQL engine, observability tools, and any connectors you've
-included:
+<!-- prettier-ignore -->
+Let's start our docker compose services.
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
 ```
 
-## Step 4. Update the new DataConnectorLink object
+This starts our Hasura Engine, observability tools and the MongoDB connector since we added the connector's Docker
+compose file to the main `docker-compose.hasura.yaml` file using the --add-to-compose-file flag when we initialized the
+connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's authentication token.
+
+We can navigate to the following address, with the port modified, to see the schema of our MongoDB database:
+
+```bash
+http://localhost:8082/schema
+```
+
+## Step 3. Update the new DataConnectorLink object
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the PostgreSQL connector,
 we can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's

@@ -20,7 +20,7 @@ As we alluded to in the beginning of this guide, the remaining work on top of yo
 authoring and maintaining custom code, or business logic. With Hasura, you can integrate — and even host — this business
 logic directly with Hasura DDN and your API.
 
-Hasura handles business logic using the TypeScript data connector. This enables you to author you own custom code,
+Hasura handles business logic using the Node.js Lambda data connector. This enables you to author you own custom code,
 written in TypeScript, and host it alongside your API. Using this connector, you can transform or enrich data before it
 reaches your consumers, or perform any other app business logic you may need.
 
@@ -45,14 +45,14 @@ In this guide we will:
 
 :::
 
-### Step 1. Initialize the TypeScript connector
+### Step 1. Initialize the Node.js Lambda connector
 
 Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
 values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector
 hub:
 
 ```bash title="From the root of your project, run:"
-ddn connector init my_ts --subgraph my_subgraph --hub-connector hasura/nodejs --configure-port 8083
+ddn connector init my_ts --subgraph my_subgraph --hub-connector hasura/nodejs --configure-port 8083 --add-to-compose-file docker-compose.hasura.yaml
 ```
 
 In this command, we're passing a few important values.
@@ -69,7 +69,13 @@ We're specifying that this connector should be the: `hasura/nodejs`, connector l
 **Port**
 
 We're specifying the port to run the connector on using the `--configure-port` flag. This is important to avoid port
-collisions with other connectors or services which you might have running on your machine.
+collisions with other connectors or services which you might have running on your machine. Remember to use a
+different port for each connector you may have running.
+
+**Add to compose file**
+
+We're specifying the `--add-to-compose-file` flag to add the connector's own Docker compose file to the main
+`docker-compose.hasura.yaml` file. This allows us to start the Hasura Engine and connectors together.
 
 :::note Best practices
 
@@ -215,8 +221,9 @@ Want to test your supergraph? Don't forget to start your GraphQL engine and conn
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
 ```
 
-**If you haven't [included your connector(s)](/getting-started/01-init-supergraph.mdx) in your
-`docker-compose.hasura.yaml`, don't forget to start it as well.**
+This starts our Hasura Engine, observability tools and the Node.js connector since we added the connector's Docker
+compose file to the main `docker-compose.hasura.yaml` file using the --add-to-compose-file flag when we initialized the
+connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's authentication token.
 
 :::
 
@@ -232,9 +239,9 @@ with a string such as: `"2024-03-14T08:00:00Z"`.
 
 ## What did this do?
 
-The commands above initialized a new TypeScript connector, installed dependencies, and created a new function to format
-a timestamp with timezone into a human-readable format. We then added this function to our metadata as a command, and
-created a new build of our supergraph.
+The commands above initialized a new Node.js Lambda connector, installed dependencies, and created a new function to
+format a timestamp with timezone into a human-readable format. We then added this function to our metadata as a
+command, and created a new build of our supergraph.
 
 ## Next Steps
 
