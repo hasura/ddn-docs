@@ -19,7 +19,7 @@ metadata which can then define your API.
 To initialize the PostgreSQL connector, run the following.
 
 ```bash title="From the root of your project, run:"
-ddn connector init my_pg --subgraph my_subgraph --hub-connector hasura/postgres
+ddn connector init my_pg --subgraph my_subgraph --hub-connector hasura/postgres --configure-port 8082
 ```
 
 In this command, we're passing a few important values.
@@ -35,6 +35,11 @@ this connector is integrating a database all about product metadata, it would ma
 We're specifying that this connector should be the: `hasura/postgres`, connector listed in the
 [Connector Hub](https://hasura.io/connectors/postgres).
 
+**Port**
+
+We're specifying the port to run the connector on using the `--configure-port` flag. This is important to avoid port
+collisions with other connectors or services which you might have running on your machine.
+
 :::note Best practice
 
 Importantly, a data connector can only connect to one data source.
@@ -46,6 +51,9 @@ directory by passing a `--dir` flag to the CLI.
 The name of the connector and the directory in which the configuration is stored, `my_pg` in this example, should match
 for convenience and clarity sake.
 
+In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
+string you provide in your subgraph's `.env.my_subgraph` file.
+
 :::
 
 ### What did this do?
@@ -54,39 +62,15 @@ In the `my_subgraph/connector/my_pg` directory which we specified in the command
 
 - A `connector.yaml` file which contains the configuration for the connector.
 - A `.hasura-connector` folder which contains the connector definition used to build and run it.
-- A `docker-compose.my_pg.yaml` a file to run the PostgreSQL data connector locally in Docker.
+- A `docker-compose.my_pg.yaml` a file to run the MongoDB data connector locally in Docker. Includes the
+specified port.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
 - An `.env.local` file for environment variables for pertaining to running this connector locally.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.
 
-## Step 2. Modify the port
-
-Typically, connectors default to port `8080`. Each time you add a connector, we recommend incrementing the published
-port by one to avoid port collisions. For example:
-
-Change the value of your `my_pg` connector's published port in your
-`my_subgraph/connector/my_pg/docker-compose.my_pg.yaml` to `8082` to avoid port collisions with other connectors:
-
-```yaml title="my_subgraph/connector/my_pg/docker-compose.my_pg.yaml"
-ports:
-  - mode: ingress
-    target: 8080
-    #highlight-start
-    published: '8082'
-    #highlight-end
-    protocol: tcp
-```
-
-:::tip Consistency is important
-
-In subsequent steps, when running your connector locally, it's critical to ensure this port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
-
-:::
-
-## Step 3. Add the connection URI
+## Step 2. Add the connection URI
 
 Now that our connector has been scaffolded out for us, we need to provide a connection string so that the data source
 can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
@@ -137,7 +121,7 @@ allowlisted `0.0.0.0/0` so that DDN is able to reach it.
 
 :::
 
-## Step 4. Introspect your database
+## Step 3. Introspect your database
 
 With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a source-specific
 configuration file for our connector.
