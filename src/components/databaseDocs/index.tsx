@@ -57,7 +57,7 @@ const DatabaseContentLoader = () => {
     const params = new URLSearchParams(location.search);
     const dbParam = params.get('db');
     const savedPreference = localStorage.getItem('hasuraV3DbPreference');
-    const isTypeScriptExcluded = location.pathname.includes('connect-to-data');
+    const isTypeScriptExcluded = location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
 
     if (dbParam && dataSources[dbParam]) {
       savePreference(dbParam);
@@ -90,7 +90,7 @@ const DatabaseContentLoader = () => {
 
     // Get the last part of the path, which is the page we want
     let route = pathParts.pop();
-
+    
     switch (route) {
       case 'connect-a-source':
         switch (dbPreference) {
@@ -155,7 +155,7 @@ const DatabaseContentLoader = () => {
   };
 
   // We'll use this to exclude the TS connector from any of the data connection pages
-  const isTypeScriptExcluded = location.pathname.includes('connect-to-data');
+  const isTypeScriptExcluded = location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
 
   return (
     <div>
