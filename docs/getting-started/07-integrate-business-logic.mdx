@@ -55,8 +55,43 @@ hub:
 ddn connector init my_ts --subgraph my_subgraph --hub-connector hasura/nodejs --configure-port 8083
 ```
 
-This will create the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts` file
-being your connector's entrypoint:
+In this command, we're passing a few important values.
+
+**Connector name**
+
+We're naming the connector `my_ts` in this example, but you can call it whatever makes sense to you.
+
+**Connector type**
+
+We're specifying that this connector should be the: `hasura/nodejs`, connector listed in the
+[Connector Hub](https://hasura.io/connectors/nodejs-lambda).
+
+**Port**
+
+We're specifying the port to run the connector on using the `--configure-port` flag. This is important to avoid port
+collisions with other connectors or services which you might have running on your machine.
+
+:::note Best practices
+
+Importantly, a data connector can only connect to one data source.
+
+The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
+this example the CLI will create a `my_subgraph/connector/my_ts` directory if it doesn't exist. You can also change
+this directory by passing a `--dir` flag to the CLI.
+
+The name of the connector and the directory in which the configuration is stored, `my_ts` in this example, should
+match for convenience and clarity sake.
+
+In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
+string you provide in your subgraph's `.env.my_subgraph` file.
+
+:::
+
+
+### What did this do?
+
+This command created the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts`
+file being your connector's entrypoint:
 
 ```bash
 .
@@ -73,15 +108,7 @@ being your connector's entrypoint:
 └── tsconfig.json
 ```
 
-### Step 2. Modify the connector's port
-
-Add the port's value to the `my_subgraph/connector/my_ts/.env.local` in your `my_ts` directory:
-
-```env
-HASURA_CONNECTOR_PORT=8083
-```
-
-### Step 3. Add the DataConnectorLink
+### Step 2. Add the DataConnectorLink
 
 As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
 functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
@@ -99,7 +126,7 @@ MY_SUBGRAPH_MY_TS_WRITE_URL=http://local.hasura.dev:8083
 
 These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
 
-### Step 4. Install npm package dependencies
+### Step 3. Install npm package dependencies
 
 Within our `my_ts` connector directory, let's install any necessary dependencies:
 
@@ -120,7 +147,7 @@ The `hasura/nodejs` connector uses Node.js version `>=20`. Please make sure you 
 
 :::
 
-### Step 5. Write business logic
+### Step 4. Write business logic
 
 In this simple example, we're going to transform a timestamp with timezone (eg: "2024-03-14T08:00:00Z") into a nicely
 formatted version for humans, eg: "8am, Thursday, March 14th, 2024."
@@ -163,7 +190,7 @@ export async function formatTimezoneDate(dateString: string): Promise<string> {
 
 As this is a Node.js project, you can install any dependency!
 
-### Step 6. Track the new function
+### Step 5. Track the new function
 
 To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
 related Hasura metadata:
@@ -172,7 +199,7 @@ related Hasura metadata:
 ddn connector-link update my_ts --subgraph my_subgraph --add-all-resources
 ```
 
-### Step 7. Create a new API build and test
+### Step 6. Create a new API build and test
 
 Next, let's create a new build of our supergraph:
 
