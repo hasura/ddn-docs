@@ -1,4 +1,4 @@
-import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
+import BaseUrlLink from "@site/src/components/databaseDocs/baseLink";
 
 ### Step 1. Install node packages
 
@@ -44,8 +44,8 @@ We can even add documentation that will be visible in the GraphiQL explorer by t
 `@returns` for what will be returned by the mutation.
 
 ```ts title="my_subgraph/connectors/my_ts/functions.ts"
-import { ClickHouseClient, createClient } from '@clickhouse/client';
-import dotenv from 'dotenv';
+import { ClickHouseClient, createClient } from "@clickhouse/client";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -60,15 +60,10 @@ export async function insertUser(userData: { name: string; email: string }): Pro
     password: process.env.CLICKHOUSE_PASSWORD,
   });
 
-  const insertQuery = `
-    INSERT INTO users (name, email)
-    VALUES ({name: String}, {email: String})
-  `;
-
   await client.insert({
-    table: 'users',
+    table: "users",
     values: [{ name: userData.name, email: userData.email }],
-    format: 'JSONEachRow',
+    format: "JSONEachRow",
   });
 
   const selectQuery = `
@@ -81,7 +76,7 @@ export async function insertUser(userData: { name: string; email: string }): Pro
 
   const result = await client.query({
     query: selectQuery,
-    format: 'JSON',
+    format: "JSON",
     query_params: {
       name: userData.name,
       email: userData.email,
@@ -93,7 +88,7 @@ export async function insertUser(userData: { name: string; email: string }): Pro
   if (data.data.length > 0) {
     return data.data[0].id;
   } else {
-    throw new Error('Failed to insert user');
+    throw new Error("Failed to insert user");
   }
 }
 ```
