@@ -25,10 +25,10 @@ import PostgreSqlMutate from '@site/docs/getting-started/_databaseDocs/_postgreS
 import MongoDBMutate from '@site/docs/getting-started/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
 import ClickHouseMutate from '@site/docs/getting-started/_databaseDocs/_clickHouse/_09-mutate-data.mdx';
 
-import PostgreSqlDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_deployment.mdx';
-import MongoDBDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_deployment.mdx';
-import TypeScriptDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_typeScript/_deployment.mdx';
-import ClickHouseDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_deployment.mdx';
+import PostgreSqlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_postgreSQL/_deployment.mdx';
+import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_mongoDB/_deployment.mdx';
+import TypeScriptDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_typeScript/_deployment.mdx';
+import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_clickHouse/_deployment.mdx';
 
 const dataSources = {
   PostgreSQL: {
