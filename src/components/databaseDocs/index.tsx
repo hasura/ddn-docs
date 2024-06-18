@@ -3,26 +3,32 @@ import { useLocation } from '@docusaurus/router';
 import Link from '@docusaurus/Link';
 import './styles.css';
 import Icon from '@site/static/icons/event-triggers.svg';
+
 import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
 import ClickHouseLogo from '@site/static/img/databases/logos/clickhouse-glyph.png';
-import PostgreSqlConnect from '@site/src/_databaseDocs/_postgreSQL/_01-connect-a-data-source.mdx';
-import MongoDBConnect from '@site/src/_databaseDocs/_mongoDB/_01-connect-a-data-source.mdx';
-import ClickHouseConnect from '@site/src/_databaseDocs/_clickHouse/_01-connect-a-data-source.mdx';
-import PostgreSqlLink from '@site/src/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
-import MongoDBLink from '@site/src/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
-import ClickHouseLink from '@site/src/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
-import PostgreSqlExposition from '@site/src/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
-import MongoDBExposition from '@site/src/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
-import ClickHouseExposition from '@site/src/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
-import PostgreSqlMutation from '@site/src/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
-import MongoDBMutation from '@site/src/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
-import ClickHouseMutation from '@site/src/_databaseDocs/_clickHouse/_09-mutate-data.mdx';
-import PostgreSqlDeployment from '@site/src/_databaseDocs/_postgreSQL/_deployment.mdx';
-import MongoDBDeployment from '@site/src/_databaseDocs/_mongoDB/_deployment.mdx';
-import TypeScriptDeployment from '@site/src/_databaseDocs/_typeScript/_deployment.mdx';
-import ClickHouseDeployment from '@site/src/_databaseDocs/_clickHouse/_deployment.mdx';
+
+import PostgreSqlConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
+import MongoDBConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
+import ClickHouseConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_01-connect-a-source.mdx';
+
+import PostgreSqlCreateSourceMetadata from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
+import MongoDBCreateSourceMetadata from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
+import ClickHouseCreateSourceMetadata from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
+
+import PostgreSqlAddSourceEntities from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
+import MongoDBAddSourceEntities from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
+import ClickHouseAddSourceEntities from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
+
+import PostgreSqlMutate from '@site/docs/getting-started/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
+import MongoDBMutate from '@site/docs/getting-started/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
+import ClickHouseMutate from '@site/docs/getting-started/_databaseDocs/_clickHouse/_09-mutate-data.mdx';
+
+import PostgreSqlDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_deployment.mdx';
+import MongoDBDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_deployment.mdx';
+import TypeScriptDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_typeScript/_deployment.mdx';
+import ClickHouseDeploy from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_deployment.mdx';
 
 const dataSources = {
   PostgreSQL: {
@@ -100,46 +106,46 @@ const DatabaseContentLoader = () => {
       case 'create-source-metadata':
         switch (dbPreference) {
           case 'PostgreSQL':
-            return <PostgreSqlLink />;
+            return <PostgreSqlCreateSourceMetadata />;
           case 'MongoDB':
-            return <MongoDBLink />;
+            return <MongoDBCreateSourceMetadata />;
           case 'ClickHouse':
-            return <ClickHouseLink />;
+            return <ClickHouseCreateSourceMetadata />;
           default:
             return <div />;
         }
       case 'add-source-entities':
         switch (dbPreference) {
           case 'PostgreSQL':
-            return <PostgreSqlExposition />;
+            return <PostgreSqlAddSourceEntities />;
           case 'MongoDB':
-            return <MongoDBExposition />;
+            return <MongoDBAddSourceEntities />;
           case 'ClickHouse':
-            return <ClickHouseExposition />;
+            return <ClickHouseAddSourceEntities />;
           default:
             return <div />;
         }
       case 'mutate-data':
         switch (dbPreference) {
           case 'PostgreSQL':
-            return <PostgreSqlMutation />;
+            return <PostgreSqlMutate />;
           case 'MongoDB':
-            return <MongoDBMutation />;
+            return <MongoDBMutate />;
           case 'ClickHouse':
-            return <ClickHouseMutation />;
+            return <ClickHouseMutate />;
           default:
             return <div />;
         }
       case 'deploy-a-connector':
         switch (dbPreference) {
           case 'PostgreSQL':
-            return <PostgreSqlDeployment />;
+            return <PostgreSqlDeploy />;
           case 'MongoDB':
-            return <MongoDBDeployment />;
+            return <MongoDBDeploy />;
           case 'ClickHouse':
-            return <ClickHouseDeployment />;
+            return <ClickHouseDeploy />;
           case 'TypeScript':
-            return <TypeScriptDeployment />;
+            return <TypeScriptDeploy />;
           default:
             return <div />;
         }
