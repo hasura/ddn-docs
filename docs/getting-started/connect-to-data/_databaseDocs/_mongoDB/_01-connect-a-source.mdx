@@ -94,11 +94,21 @@ The CLI has provided an `.env.local` file for our connector. We can add a key-va
 with the connection string itself to this file and our connector will use this to connect to our MongoDB database. The
 file, after adding the `MONGODB_DATABASE_URI` should look like this example:
 
-```env
+```env title="In the .env.local file for the connector"
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=my_mongo
 MONGODB_DATABASE_URI="mongodb+srv://<your-mongodb-connection-string>"
 ```
+
+:::tip Need a connection string?
+
+Feel free to use this read-only MongoDB connection string for testing purposes:
+
+```text
+mongodb+srv://read_only_user:readonlyuser@v3-docs-sample-app.vh2tp.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=v3-docs-sample-app
+```
+
+:::
 
 Remember to use quotes as the string will likely have some characters which will break the `.env` file if not enclosed.
 
@@ -141,7 +151,7 @@ With the connector configured, we can now use the CLI to introspect our MongoDB 
 configuration file for our connector:
 
 ```bash
-ddn connector introspect --connector my_subgraph/connector/my_mongo/connector.yaml
+ddn connector introspect --connector my_subgraph/connector/my_mongo/connector.local.yaml
 ```
 
 ### What did this do?
@@ -152,7 +162,7 @@ provide it with the location of that `connector.yaml` configuration file.
 The CLI will introspect the MongoDB database and generate a few new files in the `connector/my_mongo/` directory.
 
 These include a `configuration.json` file and a new `schema` directory with a definition of all collections found in
-MongoDB in a JSON [NDC-compliant](https://github.com/hasura/ndc-spec) Hasura metadata format.
+MongoDB in a JSON [NDC-compliant](https://github.com/hasura/ndc-spec) format which the connector specifies.
 
 Eg:
 
