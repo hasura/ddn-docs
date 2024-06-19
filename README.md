@@ -2,13 +2,13 @@
 
 The docs site uses [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
-### Installation
+## Installation
 
 ```
 $ yarn
 ```
 
-### Local Development
+## Local Development
 
 ```
 $ yarn start
@@ -17,7 +17,7 @@ $ yarn start
 This command starts a local development server and opens up a browser window. Most changes are reflected live without
 having to restart the server.
 
-### Build
+## Build
 
 ```
 $ yarn build
@@ -26,7 +26,7 @@ $ yarn build
 This command generates static content into the `build` directory and can be served using any static contents hosting
 service.
 
-### Contributing
+## Contributing
 
 Check out our contribution guide on the [wiki](https://hasura.io/docs/3.0/wiki/contributing/) 🤙
 
@@ -86,6 +86,30 @@ ddn docs --directory .
 ```
 
 The CLI commands documentation should now be updated.
+
+## Nice things
+
+We have nice things that will hopefully help you. Don't make it so we can't have nice things.
+
+### Direct links for data sources
+
+Any connector which is documented in DDN docs can be accessed directly using the following query parameter pattern:
+
+```text
+https://hasura.io/docs/3.0/page-route/?db=DataSourceName
+```
+
+The following options are available:
+
+| Source     | Query string |
+| ---------- | ------------ |
+| PostgreSQL | `PostgreSQL` |
+| MongoDB    | `MongoDB`    |
+| ClickHouse | `ClickHouse` |
+| TypeScript | `TypeScript` |
+
+You can learn more about the `<DatabaseContentLoader />` component which renders these docs
+[here](https://github.com/hasura/v3-docs/blob/main/src/components/databaseDocs/index.tsx).
 
 ## Deployments
 

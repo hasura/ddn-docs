@@ -19,19 +19,7 @@ const createTicketPayload = prInfo => {
             content: [
               {
                 type: 'text',
-                text: 'Link to PR: ',
-              },
-              {
-                type: 'text',
-                text: prInfo.title,
-                marks: [
-                  {
-                    type: 'link',
-                    attrs: {
-                      href: prInfo.url,
-                    },
-                  },
-                ],
+                text: `Link to PR: ${prInfo.url}`,
               },
             ],
           },
@@ -62,8 +50,7 @@ const createTicket = async issuePayload => {
 
 const generateNewTicket = async prInfo => {
   const issuePayload = createTicketPayload(prInfo);
-  const newTicket = await createTicket(issuePayload);
-  return newTicket;
+  return await createTicket(issuePayload);
 };
 
 module.exports = generateNewTicket;
