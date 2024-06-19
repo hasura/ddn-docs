@@ -5,6 +5,7 @@ import BackToTopButton from '@theme/BackToTopButton';
 import DocRootLayoutSidebar from '@theme/DocRoot/Layout/Sidebar';
 import DocRootLayoutMain from '@theme/DocRoot/Layout/Main';
 import styles from './styles.module.css';
+import useIsBrowser from '@docusaurus/useIsBrowser';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 import fetchUser from '@theme/DocRoot/Layout/FetchUser';
@@ -13,21 +14,22 @@ import posthog from 'posthog-js';
 export default function DocRootLayout({ children }) {
   const sidebar = useDocsSidebar();
   const location = useLocation();
+  const isBrowser = useIsBrowser();
   const [hiddenSidebarContainer, setHiddenSidebarContainer] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !hasInitialized) {
+    if (isBrowser && !hasInitialized) {
       posthog.init('phc_MZpdcQLGf57lyfOUT0XA93R3jaCxGsqftVt4iI4MyUY', {
         api_host: 'https://analytics-posthog.hasura-app.io',
       });
 
       setHasInitialized(true);
     }
-  }, [hasInitialized]);
+  }, [isBrowser, hasInitialized]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && hasInitialized) {
+    if (isBrowser && hasInitialized) {
       posthog.capture('$pageview');
     }
 
