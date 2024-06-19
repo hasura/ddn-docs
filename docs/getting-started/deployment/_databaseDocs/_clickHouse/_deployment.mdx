@@ -1,0 +1,84 @@
+## What's about to happen?
+
+Connectors are deployed independently of your supergraph and of each other. Hasura DDN will host your connectors for
+you, ensuring rapid delivery of data from your API to your consumers. **For each ClickHouse connector in a project,
+follow the steps below.**
+
+## Steps
+
+:::tip Required
+
+- [DDN CLI](/getting-started/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
+- A new or existing [data connector](/getting-started/connect-to-data/01-connect-a-source.mdx)
+- A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
+- A new or existing [subgraph on Hasura DDN](/getting-started/deployment/02-create-a-subgraph.mdx)
+
+:::
+
+### Step 1. Create a connector.cloud.yaml
+
+Each ClickHouse connector utilizes a `connector.yaml` file for local development. When deploying a connector, start by
+creating a `connector.cloud.yaml` file in the same directory as the connector's local `connector.yaml`.
+
+```yaml title="For example, my_subgraph/connector/my_clickhouse/connector.cloud.yaml"
+kind: Connector
+version: v1
+definition:
+  name: my_connector
+  subgraph: my_subgraph
+  source: hasura/clickhouse:<version>
+  context: .
+  envFile: .env.cloud
+```
+
+### Step 2. Create a .env.cloud for the connector
+
+Create a `.env.cloud` environment variable file in the same directory as your `.env.local` file for the connector. In
+the next step, we'll build the cloud connector and use the returned URLs for the `read` and `write` environment
+variables.
+
+Let's add our ClickHouse `CLICKHOUSE_URL` and credentials, which can be the same as the database used in `.env.local`
+for development or another database, such as your staging or production instance, with the same schema.
+
+```env title="my_subgraph/connector/my_clickhouse/.env.cloud"
+CLICKHOUSE_URL=<postgres-connection-string>
+CLICKHOUSE_USERNAME=<your-username>
+CLICKHOUSE_PASSWORD=<your-passowrd>
+```
+
+### Step 3. Build and deploy your cloud connector
+
+At this stage, you can now build and deploy your connector on Hasura DDN. Simply run the following replacing the
+directory names with those that reflect your project.
+
+```bash title="From the root of your project, run:"
+ddn connector build create --connector ./my_subgraph/connector/my_clickhouse/connector.cloud.yaml
+```
+
+The CLI will respond with read and write URLs for your deployed connector.
+
+### Step 4. Create a .env.cloud for the subgraph
+
+If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.my_subgraph` file in the
+root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs like
+this example:
+
+```env title="For example, my_subgraph/.env.cloud.my_subgraph:"
+MY_SUBGRAPH_MY_CLICKHOUSE_READ_URL=<cloud-connector-read-url>
+MY_SUBGRAPH_MY_CLICKHOUSE_WRITE_URL=<cloud-connector-write-url>
+```
+
+At this stage, you're ready to now build and deploy your supergraph!
+
+## What did this do?
+
+The steps above built and deployed your ClickHouse connector to Hasura DDN. So long as the connection URI you provided
+is reachable by DDN, your connector will be able to communicate between your API and your data source.
+
+## Next steps
+
+If you have other connectors needed for a supergraph, repeat these steps for each connector. Otherwise, you're ready to
+[create a new build of your supergraph](/getting-started/deployment/04-deploy-your-supergraph.mdx) and deploy it to
+Hasura DDN!
