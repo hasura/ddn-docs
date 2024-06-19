@@ -14,17 +14,20 @@ export default function DocRootLayout({ children }) {
   const sidebar = useDocsSidebar();
   const location = useLocation();
   const [hiddenSidebarContainer, setHiddenSidebarContainer] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !hasInitialized) {
       posthog.init('phc_MZpdcQLGf57lyfOUT0XA93R3jaCxGsqftVt4iI4MyUY', {
         api_host: 'https://analytics-posthog.hasura-app.io',
       });
+
+      setHasInitialized(true);
     }
-  }, []);
+  }, [hasInitialized]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && hasInitialized) {
       posthog.capture('$pageview');
     }
 
