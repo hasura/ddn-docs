@@ -16,7 +16,7 @@ const parameters: any[] = [];
 
 As we encounter literal values, we'll append them as new parameters to this list.
 
-We also need to add our parameters to the database fetch function call, and to our logging function:
+In `fetch_rows`, we also need to add our parameters to the database fetch function call, and to our logging function:
 
 ```typescript
 console.log(JSON.stringify({ sql, parameters }));
@@ -27,8 +27,8 @@ return state.db.all(sql, ...parameters);
 Let's delegate to a new helper function in order to build our `WHERE` clause. Let's call our function 
 `visit_expression`, because we're using the [visitor design pattern](https://en.wikipedia.org/wiki/Visitor_pattern).
 
-Let's define the where clause as a string which is either null if there is no `where` predicate, or the result of 
-`visit_expression` when there is one:
+Let's define the where clause in `fetch_rows` as a string which is either null if there is no `where` predicate, or the
+result of `visit_expression` when there is one:
 
 ```typescript
 const where_clause = request.query.where == null ? "" : `WHERE ${visit_expression(parameters, request.query.where)}`;
