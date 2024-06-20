@@ -21,15 +21,27 @@ our PostgreSQL database — to create metadata which Hasura can use to construct
 Hasura DDN uses a concept called "connector linking" to take [NDC-compliant](https://github.com/hasura/ndc-spec)
 configuration JSON files for a data connector and transform them into an `hml` (Hasura Metadata Language) file as a <BaseUrlLink to="/supergraph-modeling/data-connectors/" text="DataConnectorLink" /> metadata object.
 
-Basically, metadata objects in `hml` files define our API.
+:::info JSON and HML, why both?
 
-First we need to create this `hml` file with the `connector-link add` command and then convert our configuration files
+Basically, metadata objects in `hml` files contain the data connector schema in a
+[format](https://github.com/hasura/ndc-spec) which is generic for all connectors. The JSON on the other hand
+contains a format specific to that connector. It does not need to be JSON, it could just as easily be SQL files,
+TypeScript functions, or anything else. It's just a representation that the specific connector understands.
+
+First we generate the schema representation using the `ddn connector introspect` command, and then use that to create
+the `DataConnectorLink` hml object with the `ddn connector-link add` and `update` commands.
+
+:::
+
+First we create this `hml` file with the `connector-link add` command and then convert our configuration files
 into `hml` syntax and add it to this file with the `connector-link update` command.
 
 Let's name the `hml` file the same as our connector, `my_pg`:
 
 ```bash title="Run the following from the root of your project:"
-ddn connector-link add my_pg --subgraph my_subgraph
+ddn connector-link add my_pg \
+  --subgraph my_subgraph \
+  --configure-host http://local.hasura.dev:8082
 ```
 
 The new file is scaffolded out at `my_subgraph/metadata/my_pg/my_pg.hml`.
@@ -65,60 +77,38 @@ schema:
 
 </details>
 
-The generated file has two environment variables — one for reads and one for writes — that you'll need to add to your
-subgraph's `.env.my_subgraph` file. Each key is prefixed by the subgraph name, an underscore, and the name of the
-connector. Ensure the port value matches what is published in your connector's docker compose file.
+The generated file has two environment variables — one for reads and one for writes. Because we used the convenience
+flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph` file:
 
 ```env title="my_subgraph/.env.my_subgraph"
-MY_SUBGRAPH_MY_PG_READ_URL=http://local.hasura.dev:8082
-MY_SUBGRAPH_MY_PG_WRITE_URL=http://local.hasura.dev:8082
+MY_SUBGRAPH_MY_PG_READ_URL="http://local.hasura.dev:8082"
+MY_SUBGRAPH_MY_PG_WRITE_URL="http://local.hasura.dev:8082"
 ```
 
 These values are for the PostgreSQL connector itself and utilize `local.hasura.dev` to ensure proper resolution within
 the docker container.
 
-:::tip Don't forget to modify the port number
+## Step 2. Start the services
 
-To avoid port conflicts, you should modify the port number in the `.env.my_subgraph` file to match the port number you
-set in the Docker Compose for the connector.
-
-:::
-
-## Step 2. Start the connector's docker compose
-
-Let's start our connector's docker compose file.
-
-```bash title="Run the following from the connector's subdirectory inside a subgraph:"
-docker compose -f docker-compose.my_pg.yaml up
-```
-
-This starts our PostgreSQL connector on the specified port. We can navigate to the following address, with the port
-modified, to see the schema of our PostgreSQL database:
-
-```bash
-http://localhost:8082/schema
-```
-
-## Step 3. Include the connector in your docker compose
-
-Kill the connector by pressing `CTRL+C` in the terminal tab in which the connector is running.
-
-Then, add the following inclusion to the docker compose in your project's root directory, taking care to modify the
-subgraph's name.
-
-```yaml title="docker-compose.hasura.yaml"
-include:
-  - path: my_subgraph/connector/my_pg/docker-compose.my_pg.yaml
-```
-
-Now, whenever running the following, you'll bring up the GraphQL engine, observability tools, and any connectors you've
-included:
+<!-- prettier-ignore -->
+Let's start our docker compose services.
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
 ```
 
-## Step 4. Update the new DataConnectorLink object
+This starts our Hasura Engine, observability tools and the PostgreSQL connector all togther since we added the
+connector's Docker compose file to the main `docker-compose.hasura.yaml` file using the `--add-to-compose-file` flag
+when we initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN
+CLI's authentication token.
+
+We can navigate to the following address, with the port modified, to see the schema of our MongoDB database:
+
+```bash
+http://localhost:8082/schema
+```
+
+## Step 3. Update the new DataConnectorLink object with metadata for your PostgreSQL database
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the PostgreSQL connector,
 we can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
