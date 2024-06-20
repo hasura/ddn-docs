@@ -1,4 +1,4 @@
-import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
+import BaseUrlLink from "@site/src/components/databaseDocs/baseLink";
 
 ## What's about to happen?
 
@@ -77,43 +77,29 @@ In the `my_subgraph/connector/my_pg` directory which we specified in the command
 
 - A `connector.yaml` file which contains the configuration for the connector.
 - A `.hasura-connector` folder which contains the connector definition used to build and run it.
-- A `docker-compose.my_pg.yaml` a file to run the PostgreSQL data connector locally in Docker. Includes the
-specified port.
+- A `docker-compose.my_pg.yaml` a file to run the PostgreSQL data connector locally in Docker. Includes the specified
+  port.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
 - An `.env.local` file for environment variables for pertaining to running this connector locally.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.
 
-## Step 2. Add the connection URI
+## Step 2. Update the connection URI
 
-Now that our connector has been scaffolded out for us, we need to provide a connection string so that the data source
-can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
-caveats to consider before continuing.
+The PostgreSQL connector ships with a sample read-only database connection as the default `CONNECTION_URI`.
 
-The CLI has provided an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. We can add a
-key-value pair of `CONNECTION_URI` along with the connection string itself to this file and our connector will use this
-to connect to our PostgreSQL database. The file, after adding the `CONNECTION_URI` should look like this example:
+The CLI provides an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. **If you wish to
+override the default connection, you can update the key-value pair of `CONNECTION_URI` with your custom connection
+string to this file.**
 
 ```env title="my_subgraph/connector/my_pg/.env.local"
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=my_subgraph_my_pg
 #highlight-start
-CONNECTION_URI=<postgres-connection-uri>
+CONNECTION_URI=<your-custom-postgres-connection-uri>
 #highlight-end
 ```
-
-:::tip Don't have a PostgreSQL database?
-
-We've got you covered! You can use this read-only PostgreSQL database hosted on GCP.
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
-```
-
-**Note: As this is read-only, you won't be able to complete the later section on mutating data.**
-
-:::
 
 You can use a local PostgreSQL database or a cloud-hosted option. If you already have one you can connect to, you can go
 ahead and do that using the steps above. Hasura DDN will not modify your database in any way, so you can use an existing
