@@ -1,31 +1,32 @@
 ---
 sidebar_position: 3
-sidebar_label: Custom Mutations
+sidebar_label: Native Mutations
 description:
-  "Custom mutations allow you to run custom SQL queries on your PostgreSQL database. This page explains how to configure
-  custom mutations in Hasura."
+  "Native Mutations allow you to run custom SQL queries on your PostgreSQL database. This page explains how to configure
+  Native Mutations in Hasura."
 keywords:
-  - native queries
+  - native operations
   - custom mutations
 seoFrontMatterUpdated: false
 ---
 
-# Custom Mutations
+# Native Mutations
 
 ## Introduction
 
-Custom mutations allow you to run custom SQL queries on your PostgreSQL database that can be exposed via the Hasura
+Native Mutations allow you to run custom SQL queries on your PostgreSQL database that can be exposed via the Hasura
 GraphQL engine and modify the database state. As point-to-point mutations are not yet supported, this is one way to
 mutate data using your GraphQL API.
 
 ## Setup
 
-Native Queries can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json` for a
+Native Mutations can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json` for a
 particular connector.
 
-Each query is specified as SQL. The return structure of the query must be explicitly specified in the `columns` field.
+Each mutation is specified as SQL. The return structure of the query must be explicitly specified in the `columns`
+field.
 
-Native Queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
+Native Mutations can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
 type.
 
 The arguments are not interpolated, but provided to your data source as parameters, and therefore must be specific
@@ -33,18 +34,18 @@ values, not arbitrary SQL.
 
 :::danger Permissions not yet supported
 
-Custom mutations do not yet support permissions. This means that any user with access to the GraphQL API can execute
-custom mutations. Ensure that you have appropriate security measures in place to prevent unauthorized access. An update
+Native Mutations do not yet support permissions. This means that any user with access to the GraphQL API can execute
+Native Mutations. Ensure that you have appropriate security measures in place to prevent unauthorized access. An update
 on this feature will be provided in an upcoming release.
 
 :::
 
 ## Example
 
-Native Query mutations can be defined the same way as
-[custom queries](/connectors/postgresql/native-queries/custom-queries.mdx), with a few important tweaks:
+Native Mutations can be defined the same way as
+[native queries](/connectors/postgresql/native-operations/custom-queries.mdx), with a few important tweaks:
 
-1. The Native Query should include a field `isProcedure: true`.
+1. The Native Mutations should include a field `isProcedure: true`.
 2. The SQL should include a `RETURNING` clause, listing the returned columns (use `RETURNING *` to return all columns).
 
 ### Configuration
@@ -72,14 +73,15 @@ Here's an example which inserts into a table called `"Artist"`:
   }
 ```
 
-:::tip Valid Native Query syntax
+:::tip Valid Native Mutation syntax
 
-Check out our page on writing valid Hasura DDN [Native Query syntax](/connectors/postgresql/native-queries/syntax.mdx).
+Check out our page on writing valid Hasura DDN
+[Native Operation syntax](/connectors/postgresql/native-operations/syntax.mdx).
 
 :::
 
-To expose a Native Query mutation via the GraphQL API, add it as a procedure
-[command](/supergraph-modeling/commands.mdx) to the Hasura metadata.
+To expose a Native Mutation via the GraphQL API, add it as a procedure [command](/supergraph-modeling/commands.mdx) to
+the Hasura metadata.
 
 ### Usage
 

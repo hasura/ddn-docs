@@ -1,10 +1,10 @@
-import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
+import BaseUrlLink from "@site/src/components/databaseDocs/baseLink";
 
 ## What's about to happen?
 
-We want to connect our PostgreSQL database to our API. To do this, we use the Hasura PostgreSQL data connector to
-facilitate the connection and then introspect the database to generate JSON which the Hasura CLI will then use to create
-metadata which can then define your API.
+We want to connect our [PostgreSQL](https://www.postgresql.org/) database to our API. To do this, we use the Hasura
+PostgreSQL data connector to facilitate the connection and then introspect the database to generate JSON which the
+Hasura CLI will then use to create metadata which can then define your API.
 
 ## Step 1. Init the PostgreSQL connector
 
@@ -16,13 +16,17 @@ metadata which can then define your API.
 
 :::
 
-To initialize the PostgreSQL connector, run the following.
+To initialize the PostgreSQL connector, run the following in your terminal.
 
 ```bash title="From the root of your project, run:"
-ddn connector init my_pg --subgraph my_subgraph --hub-connector hasura/postgres
+ddn connector init my_pg \
+  --subgraph my_subgraph \
+  --hub-connector hasura/postgres \
+  --configure-port 8082 \
+  --add-to-compose-file docker-compose.hasura.yaml
 ```
 
-In this command, we're passing a few important values.
+With this `connector init` command, we're passing a few important values.
 
 **Connector name**
 
@@ -30,12 +34,28 @@ We're naming the connector `my_pg` in this example, but you can call it whatever
 this connector is integrating a database all about product metadata, it would make sense to name it something like
 `product_metadata_postgres_connector`.
 
-**Connector type**
+**Subgraph: `--subgraph`**
+
+We're specifying the subgraph that this connector will be added to using the `--subgraph` flag.
+
+**Connector: --hub-connector**
 
 We're specifying that this connector should be the: `hasura/postgres`, connector listed in the
 [Connector Hub](https://hasura.io/connectors/postgres).
 
-:::note Best practice
+**Port: `configure-port`**
+
+We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
+services which you might have running on your machine. Remember to use a different port for each connector you may have
+running.
+
+**Compose file: `--add-to-compose-file`**
+
+We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
+`docker-compose.hasura.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
+together.
+
+:::tip Best practices
 
 Importantly, a data connector can only connect to one data source.
 
@@ -46,6 +66,9 @@ directory by passing a `--dir` flag to the CLI.
 The name of the connector and the directory in which the configuration is stored, `my_pg` in this example, should match
 for convenience and clarity sake.
 
+In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
+string you provide in your subgraph's `.env.my_subgraph` file.
+
 :::
 
 ### What did this do?
@@ -54,67 +77,29 @@ In the `my_subgraph/connector/my_pg` directory which we specified in the command
 
 - A `connector.yaml` file which contains the configuration for the connector.
 - A `.hasura-connector` folder which contains the connector definition used to build and run it.
-- A `docker-compose.my_pg.yaml` a file to run the PostgreSQL data connector locally in Docker.
+- A `docker-compose.my_pg.yaml` a file to run the PostgreSQL data connector locally in Docker. Includes the specified
+  port.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
 - An `.env.local` file for environment variables for pertaining to running this connector locally.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.
 
-## Step 2. Modify the port
+## Step 2. Update the connection URI
 
-Typically, connectors default to port `8080`. Each time you add a connector, we recommend incrementing the published
-port by one to avoid port collisions. For example:
+The PostgreSQL connector ships with a sample read-only database connection as the default `CONNECTION_URI`.
 
-Change the value of your `my_pg` connector's published port in your
-`my_subgraph/connector/my_pg/docker-compose.my_pg.yaml` to `8082` to avoid port collisions with other connectors:
-
-```yaml title="my_subgraph/connector/my_pg/docker-compose.my_pg.yaml"
-ports:
-  - mode: ingress
-    target: 8080
-    #highlight-start
-    published: '8082'
-    #highlight-end
-    protocol: tcp
-```
-
-:::tip Consistency is important
-
-In subsequent steps, when running your connector locally, it's critical to ensure this port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
-
-:::
-
-## Step 3. Add the connection URI
-
-Now that our connector has been scaffolded out for us, we need to provide a connection string so that the data source
-can be introspected and the boilerplate configuration can be taken care of by the CLI. Below, note that there are a few
-caveats to consider before continuing.
-
-The CLI has provided an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. We can add a
-key-value pair of `CONNECTION_URI` along with the connection string itself to this file and our connector will use this
-to connect to our PostgreSQL database. The file, after adding the `CONNECTION_URI` should look like this example:
+The CLI provides an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. **If you wish to
+override the default connection, you can update the key-value pair of `CONNECTION_URI` with your custom connection
+string to this file.**
 
 ```env title="my_subgraph/connector/my_pg/.env.local"
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=my_subgraph_my_pg
 #highlight-start
-CONNECTION_URI=<postgres-connection-uri>
+CONNECTION_URI=<your-custom-postgres-connection-uri>
 #highlight-end
 ```
-
-:::tip Don't have a PostgreSQL database?
-
-We've got you covered! You can use this read-only PostgreSQL database hosted on GCP.
-
-```text
-postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
-```
-
-**Note: As this is read-only, you won't be able to complete the later section on mutating data.**
-
-:::
 
 You can use a local PostgreSQL database or a cloud-hosted option. If you already have one you can connect to, you can go
 ahead and do that using the steps above. Hasura DDN will not modify your database in any way, so you can use an existing
@@ -133,20 +118,25 @@ which the database is running and allow Hasura DDN to connect to it.
 **Cloud-hosted PostgreSQL**
 
 Alternatively, if you have a cloud-hosted database, as Hasura DDN will need to reach your database, ensure you've
-allowlisted `0.0.0.0/0` so that DDN is able to reach it.
+allowlisted `0.0.0.0/0` (for now) so that DDN is able to reach it.
 
 :::
 
-## Step 4. Introspect your database
+## Step 3. Introspect your database
 
 With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a source-specific
 configuration file for our connector.
 
 ```bash title="From the root of your project run:"
-ddn connector introspect --connector my_subgraph/connector/my_pg/connector.yaml
+ddn connector introspect --connector my_subgraph/connector/my_pg/connector.local.yaml
 ```
 
-If you look at the `configuration.json` for your connector, you'll see metadata describing your PostgreSQL schema.
+## What did this do?
+
+The commands above introspected your data source to create a JSON configuration file.
+
+If you look at the `configuration.json` for your connector, you'll see metadata describing your PostgreSQL schema in a
+format which the connector specifies.
 
 :::tip Initialize a Git repository
 
@@ -154,10 +144,6 @@ At this point, we recommend initializing a Git repository. This gives you a fall
 your project.
 
 :::
-
-## What did this do?
-
-The commands above introspected your data source to create a JSON configuration file.
 
 ## Next steps
 

@@ -1,4 +1,4 @@
-import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
+import BaseUrlLink from "@site/src/components/databaseDocs/baseLink";
 
 ### Step 1. Install node packages
 
@@ -7,7 +7,7 @@ import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
 - <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
 - A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
 - A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
-- A <BaseUrlLink to="/getting-started/connect-to-data/connect-a-source" text="PostgreSQL connector"/> initialized
+- A <BaseUrlLink to="/getting-started/connect-to-data/connect-a-source" text="ClickHouse connector"/> initialized
 - A <BaseUrlLink to="/getting-started/connect-to-data/create-source-metadata" text="DataConnectorLink"/> configured
 - A <BaseUrlLink to="/getting-started/connect-to-data/integrate-business-logic" text="TypeScript connector"/> configured
 
@@ -15,20 +15,23 @@ import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
 
 The TypeScript connector is a regular TypeScript project. We can use any Node.js packages we want.
 
-We'll use the `dotenv` and `pg` packages to access our connection string, saved as an environment variable, and to
-connect to our database.
+We'll use the `dotenv` and
+[`@clickhouse/client` packages](https://clickhouse.com/docs/en/integrations/language-clients/javascript) to access our
+ClickHouse credentials and connection string, saved as an environment variables, and to connect to our database.
 
 ```bash title="From the my_subgraph/connector/my_ts directory, run:"
-npm i dotenv pg
+npm i dotenv @clickhouse/client
 ```
 
 ### Step 2. Add the connection URI
 
-We'll add our PostgreSQL connection string as an environment variable to our connector's `.env.local` file. This will
-allow us to access the connection string in our function.
+We'll add our ClickHouse connection string and credentials as an environment variables to our connector's `.env.local`
+file. This will allow us to access the connection string in our function.
 
 ```env title="my_subgraph/connectors/my_ts/.env.local"
-CONNECTION_URI=<your-postgres-connection-string>
+CLICKHOUSE_URL=<your-clickhouse-connection-string>
+CLICKHOUSE_USERNAME=<your-username>
+CLICKHOUSE_PASSWORD=<your-passowrd>
 ```
 
 ### Step 3. Create a function
@@ -41,8 +44,8 @@ We can even add documentation that will be visible in the GraphiQL explorer by t
 `@returns` for what will be returned by the mutation.
 
 ```ts title="my_subgraph/connectors/my_ts/functions.ts"
-import { Client } from 'pg';
-import dotenv from 'dotenv';
+import { ClickHouseClient, createClient } from "@clickhouse/client";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -51,26 +54,41 @@ dotenv.config();
  * @returns The ID of the newly inserted user.
  */
 export async function insertUser(userData: { name: string; email: string }): Promise<string> {
-  const client = new Client({
-    connectionString: process.env.CONNECTION_URI,
+  const client: ClickHouseClient = createClient({
+    url: process.env.CLICKHOUSE_URL,
+    username: process.env.CLICKHOUSE_USER,
+    password: process.env.CLICKHOUSE_PASSWORD,
   });
 
-  await client.connect();
+  await client.insert({
+    table: "users",
+    values: [{ name: userData.name, email: userData.email }],
+    format: "JSONEachRow",
+  });
 
-  const queryText = `
-    INSERT INTO users (name, email)
-    VALUES ($1, $2)
-    RETURNING id
+  const selectQuery = `
+    SELECT id
+    FROM users
+    WHERE name = {name: String} AND email = {email: String}
+    ORDER BY id DESC
+    LIMIT 1
   `;
-  const values = [userData.name, userData.email];
-  const result = await client.query(queryText, values);
 
-  await client.end();
+  const result = await client.query({
+    query: selectQuery,
+    format: "JSON",
+    query_params: {
+      name: userData.name,
+      email: userData.email,
+    },
+  });
 
-  if (result.rows.length > 0) {
-    return result.rows[0].id;
+  const data = await result.json();
+
+  if (data.data.length > 0) {
+    return data.data[0].id;
   } else {
-    throw new Error('Failed to insert user');
+    throw new Error("Failed to insert user");
   }
 }
 ```
@@ -115,5 +133,5 @@ Finally, should see your command available, along with its documentation, in the
 ## What did this do?
 
 This function created a mutation that we can use to insert data directly into our database. We utilized raw SQL to
-leverage the native features of PostgreSQL directly from our TypeScript function. While the example above is used to
+leverage the native features of ClickHouse directly from our TypeScript function. While the example above is used to
 insert data, you can use the same principles to modify or delete existing data in your database via your GraphQL API.

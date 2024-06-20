@@ -12,8 +12,6 @@ keywords:
   - graphql api
 ---
 
-import Thumbnail from "@site/src/components/Thumbnail";
-
 # Custom Business Logic via TypeScript
 
 ## Introduction
@@ -25,8 +23,8 @@ This can be used to enrich data returned to clients, or to write custom mutation
 
 :::info Prerequisites
 
-If you've never used Hasura DDN, we recommend that you first go through the [getting started](/getting-started/overview.mdx).
-😊
+If you've never used Hasura DDN, we recommend that you first go through the
+[getting started](/getting-started/overview.mdx). 😊
 
 :::
 
@@ -53,10 +51,43 @@ values being passed to them. We'll call this the `ts_connector` and use the `has
 hub:
 
 ```bash
-ddn connector init my_ts --subgraph my_subgraph --hub-connector hasura/nodejs
+ddn connector init my_ts \
+  --subgraph my_subgraph \
+  --hub-connector hasura/nodejs \
+  --configure-port 8083 \
+  --add-to-compose-file docker-compose.hasura.yaml
 ```
 
-This will create the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts` file
+With this `connector init` command, we're passing a few important values.
+
+**Connector name**
+
+We're naming the connector `my_ts` in this example, but you can call it whatever makes sense to you.
+
+**Subgraph: `--subgraph`**
+
+We're specifying the subgraph that this connector will be added to using the `--subgraph` flag.
+
+**Connector: --hub-connector**
+
+We're specifying that this connector should be the: `hasura/nodejs`, connector listed in the
+[Connector Hub](https://hasura.io/connectors/mongodb).
+
+**Port: `configure-port`**
+
+We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
+services which you might have running on your machine. Remember to use a different port for each connector you may have
+running.
+
+**Compose file: `--add-to-compose-file`**
+
+We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
+`docker-compose.hasura.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
+together.
+
+#### What did this do?
+
+This created the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts` file
 being your connector's entrypoint:
 
 ```bash
@@ -74,33 +105,26 @@ being your connector's entrypoint:
 └── tsconfig.json
 ```
 
-### Step 2. Modify the connector's port
-
-Add the port's value to the `my_subgraph/connector/my_ts/.env.local` in your `my_ts` directory:
-
-```env
-HASURA_CONNECTOR_PORT=8083
-```
-
-### Step 3. Add the DataConnectorLink
+### Step 2. Add the DataConnectorLink
 
 As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
 functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
 ```bash
-ddn connector-link add my_ts
+ddn connector-link add my_ts --configure-host http://local.hasura.dev:8083
 ```
 
-Then, update the values in your subgraph's `.env.my_subgraph` file to include this connector.
+Because we used the convenience flag `--configure-host` on the command, these values are already set in the
+`.env.my_subgraph` file:
 
 ```env
-MY_SUBGRAPH_MY_TS_READ_URL=http://local.hasura.dev:<port>
-MY_SUBGRAPH_MY_TS_WRITE_URL=http://local.hasura.dev:<port>
+MY_SUBGRAPH_MY_TS_READ_URL="http://local.hasura.dev:8083"
+MY_SUBGRAPH_MY_TS_WRITE_URL="http://local.hasura.dev:8083"
 ```
 
-These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
+These values are then already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
 
-### Step 4. Install npm package dependencies
+### Step 3. Install npm package dependencies
 
 Within our `my_ts` directory, let's install any necessary dependencies:
 
@@ -145,6 +169,7 @@ export function hello(name?: string) {
 You can add another function simply by exporting a valid TypeScript function.
 
 Generate the relevant metadata objects for your functions:
+
 ```bash
 ddn connector-link update my_ts --add-all-resources
 ```
@@ -258,6 +283,7 @@ We're using the [`pg` PostgreSQL client](https://www.npmjs.com/package/pg) to co
 and [`bcrypt` to hash the password](https://www.npmjs.com/package/bcrypt), but since this is a Node.js Lambda function,
 you can use any combination of Node.js libraries you want.
 
-After you've generated the metadata for the function and created a new build, you can use the function in your GraphQL API.
+After you've generated the metadata for the function and created a new build, you can use the function in your GraphQL
+API.
 
 You can then repeat this process to scale your mutations independently.
