@@ -1,0 +1,111 @@
+---
+description:
+  "While Hasura is designed to work with any JWT provider, there are several details for certain providers that are
+  important to know."
+sidebar_position: 4
+keywords:
+  - hasura jwt authentication
+  - graphql engine configuration
+  - jwt mode
+  - session variables
+  - secure graphql endpoint
+  - jwt authorization
+  - hasura engine
+  - hasura api
+  - jwt headers
+  - jwt key management
+---
+
+# Providers
+
+## Introduction
+
+Hasura is designed to integrate with any JWT provider, including auth servers you've built yourself. However, there are
+some provider-specific caveats to consider for those listed below.
+
+## Firebase
+
+This page of the Firebase
+[docs](https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_a_third-party_jwt_library)
+mentions that JWKs are published under:
+
+[https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com](https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com)
+
+But that is a non-standard format. Firebase also publishes the same certificates as the proper JWK format under:
+
+[https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com](https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com)
+
+If you are using Firebase and Hasura, use this config:
+
+```yaml title="supergraph_globals/auth-config.yaml"
+jwkUrl: "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
+audience: "<firebase-project-id>"
+issuer: "https://securetoken.google.com/<firebase-project-id>"
+```
+
+:::info Generate your JWT Config easily
+
+You can generate your JWT config for Firebase and Hasura here using our [handy tool](https://hasura.io/jwt-config).
+
+The config generated from this page can be directly pasted in yaml files and command line arguments as it takes care of
+escaping new lines.
+
+:::
+
+## Auth0 {#auth0-issues}
+
+Auth0 publishes their JWK under:
+
+`https://<your-auth0-domain>.auth0.com/.well-known/jwks.json`
+
+But they have a
+[bug where the certificate thumbprint does not match](https://community.auth0.com/t/certificate-thumbprint-is-longer-than-20-bytes/7794/3).
+Hence, currently this URL does not work with Hasura.
+
+Currently, the workaround is to download the X590 certificate from:
+
+`https://<your-auth0-domain>.auth0.com/pem`
+
+And use it in the `key` field:
+
+```yaml title="supergraph_globals/auth-config.yaml"
+type: "RS512"
+key: |
+  -----BEGIN CERTIFICATE-----
+  MIIDDTCAfWgAwIBAgIJhNlZ11IDrxbMA0GCSqSIb3DQEBCwUAMCQxIjAgBgNV
+  BAMTGXlc3QtaGdlLWp3C5ldS5hdXRoMC5jb20HhcNMTgwNzMwMTM1MjM1WhcN
+  MzIwND3MTM1MjM1WjAkSIwIAYDVQQDExl0ZXNLWhnZS1qd3QuZXUuYXV0aDAu
+  Y29tMIBIjANBgkqhkiGw0BAQEFAAOCAQ8AMIICgKCAQEA13CivdSkNzRnOnR5
+  ZNiReD+AgbL7BWjRiw3RwjxRp5PYzvAGuj94yR6LRh3QybYtsMFbSg5J7fNq6
+  Ld6yMpMrUu8CBOnYY456b/2jlf+Vp8vEQuKvPOOw8Ev6x7X3blcuXCELSwyL3
+  AGHq9OP2RV6V6CIE863zzuYH5HDLzU35oMZqogJVRJM0+6besH6TnSTNiA7xi
+  BAqFaiRNQRVi1CAUa0bkN1XRp4AFy7d63VldOsM+8QnCNHySdDr1XevVuq6DK
+  LQyGexFy4niALgHV0Q7A+xP1c2G6rJomZmn4j1avnlBpU87E58JMrRHOCj+5m
+  Xj22/QDAQABo0IwQDAPgNVHRMBAf8EBTADAQHMB0GA1UdDgQWBBT6FvNkuUgu
+  tk3OYQi4lo5aOgwazAOgNVHQ8BAf8EBAMCAoQDQYJKoZIhvcNAQELBQADggEB
+  ADCLj+L22pEKyqaIUlhUJh7DAiDSLafy0fw56CntzPhqiZVVRlhxeAKidkCLV
+  r9IEbRuxUoXiQSezPqM//9xHegMp0f2VauVCFg7EpUanYwvqFqjy9LWgH+SBz
+  4uroLSZ5g1EPsHtlArLChA90caTX4e7Z7Xlu8G2kHRJB5nC7ycdbMUvEWBMeI
+  tn/pcbmZ3/vlgj4UTEnURe2UPmSJpxmPwXqBcvwdKHRMgFXhZxojWCi0z4ftf
+  f8t8UJIcbEblnkYe7wzYy8tOXoMMHqGSisCdkp/866029rJsKbwd8rVIyKNC5
+  frGYaw+0cxO6/WvSir0eA=
+  -----END CERTIFICATE-----
+```
+
+:::info Generate your JWT Config easily
+
+You can generate your JWT config for Auth0 and Hasura here using our [handy tool](https://hasura.io/jwt-config).
+
+The config generated from this page can be directly pasted in yaml files and command line arguments as it takes care of
+escaping new lines.
+
+:::
+
+## Clerk
+
+Clerk integrates with Hasura GraphQL Engine using JWTs.
+
+Clerk publishes their JWK under: `https://<YOUR_CLERK_FRONTEND_API>/.well-known/jwks.json`
+
+Refer to the [Clerk authentication guide](https://hasura.io/learn/graphql/hasura-authentication/integrations/clerk/) to
+set up authenticated requests to Hasura with Clerk.
