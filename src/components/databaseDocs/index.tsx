@@ -85,6 +85,7 @@ const DatabaseContentLoader = () => {
     history.push({
       search: `db=${preference}`,
     });
+
     setDbPreference(preference);
   };
 
