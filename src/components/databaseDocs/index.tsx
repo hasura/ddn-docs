@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from '@docusaurus/router';
+import { useLocation, useHistory } from '@docusaurus/router';
 import Link from '@docusaurus/Link';
 import './styles.css';
 import Icon from '@site/static/icons/event-triggers.svg';
-
 import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
@@ -52,6 +51,7 @@ const dataSources = {
 const DatabaseContentLoader = () => {
   const location = useLocation();
   const [dbPreference, setDbPreference] = useState<string | null>(null);
+  const history = useHistory();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -81,6 +81,10 @@ const DatabaseContentLoader = () => {
 
   const savePreference = (preference: string) => {
     localStorage.setItem('hasuraV3DbPreference', preference);
+
+    history.push({
+      search: `db=${preference}`,
+    });
     setDbPreference(preference);
   };
 
