@@ -21,7 +21,58 @@ keywords:
 
 You can enable your Hasura DDN instance to use JWTs in just a few steps.
 
-## Step 1. Create the claims
+## Step 1. Update your AuthConfig
+
+Hasura utilizes an [`AuthConfig` object](/supergraph-modeling/auth-config.mdx) that allows you to define the
+configuration for your authentication service. The `auth-config.hml` file can be found in your `supergraph-globals`
+directory.
+
+You can use
+[Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura#:~:text=Hasura%20Language%20Server%20Extension%20for,%2C%20syntax%20highlighting%2C%20and%20more)
+to scaffold out your `AuthConfig` object by typing `AuthConfig` and selecting this object from the list of available
+options. As you navigate through the skeleton, you can type `CTRL+SPACEBAR` at any point to reveal options for the
+different key-value pairs.
+
+Below, we're demonstrating using the `BearerAuthorization` format with JWKs. However, Hasura DDN supports other methods
+for both [identifying](supergraph-modeling/auth-config.mdx#authconfig-jwttokenlocation) and
+[verifying JWTs](supergraph-modeling/auth-config.mdx#authconfig-jwtalgorithm).
+
+```yaml title="supergraph-globals/auth-config.hml"
+kind: AuthConfig
+version: v1
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: BearerAuthorization
+      key:
+        jwkFromUrl: "https://your-jwk-url.your-service.com"
+```
+
+:::info Other configuration options are available
+
+What we've provided above is a sample configuration. However, there are many options available, which you can learn
+about [here](/supergraph-modeling/auth-config.mdx#authconfig-jwtconfig).
+
+:::
+
+:::warning Setting audience check
+
+Certain JWT providers (like Firebase) share JWKs between multiple tenants. They use the `aud` claim of JWT to specify
+the intended tenant for the JWT. Setting the `audience` field in the Hasura JWT configuration will make sure that the
+`aud` claim from the JWT is also checked during verification. Not doing this check will allow JWTs issued for other
+tenants to be valid as well.
+
+In these cases, you **MUST** set the `audience` field to appropriate value. **Failing to do so is a major security
+vulnerability**. Learn how to set this [here](supergraph-modeling/auth-config.mdx#authconfig-jwtconfig).
+
+:::
+
+## Step 2. Create the claims
 
 Your auth service should include an object with a key of `https://hasura.io/jwt/claims` in the JWT's claims. Within
 this, each claim should be prefixed with `x-hasura-*` and include the relevant information.
@@ -54,65 +105,9 @@ Your auth server will encode this object using a secret and create a token which
 Hasura or any other service. You can see an example of the above token encoded
 [here](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOmZhbHNlLCJpYXQiOjE1MTYyMzkwMjIsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsidXNlciIsImFkbWluIl0sIngtaGFzdXJhLXVzZXItaWQiOiIxMjM0In19.XP5eM7AVk-w91rL-oWvPSo7m8pmJ4Is2V-NDS8-NlMo).
 
-## Step 2. Update your AuthConfig
-
-Hasura utilizes an [`AuthConfig` object](/supergraph-modeling/auth-config.mdx) that allows you to define the
-configuration for your authentication service. The `auth-config.hml` file can be found in your `supergraph-globals`
-directory.
-
-You can use
-[Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura#:~:text=Hasura%20Language%20Server%20Extension%20for,%2C%20syntax%20highlighting%2C%20and%20more)
-to scaffold out your `AuthConfig` object by typing `AuthConfig` and selecting this object from the list of available
-options. As you navigate through the skeleton, you can type `CTRL+SPACEBAR` at any point to reveal options for the
-different key-value pairs.
-
-Below, we're demonstrating using the `BearerAuthorization` format with an `HS256` encryption algorithm (the most common
-format for signing and passing JWTs). However, Hasura DDN supports other methods for both
-[identifying](supergraph-modeling/auth-config.mdx#authconfig-jwttokenlocation) and
-[verifying JWTs](supergraph-modeling/auth-config.mdx#authconfig-jwtalgorithm). Note the secret used with the `value` key
-should match that which is used to encode your JWT on your auth server.
-
-```yaml title="supergraph-globals/auth-config.hml"
-kind: AuthConfig
-version: v1
-definition:
-  mode:
-    jwt:
-      claimsConfig:
-        namespace:
-          claimsFormat: Json
-          location: /https:~1~1hasura.io~1jwt~1claims
-      tokenLocation:
-        type: BearerAuthorization
-      key:
-        fixed:
-          algorithm: HS256
-          key:
-            value: YourSuperSecretStringForEncoding
-```
-
-:::info Other configuration options are available
-
-What we've provided above is a sample configuration. However, there are many options available, which you can learn
-about [here](/supergraph-modeling/auth-config.mdx#authconfig-jwtconfig).
-
-:::
-
-:::warning Setting audience check
-
-Certain JWT providers (like Firebase) share JWKs between multiple tenants. They use the `aud` claim of JWT to specify
-the intended tenant for the JWT. Setting the `audience` field in the Hasura JWT configuration will make sure that the
-`aud` claim from the JWT is also checked during verification. Not doing this check will allow JWTs issued for other
-tenants to be valid as well.
-
-In these cases, you **MUST** set the `audience` field to appropriate value. **Failing to do so is a major security
-vulnerability**. Learn how to set this [here](supergraph-modeling/auth-config.mdx#authconfig-jwtconfig).
-
-:::
-
 ## Step 3. Rebuild your supergraph
 
-Once you've updated your `auth-config.hml`, you can rebuild your supergraph and test it locally.
+Once you've updated your `auth-config.hml` and updated your claims, you can rebuild your supergraph and test it locally.
 
 ```bash title="From the root of your project, run:"
 ddn supergraph build local --output-dir ./engine
