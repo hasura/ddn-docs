@@ -1,0 +1,118 @@
+import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
+
+## Step 1. Create a function
+
+:::tip Required
+
+- <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
+- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
+- A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
+- A <BaseUrlLink to="/getting-started/connect-to-data/connect-a-source" text="MongoDB connector"/> initialized
+- A <BaseUrlLink to="/getting-started/connect-to-data/create-source-metadata" text="DataConnectorLink"/> configured
+- A <BaseUrlLink to="/getting-started/connect-to-data/integrate-business-logic" text="TypeScript connector"/> configured
+
+:::
+
+The TypeScript connector is a regular TypeScript project. We can use any Node.js packages we want.
+
+We'll use the `dotenv` and `mongodb` packages to access our connection string, saved as an environment variable, and to
+connect to our database.
+
+```bash title="From the my_subgraph/connector/my_mongo directory, run:"
+npm i dotenv mongodb
+```
+
+### Step 2. Add the connection URI
+
+We'll add our MongoDB connection string as an environment variable to our connector's `.env.local` file. This will allow
+us to access the connection string in our function.
+
+```env title="my_subgraph/connectors/my_mongo/.env.local"
+CONNECTION_URI=<your-mongodb-connection-string>
+```
+
+### Step 3. Create a function
+
+The TypeScript connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
+query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
+expose the function as a mutation.
+
+We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
+`@returns` for what will be returned by the mutation.
+
+```ts title="my_subgraph/connectors/my_ts/functions.ts"
+import { MongoClient } from 'MongoDB';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+/**
+ * @param productData An object containing the product's data.
+ * @returns The ID of the newly inserted product.
+ */
+export async function insertProduct(productData: { title: string; description: string }): Promise<string> {
+  const client = new Client({
+    connectionString: process.env.CONNECTION_URI,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  try {
+    await client.connect();
+    const database = client.db('yourDatabaseName'); // Replace with your database name
+    const collection = database.collection('product');
+
+    const result = await collection.insertOne({
+      title: productData.title,
+      description: productData.description,
+    });
+
+    if (result.insertedId) {
+      return result.insertedId.toString();
+    } else {
+      throw new Error('Failed to insert product');
+    }
+  } finally {
+    await client.close();
+  }
+}
+```
+
+## Step 2. Track the function
+
+We'll track our function using the CLI by first updating our `DataConnectorLink` for this data connector:
+
+```bash
+ddn connector-link update <connector-name>
+```
+
+And then bringing in the new command:
+
+```bash
+ddn command add --connector-link <connector-link-name> --name insertProduct
+```
+
+## Step 3. Create a new build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+:::tip Start your engines!
+
+Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+**If you haven't [included your connector(s)](/getting-started/01-init-supergraph.mdx) in your
+`docker-compose.hasura.yaml`, don't forget to start it as well.**
+
+:::
+
+Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
+
+<!-- TODO: Add screenshot of console -->
