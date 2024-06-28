@@ -2,9 +2,9 @@ import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
 
 ## What's about to happen?
 
-We want to connect our [MongoDB](https://www.mongodb.com/) database to our API. To do this, we use the Hasura MongoDB
-data connector to facilitate the connection and then introspect the database to generate JSON which the Hasura CLI will
-then use to create metadata which can then define your API.
+We want to connect our [OpenAPI](https://www.mongodb.com/) endpoints to our API. To do this, we use the Hasura
+OpenAPI Lambda data connector to facilitate the connection and then introspect it to generate Typescript functions
+which the Hasura CLI will then use to create metadata which can then define your API.
 
 ## Step 1. Initialize the MongoDB connector
 
@@ -19,9 +19,9 @@ then use to create metadata which can then define your API.
 To initialize the MongoDB connector, run the following in your terminal:
 
 ```bash
-ddn connector init my_mongo \
+ddn connector init my_openapi \
   --subgraph my_subgraph \
-  --hub-connector hasura/mongodb \
+  --hub-connector hasura/openapi \
   --configure-port 8082 \
   --add-to-compose-file docker-compose.hasura.yaml
 ```
@@ -30,9 +30,9 @@ With this `connector init` command, we're passing a few important values.
 
 **Connector name**
 
-We're naming the connector `my_mongo` in this example, but you can call it whatever makes sense to you. For example, if
-this connector is integrating a database all about product metadata, it would make sense to name it something like
-`product_metadata_mongodb_connector`.
+We're naming the connector `my_openapi` in this example, but you can call it whatever makes sense to you. For
+example, if this connector is integrating an OpenAPI spec regarding payments, it would make sense to name it
+something like `payments_api`.
 
 **Subgraph: `--subgraph`**
 
@@ -40,8 +40,8 @@ We're specifying the subgraph that this connector will be added to using the `--
 
 **Connector: --hub-connector**
 
-We're specifying that this connector should be the: `hasura/mongodb`, connector listed in the
-[Connector Hub](https://hasura.io/connectors/mongodb).
+We're specifying that this connector should be the: `hasura/openapi`, connector listed in the
+[Connector Hub](https://hasura.io/connectors/openapi).
 
 **Port: `configure-port`**
 
@@ -60,10 +60,10 @@ together.
 Importantly, a data connector can only connect to one data source.
 
 The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_mongo` directory if it doesn't exist. You can also change
+this example the CLI will create a `my_subgraph/connector/my_openapi` directory if it doesn't exist. You can also change
 this directory by passing a `--dir` flag to the CLI.
 
-The name of the connector and the directory in which the configuration is stored, `my_mongo` in this example, should
+The name of the connector and the directory in which the configuration is stored, `my_openapi` in this example, should
 match for convenience and clarity sake.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
@@ -73,17 +73,17 @@ string you provide in your subgraph's `.env.my_subgraph` file.
 
 ### What did this do?
 
-In the `my_subgraph/connector/my_mongo` directory which we specified in the command, the CLI created:
+In the `my_subgraph/connector/my_openapi` directory which we specified in the command, the CLI created:
 
 - A `connector.yaml` file which contains the configuration for the connector.
 - A `connector-metadata.yaml` file which contains extra metadata for the connector.
-- A `docker-compose.my_mongo.yaml` a file to run the MongoDB data connector locally in Docker. Includes the
+- A `docker-compose.my_openapi.yaml` a file to run the OpenAPI data connector locally in Docker. Includes the
 specified port.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
 - An `.env.local` placeholder file for environment variables for pertaining to running this connector locally.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
-about the MongoDB database or the data it contains. That's coming up in the next steps.
+about the OpenAPI database or the data it contains. That's coming up in the next steps.
 
 ## Step 2. Add the MongoDB connection URI
 

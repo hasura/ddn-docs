@@ -7,27 +7,33 @@ import PostgreSqlLogo from '@site/static/img/databases/logos/postgresql.png';
 import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
 import ClickHouseLogo from '@site/static/img/databases/logos/clickhouse-glyph.png';
+import OpenAPILogo from '@site/static/img/databases/logos/openapi.png';
 
 import PostgreSqlConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
 import MongoDBConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
 import ClickHouseConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_01-connect-a-source.mdx';
+import OpenAPIConnect from '@site/docs/getting-started/connect-to-data/_databaseDocs/_openAPI/_01-connect-a-source.mdx';
 
 import PostgreSqlCreateSourceMetadata from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
 import MongoDBCreateSourceMetadata from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
 import ClickHouseCreateSourceMetadata from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
+import OpenAPICreateSourceMetadata from '@site/docs/getting-started/connect-to-data/_databaseDocs/_openAPI/_02-create-source-metadata.mdx';
 
 import PostgreSqlAddSourceEntities from '@site/docs/getting-started/connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
 import MongoDBAddSourceEntities from '@site/docs/getting-started/connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
 import ClickHouseAddSourceEntities from '@site/docs/getting-started/connect-to-data/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
+import OpenAPIAddSourceEntities from '@site/docs/getting-started/connect-to-data/_databaseDocs/_openAPI/_03-add-source-entities.mdx';
 
 import PostgreSqlMutate from '@site/docs/getting-started/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
 import MongoDBMutate from '@site/docs/getting-started/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
 import ClickHouseMutate from '@site/docs/getting-started/_databaseDocs/_clickHouse/_09-mutate-data.mdx';
+import OpenAPIMutate from '@site/docs/getting-started/_databaseDocs/_openAPI/_09-mutate-data.mdx';
 
 import PostgreSqlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_postgreSQL/_03-deploy-a-connector.mdx';
 import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_mongoDB/_03-deploy-a-connector.mdx';
 import TypeScriptDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_typeScript/_03-deploy-a-connector.mdx';
 import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_clickHouse/_03-deploy-a-connector.mdx';
+import OpenAPIDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
 
 const dataSources = {
   PostgreSQL: {
@@ -45,6 +51,10 @@ const dataSources = {
   TypeScript: {
     name: 'TypeScript',
     image: TypeScriptLogo,
+  },
+  OpenAPI: {
+    name: 'OpenAPI',
+    image: OpenAPILogo,
   },
 };
 
@@ -105,6 +115,8 @@ const DatabaseContentLoader = () => {
             return <MongoDBConnect />;
           case 'ClickHouse':
             return <ClickHouseConnect />;
+          case 'OpenAPI':
+            return <OpenAPIConnect />;
           default:
             return <div />;
         }
@@ -116,6 +128,8 @@ const DatabaseContentLoader = () => {
             return <MongoDBCreateSourceMetadata />;
           case 'ClickHouse':
             return <ClickHouseCreateSourceMetadata />;
+          case 'OpenAPI':
+            return <OpenAPICreateSourceMetadata />;
           default:
             return <div />;
         }
@@ -127,6 +141,8 @@ const DatabaseContentLoader = () => {
             return <MongoDBAddSourceEntities />;
           case 'ClickHouse':
             return <ClickHouseAddSourceEntities />;
+          case 'OpenAPI':
+            return <OpenAPIAddSourceEntities />;
           default:
             return <div />;
         }
@@ -138,6 +154,8 @@ const DatabaseContentLoader = () => {
             return <MongoDBMutate />;
           case 'ClickHouse':
             return <ClickHouseMutate />;
+          case 'OpenAPI':
+            return <OpenAPIMutate />;
           default:
             return <div />;
         }
@@ -151,6 +169,8 @@ const DatabaseContentLoader = () => {
             return <ClickHouseDeploy />;
           case 'TypeScript':
             return <TypeScriptDeploy />;
+          case 'OpenAPI':
+            return <OpenAPIDeploy />;
           default:
             return <div />;
         }
