@@ -1,3 +1,10 @@
+## What's about to happen?
+
+We can add business logic to our existing or new functions to modify data before it's sent to the API, or before it's
+returned to the client.
+
+## Steps
+
 ## Step 1. Create or modify an existing function
 
 :::tip Required
@@ -10,10 +17,7 @@
 
 :::
 
-We can add business logic to our functions to modify data before it's sent to the API, or before it's returned to the
-client.
-
-For this example we'll add a step to an **existing** function to capitalize the name of a pet before it's added to the
+For this example we'll add a step to an **existing function** to capitalize the name of a pet before it's added to the
 store.
 
 ```ts title="my_subgraph/connector/my_openapi/functions.ts"
@@ -48,25 +52,7 @@ export async function postPetAddPet(
 }
 ```
 
-If we use the "@save" tag in the JSDoc comments, changes we make to the function will not be overwritten if we
-re-introspect the connector.
-
-:::info JSDoc comments
-
-The OpenAPI connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
-query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
-expose the function as a mutation.
-
-We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
-`@returns` for what will be returned by the mutation.
-
-`@allowrelaxedtypes` converts unsupported types into scalars because certain types, such as `any` don't map
-well to GraphQL. So, `@allowrelaxedtypes` tells the Node.js connector to convert these into an opaque scalar type
-instead of rejecting the function that uses them.
-
-:::
-
-Or for instance we could add a completely **new** function to get a pet by its ID and get a capitalized name:
+We can also, for example, add a completely **new function** to get a pet by its ID and return a capitalized name:
 
 ```ts title="my_subgraph/connector/my_openapi/functions.ts"
 /**
@@ -98,6 +84,24 @@ export async function getPetGetCapPetById(
   }
 }
 ```
+
+If we use the "@save" tag in the JSDoc comments for the function, changes we make to the function will not be
+overwritten if we re-introspect the connector.
+
+:::info JSDoc comments
+
+The OpenAPI connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
+query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
+expose the function as a mutation.
+
+We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
+`@returns` for what will be returned by the mutation.
+
+`@allowrelaxedtypes` converts unsupported types into scalars. This is because certain TypeScript types, such as `any`
+don't map well to GraphQL. So, `@allowrelaxedtypes` tells the connector to convert these into an opaque scalar type
+instead of rejecting the function that uses them.
+
+:::
 
 ## Step 2. Track the function
 
