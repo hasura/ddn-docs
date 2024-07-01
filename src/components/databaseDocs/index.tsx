@@ -27,6 +27,7 @@ import OpenAPIAddSourceEntities from '@site/docs/getting-started/connect-to-data
 import PostgreSqlMutate from '@site/docs/getting-started/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
 import MongoDBMutate from '@site/docs/getting-started/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
 import ClickHouseMutate from '@site/docs/getting-started/_databaseDocs/_clickHouse/_09-mutate-data.mdx';
+import OpenAPIMutate from '@site/docs/getting-started/_databaseDocs/_openAPI/_09-mutate-data.mdx';
 
 import PostgreSqlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_postgreSQL/_03-deploy-a-connector.mdx';
 import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_mongoDB/_03-deploy-a-connector.mdx';
@@ -153,6 +154,8 @@ const DatabaseContentLoader = () => {
             return <MongoDBMutate />;
           case 'ClickHouse':
             return <ClickHouseMutate />;
+          case 'OpenAPI':
+            return <OpenAPIMutate />;
           default:
             return <div />;
         }
@@ -189,7 +192,7 @@ const DatabaseContentLoader = () => {
         </small>
         <div className="button-wrapper">
           {Object.keys(dataSources).map(key =>
-            (!isTypeScriptExcluded || key !== 'TypeScript') && (!location.pathname.includes('mutate-data') || key !== 'OpenAPI') ? (
+            !isTypeScriptExcluded || key !== 'TypeScript' ? (
               <div
                 key={key}
                 onClick={() => savePreference(key)}

@@ -1,0 +1,142 @@
+import BaseUrlLink from '@site/src/components/databaseDocs/baseLink';
+
+## Step 1. Create or modify an existing function
+
+:::tip Required
+
+- <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
+- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
+- A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
+- A <BaseUrlLink to="/getting-started/connect-to-data/connect-a-source" text="OpenAPI connector"/> initialized
+- A <BaseUrlLink to="/getting-started/connect-to-data/create-source-metadata" text="DataConnectorLink"/> configured
+
+:::
+
+We can add business logic to our functions to modify data before it's sent to the API, or before it's returned to the
+client.
+
+For this example we'll add a step to an **existing** function to capitalize the name of a pet before it's added to the
+store.
+
+```ts title="my_subgraph/connector/my_openapi/functions.ts"
+/**
+ * Add a new pet to the store
+ * @request POST :/pet
+ * @allowrelaxedtypes
+ * @save
+ */
+export async function postPetAddPet(
+  /** Request body */
+  data: Pet,
+  headers?: hasuraSdk.JSONValue
+): Promise<Pet> {
+
+  // highlight-start
+  // Capitalize pet's name
+  data.name = data.name?.toUpperCase();
+  // highlight-end
+
+  const result = await api.pet.addPet({
+    data: data,
+    params: {
+      headers: (headers?.value as Record<string, string>) ?? undefined,
+    },
+  });
+  if (result.data) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
+}
+```
+
+If we use the "@save" tag in the JSDoc comments, changes we make to the function will not be overwritten if we
+re-introspect the connector.
+
+:::info JSDoc comments
+
+The OpenAPI connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
+query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
+expose the function as a mutation.
+
+We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
+`@returns` for what will be returned by the mutation.
+
+`@allowrelaxedtypes` converts unsupported types into scalars because certain types, such as `any` don't map
+well to GraphQL. So, `@allowrelaxedtypes` tells the Node.js connector to convert these into an opaque scalar type
+instead of rejecting the function that uses them.
+
+:::
+
+Or for instance we could add a completely **new** function to get a pet by its ID and get a capitalized name:
+
+```ts title="my_subgraph/connector/my_openapi/functions.ts"
+/**
+ * Find capitalized pet by ID
+ * @request GET :/pet/{petId}
+ * @allowrelaxedtypes
+ * @readonly
+ */
+export async function getPetGetCapPetById(
+  /**
+   * ID of pet to return capitalized name
+   */
+  petId: number,
+  headers?: hasuraSdk.JSONValue
+): Promise<Pet> {
+  const result = await api.pet.getPetById({
+    petId: petId,
+    params: {
+      headers: (headers?.value as Record<string, string>) ?? undefined,
+    },
+  });
+  if (result.data) {
+    // highlight-start
+    result.data.name = result.data.name?.toUpperCase();
+    // highlight-end
+    return result.data;
+  } else {
+    throw result.error;
+  }
+}
+```
+
+## Step 2. Track the function
+
+We'll track our function using the CLI by first updating our `DataConnectorLink` for this data connector:
+
+```bash
+ddn connector-link update <connector-name>
+```
+
+And then bringing in the command:
+
+```bash
+ddn command add --connector-link <connector-link-name> --name <function-name> --subgraph my_subgraph
+```
+
+## Step 3. Create a new build and test
+
+Next, let's create a new build of our supergraph:
+
+```bash
+ddn supergraph build local --output-dir ./engine
+```
+
+:::tip Start your engines!
+
+Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+**If you haven't [included your connector(s)](/getting-started/01-init-supergraph.mdx) in your
+`docker-compose.hasura.yaml`, don't forget to start it as well.**
+
+:::
+
+Finally, should see your command available in the GraphiQL explorer. Head to
+[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
+and interact with your API using the Hasura Console.
+
