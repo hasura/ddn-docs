@@ -99,26 +99,15 @@ variable which should point to the OpenAPI document. If you're using a file inst
 that it is named `swagger.json` and is present in the root directory of the volume which is mounted to
 `/etc/connector` (for this tutorial, the `swagger.json` file should be present at `my_subgraph/connector/my_openapi/`).
 
-The `.env.local` file should look (at least) like this:
+The `.env.local` file should look like this:
 
 ```text
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=my_subgraph_my_openapi
-NDC_OAS_DOCUMENT_URI=https://petstore3.swagger.io/api/v3/openapi.json
+NDC_OAS_DOCUMENT_URI=<your-openapi-document-uri>
 ```
 
-The OpenAPI connector can also be configured with the following optional environment variables:
-
-1. `NDC_OAS_BASE_URL` (optional): The base URL of your API.
-2. `NDC_OAS_FILE_OVERWRITE` (optional): A Boolean flag to allow previously generated files to be over-written.
-Defaults to `false`.
-3. `HASURA_PLUGIN_LOG_LEVEL` (optional): The log level. Possible values: `trace`, `debug`, `info`, `warn`, `error`,
-`fatal`, `panic`. Defaults to `info`
-4. `NDC_OAS_LAMBDA_PRETTY_LOGS` (optional): A Boolean flag to print human readable logs instead of JSON. Defaults to
-`false`
-
-
-:::tip Need a test OpenAPI document?
+:::tip Need a test OpenAPI document URI?
 
 Feel free to use the pet store OpenAPI document available at:
 
@@ -127,6 +116,30 @@ https://petstore3.swagger.io/api/v3/openapi.json
 ```
 
 :::
+
+### Specifying the OpenAPI base URL
+
+You can add the `NDC_OAS_BASE_URL` optional environment variable to the .env.local file. This should point to the
+base URL of the API. Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` This will be used in the `functions.ts`
+file which we'll generate in the next step to make API calls.
+
+You can also edit this value directly at the top of the `functions.ts` file manually later. Eg:
+```typescript
+const api = new Api({
+  baseUrl: "https://petstore3.swagger.io/api/v3",
+});
+```
+
+### Additional environment variables
+
+The OpenAPI connector can also be configured with the following **extra optional environment variables**:
+
+- `NDC_OAS_FILE_OVERWRITE` (optional): A Boolean flag to allow previously generated files to be over-written.
+Defaults to `false`.
+- `HASURA_PLUGIN_LOG_LEVEL` (optional): The log level. Possible values: `trace`, `debug`, `info`, `warn`, `error`,
+`fatal`, `panic`. Defaults to `info`
+- `NDC_OAS_LAMBDA_PRETTY_LOGS` (optional): A Boolean flag to print human readable logs instead of JSON. Defaults to
+`false`
 
 These environment variables are already referenced in the scaffolded out `my_subgraph/connector/my_openapi/.
 hasura-connector/connector-metadata.yaml` file.

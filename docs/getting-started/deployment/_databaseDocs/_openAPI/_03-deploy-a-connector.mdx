@@ -18,25 +18,25 @@ steps below.**
 
 ### Step 1. Update the .env.cloud for the connector
 
-As we did with the `env.local` file, we need to update the `env.cloud` file with any connection URI we need for the
-cloud hosted connector to be able to communicate with the MongoDB data source.
+As we did with the `env.local` file, we need to update the `env.cloud` file with the connection URI we need for the
+cloud hosted connector to be able to communicate with the OpenAPI data source.
 
 For example, you may have used a development database while iterating locally. You can now replace that value with your
 staging or production database, depending on your needs.
 
-```env title="For example, my_subgraph/my_mongo/.env.cloud"
-MONGODB_DATABASE_URI="mongodb+srv://<your-mongodb-connection-string>"
+```env title="For example, my_subgraph/my_openapi/.env.cloud"
+NDC_OAS_BASE_URL=<your-openapi-base-url>
 ```
 
-This key will depend on your connector.
+Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3`
 
-### Step 2. Build and deploy your cloud connector
+### Step 1. Build and deploy your cloud connector
 
-At this stage, you can now build and deploy your connector Hasura DDN. Simply run the following replacing the directory
+You can now build and deploy your connector to Hasura DDN. Simply run the following, replacing the directory
 names with those that reflect your project.
 
 ```bash title="From the root of your project, run:"
-ddn connector build create --connector ./my_subgraph/connector/my_mongo/connector.cloud.yaml
+ddn connector build create --connector ./my_subgraph/connector/my_openapi/connector.cloud.yaml
 ```
 
 The CLI will respond with read and write URLs for your deployed connector.
@@ -44,12 +44,13 @@ The CLI will respond with read and write URLs for your deployed connector.
 ### Step 3. Create a .env.cloud for the subgraph
 
 If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.my_subgraph` file in the
-root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs like
-this example with a connector named `my_mongo` in the `my_subgraph` subgraph.
+root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
+which were returned from the command above. Your file should look like this example with a connector named
+`my_openapi` in the `my_subgraph` subgraph.
 
 ```env title="For example, my_subgraph/.env.cloud.my_subgraph:"
-MY_SUBGRAPH_MY_MONGO_READ_URL=<cloud-connector-read-url>
-MY_SUBGRAPH_MY_MONGO_WRITE_URL=<cloud-connector-write-url>
+MY_SUBGRAPH_MY_OPENAPI_READ_URL=<cloud-connector-read-url>
+MY_SUBGRAPH_MY_OPENAPI_WRITE_URL=<cloud-connector-write-url>
 ```
 
 At this stage, you're ready to now build and deploy your supergraph!
