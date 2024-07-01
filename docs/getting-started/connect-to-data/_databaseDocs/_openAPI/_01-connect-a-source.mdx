@@ -4,11 +4,11 @@ You can easily and quickly connect any API defined in the [OpenAPI](https://www.
 Supergraph.
 
 To do this, we use the Hasura [OpenAPI Lambda data connector](https://github.com/hasura/ndc-open-api-lambda) to
-facilitate the connection, introspect the connection to generate Typescript functions, and then use the Hasura CLI
-will to create metadata from them which defines our API.
+facilitate the connection. Then, with the Hasura CLI, we introspect the OpenAPI document to generate Typescript
+functions, and then use those to create Hasura metadata which defines our API.
 
-Once we've generated these functions from our OpenAPI document, we can modify them to add our own additional business
-logic to them.
+In addition, once we've generated functions from our OpenAPI document, we can modify them or add new ones to
+implement additional business logic.
 
 ## Step 1. Initialize the OpenAPI connector
 
@@ -35,14 +35,14 @@ With this `connector init` command, we're passing a few important values.
 **Connector name**
 
 We're naming the connector `my_openapi` in this example, but you can call it whatever makes sense to you. For
-example, if this connector is integrating an OpenAPI spec regarding payments, it would make sense to name it
+example, if this connector is integrating an OpenAPI API regarding payments, it would make sense to name it
 something like `payments_api`.
 
 **Subgraph: `--subgraph`**
 
 We're specifying the subgraph that this connector will be added to using the `--subgraph` flag.
 
-**Connector: --hub-connector**
+**Connector: `--hub-connector`**
 
 We're specifying that this connector should be the: `hasura/openapi`, connector listed in the
 [Connector Hub](https://hasura.io/connectors/openapi).
@@ -88,12 +88,12 @@ specified port.
 - An `.env.local` placeholder file for environment variables for pertaining to running this connector locally.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
-about the OpenAPI file or endpoint. That's coming up in the next steps.
+about the OpenAPI document. That's coming up in the next steps.
 
 ## Step 2. Add the OpenAPI connection URI or file
 
 Now that our OpenAPI data connector has been scaffolded out for us, we need to provide it a **connection string** or
-**swagger file** of the OpenAPI spec for the service.
+**swagger file** of the OpenAPI document for the service.
 
 In the `.env.local` file which the CLI has provided for our connector, we can add the `NDC_OAS_DOCUMENT_URI` environment
 variable which should point to the OpenAPI document. If you're using a file instead of a HTTP link, please ensure
@@ -121,10 +121,10 @@ https://petstore3.swagger.io/api/v3/openapi.json
 ### Specifying the OpenAPI base URL
 
 You can add the `NDC_OAS_BASE_URL` optional environment variable to the .env.local file. This should point to the
-base URL of the API. Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` This will be used in the `functions.ts`
-file which we'll generate in the next step to make API calls.
+base URL of the API. Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` This will be used as a string
+literal in the `functions.ts` file which we'll generate in the next step to make API calls.
 
-You can also edit this value directly at the top of the `functions.ts` file manually later. Eg:
+Alternatively, you can edit this value directly at the top of the `functions.ts` file manually later. Eg:
 ```typescript
 const api = new Api({
   baseUrl: "https://petstore3.swagger.io/api/v3",
@@ -142,8 +142,8 @@ Defaults to `false`.
 - `NDC_OAS_LAMBDA_PRETTY_LOGS` (optional): A Boolean flag to print human readable logs instead of JSON. Defaults to
 `false`
 
-These environment variables are already referenced in the scaffolded out `my_subgraph/connector/my_openapi/.
-hasura-connector/connector-metadata.yaml` file.
+These environment variables are already referenced in the scaffolded out
+`my_subgraph/connector/my_openapi/.hasura-connector/connector-metadata.yaml` file.
 
 ## Step 3. Introspect your OpenAPI document
 
@@ -156,8 +156,8 @@ ddn connector introspect --connector my_subgraph/connector/my_openapi/connector.
 
 ### What did this do?
 
-We specify the connector (and by proxy, the API) that we want to introspect with the `--connector` flag and
-provide it with the location of that `connector.local.yaml` configuration file.
+We specify the connector that we want to introspect with the `--connector` flag and provide it with the location of
+that `connector.local.yaml` configuration file.
 
 The CLI will introspect the OpenAPI document and create an `api.ts` file, a `functions.ts` file and other supporting
 files in the `my_subgraph/connector/my_openapi` directory.
@@ -165,9 +165,6 @@ files in the `my_subgraph/connector/my_openapi` directory.
 - The `api.ts` file contains the Data Types and API calls from the OpenAPI document.
 - The `functions.ts` file contains functions that wrap API calls. You can modify this `functions.ts` file to introduce
 extra business logic.
-
-See Saving User Changes if you want to preserve your changes in this file when you introspect the OpenAPI document
-again.
 
 :::tip o11y via OpenTelemetry
 

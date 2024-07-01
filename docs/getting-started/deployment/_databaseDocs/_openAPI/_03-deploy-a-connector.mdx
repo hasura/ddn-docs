@@ -1,8 +1,7 @@
 ## What's about to happen?
 
 Connectors are deployed independently of your supergraph and of each other. Hasura DDN will host your connectors for
-you, ensuring rapid delivery of data from your API to your consumers. **For each connector in a project, follow the
-steps below.**
+you, ensuring rapid delivery of data from your API to your consumers.
 
 ## Steps
 
@@ -13,22 +12,27 @@ steps below.**
 - A new or existing [subgraph](/getting-started/02-init-subgraph.mdx)
 - A new or existing [data connector](/getting-started/connect-to-data/01-connect-a-source.mdx)
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
+- A new or existing [subgraph on Hasura DDN](/getting-started/deployment/02-create-a-subgraph.mdx)
 
 :::
 
 ### Step 1. Update the .env.cloud for the connector
 
-As we did with the `env.local` file, we need to update the `env.cloud` file with the connection URI we need for the
-cloud hosted connector to be able to communicate with the OpenAPI data source.
+### Specifying the OpenAPI base URL
 
-For example, you may have used a development database while iterating locally. You can now replace that value with your
-staging or production database, depending on your needs.
+We need our cloud hosted connector to be able to communicate with the OpenAPI API. If we added this URI via
+an environment variable in the `env.local` file, we need to update the `env.cloud` file with the connection URI for
+the cloud hosted connector. Eg:
 
 ```env title="For example, my_subgraph/my_openapi/.env.cloud"
 NDC_OAS_BASE_URL=<your-openapi-base-url>
 ```
 
-Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3`
+Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` However, if you've edited this directly in your
+`functions.ts` file, you can skip this step.
+
+You may have used a development database while iterating locally. You can now replace that value with your
+staging or production database, depending on your needs.
 
 ### Step 1. Build and deploy your cloud connector
 
@@ -43,8 +47,8 @@ The CLI will respond with read and write URLs for your deployed connector.
 
 ### Step 3. Create a .env.cloud for the subgraph
 
-If you haven't already deployed a connector for a subgraph, you'll need to create a `.env.cloud.my_subgraph` file in the
-root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
+If you haven't already deployed a connector for this subgraph, you'll need to create a `.env.cloud.my_subgraph` file
+in the root directory of the subgraph which contains your connector. Within this, you'll add the cloud connector's URLs
 which were returned from the command above. Your file should look like this example with a connector named
 `my_openapi` in the `my_subgraph` subgraph.
 

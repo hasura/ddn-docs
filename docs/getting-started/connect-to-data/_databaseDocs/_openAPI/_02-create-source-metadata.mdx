@@ -10,6 +10,7 @@ can now use them to generate Hasura metadata.
 - [The DDN CLI, VS Code extension, and Docker installed](/getting-started/prerequisites)
 - A new or existing [supergraph](/getting-started/init-supergraph)
 - A new or existing [subgraph](/getting-started/init-subgraph)
+- An [OpenAPI connector](/getting-started/connect-to-data/connect-a-source) initialized
 
 :::
 
@@ -19,20 +20,24 @@ them into an  [NDC-compliant](https://github.com/hasura/ndc-spec) `hml` (Hasura 
 
 :::info Typescript and HML, why both?
 
-Basically, metadata objects in `hml` files contain the data connector schema in a
-[format](https://github.com/hasura/ndc-spec) which is generic for all connectors. The TypeScript files on the other
-hand contain a format specific to the OpenAPI connector. This format just needs to be a representation that the
-specific connector understands and can be different for other connectors.
+Metadata objects in `hml` files contain the data connector schema in a [format](https://github.com/hasura/ndc-spec)
+which is generic for all connectors.
 
-First we generate the schema representation using the `ddn connector introspect` command, and then use that to create
-the `DataConnectorLink` hml object with the `ddn connector-link add` and `update` commands.
+The TypeScript files on the other hand contain a format specific to the OpenAPI connector.
+
+This format just needs to be a representation that each specific connector understands and can be different for other
+connectors.
+
+The process for this is:
+1)  First generate the data source schema representation using the `ddn connector introspect` command
+2)  Then use that to create the `DataConnectorLink` `hml` object with the `ddn connector-link add` and `update`
+commands.
+3) Finally, use the `ddn command add` and `ddn model add` commands to create the command and model objects which
+define our API.
 
 :::
 
-First to create this `hml` file with the `connector-link add` command and then convert our configuration files into
-`hml` syntax and add it to this file with the `connector-link update` command.
-
-Let's name the `hml` file the same as our connector, `my_openapi`:
+Let's name the `DataConnectorLink` `hml` file the same as our connector, `my_openapi`:
 
 ```bash title="Run the following from the root of your project:"
 ddn connector-link add my_openapi \
@@ -79,7 +84,7 @@ definition:
 The generated file has two environment variables — one for reads and one for writes. Because we used the convenience
 flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph` file:
 
-```env
+```env title="Already set for you in .env.my_subgraph"
 MY_SUBGRAPH_MY_OPENAPI_READ_URL="http://local.hasura.dev:8082"
 MY_SUBGRAPH_MY_OPENAPI_WRITE_URL="http://local.hasura.dev:8082"
 ```
@@ -109,8 +114,8 @@ http://localhost:8082/schema
 ## Step 3. Update the new DataConnectorLink object with metadata for your OpenAPI service
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the OpenAPI connector, we
-can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
-schema in `hml` format:
+can run the `update` command to have the CLI look at our `functions.ts` file and generate our
+`DataConnectorLink` metadata in `hml` format:
 
 ```bash
 ddn connector-link update my_openapi --subgraph my_subgraph
@@ -737,5 +742,5 @@ which we'll eventually expose via our API.
 
 ## Next steps
 
-With a data connector fully configured, you can now start to create metadata for each table and view in your OpenAPI
-database using `hml`. Learn how to do this by [adding source entities](/getting-started/connect-to-data/add-source-entities).
+With a data connector fully configured, you can now start to create metadata for each endpoint in our OpenAPI
+document in `hml`. Learn how to do this by [adding source entities](/getting-started/connect-to-data/add-source-entities).
