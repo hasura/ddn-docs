@@ -29,39 +29,19 @@ service!
 
 :::
 
-### Step 1. Modify the cloud supergraph configuration
-
-In the root of the project, edit your `supergraph.cloud.yaml` file to include your subgraphs:
-
-```yaml title="supergraph.cloud.yaml"
-kind: Supergraph
-version: v1
-definition:
-  supergraph_globals:
-    generator:
-      rootPath: ./supergraph_globals
-    envFile: ./supergraph_globals/.env.supergraph_globals
-    includePaths:
-      - ./supergraph_globals/auth-config.cloud.hml
-      - ./supergraph_globals/compatibility-config.hml
-      - ./supergraph_globals/graphql-config.hml
-# highlight-start
-  subgraphs:
-    # With each subgraph as a key — my_subgraph is used below as an example
-    my_subgraph:
-      generator:
-        rootPath: my_subgraph/metadata
-      envFile: my_subgraph/.env.cloud.my_subgraph
-      includePaths:
-        - my_subgraph
-# highlight-end
-```
-
-### Step 2. Build and deploy your supergraph
+### Step 1. Build and deploy your supergraph
 
 ```bash title="From the root of your project, run:"
-ddn supergraph build create --supergraph ./supergraph.cloud.yaml
+ddn supergraph build create \
+  --supergraph supergraph.cloud.yaml \
+  --env-file my_subgraph:my_subgraph/.env.my_subgraph.cloud
 ```
+
+:::info Project set in context
+
+Remember that because we set the project context, we don't need to pass the project name as a flag in the command.
+
+:::
 
 The CLI will respond with a build version and build Console URL. You can go ahead and explore the API for this build in
 the Hasura Console!
