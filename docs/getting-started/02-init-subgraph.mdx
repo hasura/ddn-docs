@@ -31,7 +31,10 @@ sources to your supergraph. A supergraph must have at least one subgraph, at lea
 Creating a subgraph is simple.
 
 ```bash title="At the root of your project, run:"
-ddn subgraph init my_subgraph
+ddn subgraph init my_subgraph \
+  --dir my_subgraph \
+  --target-supergraph supergraph.local.yaml \
+  --target-supergraph supergraph.cloud.yaml
 ```
 
 The CLI will respond with a success message (and a hint to add a connector to the subgraph).
@@ -40,13 +43,20 @@ You can read more about appropriate [subgraph naming](#naming) below.
 
 ## What did this do?
 
-This command creates a sub-directory within your supergraph directory, named after the subgraph you specified. Inside
-this new sub-directory, it also creates an empty `.env.my_subgraph` file.
+We're passing a few values to the `subgraph init` command:
 
-It also added an object including your new subgraph in the `subgraphs` section of your `supergraph.yaml` file, which is
-the configuration file for your supergraph and can be found in the root of your project's directory.
+- **Subgraph name:** We're naming the subgraph `my_subgraph` in this example.
+- **Directory:** We're specifying the directory where the subgraph will be created. The CLI will create this directory.
+- **Target supergraph:** For convenience we're specifying the supergraph(s) to which this subgraph will be added.
+Here we're specifying both our local and cloud supergraphs which were created when we initialized our supergraph.
+The CLI will add details of our subgraph to both these supergraph configuration files.
 
-However, without a data connector in our subgraph it's just a placeholder right now...which doesn't do much.
+Inside the new subgraph directory we can see the CLI also created two environment variable files, one for local and one
+for cloud, respectively named `.env.my_subgraph.local` and `.env.my_subgraph.cloud`.
+
+The CLI also creates a `subgraph.yaml` config file in the root of the subgraph directory.
+
+However, without a data connector, our subgraph is just a placeholder which doesn't do much, yet...
 
 :::info More about subgraphs
 

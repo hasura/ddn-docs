@@ -20,10 +20,10 @@ To initialize the PostgreSQL connector, run the following in your terminal.
 
 ```bash title="From the root of your project, run:"
 ddn connector init my_pg \
-  --subgraph my_subgraph \
+  --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/postgres \
   --configure-port 8082 \
-  --add-to-compose-file docker-compose.hasura.yaml
+  --add-to-compose-file compose.yaml
 ```
 
 With this `connector init` command, we're passing a few important values.
@@ -36,7 +36,7 @@ this connector is integrating a database all about product metadata, it would ma
 
 **Subgraph: `--subgraph`**
 
-We're specifying the subgraph that this connector will be added to using the `--subgraph` flag.
+We're specifying the subgraph config file that this connector will be added to using the `--subgraph` flag.
 
 **Connector: --hub-connector**
 
@@ -52,7 +52,7 @@ running.
 **Compose file: `--add-to-compose-file`**
 
 We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`docker-compose.hasura.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
+`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
 together.
 
 :::tip Best practices
@@ -75,12 +75,15 @@ string you provide in your subgraph's `.env.my_subgraph` file.
 
 In the `my_subgraph/connector/my_pg` directory which we specified in the command, the CLI created:
 
-- A `connector.yaml` file which contains the configuration for the connector.
+- A `connector.local.yaml` file which contains the local configuration for the connector.
+- A `connector.cloud.yaml` file which contains the cloud configuration for the connector.
 - A `.hasura-connector` folder which contains the connector definition used to build and run it.
-- A `docker-compose.my_pg.yaml` a file to run the PostgreSQL data connector locally in Docker. Includes the specified
-  port.
+- A `compose.yaml` a file to run the ClickHouse data connector locally in Docker.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
 - An `.env.local` file for environment variables for pertaining to running this connector locally.
+- An `.env.cloud` file for environment variables for pertaining to running this connector in the cloud.
+- A `configuration.json` file which contains configuration info for the data connector itself.
+- A `schema.json` file which is the JSON schema that `configuration.json` follows.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.

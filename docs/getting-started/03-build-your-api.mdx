@@ -43,21 +43,32 @@ Pass the `local` subcommand along with specifying the output directory as `./eng
 directory is used by the docker-compose file to serve the engine locally:
 
 ```bash title="From the root of your project, run:"
-ddn supergraph build local --output-dir ./engine
+ddn supergraph build local \
+  --supergraph supergraph.local.yaml \
+  --output-dir engine \
+  --env-file my_subgraph:my_subgraph/.env.my_subgraph.local
 ```
 
 This will create a build of your supergraph.
+
+With this command we're specifying the supergraph we want to use to build locally with `--supergraph`, the
+output directory name for the engine with `--output-dir`, and the environment variables needed for each subgraph to
+build with `--env-file`.
+
+Note that when building a supergraph there can be multiple subgraphs, so you need to specify the environment file
+for each subgraph with the subgraph name as a prefix in the way we show above for the `--env-file` flag. The
+`--env-file` flag can be repeated to take the environment file for each subgraph.
 
 :::tip Start your engines!
 
 Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
 
 ```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 ```
 
 **If you haven't [included your connector(s)](/getting-started/01-init-supergraph.mdx) in your
-`docker-compose.hasura.yaml`, don't forget to start it as well.**
+`compose.yaml`, don't forget to start it as well.**
 
 :::
 

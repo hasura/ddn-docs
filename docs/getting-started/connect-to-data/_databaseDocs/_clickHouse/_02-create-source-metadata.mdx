@@ -41,11 +41,12 @@ Let's name the `hml` file the same as our connector, `my_clickhouse`:
 
 ```bash title="Run the following from the root of your project:"
 ddn connector-link add my_clickhouse \
-  --subgraph my_subgraph \
-  --configure-host http://local.hasura.dev:8082
+  --subgraph my_subgraph/subgraph.yaml \
+  --configure-host http://local.hasura.dev:8082 \
+  --target-env-file my_subgraph/.env.my_subgraph.local
 ```
 
-The new file is scaffolded out at `my_subgraph/metadata/my_clickhouse/my_clickhouse.hml`.
+The new file is scaffolded out at `my_subgraph/metadata/my_clickhouse.hml`.
 
 <details>
   <summary>Click here for an example `hml` `DataConnectorLink` file</summary>
@@ -79,7 +80,7 @@ schema:
 </details>
 
 The generated file has two environment variables — one for reads and one for writes. Because we used the convenience
-flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph` file:
+flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph.local` file:
 
 ```env title="my_subgraph/.env.my_subgraph"
 MY_SUBGRAPH_MY_CLICKHOUSE_READ_URL=http://local.hasura.dev:8082
@@ -94,28 +95,30 @@ the docker container.
 Let's start our docker compose services.
 
 ```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 ```
 
 This starts our Hasura Engine, observability tools and the ClickHouse connector all together since we added the
-connector's Docker compose file to the main `docker-compose.hasura.yaml` file using the `--add-to-compose-file` flag
+connector's Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag
 when we initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN
 CLI's authentication token.
 
 We can navigate to the following address, with the port modified, to see the schema of our ClickHouse database:
 
-```bash
+```text
 http://localhost:8082/schema
 ```
 
 ## Step 3. Update the new DataConnectorLink object with metadata for your ClickHouse database
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the ClickHouse connector,
-we can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
-schema in `hml` format. In a new terminal tab, run:
+we can run the `update` command to have the CLI look at the configuration JSON and transform it to reflect our
+database's schema in `hml` format. In a new terminal tab, run:
 
 ```bash title="From the root of your project, run:"
-ddn connector-link update my_clickhouse --subgraph my_subgraph
+ddn connector-link update my_clickhouse \
+  --subgraph my_subgraph/subgraph.yaml \
+  --env-file my_subgraph/.env.my_subgraph.local
 ```
 
 After this command runs, you can open your `my_subgraph/metadata/my_clickhouse.hml` file and see your metadata
