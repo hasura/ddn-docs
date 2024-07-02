@@ -1,0 +1,124 @@
+---
+description: "Learn about the Hasura DDN console and how to use it to explore a finished API."
+sidebar_position: 2
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - finished API
+  - explore
+  - api
+  - demo
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Interact with your API
+
+## Overview
+
+Interacting with your API should be a straightforward task, yet it often turns into a complex and frustrating process.
+Developers frequently find themselves switching between multiple tools to test queries, add headers, and trace requests.
+This fragmented approach not only slows down the workflow but also leads to inefficiencies in debugging. Without
+integrated tracing, identifying and resolving issues becomes time-consuming.
+
+Moreover, the lack of real-time feedback means that any changes to the API or queries require manual verification,
+further slowing down development. Recognizing these pain points, Hasura DDN offers a comprehensive solution through its
+GraphiQL explorer, designed to simplify and accelerate the API interaction process.
+
+With Hasura DDN, you can use our GraphiQL explorer to create and test queries directly within the console, providing:
+
+- **Schema Definition:** See the entire GraphQL schema and documentation for all available queries and mutations.
+- **Integrated Query Testing:** Test queries with headers and see real-time results, all in one place.
+- **Built-in Tracing:** Instantly trace queries to identify performance bottlenecks and optimize efficiently.
+- **Streamlined Workflow:** Save time and reduce context-switching by having everything you need in a single interface.
+
+## GraphiQL Features
+
+Below, you'll find information about the different features present in the GraphiQL explorer. You can navigate to
+GraphiQL by clicking on `GraphiQL` in the left-hand sidenav.
+
+### Build manager
+
+At the top of the page, you can switch between a build's API or a project's API. Hasura DDN utilizes a system of
+immutable [builds](/project-configuration/builds.mdx) which allow you to iteratively create your API.
+
+This component makes it easy to switch between different builds, test them, provide feedback, and fine-tune your API's
+settings.
+
+You can **apply** a build via the console to have it serve your API's endpoint.
+
+### Editable headers
+
+You can add headers using the header table below the build manager. By default, two headers are present: `content-type`
+and `hasura_cloud_pat`.
+
+Most often, you'll use the headers table to either pass in custom session variables (e.g., `x-hasura-role`) or
+authentication tokens (such as using the Bearer strategy with a [JWT](/auth/authentication/jwt/index.mdx)).
+
+This allows you to easily test permissions and relationships to ensure queries and mutations behave as expected.
+
+:::warning content-type is required
+
+The API expects `content-type` to be present. Removing it will return an error.
+
+:::
+
+### Schema definition
+
+Your API's schema definition is available by default in the GraphiQL explorer. Each query is prefixed by the subgraph's
+name and can be clicked through to generate a query to test. Additionally, you can click the book icon to explore your
+API's documentation.
+
+### Query testing
+
+In addition to clicking through the queries in the explorer, you can write your queries in the `request` section on the
+left-hand side of the GraphiQL component. If you're not sure of what to type next, or which fields are available, you
+can press `CTRL` + `SPACE` to bring up the available options.
+
+Further, you can add variables for dynamic queries using the `Variables` section below the query itself.
+
+Your response will be returned on the right-hand side of the component.
+
+Below is a sample query and response using our sample e-commerce application:
+
+```graphql
+query UsersAndOrders {
+  users_users {
+    id
+    name
+    orders {
+      id
+      createdAt
+      status
+    }
+  }
+}
+```
+
+<Thumbnail src="/img/get-started/users-and-orders-query.png" alt="Sample query" width="1000px" />
+
+Here, we've used our API to make a query to our `users` table, which exists in a database that belongs to our `users`
+subgraph. This subgraph owns information about user profiles. Additionally, because of the relationships present in our
+API, we're able to also return related information from our `sales` subgraph — which is owned by a different team — that
+contains information in an `orders` table.
+
+:::info Out of the box
+
+Automatically, Hasura DDN provides you with queries for unique, many, aggregation, and filtering!
+
+:::
+
+### Traces
+
+You can instantly view a trace for any query using the `View Trace` button in the bottom-right corner of the GraphiQL
+explorer. Here, you can see information like the query details, each step in the execution process, the topology of the
+query, and execution plan.
+
+<Thumbnail src="/img/get-started/trace-details.png" alt="Sample trace data" width="1000px" />
+
+### Next steps
+
+Now that you know how to interact with your API, let's see how easy it is to
+[visualize your entire supergraph](/getting-started/explore/visualize.mdx) of data.
