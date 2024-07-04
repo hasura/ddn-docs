@@ -48,7 +48,7 @@ const dataSources = {
   },
 };
 
-const DatabaseContentLoader = () => {
+export const DatabaseContentLoader = () => {
   const location = useLocation();
   const [dbPreference, setDbPreference] = useState<string | null>(null);
   const history = useHistory();
@@ -204,5 +204,3 @@ const DatabaseContentLoader = () => {
     </div>
   );
 };
-
-export default DatabaseContentLoader;
