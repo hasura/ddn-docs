@@ -36,7 +36,7 @@ this connector is integrating a database all about product metadata, it would ma
 
 We're specifying the subgraph config file that this connector will be added to using the `--subgraph` flag.
 
-**Connector: --hub-connector**
+**Connector: `--hub-connector`**
 
 We're specifying that this connector should be the: `hasura/postgres`, connector listed in the
 [Connector Hub](https://hasura.io/connectors/postgres).
@@ -62,14 +62,14 @@ this example the CLI will create a `my_subgraph/connector/my_pg` directory if it
 directory by passing a `--dir` flag to the CLI.
 
 The name of the connector and the directory in which the configuration is stored, `my_pg` in this example, should match
-for convenience and clarity sake.
+for convenience and clarity sake for this tutorial, but it can be anything you want.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
 string you provide in your subgraph's `.env.my_subgraph` file.
 
 :::
 
-### What did this do?
+### What did `connector init` do?
 
 In the `my_subgraph/connector/my_pg` directory which we specified in the command, the CLI created:
 
@@ -92,7 +92,7 @@ about the PostgreSQL database or the data it contains. That's coming up in the n
 The PostgreSQL connector ships with a sample read-only database connection as the default `CONNECTION_URI`.
 
 The CLI provides an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. **If you wish to
-override the default connection, you can update the key-value pair of `CONNECTION_URI` with your custom connection
+override the default demo connection, you can update the key-value pair of `CONNECTION_URI` with your custom connection
 string to this file.**
 
 ```env title="my_subgraph/connector/my_pg/.env.local"
@@ -113,9 +113,9 @@ database without any worries.
 
 If you're using a local PostgreSQL database — such as through [Docker](https://hub.docker.com/_/postgres) — you can
 connect to it directly from the data connector. However, if you deploy your connector to Hasura DDN, the cloud-hosted
-version of your data connector won't be able to find your database. You'll need to use a tool like
-[ngrok](https://ngrok.com/) to tunnel your database's connection. This will expose the port, most likely `5432`, on
-which the database is running and allow Hasura DDN to connect to it.
+version of your data connector won't be able to find your local database. You'll need to use a tool like
+[ngrok](https://ngrok.com/) to provide a tunnel to access your database from the cloud. This will expose the port, most
+likely `5432`, on which the database is running and allow Hasura DDN to connect to it.
 
 **Cloud-hosted PostgreSQL**
 
@@ -126,16 +126,17 @@ allowlisted `0.0.0.0/0` (for now) so that DDN is able to reach it.
 
 ## Step 3. Introspect your database
 
-With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a source-specific
-configuration file for our connector.
+With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a data
+connector specific configuration file. This configuration file, which describes the schema of our PostgreSQL
+database, will then be used in a later step to generate Hasura metadata which describes our API.
 
 ```bash title="From the root of your project run:"
 ddn connector introspect --connector my_subgraph/connector/my_pg/connector.local.yaml
 ```
 
-## What did this do?
+## What did `connector introspect` do?
 
-The commands above introspected your data source to create a JSON configuration file.
+The command introspected your data source to create a JSON configuration file.
 
 If you look at the `configuration.json` for your connector, you'll see metadata describing your PostgreSQL schema in a
 format which the connector specifies.

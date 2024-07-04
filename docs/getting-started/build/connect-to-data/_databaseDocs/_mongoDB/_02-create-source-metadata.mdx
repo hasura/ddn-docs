@@ -10,11 +10,12 @@ metadata.
 - [The DDN CLI, VS Code extension, and Docker installed](/getting-started/prerequisites)
 - A new or existing [supergraph](/getting-started/init-supergraph)
 - A new or existing [subgraph](/getting-started/init-subgraph)
+- A [MongoDB connector](/getting-started/connect-to-data/connect-a-source) initialized and introspected
 
 :::
 
-Hasura DDN uses a concept called "connector linking" to take configuration JSON files from a data connector and
-transform them into an  [NDC-compliant](https://github.com/hasura/ndc-spec) `hml` (Hasura Metadata Language) file as a
+Hasura DDN uses a concept called "connector linking" to take configuration JSON files for a data connector and
+transform them into an `hml` (Hasura Metadata Language) file as a
 [DataConnectorLink](/supergraph-modeling/data-connector-links/) metadata object.
 
 :::info JSON and HML, why both?
@@ -24,15 +25,16 @@ Basically, metadata objects in `hml` files contain the data connector schema in 
 format specific to that connector. It does not need to be JSON, it could just as easily be SQL files, TypeScript
 functions, or anything else. It's just a representation that the specific connector understands.
 
-First we generate the schema representation using the `ddn connector introspect` command, and then use that to create
-the `DataConnectorLink` hml object with the `ddn connector-link add` and `update` commands.
-
 :::
 
-First to create this `hml` file with the `connector-link add` command and then convert our configuration files into
-`hml` syntax and add it to this file with the `connector-link update` command.
+We have already generated the schema representation using the `ddn connector introspect` command, and now we're
+about to use that to create the `DataConnectorLink` `hml` object with the `ddn connector-link add` and then `update`
+commands.
 
-Let's name the `hml` file the same as our connector, `my_mongo`:
+The `DataConnectorLink` is a metadata object which describes any data source in the Hasura Metadata Language (HML)
+format.
+
+Let's add and name the `hml` file the same as our connector, `my_mongo`:
 
 ```bash title="Run the following from the root of your project:"
 ddn connector-link add my_mongo \
@@ -89,7 +91,7 @@ docker container.
 
 ## Step 2. Start the services
 
-Let's start our docker compose services.
+Let's start our docker compose services if they are not already running.
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
