@@ -8,21 +8,21 @@ import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
 import ClickHouseLogo from '@site/static/img/databases/logos/clickhouse-glyph.png';
 
-import PostgreSqlConnect from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
-import MongoDBConnect from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
-import ClickHouseConnect from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_clickHouse/_01-connect-a-source.mdx';
+import PostgreSqlConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
+import MongoDBConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
+import ClickHouseConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_01-connect-a-source.mdx';
 
-import PostgreSqlCreateSourceMetadata from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
-import MongoDBCreateSourceMetadata from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
-import ClickHouseCreateSourceMetadata from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
+import PostgreSqlCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
+import MongoDBCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
+import ClickHouseCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
 
-import PostgreSqlAddSourceEntities from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
-import MongoDBAddSourceEntities from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
-import ClickHouseAddSourceEntities from '@site/docs/getting-started/build/connect-to-data/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
+import PostgreSqlAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
+import MongoDBAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
+import ClickHouseAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
 
-import PostgreSqlMutate from '@site/docs/getting-started/build/_databaseDocs/_postgreSQL/_09-mutate-data.mdx';
-import MongoDBMutate from '@site/docs/getting-started/build/_databaseDocs/_mongoDB/_09-mutate-data.mdx';
-import ClickHouseMutate from '@site/docs/getting-started/build/_databaseDocs/_clickHouse/_09-mutate-data.mdx';
+import PostgreSqlMutate from '@site/docs/getting-started/build/_databaseDocs/_postgreSQL/_08-mutate-data.mdx';
+import MongoDBMutate from '@site/docs/getting-started/build/_databaseDocs/_mongoDB/_08-mutate-data.mdx';
+import ClickHouseMutate from '@site/docs/getting-started/build/_databaseDocs/_clickHouse/_08-mutate-data.mdx';
 
 import PostgreSqlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_postgreSQL/_03-deploy-a-connector.mdx';
 import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_mongoDB/_03-deploy-a-connector.mdx';
