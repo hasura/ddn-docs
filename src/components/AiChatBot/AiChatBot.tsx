@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Markdown from 'markdown-to-jsx';
+import DOMPurify from 'dompurify';
 import './styles.css';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { CloseIcon, RespondingIconGray, SparklesIcon } from '@site/src/components/AiChatBot/icons';
@@ -78,6 +79,19 @@ export function AiChatBot({ style }) {
     docsBotEndpointURL: string;
     hasuraVersion: number;
     DEV_TOKEN: string;
+  };
+
+  const sanitizeInput = (input: string): string => {
+    const sanitized = DOMPurify.sanitize(input.trim());
+    return sanitized.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  const validateInput = (input: string): boolean => {
+    return input.length > 0 && input.length <= 1000;
   };
 
   const storedUserID = localStorage.getItem('hasuraDocsUserID') as string | 'null';
@@ -191,18 +205,39 @@ export function AiChatBot({ style }) {
 
   // Send the query to the websocket when the user submits the form
   const handleSubmit = async () => {
-    // if the input is empty, do nothing
-    if (!input) {
+    const sanitizedInput = sanitizeInput(input);
+
+    if (!validateInput(sanitizedInput)) {
+      console.error('Invalid input');
       return;
     }
 
     if (ws) {
       const toSend = JSON.stringify({ previousMessages: messages, currentUserInput: input, messageThreadId });
-      setCurrentMessage({ userMessage: input, botResponse: '' });
+      setCurrentMessage({ userMessage: sanitizedInput, botResponse: '' });
       setInput('');
       ws.send(toSend);
       setIsResponding(true);
     }
+  };
+
+  const renderMessage = (content: string) => {
+    return (
+      <Markdown
+        options={{
+          overrides: {
+            a: {
+              props: {
+                target: '_blank',
+                rel: 'noopener noreferrer'
+              },
+            },
+          },
+        }}
+      >
+        {DOMPurify.sanitize(content)}
+      </Markdown>
+    );
   };
 
   const isOnOverviewOrIndex =
@@ -250,14 +285,14 @@ export function AiChatBot({ style }) {
                     {msg.userMessage && (
                       <div className="user-message-container">
                         <div className="formatted-text message user-message">
-                          <Markdown>{msg.userMessage}</Markdown>
+                          {renderMessage(msg.userMessage)}
                         </div>
                       </div>
                     )}
                     {msg.botResponse && (
                       <div className="bot-message-container">
                         <div className="formatted-text message bot-message">
-                          <Markdown>{msg.botResponse}</Markdown>
+                          {renderMessage(msg.botResponse)}
                         </div>
                       </div>
                     )}
@@ -266,7 +301,7 @@ export function AiChatBot({ style }) {
                 <div className="user-message-container">
                   {currentMessage.userMessage && (
                     <div className="formatted-text message user-message">
-                      <Markdown>{currentMessage.userMessage}</Markdown>
+                      {renderMessage(currentMessage.userMessage)}
                     </div>
                   )}
                 </div>
@@ -274,7 +309,7 @@ export function AiChatBot({ style }) {
                   <div className="bot-message-container">
                     {currentMessage.botResponse && (
                       <div className="formatted-text message bot-message">
-                        <Markdown>{currentMessage.botResponse}</Markdown>
+                        {renderMessage(currentMessage.botResponse)}
                       </div>
                     )}
                   </div>
@@ -295,6 +330,7 @@ export function AiChatBot({ style }) {
                   className="input-text"
                   value={input}
                   onChange={e => setInput(e.target.value)}
+                  maxLength={1000}
                 />
                 <button disabled={isResponding || isConnecting} className="input-button" type="submit">
                   {isConnecting ? 'Connecting...' : isResponding ? 'Responding...' : 'Send'}
