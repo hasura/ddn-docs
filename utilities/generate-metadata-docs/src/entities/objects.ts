@@ -9,7 +9,7 @@ import { readFileSync } from 'fs';
 export const parentSchema: JSONSchema7Definition = JSON.parse(readFileSync('./schema.json', 'utf8'));
 
 export const topLevelMetadataObjects: Record<string, string> = {
-  CompatibilityConfig: 'supergraph',
+  v2_CompatibilityConfig: 'compatibility-config',
   AuthConfig: 'auth-config',
   GraphqlConfig: 'graphql-config',
   ScalarType: 'types',
@@ -21,10 +21,11 @@ export const topLevelMetadataObjects: Record<string, string> = {
   TypePermissions: 'permissions',
   ModelPermissions: 'permissions',
   CommandPermissions: 'permissions',
-  DataConnectorLink: 'data-connectors',
-  DataConnectorScalarRepresentation: 'data-connectors',
-  Supergraph: 'build-manifests',
-  Connector: 'build-manifests',
+  DataConnectorLink: 'data-connector-links',
+  DataConnectorScalarRepresentation: 'data-connector-links',
+  Supergraph: 'build-configs',
+  Subgraph: 'build-configs',
+  Connector: 'build-configs',
 };
 
 export const topLevelMetadataRefs: Record<string, string> = {};
