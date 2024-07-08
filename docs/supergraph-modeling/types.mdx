@@ -185,6 +185,13 @@ definition:
     - name: last_name
       type: String
       description: The last name of the author
+    - name: biography
+      type: String
+      description: AI generated biography for the author
+      arguments:
+        - name: ai_model
+          argumentType: String!
+          description: The AI model to use for generating the biography
   description: An author of a book
   globalIdFields:
     - author_id
@@ -197,6 +204,14 @@ definition:
         author_id:
           column:
             name: id
+    - dataConnectorName: my_vector_db
+      dataConnectorObjectType: author
+      fieldMapping:
+        biography:
+          column:
+            name: biography
+            argumentMapping:
+              ai_model: model
 ```
 
 #### ObjectTypeV1 {#objecttype-objecttypev1}
@@ -243,9 +258,24 @@ Source field directly maps to some column in the data connector.
 
 The target column in a data connector object that a source field maps to.
 
-| Key    | Value  | Required | Description                   |
-| ------ | ------ | -------- | ----------------------------- |
-| `name` | string | true     | The name of the target column |
+| Key               | Value                                                 | Required | Description                   |
+| ----------------- | ----------------------------------------------------- | -------- | ----------------------------- |
+| `name`            | string                                                | true     | The name of the target column |
+| `argumentMapping` | [ArgumentMapping](#objecttype-argumentmapping) / null | false    | Arguments to the column field |
+
+#### ArgumentMapping {#objecttype-argumentmapping}
+
+Mapping of a comand or model argument name to the corresponding argument name used in the data connector. The key of
+this object is the argument name used in the command or model and the value is the argument name used in the data
+connector.
+
+| Key           | Value                                                              | Required | Description |
+| ------------- | ------------------------------------------------------------------ | -------- | ----------- |
+| `<customKey>` | [DataConnectorArgumentName](#objecttype-dataconnectorargumentname) | false    |             |
+
+#### DataConnectorArgumentName {#objecttype-dataconnectorargumentname}
+
+**Value:** string
 
 #### DataConnectorObjectType {#objecttype-dataconnectorobjecttype}
 
@@ -289,12 +319,25 @@ GraphQL configuration of an Open DD object type.
 
 The definition of a field in a user-defined object type.
 
-| Key           | Value                                       | Required | Description                                                                                                                                                   |
-| ------------- | ------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`        | [FieldName](#objecttype-fieldname)          | true     | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.         |
-| `type`        | [TypeReference](#objecttype-typereference)  | true     | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
-| `description` | string / null                               | false    | The description of this field. Gets added to the description of the field's definition in the graphql schema.                                                 |
-| `deprecated`  | [Deprecated](#objecttype-deprecated) / null | false    | Whether this field is deprecated. If set, the deprecation status is added to the field's graphql schema.                                                      |
+| Key           | Value                                                            | Required | Description                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | [FieldName](#objecttype-fieldname)                               | true     | The name of the field. This name is used both when referring to the field elsewhere in the metadata and when creating the corresponding GraphQl type.         |
+| `type`        | [TypeReference](#objecttype-typereference)                       | true     | The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type. |
+| `description` | string / null                                                    | false    | The description of this field. Gets added to the description of the field's definition in the graphql schema.                                                 |
+| `deprecated`  | [Deprecated](#objecttype-deprecated) / null                      | false    | Whether this field is deprecated. If set, the deprecation status is added to the field's graphql schema.                                                      |
+| `arguments`   | [[FieldArgumentDefinition](#objecttype-fieldargumentdefinition)] | false    | The arguments for the field                                                                                                                                   |
+
+#### FieldArgumentDefinition {#objecttype-fieldargumentdefinition}
+
+| Key            | Value                                      | Required | Description |
+| -------------- | ------------------------------------------ | -------- | ----------- |
+| `name`         | [ArgumentName](#objecttype-argumentname)   | true     |             |
+| `argumentType` | [TypeReference](#objecttype-typereference) | true     |             |
+| `description`  | string / null                              | false    |             |
+
+#### ArgumentName {#objecttype-argumentname}
+
+**Value:** string
 
 #### Deprecated {#objecttype-deprecated}
 
