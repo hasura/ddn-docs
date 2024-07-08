@@ -1,5 +1,3 @@
-import BaseUrlLink from "@site/src/components/databaseDocs/baseLink";
-
 ## What's about to happen
 
 Now that we have a JSON configuration, which represents the collections in MongoDB, we can now use it to generate Hasura
@@ -9,16 +7,28 @@ metadata.
 
 :::tip Required
 
-<!-- prettier-ignore -->
-- <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
-- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
-- A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
+- [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/build/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/build/02-init-subgraph.mdx)
+- A [MongoDB connector](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) initialized,
+introspected and running in Docker.
 
 :::
 
-<!-- prettier-ignore -->
-Hasura DDN uses a concept called "connector linking" to take configuration JSON files from a data connector and
-transform them into an  [NDC-compliant](https://github.com/hasura/ndc-spec) `hml` (Hasura Metadata Language) file as a <BaseUrlLink to="/supergraph-modeling/data-connector-links/" text="DataConnectorLink" /> metadata object.
+Hasura DDN uses a concept called "connector linking" to take configuration JSON files for a data connector and
+transform them into an `hml` (Hasura Metadata Language) file as a
+[`DataConnectorLink`](/supergraph-modeling/data-connector-links/) metadata object which describes our data source.
+
+Let's add and name the `hml` file the same as our connector, `my_pg`:
+
+```bash title="Run the following from the root of your project:"
+ddn connector-link add my_mongo \
+  --subgraph my_subgraph/subgraph.yaml \
+  --configure-host http://local.hasura.dev:8082 \
+  --target-env-file my_subgraph/.env.my_subgraph.local
+```
+
+The new file is scaffolded out at `my_subgraph/metadata/my_mongo.hml`.
 
 :::info JSON and HML, why both?
 
@@ -27,25 +37,7 @@ Basically, metadata objects in `hml` files contain the data connector schema in 
 format specific to that connector. It does not need to be JSON, it could just as easily be SQL files, TypeScript
 functions, or anything else. It's just a representation that the specific connector understands.
 
-First we generate the schema representation using the `ddn connector introspect` command, and then use that to create
-the `DataConnectorLink` hml object with the `ddn connector-link add` and `update` commands.
-
 :::
-
-First to create this `hml` file with the `connector-link add` command and then convert our configuration files into
-`hml` syntax and add it to this file with the `connector-link update` command.
-
-Let's name the `hml` file the same as our connector, `my_mongo`:
-
-```bash title="Run the following from the root of your project:"
-ddn connector-link add my_mongo \
-  --subgraph my_subgraph \
-  --configure-host http://local.hasura.dev:8082
-```
-
-The new file is scaffolded out at `my_subgraph/metadata/my_mongo/my_mongo.hml`.
-
-Eg:
 
 <details>
   <summary>Click here for an example `hml` `DataConnectorLink` file</summary>
@@ -79,7 +71,7 @@ schema:
 </details>
 
 The generated file has two environment variables — one for reads and one for writes. Because we used the convenience
-flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph` file:
+flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph.local` file:
 
 ```env
 MY_SUBGRAPH_MY_MONGO_READ_URL="http://local.hasura.dev:8082"
@@ -89,33 +81,16 @@ MY_SUBGRAPH_MY_MONGO_WRITE_URL="http://local.hasura.dev:8082"
 These values are for the MongoDB connector itself and utilize `local.hasura.dev` to ensure proper resolution within the
 docker container.
 
-## Step 2. Start the services
-
-Let's start our docker compose services.
-
-```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
-```
-
-This starts our Hasura Engine, observability tools and the MongoDB connector all together since we added the connector's
-Docker compose file to the main `docker-compose.hasura.yaml` file using the `--add-to-compose-file` flag when we
-initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's
-authentication token.
-
-We can navigate to the following address, with the port modified, to see the schema of our MongoDB database:
-
-```bash
-http://localhost:8082/schema
-```
-
-## Step 3. Update the new DataConnectorLink object with metadata for your MongoDB database
+## Step 2. Update the new DataConnectorLink object with metadata for your MongoDB database
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the MongoDB connector, we
-can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
+can run the `update` command to have the CLI look at the configuration JSON and transform it to reflect our database's
 schema in `hml` format:
 
 ```bash
-ddn connector-link update my_mongo --subgraph my_subgraph
+ddn connector-link update my_mongo \
+  --subgraph my_subgraph/subgraph.yaml \
+  --env-file my_subgraph/.env.my_subgraph.local
 ```
 
 After this command runs, you can open the same `my_subgraph/metadata/my_mongo/my_mongo.hml` file and see your metadata
@@ -818,6 +793,6 @@ which we'll eventually expose via our API.
 
 ## Next steps
 
-<!-- prettier-ignore -->
 With a data connector fully configured, you can now start to create metadata for each table and view in your MongoDB
-database using `hml`. Learn how to do this by <BaseUrlLink to="/getting-started/build/connect-to-data/add-source-entities" text="adding source entities" />.
+database using `hml`. Learn how to do this by
+[adding source entities](/getting-started/build/03-connect-to-data/03-add-source-entities.mdx).

@@ -16,8 +16,8 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## What's about to happen?
 
-After [connecting a data source](/getting-started/build/connect-to-data/01-connect-a-source.mdx) and
-[exposing a model](/getting-started/build/connect-to-data/03-add-source-entities.mdx), we'll create a new local build of
+After [connecting a data source](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) and
+[exposing a model](/getting-started/build/03-connect-to-data/03-add-source-entities.mdx), we'll create a new local build of
 our API.
 
 A build is a compiled, immutable state of your metadata which the Hasura Engine uses to run your API.
@@ -32,32 +32,43 @@ a GraphQL query on your API using any models you've added.
 - [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
 - At least one [subgraph](/getting-started/build/02-init-subgraph.mdx)
-- At least one [data connector running](/getting-started/build/connect-to-data/01-connect-a-source.mdx)
-- [Models added](/getting-started/build/connect-to-data/03-add-source-entities.mdx) to your subgraph
+- At least one [data connector running](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx)
+- [Models added](/getting-started/build/03-connect-to-data/03-add-source-entities.mdx) to your subgraph
 
 :::
 
 ### Step 1. Create a supergraph build
 
-Pass the `local` subcommand along with specifying the output directory as `./engine` in the root of the project. This
+Pass the `local` subcommand along with specifying the output directory as `engine` in the root of the project. This
 directory is used by the docker-compose file to serve the engine locally:
 
 ```bash title="From the root of your project, run:"
-ddn supergraph build local --output-dir ./engine
+ddn supergraph build local \
+  --supergraph supergraph.local.yaml \
+  --output-dir engine \
+  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
 ```
 
 This will create a build of your supergraph.
 
+With this command we're specifying the supergraph we want to use to build locally with `--supergraph`, the
+output directory name for the engine with `--output-dir`, and the environment variables needed for each subgraph to
+build with `--env-file`.
+
+Note that when building a supergraph there can be multiple subgraphs, so you need to specify the environment file
+for each subgraph with the subgraph name as a prefix in the way we show above for the `--env-file` flag. The
+`--env-file` flag can be repeated to take the environment file for each subgraph.
+
 :::tip Start your engines!
 
-Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
+Want to test your supergraph? Make sure that your services are still up and running with the following command.
 
 ```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 ```
 
-**If you haven't [included your connector(s)](/getting-started/build/01-init-supergraph.mdx) in your
-`docker-compose.hasura.yaml`, don't forget to start it as well.**
+**If you haven't [included your connector(s)](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) in your
+`compose.yaml`, don't forget to start it as well.**
 
 :::
 
@@ -71,6 +82,9 @@ Your browser settings or privacy tools may prevent the Console from accessing yo
 due to features designed to protect your privacy and security. Should you encounter one of these issues, we recommend
 disabling these settings for the `console.hasura.io` domain.
 
+[Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) are the recommended
+browsers for the best experience with the Hasura Console including for local development.
+
 :::
 
 ### Step 2. Write your first query
@@ -80,7 +94,7 @@ When you're ready, hit the run button to execute your query.
 
 ```graphql title=" For example, if we have a Carts model, we can run the following query:"
 query MyFirstQuery {
-  app_carts {
+  mySubgraph_carts {
     id
     isComplete
     userId
@@ -89,9 +103,9 @@ query MyFirstQuery {
 ```
 
 All types are namespaced with the subgraph to which they belong. Here, you can see that `carts` belongs to a subgraph
-named `app`. Thus, the query above will return a response that looks like this:
+named `my_subgraph`. Thus, the query above will return a response that looks like this:
 
-<Thumbnail src="/img/get-started/beta/console_simple-carts-query.png" alt="Simple query with carts" width="1000px" />
+![Simple query with carts](/img/get-started/beta/console_simple-carts-query.png)
 
 :::info Query names
 
@@ -106,7 +120,7 @@ When you executed the command above, the CLI used the Hasura metadata in your di
 source(s) — to create a local build of your supergraph. This local build is immutable and can be used to test the
 changes to your API before either making more changes or, eventually, creating a build on Hasura DDN.
 
-Next, we recommend learning how easy it is to [add authorization rules](/getting-started/build/06-add-permissions.mdx),
+Next, we recommend learning how easy it is to [add authorization rules](/getting-started/build/05-add-permissions.mdx),
 which limit a user's access to data, using permissions.
 
 ## Next steps
@@ -115,6 +129,6 @@ Now that you have a build of your supergraph you can do a lot more with it. Here
 jump around the Getting Started section according to your interests:
 
 - [Deploy to cloud](/getting-started/deployment/index.mdx) to make your API available to the world
-- [Add permissions](/getting-started/build/06-add-permissions.mdx) to your models
-- [Create relationships](/getting-started/build/08-create-a-relationship.mdx) between models
-- [Mutate your data](/getting-started/build/09-mutate-data.mdx) with Hasura DDN
+- [Add permissions](/getting-started/build/05-add-permissions.mdx) to your models
+- [Create relationships](/getting-started/build/07-create-a-relationship.mdx) between models
+- [Mutate your data](/getting-started/build/08-mutate-data.mdx) with Hasura DDN
