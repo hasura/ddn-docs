@@ -1,5 +1,5 @@
 {
-  description = "A very basic flake";
+  description = "Hasura docs development dependencies";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -29,7 +29,7 @@
       in
 
       {
-        packages.${localSystem}.default = self.packages.${localSystem}.hello;
+        packages.${localSystem}.default = self.packages.${localSystem}.nodejs;
 
         devShells = {
           default = pkgs.mkShell {
