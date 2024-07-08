@@ -17,23 +17,7 @@ our PostgreSQL database) to create metadata which Hasura can use to construct ou
 
 Hasura DDN uses a concept called "connector linking" to take configuration JSON files for a data connector and
 transform them into an `hml` (Hasura Metadata Language) file as a
-[DataConnectorLink](/supergraph-modeling/data-connector-links/) metadata object.
-
-:::info JSON and HML, why both?
-
-Basically, metadata objects in `hml` files contain the data connector schema in a
-[format](https://github.com/hasura/ndc-spec) which is generic for all connectors. The JSON on the other hand contains a
-format specific to that connector. It does not need to be JSON, it could just as easily be SQL files, TypeScript
-functions, or anything else. It's just a representation that the specific connector understands.
-
-:::
-
-We have already generated the schema representation using the `ddn connector introspect` command, and now we're
-about to use that to create the `DataConnectorLink` `hml` object with the `ddn connector-link add` and then `update`
-commands.
-
-The `DataConnectorLink` is a metadata object which describes any data source in the Hasura Metadata Language (HML)
-format.
+[`DataConnectorLink`](/supergraph-modeling/data-connector-links/) metadata object which describes our data source.
 
 Let's add and name the `hml` file the same as our connector, `my_pg`:
 
@@ -45,6 +29,15 @@ ddn connector-link add my_pg \
 ```
 
 The new file is scaffolded out at `my_subgraph/metadata/my_pg.hml`.
+
+:::info JSON and HML, why both?
+
+Basically, metadata objects in `hml` files contain the data connector schema in a
+[format](https://github.com/hasura/ndc-spec) which is generic for all connectors. The JSON on the other hand contains a
+format specific to that connector. It does not need to be JSON, it could just as easily be SQL files, TypeScript
+functions, or anything else. It's just a representation that the specific connector understands.
+
+:::
 
 <details>
   <summary>Click here for an example `hml` `DataConnectorLink` file</summary>
@@ -88,9 +81,10 @@ MY_SUBGRAPH_MY_PG_WRITE_URL="http://local.hasura.dev:8082"
 These values are for the PostgreSQL connector itself and utilize `local.hasura.dev` to ensure proper resolution within
 the docker container.
 
-## Step 2. Start the services
+## Step 2. Restart the services
 
-Let's start our docker compose services if they are not already running.
+Let's (re)start our docker compose services so that Hasura Engine can see the new `DataConnectorLink` object we just
+created.
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
@@ -131,4 +125,4 @@ we'll eventually expose via our API.
 
 With a data connector fully configured, you can now start to create metadata for each table and view in your PostgreSQL
 database using `hml`. Learn how to do this by
-[exposing source entities](/getting-started/build/03-connect-to-data/add-source-entities).
+[exposing source entities](/getting-started/build/connect-to-data/add-source-entities).
