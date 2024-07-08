@@ -69,7 +69,7 @@ string you provide in your subgraph's `.env.my_subgraph` file.
 
 :::
 
-### What did this do?
+### What did `connector init` do?
 
 In the `my_subgraph/connector/my_mongo` directory which we specified in the command, the CLI created:
 
@@ -153,7 +153,7 @@ configuration file for our connector:
 ddn connector introspect --connector my_subgraph/connector/my_mongo/connector.local.yaml
 ```
 
-### What did this do?
+## What did `connector introspect` do?
 
 We specify the connector (and by proxy, the data source) that we want to introspect with the `--connector` flag and
 provide it with the location of that `connector.yaml` configuration file.
@@ -180,6 +180,26 @@ Eg:
 Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 :::
+
+## Step 4. Restart the services
+
+Let's restart our docker compose services so that Docker can create a MongoDB connector build for us now that
+we've added and introspected the connector.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```
+
+This starts our Hasura Engine, observability tools and the PostgreSQL connector all together since we added the
+connector's Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag
+when we initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN
+CLI's authentication token.
+
+We can navigate to the following address, with the port modified, to see the schema of our MongoDB database:
+
+```text
+http://localhost:8082/schema
+```
 
 ## Next steps
 
