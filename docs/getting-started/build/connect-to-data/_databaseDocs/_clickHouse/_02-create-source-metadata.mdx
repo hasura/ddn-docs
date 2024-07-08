@@ -1,0 +1,134 @@
+import BaseUrlLink from "@site/src/components/databaseDocs/baseLink";
+
+## What's about to happen?
+
+After initializing a ClickHouse connector and creating a JSON configuration, which represents our tables in a format
+which the connector specifies, we can use it to generate Hasura metadata. In the steps below, we'll utilize our
+`configuration.json` — populated by introspecting our ClickHouse database — to create metadata which Hasura can use to
+construct our API.
+
+## Step 1. Create the Hasura metadata
+
+:::tip Required
+
+- <BaseUrlLink to="/getting-started/prerequisites" text="The DDN CLI, VS Code extension, and Docker installed" />
+- A new or existing <BaseUrlLink to="/getting-started/init-supergraph" text="supergraph" />
+- A new or existing <BaseUrlLink to="/getting-started/init-subgraph" text="subgraph" />
+- A <BaseUrlLink to="/getting-started/build/connect-to-data/connect-a-source" text="ClickHouse connector"/> initialized
+
+:::
+
+<!-- prettier-ignore -->
+Hasura DDN uses a concept called "connector linking" to take [NDC-compliant](https://github.com/hasura/ndc-spec)
+configuration JSON files for a data connector and transform them into an `hml` (Hasura Metadata Language) file as a <BaseUrlLink to="/supergraph-modeling/data-connector-links/" text="DataConnectorLink" /> metadata object.
+
+:::info JSON and HML, why both?
+
+Basically, metadata objects in `hml` files contain the data connector schema in a
+[format](https://github.com/hasura/ndc-spec) which is generic for all connectors. The JSON on the other hand contains a
+format specific to that connector. It does not need to be JSON, it could just as easily be SQL files, TypeScript
+functions, or anything else. It's just a representation that the specific connector understands.
+
+First we generate the schema representation using the `ddn connector introspect` command, and then use that to create
+the `DataConnectorLink` hml object with the `ddn connector-link add` and `update` commands.
+
+:::
+
+First we create this `hml` file with the `connector-link add` command and then convert our configuration files into
+`hml` syntax and add it to this file with the `connector-link update` command.
+
+Let's name the `hml` file the same as our connector, `my_clickhouse`:
+
+```bash title="Run the following from the root of your project:"
+ddn connector-link add my_clickhouse \
+  --subgraph my_subgraph \
+  --configure-host http://local.hasura.dev:8082
+```
+
+The new file is scaffolded out at `my_subgraph/metadata/my_clickhouse/my_clickhouse.hml`.
+
+<details>
+  <summary>Click here for an example `hml` `DataConnectorLink` file</summary>
+
+```yaml title="my_clickhouse.hml"
+kind: DataConnectorLink
+version: v1
+definition:
+name: my_clickhouse
+url:
+  readWriteUrls:
+    read:
+      valueFromEnv: MY_SUBGRAPH_MY_CLICKHOUSE_READ_URL
+    write:
+      valueFromEnv: MY_SUBGRAPH_MY_CLICKHOUSE_WRITE_URL
+schema:
+  version: v0.1
+  schema:
+    scalar_types: {}
+    object_types: {}
+    collections: []
+    functions: []
+    procedures: []
+  capabilities:
+    version: ""
+    capabilities:
+      query: {}
+      mutation: {}
+```
+
+</details>
+
+The generated file has two environment variables — one for reads and one for writes. Because we used the convenience
+flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph` file:
+
+```env title="my_subgraph/.env.my_subgraph"
+MY_SUBGRAPH_MY_CLICKHOUSE_READ_URL=http://local.hasura.dev:8082
+MY_SUBGRAPH_MY_CLICKHOUSE_WRITE_URL=http://local.hasura.dev:8082
+```
+
+These values are for the ClickHouse connector itself and utilize `local.hasura.dev` to ensure proper resolution within
+the docker container.
+
+## Step 2. Start the services
+
+Let's start our docker compose services.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+```
+
+This starts our Hasura Engine, observability tools and the ClickHouse connector all together since we added the
+connector's Docker compose file to the main `docker-compose.hasura.yaml` file using the `--add-to-compose-file` flag
+when we initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN
+CLI's authentication token.
+
+We can navigate to the following address, with the port modified, to see the schema of our ClickHouse database:
+
+```bash
+http://localhost:8082/schema
+```
+
+## Step 3. Update the new DataConnectorLink object with metadata for your ClickHouse database
+
+Finally, now that our `DataConnectorLink` has the correct environment variables configured for the ClickHouse connector,
+we can run the update command to have the CLI look at the configuration JSON and transform it to reflect our database's
+schema in `hml` format. In a new terminal tab, run:
+
+```bash title="From the root of your project, run:"
+ddn connector-link update my_clickhouse --subgraph my_subgraph
+```
+
+After this command runs, you can open your `my_subgraph/metadata/my_clickhouse.hml` file and see your metadata
+completely scaffolded out for you 🎉
+
+## What did this do?
+
+<!-- prettier-ignore -->
+By creating a `my_clickhouse.hml` file, we've provided Hasura with a link between our original data source and the types which
+we'll eventually expose via our API.
+
+## Next steps
+
+<!-- prettier-ignore -->
+With a data connector fully configured, you can now start to create metadata for each table and view in your ClickHouse
+database using `hml`. Learn how to do this by <BaseUrlLink to="/getting-started/build/connect-to-data/add-source-entities" text="exposing source entities" />.
