@@ -50,10 +50,10 @@ hub:
 
 ```bash title="From the root of your project, run:"
 ddn connector init my_ts \
-  --subgraph my_subgraph \
+  --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/nodejs \
   --configure-port 8083 \
-  --add-to-compose-file docker-compose.hasura.yaml
+  --add-to-compose-file compose.yaml
 ```
 
 In this command, we're passing a few important values.
@@ -62,7 +62,7 @@ In this command, we're passing a few important values.
 
 We're naming the connector `my_ts` in this example, but you can call it whatever makes sense to you.
 
-**Connector: --hub-connector**
+**Connector: `--hub-connector`**
 
 We're specifying that this connector should be the: `hasura/nodejs`, connector listed in the
 [Connector Hub](https://hasura.io/connectors/nodejs-lambda).
@@ -76,7 +76,7 @@ running.
 **Compose file: `--add-to-compose-file`**
 
 We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`docker-compose.hasura.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
+`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
 together.
 
 :::tip Best practices
@@ -122,7 +122,7 @@ functions into `hml` commands that can be exposed as queries and mutations via o
 
 ```bash title="From the root of your project, run:"
 ddn connector-link add my_ts \
-  --subgraph my_subgraph \
+  --subgraph my_subgraph/subgraph.yaml \
 ```
 
 The `--configure-host` convenience flag added the read and write URL for the connect to the `.env.my_subgraph` file for
@@ -205,7 +205,10 @@ To add our function, similar to how we added our individual tables earlier, we c
 related Hasura metadata:
 
 ```bash
-ddn connector-link update my_ts --subgraph my_subgraph --add-all-resources
+ddn connector-link update my_ts \
+  --subgraph my_subgraph/subgraph.yaml \
+  --env-file my_subgraph/.env.my_subgraph.local \
+  --add-all-resources
 ```
 
 ### Step 6. Create a new API build and test
@@ -221,7 +224,7 @@ ddn supergraph build local --output-dir ./engine
 Want to test your supergraph? Don't forget to start your GraphQL engine using the following command.
 
 ```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 ```
 
 This starts our Hasura Engine and observability tools. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine
@@ -245,6 +248,9 @@ Your browser settings or privacy tools may prevent the Console from accessing yo
 due to features designed to protect your privacy and security. Should you encounter one of these issues, we recommend
 disabling these settings for the `console.hasura.io` domain.
 
+[Chrome](https://www.google.com/chrome/) and [Firefox](https://www.mozilla.org/en-US/firefox/new/) are the recommended
+browsers for the best experience with the Hasura Console including for local development.
+
 :::
 
 ## What did this do?
@@ -260,5 +266,5 @@ business logic with — for example — database tables, and then transform or e
 consumers.
 
 You can learn more about creating these and other relationships on the
-[next page](/getting-started/build/08-create-a-relationship.mdx), or you can learn about
-[mutating data](/getting-started/build/09-mutate-data.mdx) using the TypeScript connector.
+[next page](/getting-started/build/07-create-a-relationship.mdx), or you can learn about
+[mutating data](/getting-started/build/08-mutate-data.mdx) using the TypeScript connector.
