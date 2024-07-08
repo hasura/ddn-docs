@@ -16,14 +16,14 @@ keywords:
 
 # Enabling Admin and Unauthenticated Requests
 
-Each Hasura DDN project ships with an `admin` role by default which has access to all Models and Types in your
-supergraph. On the other hand, there's no concept for unauthenticated access to a supergraph. Below, we'll show you how
-to achieve both when using JWTs and Hasura DDN.
+Each Hasura DDN project metadata is generated with an `admin` role by default which has access to all models, commands
+and object types in your supergraph. On the other hand, there's no concept for unauthenticated access to a supergraph.
+Below, we'll show you how to achieve both when using JWTs and Hasura DDN.
 
 ## Making admin-level requests
 
 To make an admin-level request, after
-[updating up your `auth-config.hml`](/auth/authentication/jwt/setup.mdx#step-1-update-your-authconfig), shape your
+[updating up your AuthConfig](/auth/authentication/jwt/setup.mdx#step-1-update-your-authconfig), shape your
 claims as follows:
 
 ```json title="Claims configuration in your authentication service"
@@ -60,11 +60,11 @@ any name you wish, so long as it's not a role (such as `admin`) that already exi
   }
 ```
 
-### Step 2. Create ModelPermissions
+### Step 2. Update ModelPermissions
 
-For whatever [Models](/supergraph-modeling/models.mdx) you'd like to publicly expose, create a
-[`ModelPermission`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and provide a name for the
-public role that matches the name of the role in the claims above.
+For whatever [models](/supergraph-modeling/models.mdx) you'd like to publicly expose, add a
+[`ModelPermissions`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) rule for
+the public role.
 
 ```yaml title="Example ModelPermission for an Events Model"
 kind: ModelPermissions
@@ -82,9 +82,9 @@ definition:
     #highlight-end
 ```
 
-### Step 3. Create TypePermissions
+### Step 3. Update TypePermissions
 
-Then, determine which [Types](/supergraph-modeling/types.mdx) you'd like to publicly expose by creating
+Then, determine which [types](/supergraph-modeling/types.mdx) you'd like to publicly expose by updating
 [TypePermissions](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions). Hasura DDN gives you the
 ability to granularly determine which fields from each Model are available to each role.
 
