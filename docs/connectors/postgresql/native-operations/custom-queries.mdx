@@ -1,0 +1,111 @@
+---
+sidebar_position: 2
+sidebar_label: Native Queries
+description:
+  "Native Queries allow you to run custom SQL queries on your PostgreSQL database. This page explains how to configure
+  Native Queries in Hasura."
+keywords:
+  - native queries
+seoFrontMatterUpdated: false
+---
+
+# Native Queries
+
+## Introduction
+
+Native Queries allow you to run custom SQL queries on your PostgreSQL database. This allows you to run queries that are
+not supported by Hasura's GraphQL engine.
+
+## Setup
+
+Native Queries can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json` for a
+particular connector.
+
+Each query is specified as SQL. The return structure of the query must be explicitly specified in the `columns` field.
+
+Native Queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
+type.
+
+The arguments are not interpolated, but provided to your data source as parameters, and therefore must be specific
+values, not arbitrary SQL.
+
+## Example
+
+Here's an example which filters a table called `"Artist"`:
+
+### Configuration
+
+```json
+"nativeQueries": {
+  "artist_below_id": {
+    "sql": {
+      "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
+    },
+    "columns": {
+      "ArtistId": {
+        "name": "ArtistId",
+        "type": {
+          "scalarType": "int4"
+        }
+      },
+      "Name": {
+        "name": "Name",
+        "type": {
+          "scalarType": "varchar"
+        }
+      }
+    },
+    "arguments": {
+      "id": {
+        "name": "id",
+        "type": {
+          "scalarType": "int4"
+        }
+      }
+    }
+  }
+}
+```
+
+This will create a query called `"artist_below_id"` which takes a single argument called `"id"` of type `int4`. The
+query will return a list of objects with the fields `"ArtistId"` and `"Name"`.
+
+Note that the SQL can be defined `inline`, and can also reference a `file` that exists in the configuration directory
+using the following structure:
+
+```yaml
+"nativeQueries": {
+  "artist_below_id": {
+    "sql": {
+      "file": "artist_below_id.sql"
+    },
+...
+```
+
+And the SQL can be written in the `artist_below_id.sql` file without escaping:
+
+```sql
+SELECT *
+  FROM public."Artist"
+ WHERE "ArtistId" < {{id}}
+```
+
+:::tip Valid Native Query syntax
+
+Check out our page on writing valid Hasura DDN
+[Native Operation syntax](/connectors/postgresql/native-operations/syntax.mdx).
+
+:::
+
+### Usage
+
+With the example above, you can then use the query in your GraphQL API like this:
+
+```graphql
+query {
+  artist_below_id(id: 10) {
+    ArtistId
+    Name
+  }
+}
+```

@@ -22,7 +22,7 @@ additional cloud build, you'll only need to complete the third step.
 
 :::tip Required
 
-- [DDN CLI](/getting-started/00-prerequisites.mdx)
+- [DDN CLI](/getting-started/build/00-prerequisites.mdx)
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
 - [Project context set](/getting-started/deployment/create-a-project#step-2-set-the-project-context) via the CLI
 
@@ -31,9 +31,32 @@ additional cloud build, you'll only need to complete the third step.
 For each subgraph you're deploying, run the following to create it on Hasura DDN, replacing `my_subgraph` with your
 desired name. The name should match the subgraph name from your `supergraph.yaml` file in your local metadata.
 
+## Step 1. Create a subgraph
+
 ```bash title="From any project directory, run:"
 ddn project subgraph create my_subgraph
 ```
+
+## Step 2. Create the globals subgraph
+
+Here we need to take a moment to explain the role of supergraph global metadata. This information, which consists of
+[`AuthConfig`](/supergraph-modeling/auth-config.mdx), [`GraphQLConfig`](/supergraph-modeling/graphql-config.mdx) and
+[`CompatibilityConfig`](/supergraph-modeling/compatibility-config.mdx) can be located in any subgraph.
+On `supergraph init` though, we create this for you in a dedicated subgraph called `globals`, just for the sake of
+organization.
+
+So when deploying our supergraph to the cloud, we also need to create a project subgraph for the `globals` subgraph,
+unless you have since moved or created these objects in another location.
+
+```bash title="From any project directory, run:"
+ddn project subgraph create globals
+```
+
+:::note Project set in context
+
+Remember that because we set the project context, we don't need to pass the project name as a flag in the command.
+
+:::
 
 ## What did this do?
 

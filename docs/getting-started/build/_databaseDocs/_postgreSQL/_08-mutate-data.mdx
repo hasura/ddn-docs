@@ -1,0 +1,119 @@
+### Step 1. Install node packages
+
+:::tip Required
+
+- [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/build/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/build/02-init-subgraph.mdx)
+- A [PostgreSQL connector](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) initialized
+- A [DataConnectorLink](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx) configured
+- A [TypeScript connector](/getting-started/build/06-integrate-business-logic.mdx) configured
+
+:::
+
+The TypeScript connector is a regular TypeScript project. We can use any Node.js packages we want.
+
+We'll use the `dotenv` and `pg` packages to access our connection string, saved as an environment variable, and to
+connect to our database.
+
+```bash title="From the my_subgraph/connector/my_ts directory, run:"
+npm i dotenv pg
+```
+
+### Step 2. Add the connection URI
+
+We'll add our PostgreSQL connection string as an environment variable to our connector's `.env.local` file. This will
+allow us to access the connection string in our function.
+
+```env title="my_subgraph/connectors/my_ts/.env.local"
+CONNECTION_URI=<your-postgres-connection-string>
+```
+
+### Step 3. Create a function
+
+The TypeScript connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
+query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
+expose the function as a mutation.
+
+We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
+`@returns` for what will be returned by the mutation.
+
+```ts title="my_subgraph/connectors/my_ts/functions.ts"
+import { Client } from "pg";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+/**
+ * @param userData An object containing the user's data.
+ * @returns The ID of the newly inserted user.
+ */
+export async function insertUser(userData: { name: string; email: string }): Promise<string> {
+  const client = new Client({
+    connectionString: process.env.CONNECTION_URI,
+  });
+
+  await client.connect();
+
+  const queryText = `
+    INSERT INTO users (name, email)
+    VALUES ($1, $2)
+    RETURNING id
+  `;
+  const values = [userData.name, userData.email];
+  const result = await client.query(queryText, values);
+
+  await client.end();
+
+  if (result.rows.length > 0) {
+    return result.rows[0].id;
+  } else {
+    throw new Error("Failed to insert user");
+  }
+}
+```
+
+### Step 3. Track the function
+
+Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`.
+
+```bash title="From any directory in the project, run:"
+ddn connector-link update my_ts \
+  --subgraph my_subgraph/subgraph.yaml \
+  --env-file my_subgraph/.env.my_subgraph.local
+```
+
+And then bringing in the new command.
+
+```bash title="From any directory in the project, run:"
+ddn command add --connector-link my_ts --name insertUser
+```
+
+### Step 4. Create a new build and test
+
+Next, let's create a new build of our supergraph.
+
+```bash title="From the root of the project, run:"
+ddn supergraph build local --output-dir ./engine
+```
+
+:::tip Start your engines!
+
+Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```
+
+**If you haven't [included your connector(s)](/getting-started/build/01-init-supergraph.mdx) in your
+`compose.yaml`, don't forget to start it as well.**
+
+:::
+
+Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
+
+## What did this do?
+
+This function created a mutation that we can use to insert data directly into our database. We utilized raw SQL to
+leverage the native features of PostgreSQL directly from our TypeScript function. While the example above is used to
+insert data, you can use the same principles to modify or delete existing data in your database via your GraphQL API.
