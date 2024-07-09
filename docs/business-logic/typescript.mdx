@@ -111,10 +111,11 @@ As with any other connector, we'll now need to create the `DataConnectorLink` wh
 functions into commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
 ```bash
-ddn connector-link add my_ts --configure-host http://local.hasura.dev:8083
+ddn connector-link add my_ts \
+  --subgraph my_subgraph/subgraph.yaml \
 ```
 
-Because we used the convenience flag `--configure-host` on the command, these values are already set in the
+Because we used the convenience flag `--configure-host` on the command, these keys are already set in the
 `.env.my_subgraph` file:
 
 ```env
@@ -122,7 +123,7 @@ MY_SUBGRAPH_MY_TS_READ_URL="http://local.hasura.dev:8083"
 MY_SUBGRAPH_MY_TS_WRITE_URL="http://local.hasura.dev:8083"
 ```
 
-These values are then already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
+These keys are then already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
 
 ### Step 3. Install npm package dependencies
 
@@ -171,7 +172,10 @@ You can add another function simply by exporting a valid TypeScript function.
 Generate the relevant metadata objects for your functions:
 
 ```bash
-ddn connector-link update my_ts --add-all-resources
+ddn connector-link update my_ts \
+  --subgraph my_subgraph/subgraph.yaml \
+  --env-file my_subgraph/.env.my_subgraph.local \
+  --add-all-resources
 ```
 
 :::info Each function or procedure has tracked metadata
@@ -283,7 +287,17 @@ We're using the [`pg` PostgreSQL client](https://www.npmjs.com/package/pg) to co
 and [`bcrypt` to hash the password](https://www.npmjs.com/package/bcrypt), but since this is a Node.js Lambda function,
 you can use any combination of Node.js libraries you want.
 
-After you've generated the metadata for the function and created a new build, you can use the function in your GraphQL
-API.
-
 You can then repeat this process to scale your mutations independently.
+
+## Testing
+
+After you've generated the metadata for the function or procedure and created a new build, you can use this in your
+GraphQL API.
+
+:::info More examples
+
+To see more examples, check out our getting started guide for
+[adding custom business logic](/getting-started/build/06-add-business-logic.mdx) or database-specific guides for
+[creating mutations](/getting-started/build/08-mutate-data.mdx).
+
+:::

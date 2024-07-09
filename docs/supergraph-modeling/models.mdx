@@ -162,17 +162,18 @@ definition:
 The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or
 more CRUD operations.
 
-| Key                    | Value                                                          | Required | Description                                                                                     |
-| ---------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `name`                 | [ModelName](#model-modelname)                                  | true     | The name of the data model.                                                                     |
-| `objectType`           | [CustomTypeName](#model-customtypename)                        | true     | The type of the objects of which this model is a collection.                                    |
-| `globalIdSource`       | boolean                                                        | false    | Whether this model should be used as the global ID source for all objects of its type.          |
-| `arguments`            | [[ArgumentDefinition](#model-argumentdefinition)]              | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
-| `source`               | [ModelSource](#model-modelsource) / null                       | false    | The source configuration for this model.                                                        |
-| `filterExpressionType` | [CustomTypeName](#model-customtypename) / null                 | false    | The boolean expression type that should be used to perform filtering on this model.             |
-| `orderableFields`      | [[OrderableField](#model-orderablefield)]                      | true     | A list of fields that can be used to order the objects in this model.                           |
-| `graphql`              | [ModelGraphQlDefinition](#model-modelgraphqldefinition) / null | false    | Configuration for how this model should appear in the GraphQL schema.                           |
-| `description`          | string / null                                                  | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
+| Key                    | Value                                                            | Required | Description                                                                                     |
+| ---------------------- | ---------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `name`                 | [ModelName](#model-modelname)                                    | true     | The name of the data model.                                                                     |
+| `objectType`           | [CustomTypeName](#model-customtypename)                          | true     | The type of the objects of which this model is a collection.                                    |
+| `globalIdSource`       | boolean                                                          | false    | Whether this model should be used as the global ID source for all objects of its type.          |
+| `arguments`            | [[ArgumentDefinition](#model-argumentdefinition)]                | false    | A list of arguments accepted by this model. Defaults to no arguments.                           |
+| `source`               | [ModelSource](#model-modelsource) / null                         | false    | The source configuration for this model.                                                        |
+| `filterExpressionType` | [CustomTypeName](#model-customtypename) / null                   | false    | The boolean expression type that should be used to perform filtering on this model.             |
+| `orderableFields`      | [[OrderableField](#model-orderablefield)]                        | true     | A list of fields that can be used to order the objects in this model.                           |
+| `aggregateExpression`  | [AggregateExpressionName](#model-aggregateexpressionname) / null | false    | The name of the AggregateExpression that defines how to aggregate over this model               |
+| `graphql`              | [ModelGraphQlDefinition](#model-modelgraphqldefinition) / null   | false    | Configuration for how this model should appear in the GraphQL schema.                           |
+| `description`          | string / null                                                    | false    | The description of the model. Gets added to the description of the model in the graphql schema. |
 
 #### ModelGraphQlDefinition {#model-modelgraphqldefinition}
 
@@ -185,6 +186,8 @@ The definition of how a model appears in the GraphQL API.
 | `argumentsInputType`    | [GraphQlTypeName](#model-graphqltypename) / null                                       | false    | The type name of the input type used to hold the arguments of the model.                                                                       |
 | `orderByExpressionType` | [GraphQlTypeName](#model-graphqltypename) / null                                       | false    | The type name of the order by expression input type.                                                                                           |
 | `apolloFederation`      | [ModelApolloFederationConfiguration](#model-modelapollofederationconfiguration) / null | false    | Apollo Federation configuration                                                                                                                |
+| `filterInputTypeName`   | [GraphQlTypeName](#model-graphqltypename) / null                                       | false    | The type name of the input type used to hold the filtering settings used by aggregates (etc) to filter their input before processing           |
+| `aggregate`             | [ModelAggregateGraphQlDefinition](#model-modelaggregategraphqldefinition) / null       | false    | Configures the query root field added to the GraphQL API that can be used to aggregate over the model                                          |
 
 **Example:**
 
@@ -198,7 +201,18 @@ selectMany:
   queryRootField: ArticleMany
   description: Description for the select many ArticleMany
 orderByExpressionType: Article_Order_By
+aggregate:
+  queryRootField: ArticleAggregate
+  description: Aggregate over Articles
 ```
+
+#### ModelAggregateGraphQlDefinition {#model-modelaggregategraphqldefinition}
+
+| Key              | Value                                       | Required | Description                                                                                                                                                     |
+| ---------------- | ------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryRootField` | [GraphQlFieldName](#model-graphqlfieldname) | true     | The name of the query root field for this API.                                                                                                                  |
+| `description`    | string / null                               | false    | The description of the aggregate graphql definition of the model. Gets added to the description of the aggregate root field of the model in the graphql schema. |
+| `deprecated`     | [Deprecated](#model-deprecated) / null      | false    | Whether this aggregate query field is deprecated. If set, the deprecation status is added to the aggregate root field's graphql schema.                         |
 
 #### ModelApolloFederationConfiguration {#model-modelapollofederationconfiguration}
 
@@ -243,6 +257,12 @@ deprecated.
 #### GraphQlFieldName {#model-graphqlfieldname}
 
 The name of a GraphQL object field.
+
+**Value:** string
+
+#### AggregateExpressionName {#model-aggregateexpressionname}
+
+The name of an aggregate expression.
 
 **Value:** string
 
@@ -295,9 +315,13 @@ Mapping of a comand or model argument name to the corresponding argument name us
 this object is the argument name used in the command or model and the value is the argument name used in the data
 connector.
 
-| Key           | Value  | Required | Description |
-| ------------- | ------ | -------- | ----------- |
-| `<customKey>` | string | false    |             |
+| Key           | Value                                                         | Required | Description |
+| ------------- | ------------------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [DataConnectorArgumentName](#model-dataconnectorargumentname) | false    |             |
+
+#### DataConnectorArgumentName {#model-dataconnectorargumentname}
+
+**Value:** string
 
 #### DataConnectorName {#model-dataconnectorname}
 

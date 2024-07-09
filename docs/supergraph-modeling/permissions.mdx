@@ -132,7 +132,7 @@ Preset value for a field
 
 #### ValueExpression {#typepermissions-valueexpression}
 
-An expression which evaluates to a value that can be used in permissions.
+An expression which evaluates to a value that can be used in permissions and various presets.
 
 **Must have exactly one of the following fields:**
 
@@ -303,16 +303,37 @@ Defines the permissions for selecting a model for a role.
 
 #### ArgumentPreset {#modelpermissions-argumentpreset}
 
-Preset value for an argument
+An argument preset that can be applied to all functions/procedures of a connector
 
-| Key        | Value                                                | Required | Description              |
-| ---------- | ---------------------------------------------------- | -------- | ------------------------ |
-| `argument` | [ArgumentName](#modelpermissions-argumentname)       | true     | Argument name for preset |
-| `value`    | [ValueExpression](#modelpermissions-valueexpression) | true     | Value for preset         |
+| Key        | Value                                                        | Required | Description |
+| ---------- | ------------------------------------------------------------ | -------- | ----------- |
+| `argument` | [ArgumentName](#modelpermissions-argumentname)               | true     |             |
+| `value`    | [ArgumentPresetValue](#modelpermissions-argumentpresetvalue) | true     |             |
+
+#### ArgumentPresetValue {#modelpermissions-argumentpresetvalue}
+
+| Key           | Value                                                    | Required | Description                                  |
+| ------------- | -------------------------------------------------------- | -------- | -------------------------------------------- |
+| `httpHeaders` | [HttpHeadersPreset](#modelpermissions-httpheaderspreset) | true     | HTTP headers that can be preset from request |
+
+#### HttpHeadersPreset {#modelpermissions-httpheaderspreset}
+
+Configuration of what HTTP request headers should be forwarded to a data connector.
+
+| Key          | Value                                                            | Required | Description                                                      |
+| ------------ | ---------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `forward`    | [string]                                                         | true     | List of HTTP headers that should be forwarded from HTTP requests |
+| `additional` | [AdditionalHttpHeaders](#modelpermissions-additionalhttpheaders) | true     | Additional headers that should be forwarded, from other contexts |
+
+#### AdditionalHttpHeaders {#modelpermissions-additionalhttpheaders}
+
+Additional headers that should be forwarded, from other contexts
+
+| Key           | Value                                                | Required | Description |
+| ------------- | ---------------------------------------------------- | -------- | ----------- |
+| `<customKey>` | [ValueExpression](#modelpermissions-valueexpression) | false    |             |
 
 #### ArgumentName {#modelpermissions-argumentname}
-
-Argument name for preset
 
 **Value:** string
 
@@ -376,15 +397,15 @@ Field comparison predicate filters objects based on a field value.
 
 #### ValueExpression {#modelpermissions-valueexpression}
 
-An expression which evaluates to a value that can be used in permissions.
+An expression which evaluates to a value that can be used in permissions and various presets.
 
 **Must have exactly one of the following fields:**
 
-| Key                 | Value                                              | Required | Description |
-| ------------------- | -------------------------------------------------- | -------- | ----------- |
-| `literal`           |                                                    | false    |             |
-| `sessionVariable`   | string                                             | false    |             |
-| `booleanExpression` | [ModelPredicate](#modelpermissions-modelpredicate) | false    |             |
+| Key                 | Value                                              | Required | Description                                                             |
+| ------------------- | -------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
+| `literal`           |                                                    | false    |                                                                         |
+| `sessionVariable`   | string                                             | false    | Used to represent the name of a session variable, like "x-hasura-role". |
+| `booleanExpression` | [ModelPredicate](#modelpermissions-modelpredicate) | false    |                                                                         |
 
 #### FieldName {#modelpermissions-fieldname}
 
@@ -460,16 +481,39 @@ argumentPresets:
 
 #### ArgumentPreset {#commandpermissions-argumentpreset}
 
-Preset value for an argument
+An argument preset that can be applied to all functions/procedures of a connector
 
-| Key        | Value                                                  | Required | Description              |
-| ---------- | ------------------------------------------------------ | -------- | ------------------------ |
-| `argument` | [ArgumentName](#commandpermissions-argumentname)       | true     | Argument name for preset |
-| `value`    | [ValueExpression](#commandpermissions-valueexpression) | true     | Value for preset         |
+| Key        | Value                                                          | Required | Description |
+| ---------- | -------------------------------------------------------------- | -------- | ----------- |
+| `argument` | [ArgumentName](#commandpermissions-argumentname)               | true     |             |
+| `value`    | [ArgumentPresetValue](#commandpermissions-argumentpresetvalue) | true     |             |
+
+#### ArgumentPresetValue {#commandpermissions-argumentpresetvalue}
+
+| Key           | Value                                                      | Required | Description                                  |
+| ------------- | ---------------------------------------------------------- | -------- | -------------------------------------------- |
+| `httpHeaders` | [HttpHeadersPreset](#commandpermissions-httpheaderspreset) | true     | HTTP headers that can be preset from request |
+
+#### HttpHeadersPreset {#commandpermissions-httpheaderspreset}
+
+Configuration of what HTTP request headers should be forwarded to a data connector.
+
+| Key          | Value                                                              | Required | Description                                                      |
+| ------------ | ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------- |
+| `forward`    | [string]                                                           | true     | List of HTTP headers that should be forwarded from HTTP requests |
+| `additional` | [AdditionalHttpHeaders](#commandpermissions-additionalhttpheaders) | true     | Additional headers that should be forwarded, from other contexts |
+
+#### AdditionalHttpHeaders {#commandpermissions-additionalhttpheaders}
+
+Additional headers that should be forwarded, from other contexts
+
+| Key           | Value                                                  | Required | Description |
+| ------------- | ------------------------------------------------------ | -------- | ----------- |
+| `<customKey>` | [ValueExpression](#commandpermissions-valueexpression) | false    |             |
 
 #### ValueExpression {#commandpermissions-valueexpression}
 
-An expression which evaluates to a value that can be used in permissions.
+An expression which evaluates to a value that can be used in permissions and various presets.
 
 **Must have exactly one of the following fields:**
 
@@ -544,8 +588,6 @@ The name of a field in a user-defined object type.
 **Value:** string
 
 #### ArgumentName {#commandpermissions-argumentname}
-
-Argument name for preset
 
 **Value:** string
 

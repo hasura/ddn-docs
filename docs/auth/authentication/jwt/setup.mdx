@@ -23,8 +23,8 @@ You can enable your Hasura DDN instance to use JWTs in just a few steps.
 
 ## Step 1. Update your AuthConfig
 
-Hasura utilizes an [`AuthConfig` object](/supergraph-modeling/auth-config.mdx) that allows you to define the
-configuration for your authentication service. The `auth-config.hml` file can be found in your `supergraph-globals`
+Hasura utilizes an [AuthConfig](/supergraph-modeling/auth-config.mdx) object that allows you to define the
+configuration for your authentication service. The `auth-config.hml` file can be found in your `globals`
 directory.
 
 You can use
@@ -41,6 +41,7 @@ for both [identifying](supergraph-modeling/auth-config.mdx#authconfig-jwttokenlo
 kind: AuthConfig
 version: v1
 definition:
+  allowRoleEmulationBy: admin
   mode:
     jwt:
       claimsConfig:
@@ -109,8 +110,11 @@ Hasura or any other service. You can see an example of the above token encoded
 
 Once you've updated your `auth-config.hml` and updated your claims, you can rebuild your supergraph and test it locally.
 
-```bash title="From the root of your project, run:"
-ddn supergraph build local --output-dir ./engine
+```bash title="For example, from the root of your project, run:"
+ddn supergraph build local \
+  --supergraph supergraph.local.yaml \
+  --output-dir engine \
+  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
 ```
 
 ## Step 4. Make an authenticated request
@@ -123,7 +127,7 @@ pass this value in the Hasura DDN console's header section.
 
 Hasura DDN empowers you to easily write your access-control rules, commonly known as authorization, using declarative
 metadata. You can use the values passed in your JWTs to then limit which
-[Models](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and
-[Types](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions) a user has access to with each request.
+[models](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and
+[types](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions) a user has access to with each request.
 
 :::

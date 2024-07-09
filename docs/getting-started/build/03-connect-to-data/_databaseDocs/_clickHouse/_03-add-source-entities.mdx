@@ -1,0 +1,205 @@
+## What's about to happen?
+
+Entities from your ClickHouse database — such as tables — are exposed to your API via [models](/supergraph-modeling/models). You can use the CLI to generate an `hml` file which will
+represent a model, allowing you to easily and declaratively customize authorization rules, create relationships, or even
+deprecate certain fields.
+
+## Add a model
+
+:::tip Required
+
+- [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/build/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/build/02-init-subgraph.mdx)
+- A [ClickHouse connector](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) initialized
+- A [DataConnectorLink](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx) configured
+
+:::
+
+Models serve as the link between your data connector and the API Hasura generates.
+
+If you look in your `my_subgraph/metadata/my_clickhouse.hml` file, you'll see `collections` for each table in your
+ClickHouse database. For each of these, you can run the following command to create a model:
+
+```bash title="For example, with an collection of users"
+ddn model add --name users \
+  --connector-link my_clickhouse \
+  --subgraph my_subgraph/subgraph.yaml
+```
+
+:::tip Casing matters
+
+When adding a model, it is critical to use the same casing as the `collection` from your connector's configuration file.
+
+:::
+
+## What did this do?
+
+When you ran this command, the CLI generated an `hml` file in the `models` directory for the `collection` you passed it.
+This `hml` file contains all the auto-configured information — such as the names and types of fields — along with
+serving as a file to which you can add new metadata objects to customize the model.
+
+<details>
+  <summary>
+    Click here to see an example `hml` file for a model called `Carts`.
+  </summary>
+
+```yaml title="Carts.hml"
+---
+kind: ObjectType
+version: v1
+definition:
+  name: Carts
+  fields:
+    - name: createdAt
+      type: Timestamptz
+    - name: id
+      type: Uuid!
+    - name: isComplete
+      type: Bool!
+    - name: isReminderSent
+      type: Bool!
+    - name: updatedAt
+      type: Timestamptz
+    - name: userId
+      type: Uuid!
+  graphql:
+    typeName: MySubgraph_Carts
+    inputTypeName: MySubgraph_CartsInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: my_clickhouse
+      dataConnectorObjectType: carts
+      fieldMapping:
+        createdAt:
+          column:
+            name: created_at
+        id:
+          column:
+            name: id
+        isComplete:
+          column:
+            name: is_complete
+        isReminderSent:
+          column:
+            name: is_reminder_sent
+        updatedAt:
+          column:
+            name: updated_at
+        userId:
+          column:
+            name: user_id
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Carts
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - id
+          - isComplete
+          - isReminderSent
+          - updatedAt
+          - userId
+
+---
+kind: ObjectBooleanExpressionType
+version: v1
+definition:
+  name: CartsBoolExp
+  objectType: Carts
+  dataConnectorName: my_clickhouse
+  dataConnectorObjectType: carts
+  comparableFields:
+    - fieldName: createdAt
+      operators:
+        enableAll: true
+    - fieldName: id
+      operators:
+        enableAll: true
+    - fieldName: isComplete
+      operators:
+        enableAll: true
+    - fieldName: isReminderSent
+      operators:
+        enableAll: true
+    - fieldName: updatedAt
+      operators:
+        enableAll: true
+    - fieldName: userId
+      operators:
+        enableAll: true
+  graphql:
+    typeName: MySubgraph_CartsBoolExp
+
+---
+kind: Model
+version: v1
+definition:
+  name: Carts
+  objectType: Carts
+  source:
+    dataConnectorName: my_clickhouse
+    collection: carts
+  filterExpressionType: CartsBoolExp
+  orderableFields:
+    - fieldName: createdAt
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: isComplete
+      orderByDirections:
+        enableAll: true
+    - fieldName: isReminderSent
+      orderByDirections:
+        enableAll: true
+    - fieldName: updatedAt
+      orderByDirections:
+        enableAll: true
+    - fieldName: userId
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: mySubgraph_carts
+    selectUniques:
+      - queryRootField: mySubgraph_cartsById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: MySubgraph_CartsOrderBy
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Carts
+  permissions:
+    - role: admin
+      select:
+        filter: null
+```
+
+</details>
+
+## Add all your models
+
+If you like, when updating the connector link with the `connector-link update` command you can add the flag
+`--add-all-resources` to create every model and command at once.
+
+```bash title="From the root of your project, run:"
+ddn connector-link update my_clickhouse \
+  --subgraph my_subgraph/subgraph.yaml \
+  --env-file my_subgraph/.env.my_subgraph.local \
+  --add-all-resources
+```
+
+## Next steps
+
+This model can now be used to [query data via your API](/getting-started/build/build-your-api). You
+can also customize the model by adding access-control rules, creating relationships to other entities, or deprecating
+certain fields.
