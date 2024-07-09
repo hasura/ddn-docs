@@ -1,0 +1,69 @@
+---
+sidebar_position: 2
+sidebar_label: Architecture
+description:
+  "Architecture of Hasura DDN: The Supergraph Platform"
+keywords:
+  - hasura ddn
+  - hasura enterprise
+  - hasura private ddn
+  - private ddn
+  - enterprise ddn
+  - architecture
+  - byoc
+hide_table_of_contents: false
+seoFrontMatterUpdated: true
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Architecture
+
+Compared to Hasura v2, a fundamental architecture improvement was bought into 
+Hasura v3 where the "build-time" and "run-time" are separated into distinct 
+components. The [Control Plane](#control-plane) builds the project's 
+metadata and makes it available for the Hasura v3 engine running on the 
+[Data Plane](#data-plane).
+
+
+<Thumbnail src="/img/deployment/control_plane.png" alt="Control Plane" />
+
+
+## Control Plane
+
+Developers interact with the Hasura DDN Control Plane to create supergraph builds.
+Each supergraph build produces a unique GraphQL API, hosted by the Data Plane.
+As a developer, you use the Console on the Control Plane to visualise the
+supergraph and try out GraphQL APIs. Control Plane also provides monitoring and
+observability features. The Console let's you add collaborators so that you can
+invite other developers to contribute to the supergraph and also to share the 
+GraphQL API with consumers.
+
+
+Control Plane enables preview deployments (also called builds) by accepting your
+project metadata and making it available to the Data Plane in a format optimized
+for the Hasura v3 Engine runtime. Each build you create will give a unique GraphQL
+API that can be used to execute operations independently without affecting any
+other builds.
+
+Data Plane sends observability data to the Control Plane which then processes it 
+and makes it available for consumption on the Console. This includes traces for 
+every GraphQL opeation you execute and overall metrics on the API usage.
+
+## Data Plane
+
+Hasura v3 Engine and the Data Connectors are running on the Data Plane. 
+The DDN Data Plane runs an enhanced version of v3 engine which is capable
+of serving multiple GraphQL APIs at the same time. It is a serverless-like
+runtime where the configuration for executing a GraphQL request is loaded
+on demand and is discarded after processing the request. This makes the
+runtime extremely efficient and highly scalable.
+Certain connectors also makes use of similar strategies to efficiently
+handle connection pools, only creating them on demand.
+
+Data Plane can be deployed on as many regions as needed and API requests
+can be routed to the nearest one to the client for lowest latency possible
+using advanced load balancing settings utilizing Anycast IP addresses.
+This is availabile out of the box on GCP, AWS and Azure and can be deployed
+on self-hosted Private DDN if the network capabilities of the infrastructure
+allows it.
