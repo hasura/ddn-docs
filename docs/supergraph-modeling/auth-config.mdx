@@ -10,13 +10,16 @@ sidebar_position: 11
 
 ## Introduction
 
-The AuthConfig object is used to define the authentication configuration used by the API. With Hasura, you can utilize
-either webhooks or JWTs for authentication. **Your AuthConfig object belongs to the supergraph and, as such, lives in
-the `/supergraph` subdirectory of a project.**
+The `AuthConfig` object is used to define the authentication configuration used by the API. With Hasura, you can utilize
+either webhooks or JWTs for authentication.
 
-By default, all projects are created with an AuthConfig object that utilizes Hasura DDN's webhook for authentication.
+**The AuthConfig object belongs to the supergraph** and can be defined once across your supergraph in any subgraph of
+your choice.
+
+By default, all projects are created with two default `AuthConfig` objects in the **globals** subgraph that utilize
+Hasura's default webhooks for authentication. One for use with your local engine and another for use with Hasura DDN.
 However, in production, you will want to use your own custom webhook or JWT service for authentication. The metadata
-examples below can help you configure your AuthConfig object to use your own custom webhook or JWT service.
+examples below can help you configure your `AuthConfig` object to use your own custom webhook or JWT service.
 
 You can learn more about Hasura's approach to using existing authentication systems in the
 [authentication section](/auth/authentication/index.mdx).
@@ -85,7 +88,7 @@ allowedSkew: null
 claimsConfig:
   namespace:
     claimsFormat: Json
-    location: /https:~1~1hasura.io~1jwt~1claims
+    location: /claims.jwt.hasura.io
 tokenLocation:
   type: BearerAuthorization
 key:
@@ -234,15 +237,15 @@ JSON pointer to lookup the default role within the decoded JWT.
 
 | Key       | Value                                                              | Required | Description |
 | --------- | ------------------------------------------------------------------ | -------- | ----------- |
-| `literal` | string                                                             | false    |             |
+| `literal` | [Role](#authconfig-role)                                           | false    |             |
 | `path`    | [JWTClaimsMappingPathEntry](#authconfig-jwtclaimsmappingpathentry) | false    |             |
 
 #### JWTClaimsMappingPathEntry {#authconfig-jwtclaimsmappingpathentry}
 
-| Key       | Value         | Required | Description                                                                                 |
-| --------- | ------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `path`    | string        | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
-| `default` | string / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
+| Key       | Value                           | Required | Description                                                                                 |
+| --------- | ------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `path`    | string                          | true     | JSON pointer to find the particular claim in the decoded JWT token.                         |
+| `default` | [Role](#authconfig-role) / null | false    | Default value to be used when no value is found when looking up the value using the `path`. |
 
 #### AuthHookConfig {#authconfig-authhookconfig}
 
