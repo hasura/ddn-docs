@@ -1,6 +1,6 @@
 ---
 description: "Learn how to set up role emulation with Hasura. Grasp the nuances of the allowRoleEmulationBy setting."
-keywords: 
+keywords:
   - hasura
   - role emulation
   - authconfig
@@ -8,8 +8,8 @@ keywords:
   - session variables
   - graphql queries
   - http request headers
-  - graphql API security 
-  - role-based access control 
+  - graphql API security
+  - role-based access control
   - hasura webhook response
 sidebar_position: 5
 sidebar_label: Role Emulation
@@ -20,17 +20,17 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-You can configure authentication to allow certain roles to emulate other roles. This can be useful during development
-to test access-control rules without setting up authentication.
+You can configure authentication to allow certain roles to emulate other roles. This can be useful during development to
+test access-control rules without setting up authentication.
 
 To set up role emulation, the `AuthConfig` Hasura metadata object accepts a field called `allowRoleEmulationBy`.
 
-When `allowRoleEmulationBy` is set up, Hasura will check for the value of the `x-hasura-role` session variable
-which is returned in the webhook or JWT response to be equal to the value set in the `allowRoleEmulationBy`. If the
-values are equal, then role emulation will be enabled for that request. 
+When `allowRoleEmulationBy` is set up, Hasura will check for the value of the `x-hasura-role` session variable which is
+returned in the webhook or JWT response to be equal to the value set in the `allowRoleEmulationBy`. If the values are
+equal, then role emulation will be enabled for that request.
 
-When role emulation is enabled for a request, the session variables, including the role, will be used from 
-the HTTP request headers instead of from the JWT or webhook.
+When role emulation is enabled for a request, the session variables, including the role, will be used from the HTTP
+request headers instead of from the JWT or webhook.
 
 ### Role emulation scenario setup
 
@@ -47,7 +47,6 @@ definition:
   #highlight-end
   webhook:
     webhookUrl: https://myauth.service.com/validate-request
-
 ```
 
 Then, the following GraphQL request is made with some session variables in the headers:
@@ -82,10 +81,11 @@ Now, let's assume the authentication webhook responds with the following session
 ```
 
 Then, because the `api_admin` role is allowed to emulate other roles, (as per the `allowRoleEmulationBy: api_admin`
-value in our `AuthConfig`) the GraphQL request will be executed as the `author` role, because the `x-hasura-role: author`
-value is set in the headers of the request, along with `x-hasura-author-id: 2`.
+value in our `AuthConfig`) the GraphQL request will be executed as the `author` role, because the
+`x-hasura-role: author` value is set in the headers of the request, along with `x-hasura-author-id: 2`.
 
 i.e. the query will be executed with:
+
 ```json
 {
   "x-hasura-role": "author",
@@ -104,13 +104,14 @@ If the authentication webhook response is as follows:
 }
 ```
 
-Then even in this case, because the `api_admin` role is making the request and is allowed to emulate other roles,
-the GraphQL request will be executed as the `author` role, as that is the role stipulated in the request headers. 
+Then even in this case, because the `api_admin` role is making the request and is allowed to emulate other roles, the
+GraphQL request will be executed as the `author` role, as that is the role stipulated in the request headers.
 
 Also, the value of the session variable `x-hasura-author-id` will be 2 and not 1, as that is the value stipulated in the
 request headers.
 
 i.e. the query will be executed with:
+
 ```json
 {
   "x-hasura-role": "author",
@@ -130,14 +131,16 @@ To illustrate an unsuccessful emulation scenario; if the webhook response were t
 ```
 
 Then, the GraphQL query will be executed as the `user` role and **only** the session variables from the authentication
-webhook response will be considered. 
+webhook response will be considered.
 
 This is because the `user` role is not allowed to emulate other roles via HTTP request headers. All session variables
 for this request will be extracted from the authentication webhook response
 
 i.e. the query will be executed with:
+
 ```json
 {
   "x-hasura-role": "user",
   "x-hasura-author-id": 1
 }
+```
