@@ -1,7 +1,7 @@
 ---
 title: "Building the 'where' clause"
-metaTitle: 'Building the Where clause | Hasura DDN Data Connector Tutorial'
-metaDescription: 'Learn how to build a data connector in Typescript for Hasura DDN'
+metaTitle: "Building the Where clause | Hasura DDN Data Connector Tutorial"
+metaDescription: "Learn how to build a data connector in Typescript for Hasura DDN"
 ---
 
 We're going to build up the `WHERE` clause recursively, starting with the simplest expressions at the leaves of the
@@ -24,7 +24,7 @@ console.log(JSON.stringify({ sql, parameters }));
 return state.db.all(sql, ...parameters);
 ```
 
-Let's delegate to a new helper function in order to build our `WHERE` clause. Let's call our function 
+Let's delegate to a new helper function in order to build our `WHERE` clause. Let's call our function
 `visit_expression`, because we're using the [visitor design pattern](https://en.wikipedia.org/wiki/Visitor_pattern).
 
 Let's define the where clause in `fetch_rows` as a string which is either null if there is no `where` predicate, or the
@@ -75,14 +75,14 @@ case "and":
 // ...
 ```
 
-So again we need a helper function here, which visits an expression, but always wraps the results in parentheses. This 
+So again we need a helper function here, which visits an expression, but always wraps the results in parentheses. This
 way, we don't generate SQL with the wrong operator precedence in cases where logical operators are nested.
 
 Add the `visit_expression_with_parens` helper function:
 
 ```typescript
 function visit_expression_with_parens(parameters: any[], expr: Expression): string {
-    return `(${visit_expression(parameters, expr)})`;
+  return `(${visit_expression(parameters, expr)})`;
 }
 ```
 
@@ -124,10 +124,10 @@ operator, because our schema doesn't advertise any other binary operators. If we
 
 ```typescript
 switch (expr.operator) {
-    case 'eq':
-        return `${visit_comparison_target(expr.column)} = ${visit_comparison_value(parameters, expr.value)}`
-    default:
-        throw new BadRequest("Unknown comparison operator");
+  case "eq":
+    return `${visit_comparison_target(expr.column)} = ${visit_comparison_value(parameters, expr.value)}`;
+  default:
+    throw new BadRequest("Unknown comparison operator");
 }
 ```
 
@@ -145,37 +145,37 @@ case "binary_comparison_operator":
 //...
 ```
 
-The `column` property in an equality expression has type `ComparisonTarget`, so `visit_comparison_target` will break 
+The `column` property in an equality expression has type `ComparisonTarget`, so `visit_comparison_target` will break
 that type down into a SQL expression.
 
-The `value` property represents the right hand side of the equality expression, and has type `ComparisonValue`, 
+The `value` property represents the right hand side of the equality expression, and has type `ComparisonValue`,
 `visit_comparison_value` breaks _that_ type down.
 
 Let's define those functions:
 
 ```typescript
 function visit_comparison_target(target: ComparisonTarget) {
-    switch (target.type) {
-        case 'column':
-            if (target.path.length > 0) {
-                throw new NotSupported("Relationships are not supported");
-            }
-            return target.name;
-        case 'root_collection_column':
-            throw new NotSupported("Relationships are not supported");
-    }
+  switch (target.type) {
+    case "column":
+      if (target.path.length > 0) {
+        throw new NotSupported("Relationships are not supported");
+      }
+      return target.name;
+    case "root_collection_column":
+      throw new NotSupported("Relationships are not supported");
+  }
 }
 
 function visit_comparison_value(parameters: any[], target: ComparisonValue) {
-    switch (target.type) {
-        case 'scalar':
-            parameters.push(target.value);
-            return "?";
-        case 'column':
-            throw new NotSupported("column_comparisons are not supported");
-        case 'variable':
-            throw new NotSupported("Variables are not supported");
-    }
+  switch (target.type) {
+    case "scalar":
+      parameters.push(target.value);
+      return "?";
+    case "column":
+      throw new NotSupported("column_comparisons are not supported");
+    case "variable":
+      throw new NotSupported("Variables are not supported");
+  }
 }
 ```
 
@@ -202,42 +202,42 @@ Here's the finished `visit_expression` function:
 
 ```typescript
 function visit_expression(parameters: any[], expr: Expression): string {
-    switch (expr.type) {
-        case "and":
-            if (expr.expressions.length > 0) {
-                return expr.expressions.map(e => visit_expression_with_parens(parameters, e)).join(" AND ");
-            } else {
-                return "TRUE";
-            }
-        case "or":
-            if (expr.expressions.length > 0) {
-                return expr.expressions.map(e => visit_expression_with_parens(parameters, e)).join(" OR ");
-            } else {
-                return "FALSE";
-            }
-        case "not":
-            return `NOT ${visit_expression_with_parens(parameters, expr.expression)}`;
-        case "unary_comparison_operator":
-            switch (expr.operator) {
-                case 'is_null':
-                    return `${visit_comparison_target(expr.column)} IS NULL`;
-                default:
-                    throw new BadRequest("Unknown comparison operator");
-            }
-        case "binary_comparison_operator":
-            switch (expr.operator.type) {
-                case 'equal':
-                    return `${visit_comparison_target(expr.column)} = ${visit_comparison_value(parameters, expr.value)}`
-                default:
-                    throw new BadRequest("Unknown comparison operator");
-            }
-        case "binary_array_comparison_operator":
-            throw new NotSupported("binary_array_comparison_operator is not supported");
-        case "exists":
-            throw new NotSupported("exists is not supported");
+  switch (expr.type) {
+    case "and":
+      if (expr.expressions.length > 0) {
+        return expr.expressions.map((e) => visit_expression_with_parens(parameters, e)).join(" AND ");
+      } else {
+        return "TRUE";
+      }
+    case "or":
+      if (expr.expressions.length > 0) {
+        return expr.expressions.map((e) => visit_expression_with_parens(parameters, e)).join(" OR ");
+      } else {
+        return "FALSE";
+      }
+    case "not":
+      return `NOT ${visit_expression_with_parens(parameters, expr.expression)}`;
+    case "unary_comparison_operator":
+      switch (expr.operator) {
+        case "is_null":
+          return `${visit_comparison_target(expr.column)} IS NULL`;
         default:
-            throw new BadRequest("Unknown expression type");
-    }
+          throw new BadRequest("Unknown comparison operator");
+      }
+    case "binary_comparison_operator":
+      switch (expr.operator.type) {
+        case "equal":
+          return `${visit_comparison_target(expr.column)} = ${visit_comparison_value(parameters, expr.value)}`;
+        default:
+          throw new BadRequest("Unknown comparison operator");
+      }
+    case "binary_array_comparison_operator":
+      throw new NotSupported("binary_array_comparison_operator is not supported");
+    case "exists":
+      throw new NotSupported("exists is not supported");
+    default:
+      throw new BadRequest("Unknown expression type");
+  }
 }
 ```
 

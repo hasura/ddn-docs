@@ -50,8 +50,7 @@ running.
 **Compose file: `--add-to-compose-file`**
 
 We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
-together.
+`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors together.
 
 :::tip Best practices
 
@@ -81,8 +80,8 @@ In the `my_subgraph/connector/my_pg` directory which we specified in the command
 - An `.env.local` file for environment variables for pertaining to running this connector locally.
 - An `.env.cloud` file for environment variables for pertaining to running this connector in the cloud.
 - A `configuration.json` file which contains configuration for the data connector itself.
-- A `schema.json` file which is the JSON schema that `configuration.json` follows. This is to enable autocomplete in
-VS Code.
+- A `schema.json` file which is the JSON schema that `configuration.json` follows. This is to enable autocomplete in VS
+  Code.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.
@@ -126,9 +125,9 @@ allowlisted `0.0.0.0/0` (for now) so that DDN is able to reach it.
 
 ## Step 3. Introspect your database
 
-With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a data
-connector specific configuration file. This configuration file, which describes the schema of our PostgreSQL
-database, will then be used in a later step to generate Hasura metadata which describes our API.
+With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a data connector
+specific configuration file. This configuration file, which describes the schema of our PostgreSQL database, will then
+be used in a later step to generate Hasura metadata which describes our API.
 
 ```bash title="From the root of your project run:"
 ddn connector introspect --connector my_subgraph/connector/my_pg/connector.local.yaml
@@ -150,17 +149,17 @@ your project.
 
 ## Step 4. Restart the services
 
-Let's restart our docker compose services so that Docker can create a PostgreSQL connector build for us now that
-we've added and introspected the connector.
+Let's restart our docker compose services so that Docker can create a PostgreSQL connector build for us now that we've
+added and introspected the connector.
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 ```
 
 This starts our Hasura Engine, observability tools and the PostgreSQL connector all together since we added the
-connector's Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag
-when we initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN
-CLI's authentication token.
+connector's Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag when we
+initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's
+authentication token.
 
 We can navigate to the following address, with the port modified, to see the schema of our PostgreSQL database:
 

@@ -22,9 +22,9 @@ import InstallTheCli from "@site/docs/_install-the-cli.mdx";
 
 ## What has happened?
 
-A new revision (**v1.0.0**) of the [DDN CLI](/cli/installation.mdx) has been released with some changes to the
-project directory structure and CLI commands. With this release, local project directory structures created by CLI
-versions **\<= 2024.07.09** are now deprecated.
+A new revision (**v1.0.0**) of the [DDN CLI](/cli/installation.mdx) has been released with some changes to the project
+directory structure and CLI commands. With this release, local project directory structures created by CLI versions
+**\<= 2024.07.09** are now deprecated.
 
 This page contains some information on what has changed and instructions to migrate your existing local projects.
 
@@ -34,25 +34,25 @@ This page contains some information on what has changed and instructions to migr
   - See details on the updated directory structure [here](/project-configuration/config).
   - The `Supergraph` object is upgraded from `v1` to `v2`.
   - A `Subgraph` object is introduced to define how to build a subgraph.
-  - The `AuthConfig`, `GraphqlConfig` and `CompatibilityConfig` metadata objects are now not defined as supergraph globals
-    but can instead be defined in any subgraph of the supergraph. Note that these are still supergraph-level objects and
-    only one of these objects can be defined across the supergraph, but they can now be defined in any of the subgraphs
-    based on convenience. By default, these are now added to a new **globals** subgraph.
-- The `--subgraph` flag in DDN CLI commands now accepts a path to a subgraph config file as opposed to the subgraph name.
+  - The `AuthConfig`, `GraphqlConfig` and `CompatibilityConfig` metadata objects are now not defined as supergraph
+    globals but can instead be defined in any subgraph of the supergraph. Note that these are still supergraph-level
+    objects and only one of these objects can be defined across the supergraph, but they can now be defined in any of
+    the subgraphs based on convenience. By default, these are now added to a new **globals** subgraph.
+- The `--subgraph` flag in DDN CLI commands now accepts a path to a subgraph config file as opposed to the subgraph
+  name.
 - The DDN CLI now uses [SemVer](https://semver.org/) instead of CalVer for versioning.
 - The `otel-collector` version is now updated to the latest version and the `otel-collector-config.yaml` is now updated
   accordingly.
 
 :::info No changes to existing DDN projects
 
-Note that this is a CLI-only change and does not impact Hasura DDN projects. You can continue using existing
-DDN projects and builds and also be able to create new builds on them with both the new and old CLI revisions.
+Note that this is a CLI-only change and does not impact Hasura DDN projects. You can continue using existing DDN
+projects and builds and also be able to create new builds on them with both the new and old CLI revisions.
 
 Though we strongly recommend updating to the latest version of the CLI and project structure by following the steps
 below.
 
 :::
-
 
 ## Migrate an existing local project
 
@@ -69,20 +69,21 @@ Also, update your Hasura VS Code extension to `v1.0.0` if not done automatically
 
 Note that the above will overwrite your current DDN CLI revision. You can re-install the previous revision by replacing
 `/ddn/cli/v3/` with `/ddn/cli/v2/` in the above download command.
+
 :::
 
 ### Step 2: Upgrade existing Supergraph config v1 objects
 
-You can update your existing Supergraph config v1 objects in your local project by running the following in your
-project directory:
+You can update your existing Supergraph config v1 objects in your local project by running the following in your project
+directory:
 
 ```bash
 ddn codemod upgrade-supergraph-config-v1-to-v2 --dir <project-dir-path>
 ```
 
-This will detect any existing Supergraph v1 objects in your project directory and initialize a wizard to update them
-to the v2 format and make any other related changes, such as initializing the newly introduced Subgraph config objects
-and setting up the new **globals** subgraph.
+This will detect any existing Supergraph v1 objects in your project directory and initialize a wizard to update them to
+the v2 format and make any other related changes, such as initializing the newly introduced Subgraph config objects and
+setting up the new **globals** subgraph.
 
 ### Step 3: Create new **globals** subgraph on the DDN project
 
@@ -107,7 +108,8 @@ generated with the above build is the same as what you had earlier.
 
 ### Step 5: Update the OpenTelemetry exporter config
 
-Replace the contents of the file `otel-collector-config.yaml` (present at the root of the project by default) with the following:
+Replace the contents of the file `otel-collector-config.yaml` (present at the root of the project by default) with the
+following:
 
 ```yaml
 exporters:
@@ -148,14 +150,12 @@ service:
       receivers:
         - otlp
 ```
-You can now pin the version of `otel-collector` to a specific version (say `0.104.0`) to ensure breaking changes to the 
-OpenTelemetry collector config does not affect your local dev by setting the field 
-`$.services.otel-collector.image` in the `docker-compose.hasura.yaml` file to `otel/opentelemetry-collector:0.104.0`.
 
+You can now pin the version of `otel-collector` to a specific version (say `0.104.0`) to ensure breaking changes to the
+OpenTelemetry collector config does not affect your local dev by setting the field `$.services.otel-collector.image` in
+the `docker-compose.hasura.yaml` file to `otel/opentelemetry-collector:0.104.0`.
 
 ## Need help?
 
-If you need help migrating your project or have any other questions please reach out to us on
-our [Discord](https://hasura.io/discord).
-
-
+If you need help migrating your project or have any other questions please reach out to us on our
+[Discord](https://hasura.io/discord).
