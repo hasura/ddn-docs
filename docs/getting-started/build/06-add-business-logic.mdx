@@ -53,7 +53,7 @@ hub:
 ddn connector init my_ts \
   --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/nodejs \
-  --configure-port 8085
+  --configure-port 8086
 ```
 
 In this command, we're passing a few important values.
@@ -121,7 +121,7 @@ functions into `hml` commands that can be exposed as queries and mutations via o
 ```bash title="Run the following from the root of your project:"
 ddn connector-link add my_ts \
   --subgraph my_subgraph/subgraph.yaml \
-  --configure-host http://local.hasura.dev:8085 \
+  --configure-host http://local.hasura.dev:8086 \
   --target-env-file my_subgraph/.env.my_subgraph.local
 ```
 
@@ -129,8 +129,8 @@ The `--configure-host` convenience flag added the read and write URL for the con
 file for us.
 
 ```env title="Example .env.my_subgraph file"
-MY_SUBGRAPH_MY_TS_READ_URL="http://local.hasura.dev:8085"
-MY_SUBGRAPH_MY_TS_WRITE_URL="http://local.hasura.dev:8085"
+MY_SUBGRAPH_MY_TS_READ_URL="http://local.hasura.dev:8086"
+MY_SUBGRAPH_MY_TS_WRITE_URL="http://local.hasura.dev:8086"
 ```
 
 These keys are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
@@ -238,7 +238,13 @@ access to the DDN CLI's authentication token.
 You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
 to access at
 [`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000).
-You can then test your new command with a string such as: `"2024-03-14T08:00:00Z"`.
+
+
+```graphql title=" You can then test your new command with the following query:"
+query MyQuery {
+  mySubgraph_formatTimezoneDate (dateString: "2024-03-14T08:00:00Z") 
+}
+```
 
 <Thumbnail
   src="/img/get-started/beta/console_business_logic_demo_query.png"
