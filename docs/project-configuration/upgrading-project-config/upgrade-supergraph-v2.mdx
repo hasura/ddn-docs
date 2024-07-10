@@ -24,7 +24,7 @@ import InstallTheCli from "@site/docs/_install-the-cli.mdx";
 
 A new revision (**v1.0.0**) of the [DDN CLI](/cli/installation.mdx) has been released with some minor changes to the
 project directory structure and CLI commands. With this release, local project directory structures created by CLI
-versions **\<= 2024.06.09** are now out-of-date and deprecated.
+versions **\<= 2024.06.09** are now deprecated.
 
 This page contains some information on what has changed and instructions to migrate your existing local projects.
 
@@ -38,6 +38,8 @@ This page contains some information on what has changed and instructions to migr
   only one of these objects can be defined across the supergraph, but they can now be defined in any of the subgraphs
   based on convenience. By default, these are now added to a new **globals** subgraph.
 - The DDN CLI now uses [SemVer](https://semver.org/) instead of CalVer for versioning.
+- The `otel-collector` version is now updated to the latest version and the `otel-collector-config.yaml` is now updated
+  accordingly.
 
 :::info No changes to existing DDN projects
 
@@ -97,6 +99,54 @@ On build completion, the build version, API endpoint, and console URLs will be r
 
 You can now head to your project console using the console URL returned in the previous step and verify the API
 generated with the above build is the same as what you had earlier.
+
+### Step 5: Update the OpenTelemetry exporter config
+
+Replace the contents of the file `otel-collector-config.yaml` (present at the root of the project by default) with the following:
+
+```yaml
+exporters:
+  otlp:
+    endpoint: https://gateway.otlp.hasura.io:443
+    headers:
+      Authorization: pat ${env:HASURA_DDN_PAT}
+processors:
+  batch: {}
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+service:
+  pipelines:
+    logs:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+    metrics:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+    traces:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+```
+You can now pin the version of `otel-collector` to a specific version (say `0.104.0`) to ensure breaking changes to the 
+OpenTelemetry collector config does not affect your local dev by setting the field 
+`$.services.otel-collector.image` in the `docker-compose.hasura.yaml` file to `otel/opentelemetry-collector:0.104.0`.
+
 
 ## Need help?
 
