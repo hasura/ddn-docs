@@ -98,6 +98,54 @@ On build completion, the build version, API endpoint, and console URLs will be r
 You can now head to your project console using the console URL returned in the previous step and verify the API
 generated with the above build is the same as what you had earlier.
 
+### Step 5: Update the OpenTelemetry exporter config
+
+Replace the contents of the file `otel-collector-config.yaml` (present at the root of the project by default) with the following:
+
+```yaml
+exporters:
+  otlp:
+    endpoint: https://gateway.otlp.hasura.io:443
+    headers:
+      Authorization: pat ${env:HASURA_DDN_PAT}
+processors:
+  batch: {}
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+service:
+  pipelines:
+    logs:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+    metrics:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+    traces:
+      exporters:
+        - otlp
+      processors:
+        - batch
+      receivers:
+        - otlp
+```
+You can now pin the version of `otel-collector` to a specific version (say `0.104.0`) to ensure breaking changes to the 
+OpenTelemetry collector config does not affect your local dev by setting the field 
+`$.services.otel-collector.image` in the `docker-compose.hasura.yaml` file to `otel/opentelemetry-collector:0.104.0`.
+
+
 ## Need help?
 
 If you need help migrating your project or have any other questions please reach out to us on
