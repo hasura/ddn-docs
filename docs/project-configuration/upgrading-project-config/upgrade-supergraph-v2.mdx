@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 sidebar_label: Upgrade to supergraph config v2
-description: "Guide to migrate local projects created by CLI versions <= 2024.06.09"
+description: "Guide to migrate local projects created by CLI versions <= 2024.07.09"
 keywords:
   - hasura ddn
   - data delivery network
@@ -22,36 +22,41 @@ import InstallTheCli from "@site/docs/_install-the-cli.mdx";
 
 ## What has happened?
 
-A new revision (**v1.0.0**) of the [DDN CLI](/cli/installation.mdx) has been released with some minor changes to the
+A new revision (**v1.0.0**) of the [DDN CLI](/cli/installation.mdx) has been released with some changes to the
 project directory structure and CLI commands. With this release, local project directory structures created by CLI
-versions **\<= 2024.06.09** are now deprecated.
+versions **\<= 2024.07.09** are now deprecated.
 
 This page contains some information on what has changed and instructions to migrate your existing local projects.
 
 ## What has changed?
 
-- The `Supergraph` object is upgraded from `v1` to `v2`.
-- A `Subgraph` object is introduced to define how to build a subgraph.
+- The project directory structure
+  - See details on the updated directory structure [here](/project-configuration/config).
+  - The `Supergraph` object is upgraded from `v1` to `v2`.
+  - A `Subgraph` object is introduced to define how to build a subgraph.
+  - The `AuthConfig`, `GraphqlConfig` and `CompatibilityConfig` metadata objects are now not defined as supergraph globals
+    but can instead be defined in any subgraph of the supergraph. Note that these are still supergraph-level objects and
+    only one of these objects can be defined across the supergraph, but they can now be defined in any of the subgraphs
+    based on convenience. By default, these are now added to a new **globals** subgraph.
 - The `--subgraph` flag in DDN CLI commands now accepts a path to a subgraph config file as opposed to the subgraph name.
-- The `AuthConfig`, `GraphqlConfig` and `CompatibilityConfig` metadata objects are now not defined as supergraph globals
-  but can instead be defined in any subgraph of the supergraph. Note that these are still supergraph-level objects and
-  only one of these objects can be defined across the supergraph, but they can now be defined in any of the subgraphs
-  based on convenience. By default, these are now added to a new **globals** subgraph.
 - The DDN CLI now uses [SemVer](https://semver.org/) instead of CalVer for versioning.
 - The `otel-collector` version is now updated to the latest version and the `otel-collector-config.yaml` is now updated
   accordingly.
 
 :::info No changes to existing DDN projects
 
-Note that this is a CLI-only change and does not impact Hasura DDN projects. You can continue using existing DDN projects
-and builds and also be able to create new builds using the new CLI revision (with the new local project structure).
+Note that this is a CLI-only change and does not impact Hasura DDN projects. You can continue using existing
+DDN projects and builds and also be able to create new builds on them with both the new and old CLI revisions.
+
+Though we strongly recommend updating to the latest version of the CLI and project structure by following the steps
+below.
 
 :::
 
 
 ## Migrate an existing local project
 
-Below are steps to convert a local project created with the DDN CLI versions `<= v2024.06.09` to the new project
+Below are steps to convert a local project created with the DDN CLI versions `<= v2024.07.09` to the new project
 structure.
 
 ### Step 1: Get the new CLI
