@@ -25,7 +25,7 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenMarkdownLinks: 'throw',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -69,7 +69,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x beta',
+              label: 'v3.x',
               badge: true,
             },
           },
