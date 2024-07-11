@@ -24,10 +24,10 @@ To initialize the OpenAPI connector, run the following in your terminal:
 
 ```bash
 ddn connector init my_openapi \
-  --subgraph my_subgraph \
+  --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/openapi \
-  --configure-port 8082 \
-  --add-to-compose-file docker-compose.hasura.yaml
+  --configure-port 8086 \
+  --add-to-compose-file compose.yaml
 ```
 
 With this `connector init` command, we're passing a few important values.
@@ -40,7 +40,7 @@ something like `payments_api`.
 
 **Subgraph: `--subgraph`**
 
-We're specifying the subgraph that this connector will be added to using the `--subgraph` flag.
+We're specifying the subgraph config file that this connector will be added to using the `--subgraph` flag.
 
 **Connector: `--hub-connector`**
 
@@ -56,26 +56,25 @@ service you may have running.
 **Compose file: `--add-to-compose-file`**
 
 We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`docker-compose.hasura.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
-together.
+`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors together.
 
 :::tip Best practices
 
 Importantly, a data connector can only connect to one data source.
 
 The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_openapi` directory if it doesn't exist. You can also change
-this directory by passing a `--dir` flag to the CLI.
+this example the CLI will create a `my_subgraph/connector/my_pg` directory if it doesn't exist. You can also change this
+directory by passing a `--dir` flag to the CLI.
 
-The name of the connector and the directory in which the configuration is stored, `my_openapi` in this example, should
-match for convenience and clarity sake.
+We recommend that the name of the connector and the directory in which the configuration is stored, `my_openapi` in this
+example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
 string you provide in your subgraph's `.env.my_subgraph` file.
 
 :::
 
-### What did this do?
+### What did `connector init` do?
 
 In the `my_subgraph/connector/my_openapi` directory which we specified in the command, the CLI created:
 
@@ -85,7 +84,9 @@ In the `my_subgraph/connector/my_openapi` directory which we specified in the co
 - A `docker-compose.my_openapi.yaml` a file to run the OpenAPI data connector locally in Docker. Includes the
 specified port.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
+- A `compose.yaml` file which includes the connector's Docker compose file.
 - An `.env.local` placeholder file for environment variables for pertaining to running this connector locally.
+- An `.env.cloud` file for environment variables for pertaining to running this connector in the cloud.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the OpenAPI document. That's coming up in the next steps.
@@ -120,7 +121,7 @@ https://petstore3.swagger.io/api/v3/openapi.json
 
 ### Specifying the OpenAPI base URL
 
-You can add the `NDC_OAS_BASE_URL` optional environment variable to the .env.local file. This should point to the
+You can add the `NDC_OAS_BASE_URL` optional environment variable to the `.env.local` file. This should point to the
 base URL of the API. Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` This will be used as a string
 literal in the `functions.ts` file which we'll generate in the next step to make API calls.
 
@@ -154,7 +155,7 @@ This will introspect your OpenAPI document and files required to run the Typescr
 ddn connector introspect --connector my_subgraph/connector/my_openapi/connector.local.yaml
 ```
 
-### What did this do?
+## What did `connector introspect` do?
 
 We specify the connector that we want to introspect with the `--connector` flag and provide it with the location of
 that `connector.local.yaml` configuration file.
@@ -171,6 +172,27 @@ extra business logic.
 Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 :::
+
+## Step 4. Restart the services
+
+Let's restart our docker compose services so that Docker can create a OpenAPI connector build for us now that we've
+added and introspected the connector.
+
+```bash title="From the root of your project, run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```
+
+This starts our Hasura Engine, observability tools and the OpenAPI connector all together since we added the
+connector's Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag when we
+initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's
+authentication token.
+
+We can navigate to the following address, with the port modified, to see the schema of our PostgreSQL database:
+
+```text
+http://localhost:8086/schema
+```
+
 
 ## Next steps
 

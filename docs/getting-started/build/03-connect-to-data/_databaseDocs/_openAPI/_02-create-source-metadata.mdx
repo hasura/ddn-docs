@@ -18,6 +18,17 @@ Hasura DDN uses a concept called "connector linking" to take configuration files
 them into an  [NDC-compliant](https://github.com/hasura/ndc-spec) `hml` (Hasura Metadata Language) file as a
 [DataConnectorLink](/supergraph-modeling/data-connector-links/) metadata object.
 
+Let's name the `DataConnectorLink` `hml` file the same as our connector, `my_openapi`:
+
+```bash title="Run the following from the root of your project:"
+ddn connector-link add my_openapi \
+  --subgraph my_subgraph/subgraph.yaml \
+  --configure-host http://local.hasura.dev:8086 \
+  --target-env-file my_subgraph/.env.my_subgraph.local
+```
+
+The new file is scaffolded out at `my_subgraph/metadata/my_openapi/my_openapi.hml`.
+
 :::info Typescript and HML, why both?
 
 Metadata objects in `hml` files contain the data connector schema in a [format](https://github.com/hasura/ndc-spec)
@@ -36,18 +47,6 @@ commands.
 define our API.
 
 :::
-
-Let's name the `DataConnectorLink` `hml` file the same as our connector, `my_openapi`:
-
-```bash title="Run the following from the root of your project:"
-ddn connector-link add my_openapi \
-  --subgraph my_subgraph \
-  --configure-host http://local.hasura.dev:8082
-```
-
-The new file is scaffolded out at `my_subgraph/metadata/my_openapi/my_openapi.hml`.
-
-Eg:
 
 <details>
   <summary>Click here for an example `hml` `DataConnectorLink` file</summary>
@@ -85,40 +84,23 @@ The generated file has two environment variables — one for reads and one for w
 flag: `--configure-host` on the command, these values are already set in the `.env.my_subgraph` file:
 
 ```env title="Already set for you in .env.my_subgraph"
-MY_SUBGRAPH_MY_OPENAPI_READ_URL="http://local.hasura.dev:8082"
-MY_SUBGRAPH_MY_OPENAPI_WRITE_URL="http://local.hasura.dev:8082"
+MY_SUBGRAPH_MY_OPENAPI_READ_URL="http://local.hasura.dev:8086"
+MY_SUBGRAPH_MY_OPENAPI_WRITE_URL="http://local.hasura.dev:8086"
 ```
 
 These values are for the OpenAPI connector itself and utilize `local.hasura.dev` to ensure proper resolution within the
 docker container.
 
-## Step 2. Start the services
-
-Let's start our docker compose services.
-
-```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
-```
-
-This starts our Hasura Engine, observability tools and the OpenAPI connector all together since we added the connector's
-Docker compose file to the main `docker-compose.hasura.yaml` file using the `--add-to-compose-file` flag when we
-initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's
-authentication token.
-
-We can navigate to the following address, with the port modified, to see the schema of our OpenAPI service:
-
-```bash
-http://localhost:8082/schema
-```
-
-## Step 3. Update the new DataConnectorLink object with metadata for your OpenAPI service
+## Step 2. Update the new DataConnectorLink object with metadata for your OpenAPI service
 
 Finally, now that our `DataConnectorLink` has the correct environment variables configured for the OpenAPI connector, we
 can run the `update` command to have the CLI look at our `functions.ts` file and generate our
 `DataConnectorLink` metadata in `hml` format:
 
 ```bash
-ddn connector-link update my_openapi --subgraph my_subgraph
+ddn connector-link update my_openapi \
+  --subgraph my_subgraph/subgraph.yaml \
+  --env-file my_subgraph/.env.my_subgraph.local
 ```
 
 After this command runs, you can open the same `my_subgraph/metadata/my_openapi/my_openapi.hml` file and see your
