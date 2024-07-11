@@ -1,7 +1,7 @@
 ---
 title: "Testing"
-metaTitle: 'Testing the where clause | Hasura DDN Data Connector Tutorial'
-metaDescription: 'Learn how to build a data connector in Typescript for Hasura DDN'
+metaTitle: "Testing the where clause | Hasura DDN Data Connector Tutorial"
+metaDescription: "Learn how to build a data connector in Typescript for Hasura DDN"
 ---
 
 Now let's remove our old snapshots and re-run the test suite.
@@ -21,19 +21,21 @@ ndc-test test --endpoint http://localhost:8080/ --snapshots-dir snapshots
 ```
 
 OR
+
 ```shell
 cargo run --bin ndc-test -- test --endpoint http://localhost:8100 --snapshots-dir snapshots
 ```
 
-We can see that predicate tests are passing, but some other test cases are not. That's okay - we'll keep iterating 
-until we have all green tests here.
+We can see that predicate tests are passing, but some other test cases are not. That's okay - we'll keep iterating until
+we have all green tests here.
 
-[//]: # (TODO predicate tests were passing before)
+[//]: # "TODO predicate tests were passing before"
 
 In our snapshots directory, we can also see that we're returning the correct data for some simple predicate queries.
 This query searches for albums for artist with ID `5`, and we can see that the response contains the correct rows.
 
 Request:
+
 ```JSON
 {
   "collection": "albums",
@@ -75,6 +77,7 @@ Request:
 ```
 
 Response:
+
 ```shell
 [
   {
@@ -134,25 +137,19 @@ Response:
 ]
 ```
 
-Now let's deploy to Hasura and see how the GraphQL schema looks. 
+Now let's deploy to Hasura and see how the GraphQL schema looks.
 
-[//]: # (TODO Need to have the deploy section done)
+[//]: # "TODO Need to have the deploy section done"
 
 Let's add a `where` clause to fetch the albums for artist ID `1`.
 
 We can see that the generated SQL is correct and that we're correctly parameterizing the query as well.
 
-Let's try a query which uses a logical operator in the Hasura DDN GraphiQL console: 
+Let's try a query which uses a logical operator in the Hasura DDN GraphiQL console:
 
 ```graphql
 query MyQuery {
-  albums(where: {
-    _or: [
-      {artist_id: {_eq: 1}}, 
-      {artist_id: {_eq: 2}}, 
-      {artist_id: {_eq: 5}}
-    ]
-  }) {
+  albums(where: { _or: [{ artist_id: { _eq: 1 } }, { artist_id: { _eq: 2 } }, { artist_id: { _eq: 5 } }] }) {
     title
   }
 }
@@ -161,5 +158,5 @@ query MyQuery {
 Again, we generate valid SQL and parameters, although we do have too many parentheses here. That's something we can
 improve later, but it's better to err on the safe side for now.
 
-We've added support for basic where clauses, and we'll come back and fill in some of the missing expression types
-later, but next time, we'll take a look at order by clauses.
+We've added support for basic where clauses, and we'll come back and fill in some of the missing expression types later,
+but next time, we'll take a look at order by clauses.

@@ -16,8 +16,9 @@ keywords:
 
 We're going to add a subgraph to our supergraph.
 
-A [**subgraph**](/project-configuration/subgraphs.mdx) is a way of organizing your data and allows you to connect data
-sources to your supergraph. A supergraph must have at least one subgraph, at least if you want it to do anything. 😉
+A [**subgraph**](/project-configuration/subgraphs.mdx) is a way of organizing your data and allows you to connect
+multiple data sources to your supergraph. A supergraph must have at least one subgraph, at least if you want it to do
+anything. 😉
 
 ## Steps
 
@@ -28,25 +29,42 @@ sources to your supergraph. A supergraph must have at least one subgraph, at lea
 
 :::
 
-Creating a subgraph is simple.
-
 ```bash title="At the root of your project, run:"
-ddn subgraph init my_subgraph
+ddn subgraph init my_subgraph \
+  --dir my_subgraph \
+  --target-supergraph supergraph.local.yaml \
+  --target-supergraph supergraph.cloud.yaml
 ```
 
 The CLI will respond with a success message (and a hint to add a connector to the subgraph).
 
-You can read more about appropriate [subgraph naming](#naming) below.
+We're passing a few values to the `subgraph init` command:
 
-## What did this do?
+**Subgraph name:**
 
-This command creates a sub-directory within your supergraph directory, named after the subgraph you specified. Inside
-this new sub-directory, it also creates an empty `.env.my_subgraph` file.
+We're naming the subgraph `my_subgraph` in this example.
 
-It also added an object including your new subgraph in the `subgraphs` section of your `supergraph.yaml` file, which is
-the configuration file for your supergraph and can be found in the root of your project's directory.
+**Directory: `--dir`**
 
-However, without a data connector in our subgraph it's just a placeholder right now...which doesn't do much.
+We're specifying the directory where the subgraph will be created. The CLI will create this directory.
+
+**Target supergraph: `--target-supergraph`**
+
+For convenience we're specifying the supergraph(s) to which this subgraph will be added. Here we're specifying both our
+local and cloud supergraphs which were created when we initialized our supergraph. The CLI will edit these supergraph
+configuration files and add details of our subgraph to both of them.
+
+## What did `subgraph init` do?
+
+The `subgraph init` command created a new subgraph directory and a `subgraph.yaml` file in the root of the new subgraph
+directory. It also created two environment variable files, one for local and one for cloud, respectively named
+`.env.my_subgraph.local` and `.env.my_subgraph.cloud`.
+
+The CLI also edited the supergraph configuration files to include the new subgraph in both the local and cloud
+supergraphs.
+
+The subgraph is where we will be organizing metadata objects which define our API and without a data connector, our
+subgraph is just a placeholder which doesn't do much, yet...
 
 :::info More about subgraphs
 
@@ -55,8 +73,9 @@ However, without a data connector in our subgraph it's just a placeholder right 
 Subgraphs are used to maintain a logical separation of concerns and/or to allow different teams to work on different
 parts of the supergraph at the same time without stepping on each other's toes. Usually, a subgraph is "owned" and
 maintained by a team that is responsible for the data source, or more broadly: "data domain", that it connects to. And
-by convention, one data domain is allocated to one subgraph. A subgraph is analogous to a microservice owned by a
-particular team.
+by convention, one data domain is allocated to one subgraph.
+
+A subgraph is analogous to a microservice owned by a particular team.
 
 When we talk about data domains, we're talking about the collection of data and operations for one area of the business,
 or team within the business. This could be a single database, a set of databases, a database and business logic, some
@@ -66,7 +85,8 @@ Subgraphs can reference each other, allowing, for example, the creation of relat
 
 The supergraph is the composition of all subgraphs and their relationships, but it does not care how the metadata is
 structured or organized into directories. That is up to the developer. The supergraph only cares that all metadata is
-valid and can be compiled into an API build.
+valid and can be compiled into an API build. The CLI and this documentation will suggest best practices for organizing
+your metadata, but you can organize it however you choose.
 
 Subgraphs have their own permission models and development lifecycles separate to that of the supergraph. They can be
 developed, tested, and built independently while the supergraph guarantees the integrity of subgraph composition.
@@ -90,6 +110,6 @@ the whole project, at least for the time being.
 
 ## Next steps
 
-We now have a subgraph to which we can
-[include and configure a data connector](/getting-started/build/connect-to-data/index.mdx). Data connectors will enable
-you to connect external data sources to your supergraph.
+We now have a subgraph in which we can
+[configure a data connector](/getting-started/build/03-connect-to-data/index.mdx). Data connectors will enable you to
+connect external data sources to your supergraph.
