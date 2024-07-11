@@ -1,30 +1,40 @@
 # Observability
 
-In this tutorial, we're going to take a break from implementing new query features, and implement some features related to _observability_. That is, features allowing us to observe our running connector's behavior in production. The NDC specification defines three observability features which are supported by the Rust and TypeScript SDKs: health checks, metrics and tracing. We'll look at each of these in turn.
+In this tutorial, we're going to take a break from implementing new query features, and implement some features related
+to _observability_. That is, features allowing us to observe our running connector's behavior in production. The NDC
+specification defines three observability features which are supported by the Rust and TypeScript SDKs: health checks,
+metrics and tracing. We'll look at each of these in turn.
 
-_Note_: if you are using a different SDK, or perhaps not using an SDK at all, then the approach taken to these features may be different, but the basic ideas will apply. Consult the [specification](http://hasura.github.io/ndc-spec/) for the low-level details of these features if necessary.
+_Note_: if you are using a different SDK, or perhaps not using an SDK at all, then the approach taken to these features
+may be different, but the basic ideas will apply. Consult the [specification](http://hasura.github.io/ndc-spec/) for the
+low-level details of these features if necessary.
 
 ## Health Checks
 
-The simplest observability feature is the [service health endpoint](https://hasura.github.io/ndc-spec/specification/health.html), which performs some basic sanity checks on the state of the connector. This endpoint can be polled in order to set up alerts in case of failures.
+The simplest observability feature is the
+[service health endpoint](https://hasura.github.io/ndc-spec/specification/health.html), which performs some basic sanity
+checks on the state of the connector. This endpoint can be polled in order to set up alerts in case of failures.
 
-For example, running the `docker compose up` command will build and start the connector, and the `Dockerfile` is configured to poll the health endpoint to determine the service health of the connector.
+For example, running the `docker compose up` command will build and start the connector, and the `Dockerfile` is
+configured to poll the health endpoint to determine the service health of the connector.
 
-To implement the health check endpoint using the TypeScript SDK, we only have to implement the `healthCheck` function. In our case, we'll issue a very simple request to the database, to make sure we can connect:
+To implement the health check endpoint using the TypeScript SDK, we only have to implement the `healthCheck` function.
+In our case, we'll issue a very simple request to the database, to make sure we can connect:
 
 ```typescript
 async function healthCheck(configuration: Configuration, state: State): Promise<undefined> {
-    try {
-        await state.db.all("SELECT 1");
-    } catch (x) {
-        throw new ConnectorError(503, "Service Unavailable");
-    }
+  try {
+    await state.db.all("SELECT 1");
+  } catch (x) {
+    throw new ConnectorError(503, "Service Unavailable");
+  }
 }
 ```
 
 ## Metrics
 
-Next, we'll add some metrics which will be reported to the [metrics endpoint](https://hasura.github.io/ndc-spec/specification/metrics.html).
+Next, we'll add some metrics which will be reported to the
+[metrics endpoint](https://hasura.github.io/ndc-spec/specification/metrics.html).
 
 Metrics can be polled directly (for example, try `watch 'curl http://localhost:8080/metrics | tail -10'` in your
 terminal to see the raw data), or picked up by a Prometheus collector. The Docker compose project is configured with
@@ -34,17 +44,17 @@ We add metrics by modifying our `tryInitState` function, which receives the metr
 
 ```typescript
 async function tryInitState(configuration: Configuration, registry: Registry): Promise<State> {
-    // ...
+  // ...
 
-    const query_count = new Counter({
-        name: 'query_count',
-        help: 'Number of queries executed since the connector was started',
-        labelNames: ["table"]
-    });
-    registry.registerMetric(query_count);
-    const metrics = { query_count };
+  const query_count = new Counter({
+    name: "query_count",
+    help: "Number of queries executed since the connector was started",
+    labelNames: ["table"],
+  });
+  registry.registerMetric(query_count);
+  const metrics = { query_count };
 
-    return { db, metrics };
+  return { db, metrics };
 }
 ```
 
@@ -67,12 +77,17 @@ which will send a new trace span to the trace reporter corresponding to the time
 
 ```typescript
 const spanAttributes = { sql };
-    const tracer = opentelemetry.trace.getTracer("ndc-learn");
+const tracer = opentelemetry.trace.getTracer("ndc-learn");
 
-    return withActiveSpan(tracer, "run SQL", async () => {
-        const rows = await state.db.all(sql, ...parameters);
-        return rows.map((row) => postprocess_fields(query, collection_relationships, row))
-    }, spanAttributes);
+return withActiveSpan(
+  tracer,
+  "run SQL",
+  async () => {
+    const rows = await state.db.all(sql, ...parameters);
+    return rows.map((row) => postprocess_fields(query, collection_relationships, row));
+  },
+  spanAttributes,
+);
 ```
 
 Note that we can also attach _attributes_ to the span, so here we attach the generated SQL, so that we can use it for
