@@ -38,3 +38,86 @@ configs for building for local or Hasura DDN, you can add as many `Connector` ob
 configurations for building your connector.
 
 ## Metadata structure
+
+### Supergraph {#supergraph-supergraph}
+
+Defines the configuration used to build the Supergraph.
+
+| Key          | Value                                                        | Required | Description |
+| ------------ | ------------------------------------------------------------ | -------- | ----------- |
+| `kind`       | `Supergraph`                                                 | true     |             |
+| `version`    | `v2`                                                         | true     |             |
+| `definition` | [SupergraphDefinitionV2](#supergraph-supergraphdefinitionv2) | true     |             |
+
+#### SupergraphDefinitionV2 {#supergraph-supergraphdefinitionv2}
+
+Supergraph Definition V2.
+
+| Key         | Value    | Required | Description                      |
+| ----------- | -------- | -------- | -------------------------------- |
+| `subgraphs` | [string] | true     | Paths to subgraph configuration. |
+
+### Subgraph {#subgraph-subgraph}
+
+Defines the configuration used to build the Subgraph.
+
+| Key          | Value                                                  | Required | Description |
+| ------------ | ------------------------------------------------------ | -------- | ----------- |
+| `kind`       | `Subgraph`                                             | true     |             |
+| `version`    | `v1`                                                   | true     |             |
+| `definition` | [SubgraphDefinitionV1](#subgraph-subgraphdefinitionv1) | true     |             |
+
+#### SubgraphDefinitionV1 {#subgraph-subgraphdefinitionv1}
+
+Subgraph Definition.
+
+| Key            | Value                                                        | Required | Description                                          |
+| -------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------- |
+| `generator`    | [SubgraphGeneratorConfig](#subgraph-subgraphgeneratorconfig) | true     | Subgraph generator Configuration.                    |
+| `envFile`      | string                                                       | false    | Path to the Subgraph .env file.                      |
+| `includePaths` | [string]                                                     | true     | Paths to be included to construct Subgraph metadata. |
+| `name`         | string                                                       | true     | Subgraph Name.                                       |
+
+#### SubgraphGeneratorConfig {#subgraph-subgraphgeneratorconfig}
+
+Subgraph generator Configuration.
+
+| Key                      | Value  | Required | Description                                                  |
+| ------------------------ | ------ | -------- | ------------------------------------------------------------ |
+| `rootPath`               | string | true     | Path to the directory which holds all the Subgraph metadata. |
+| `graphqlRootFieldPrefix` | string | false    | Prefix to use while generating GraphQL root fields.          |
+| `graphqlTypeNamePrefix`  | string | false    | Prefix to use while generating GraphQL type names.           |
+| `namingConvention`       | string | false    |                                                              |
+
+### Connector {#connector-connector}
+
+Defines the configuration used to build the connector.
+
+| Key          | Value                                                     | Required | Description |
+| ------------ | --------------------------------------------------------- | -------- | ----------- |
+| `kind`       | `Connector`                                               | true     |             |
+| `version`    | `v1`                                                      | true     |             |
+| `definition` | [ConnectorDefinitionV1](#connector-connectordefinitionv1) | true     |             |
+
+#### ConnectorDefinitionV1 {#connector-connectordefinitionv1}
+
+Connector deployment definition.
+
+| Key                   | Value                                                   | Required | Description                               |
+| --------------------- | ------------------------------------------------------- | -------- | ----------------------------------------- |
+| `name`                | string                                                  | true     | Connector name.                           |
+| `subgraph`            | string                                                  | false    | DDN project subgraph name.                |
+| `source`              | string                                                  | true     | Connector Hub ID.                         |
+| `context`             | string                                                  | true     | Path to the context directory.            |
+| `envFile`             | string                                                  | false    | Path to the shared .env file.             |
+| `regionConfiguration` | [[RegionConfiguration](#connector-regionconfiguration)] | false    | Connector deployment Region configuration |
+
+#### RegionConfiguration {#connector-regionconfiguration}
+
+Connector deployment Region Configuration.
+
+| Key       | Value                    | Required | Description                        |
+| --------- | ------------------------ | -------- | ---------------------------------- |
+| `region`  | string                   | true     | Region to deploy the connector to. |
+| `mode`    | `ReadOnly` / `ReadWrite` | true     | Connector deployment mode.         |
+| `envFile` | string                   | false    | Path to the regional .env file.    |
