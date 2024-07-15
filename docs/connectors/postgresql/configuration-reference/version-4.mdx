@@ -637,7 +637,7 @@ default this field is omitted, resulting in no mutations being generated.
 Introduction and removal of supported mutations versions will only happen in the context of a version bump of the main
 configuration.
 
-The currently supported value is `"v1"`.
+The currently supported value are `"v1"`, `"v2"`.
 
 ### `mutationsVersion: "v1"`
 
@@ -650,6 +650,58 @@ with a single argument `my_id_column` of type equal to that of the column. The m
 table, allowing selection of fields from the row that was deleted.
 
 This version of mutations does not support filter-based permissions.
+
+### `mutationsVersion: "v2"`
+
+:::info
+
+Supported since data connector version `v0.8.0`
+
+:::
+
+"v2" of auto-generated mutations introduces insert, delete and update point mutations per table that include permission arguments.
+
+We generate the following procedures:
+
+* A single insert procedure is generated per table, and has the following form:
+
+  ```graphql
+  v2_insert_<table>(
+      objects: [<table-object>],
+      post_check: <boolexpr>
+  )
+  ```
+  Using it, we can insert multiple objects and include a post check for permissions.
+
+* A delete procedure is generated per table X unique constraint, and has the following form:
+
+  ```graphql
+  v2_delete_<table>_by_<column_and_...>(
+      key_<column1>: <value>,
+      key_<column2>: <value>,
+      ...,
+      pre_check: <boolexpr>
+  )
+  ```
+  Using it, we can delete a single row using the uniqueness constraint, and include a pre check for permissions.
+
+* An update procedure is generated per table X unique constraint, and has the following form:
+
+  ```graphql
+  v2_update_<table>_by_<column_and_...>(
+      key_<column1>: <value>,
+      key_<column2>: <value>,
+      ...,
+      update_columns: { <column>: { _set: <value> }, ... },
+      pre_check: <boolexpr>,
+      post_check: <boolexpr>
+  )
+  ```
+  Using it, we can update a single row using the uniqueness constraint by updating the relevant columns,
+  and include a pre check and post check for permissions.
+
+For each `pre_check` and `post_check` arguments of a mutation, an [Argument Preset](/supergraph-modeling/permissions#commandpermissions-argumentpreset)
+should be set in the mutation's [Command Permissions](/supergraph-modeling/permissions#commandpermissions-commandpermission).
 
 [Configuration JSON Schema]: https://github.com/hasura/ndc-postgres/blob/main/static/schema.json
 [NDC Postgres Issue Tracker]: http://github.com/hasura/ndc-postgres/issues
