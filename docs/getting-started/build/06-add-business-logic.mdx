@@ -31,6 +31,7 @@ and resulting API. This process enables you to simplify client applications and 
 - [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
 - At least one [subgraph](/getting-started/build/02-init-subgraph.mdx)
+- [Node.js](https://nodejs.org/en) version `>=20.0.0`
 
 :::
 
@@ -52,8 +53,7 @@ hub:
 ddn connector init my_ts \
   --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/nodejs \
-  --configure-port 8083 \
-  --add-to-compose-file compose.yaml
+  --configure-port 8086
 ```
 
 In this command, we're passing a few important values.
@@ -73,12 +73,6 @@ We're specifying the port to run the connector on. This is important to avoid po
 services which you might have running on your machine. Remember to use a different port for each connector you may have
 running.
 
-**Compose file: `--add-to-compose-file`**
-
-We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors
-together.
-
 :::tip Best practices
 
 Importantly, a data connector can only connect to one data source.
@@ -87,15 +81,15 @@ The project will be kept organized with each data connector's configuration loca
 this example the CLI will create a `my_subgraph/connector/my_ts` directory if it doesn't exist. You can also change this
 directory by passing a `--dir` flag to the CLI.
 
-The name of the connector and the directory in which the configuration is stored, `my_ts` in this example, should match
-for convenience and clarity sake.
+We recommend that the name of the connector and the directory in which the configuration is stored, `my_ts` in this
+example, should match for convenience and clarity sake.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
 string you provide in your subgraph's `.env.my_subgraph` file.
 
 :::
 
-### What did this do?
+#### What did this do?
 
 This command created the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts`
 file being your connector's entrypoint:
@@ -103,10 +97,14 @@ file being your connector's entrypoint:
 ```bash
 .
 ├── .ddnignore
+├── .env.cloud
 ├── .env.local
+├── .gitignore
 ├── .hasura-connector
-├── connector.yaml
-├── docker-compose.my_ts.yaml
+│  ├── ...
+├── compose.yaml
+├── connector.cloud.yaml
+├── connector.local.yaml
 # highlight-start
 ├── functions.ts
 # highlight-end
@@ -120,20 +118,22 @@ file being your connector's entrypoint:
 As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
 functions into `hml` commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
-```bash title="From the root of your project, run:"
+```bash title="Run the following from the root of your project:"
 ddn connector-link add my_ts \
   --subgraph my_subgraph/subgraph.yaml \
+  --configure-host http://local.hasura.dev:8086 \
+  --target-env-file my_subgraph/.env.my_subgraph.local
 ```
 
-The `--configure-host` convenience flag added the read and write URL for the connect to the `.env.my_subgraph` file for
-us.
+The `--configure-host` convenience flag added the read and write URL for the connection to the `.env.my_subgraph` file
+for us.
 
 ```env title="Example .env.my_subgraph file"
-MY_SUBGRAPH_MY_TS_READ_URL="http://local.hasura.dev:8083"
-MY_SUBGRAPH_MY_TS_WRITE_URL="http://local.hasura.dev:8083"
+MY_SUBGRAPH_MY_TS_READ_URL="http://local.hasura.dev:8086"
+MY_SUBGRAPH_MY_TS_WRITE_URL="http://local.hasura.dev:8086"
 ```
 
-These values are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
+These keys are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
 
 ### Step 3. Install npm package dependencies
 
@@ -150,9 +150,10 @@ from the `. env.local` file, start the connector, and watch for any changes:
 npx dotenv -e .env.local -- npm run watch
 ```
 
-:::info Node.js version
+:::warning Node.js version
 
-The `hasura/nodejs` connector uses Node.js version `>=20`. Please make sure you have the correct version installed.
+The `hasura/nodejs` connector requires [Node.js](https://nodejs.org/en) version `>=20.0.0`. Please make sure you have
+the correct version installed.
 
 :::
 
@@ -216,7 +217,9 @@ ddn connector-link update my_ts \
 Next, let's create a new build of our supergraph:
 
 ```bash
-ddn supergraph build local --output-dir ./engine
+ddn supergraph build local \
+  --output-dir engine \
+  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
 ```
 
 :::tip Start your engines!
@@ -233,8 +236,14 @@ access to the DDN CLI's authentication token.
 :::
 
 You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
-to access at `https://console.hasura.io/local/graphql?url=http://localhost:3000`. You can then test your new command
-with a string such as: `"2024-03-14T08:00:00Z"`.
+to access at
+[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000).
+
+```graphql title=" You can then test your new command with the following query:"
+query MyQuery {
+  mySubgraph_formatTimezoneDate(dateString: "2024-03-14T08:00:00Z")
+}
+```
 
 <Thumbnail
   src="/img/get-started/beta/console_business_logic_demo_query.png"
@@ -253,6 +262,25 @@ browsers for the best experience with the Hasura Console including for local dev
 
 :::
 
+:::note Running Node.js in Docker
+
+As you can see we're running Node.js and your functions directly on your own machine. You can also run your functions in
+a Docker container along with your other Hasura services. The `connector init` command created a `Dockerfile` and a
+`compose.yaml` file for you, so all you would need to do would be to:
+
+- Make sure your port in your connector's `.env.local` and the one referenced in the
+  `my_subgraph/connector/my_ts/compose.yaml` file `ports:published` field match and don't conflict with any other
+  services you may need to run.
+- Add the Node.js Lambda connector compose file to the main compose file in the root of the project if you want them to
+  start all together. Eg:
+
+```yaml title="At the top of the root compose.yaml"
+include:
+  - path: my_subgraph/connector/my_ts/compose.yaml
+```
+
+:::
+
 ## What did this do?
 
 The commands above initialized a new Node.js Lambda connector, installed dependencies, and created a new function to
@@ -261,9 +289,9 @@ and created a new build of our supergraph.
 
 ## Next Steps
 
-You can also create relationships between types in your supergraph and your commands. This enables you to pair custom
-business logic with — for example — database tables, and then transform or enrich data before sending it back to your
-consumers.
+You can also [create relationships](/getting-started/build/07-create-a-relationship.mdx) between types in your
+supergraph and your commands. This enables you to pair custom business logic with — for example — database tables, and
+then transform or enrich data before sending it back to your consumers.
 
 You can learn more about creating these and other relationships on the
 [next page](/getting-started/build/07-create-a-relationship.mdx), or you can learn about

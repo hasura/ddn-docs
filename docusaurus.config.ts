@@ -69,7 +69,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x beta',
+              label: 'v3.x',
               badge: true,
             },
           },
