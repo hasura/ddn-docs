@@ -91,7 +91,7 @@ specified port.
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the OpenAPI document. That's coming up in the next steps.
 
-## Step 2. Add the OpenAPI connection URI or file
+## Step 2. Specifying the OpenAPI document location
 
 Now that our OpenAPI data connector has been scaffolded out for us, we need to provide it a **connection string** or
 **swagger file** of the OpenAPI document for the service.
@@ -101,13 +101,11 @@ variable which should point to the OpenAPI document. If you're using a file inst
 that it is named `swagger.json` and is present in the root directory of the volume which is mounted to
 `/etc/connector` (for this tutorial, the `swagger.json` file should be present at `my_subgraph/connector/my_openapi/`).
 
-The `.env.local` file should look like this:
-
 ```text
-OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
-OTEL_SERVICE_NAME=my_subgraph_my_openapi
 NDC_OAS_DOCUMENT_URI=<your-openapi-document-uri>
 ```
+
+This OpenAPI document is only used in the next, `connector introspect` step to generate the TypeScript files.
 
 :::tip Need a test OpenAPI document URI?
 
@@ -121,26 +119,36 @@ https://petstore3.swagger.io/api/v3/openapi.json
 
 ### Specifying the OpenAPI base URL
 
-You can add the `NDC_OAS_BASE_URL` optional environment variable to the `.env.local` file. This should point to the
-base URL of the API. Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` This will be used as a string
-literal in the `functions.ts` file which we'll generate in the next step to make API calls.
+You can also add the `NDC_OAS_BASE_URL` optional environment variable to the `.env.local` file. This should point to the
+**base URL** of the API. Eg: `NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3` This will then be used as a string
+literal in the `functions.ts` file which will be generated in the next step in order for our functions to make API
+calls.
 
-Alternatively, you can edit this value directly at the top of the `functions.ts` file manually later. Eg:
+eg:
+
+```text
+NDC_OAS_BASE_URL=https://petstore3.swagger.io/api/v3/openapi.json
+```
+
+_Alternatively_, you can edit this value directly at the top of the `functions.ts` file manually later. Eg:
+
 ```typescript
 const api = new Api({
   baseUrl: "https://petstore3.swagger.io/api/v3",
 });
 ```
 
+You can also implement additional logic in the `functions.ts` file to handle different endpoints or headers.
+
 ### Additional environment variables
 
 The OpenAPI connector can also be configured with the following **extra optional environment variables**:
 
-- `NDC_OAS_FILE_OVERWRITE` (optional): A Boolean flag to allow previously generated files to be over-written.
+- `NDC_OAS_FILE_OVERWRITE` (optional): A Boolean flag to allow previously generated files to be overwritten.
 Defaults to `false`.
 - `HASURA_PLUGIN_LOG_LEVEL` (optional): The log level. Possible values: `trace`, `debug`, `info`, `warn`, `error`,
 `fatal`, `panic`. Defaults to `info`
-- `NDC_OAS_LAMBDA_PRETTY_LOGS` (optional): A Boolean flag to print human readable logs instead of JSON. Defaults to
+- `NDC_OAS_LAMBDA_PRETTY_LOGS` (optional): A Boolean flag to print human-readable logs instead of JSON. Defaults to
 `false`
 
 These environment variables are already referenced in the scaffolded out
@@ -170,6 +178,15 @@ extra business logic.
 :::tip o11y via OpenTelemetry
 
 Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
+
+:::
+
+:::note Regenerating the functions file
+
+The introspection process checks to see if there are any changes in the `api.ts` file in order to determine if it needs
+to regenerate files. If you make changes to the `api.ts` file, you can run the `connector introspect`
+command again to regenerate the files again. They will only be overwritten if the `NDC_OAS_FILE_OVERWRITE` environment
+variable is set to `true`.
 
 :::
 
