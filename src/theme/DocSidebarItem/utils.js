@@ -23,6 +23,7 @@ import Community from '@site/static/icons/announcement-02.svg';
 import Actions from '@site/static/icons/features/actions.svg';
 import Help from '@site/static/icons/features/hasura_policies.svg';
 import Billing from '@site/static/icons/features/credit-card-check.svg';
+import Deployment from '@site/static/icons/features/deployment.svg';
 
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
@@ -101,6 +102,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'help-icon':
       icons = <Help />;
+      break;
+    case 'deployment':
+      icons = <Deployment />;
       break;
   }
 
