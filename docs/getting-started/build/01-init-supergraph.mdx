@@ -68,6 +68,34 @@ HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 
 </details>
 
+<details>
+  <summary>
+    Running the Docker daemon as a non-root user
+  </summary>
+  If you're running the Docker daemon as a non-root user (rootless mode), `v26.0` now allows you to disable the default
+  `host-loopback-isolation` which prevents communication back to the host machine.
+
+  To disable this feature, set the environment variable `DOCKERD_ROOTLESS_ROOTLESSKIT_DISABLE_HOST_LOOPBACK` to `false`
+  before starting the daemon.
+
+  This will now allow container-to-host communication via `10.0.2.2` address.
+
+  You should also amend this line in your `compose.yaml` files for both the main services and connectors to reflect this
+  change:
+
+  ```yaml
+  extra_hosts:
+  - local.hasura.dev=host-gateway
+  ```
+
+  to:
+
+  ```yaml
+  extra_hosts:
+  - local.hasura.dev=10.0.2.2
+  ```
+</details>
+
 ### Step 3. View your supergraph API
 
 You can now navigate to:
