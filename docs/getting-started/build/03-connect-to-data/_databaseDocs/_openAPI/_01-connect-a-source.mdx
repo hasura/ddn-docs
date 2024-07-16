@@ -7,8 +7,8 @@ To do this, we use the Hasura [OpenAPI Lambda data connector](https://github.com
 facilitate the connection. Then, with the Hasura CLI, we introspect the OpenAPI document to generate Typescript
 functions, and then use those to create Hasura metadata which defines our API.
 
-In addition, once we've generated functions from our OpenAPI document, we can modify them or add new ones to
-implement additional business logic.
+In addition, once we've generated functions from our OpenAPI document, we can modify them or add new ones to implement
+additional business logic.
 
 ## Step 1. Initialize the OpenAPI connector
 
@@ -34,9 +34,9 @@ With this `connector init` command, we're passing a few important values.
 
 **Connector name**
 
-We're naming the connector `my_openapi` in this example, but you can call it whatever makes sense to you. For
-example, if this connector is integrating an OpenAPI API regarding payments, it would make sense to name it
-something like `payments_api`.
+We're naming the connector `my_openapi` in this example, but you can call it whatever makes sense to you. For example,
+if this connector is integrating an OpenAPI API regarding payments, it would make sense to name it something like
+`payments_api`.
 
 **Subgraph: `--subgraph`**
 
@@ -50,8 +50,8 @@ We're specifying that this connector should be the: `hasura/openapi`, connector 
 **Port: `configure-port`**
 
 We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
-services which you might have running on your machine. Remember to use a different port for each connector or
-service you may have running.
+services which you might have running on your machine. Remember to use a different port for each connector or service
+you may have running.
 
 **Compose file: `--add-to-compose-file`**
 
@@ -81,8 +81,8 @@ In the `my_subgraph/connector/my_openapi` directory which we specified in the co
 - A `connector.local.yaml` file which contains the local configuration for the connector.
 - A `connector.cloud.yaml` file which contains the cloud configuration for the connector.
 - A `.hasura-connector/connector-metadata.yaml` file which contains extra metadata for the connector.
-- A `docker-compose.my_openapi.yaml` a file to run the OpenAPI data connector locally in Docker. Includes the
-specified port.
+- A `docker-compose.my_openapi.yaml` a file to run the OpenAPI data connector locally in Docker. Includes the specified
+  port.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
 - A `compose.yaml` file which includes the connector's Docker compose file.
 - An `.env.local` placeholder file for environment variables for pertaining to running this connector locally.
@@ -97,9 +97,9 @@ Now that our OpenAPI data connector has been scaffolded out for us, we need to p
 **swagger file** of the OpenAPI document for the service.
 
 In the `.env.local` file which the CLI has provided for our connector, we can add the `NDC_OAS_DOCUMENT_URI` environment
-variable which should point to the OpenAPI document. If you're using a file instead of a HTTP link, please ensure
-that it is named `swagger.json` and is present in the root directory of the volume which is mounted to
-`/etc/connector` (for this tutorial, the `swagger.json` file should be present at `my_subgraph/connector/my_openapi/`).
+variable which should point to the OpenAPI document. If you're using a file instead of a HTTP link, please ensure that
+it is named `swagger.json` and is present in the root directory of the volume which is mounted to `/etc/connector` (for
+this tutorial, the `swagger.json` file should be present at `my_subgraph/connector/my_openapi/`).
 
 ```text
 NDC_OAS_DOCUMENT_URI=<your-openapi-document-uri>
@@ -144,12 +144,12 @@ You can also implement additional logic in the `functions.ts` file to handle dif
 
 The OpenAPI connector can also be configured with the following **extra optional environment variables**:
 
-- `NDC_OAS_FILE_OVERWRITE` (optional): A Boolean flag to allow previously generated files to be overwritten.
-Defaults to `false`.
+- `NDC_OAS_FILE_OVERWRITE` (optional): A Boolean flag to allow previously generated files to be overwritten. Defaults to
+  `false`.
 - `HASURA_PLUGIN_LOG_LEVEL` (optional): The log level. Possible values: `trace`, `debug`, `info`, `warn`, `error`,
-`fatal`, `panic`. Defaults to `info`
+  `fatal`, `panic`. Defaults to `info`
 - `NDC_OAS_LAMBDA_PRETTY_LOGS` (optional): A Boolean flag to print human-readable logs instead of JSON. Defaults to
-`false`
+  `false`
 
 These environment variables are already referenced in the scaffolded out
 `my_subgraph/connector/my_openapi/.hasura-connector/connector-metadata.yaml` file.
@@ -158,22 +158,21 @@ These environment variables are already referenced in the scaffolded out
 
 This will introspect your OpenAPI document and files required to run the Typescript project.
 
-
 ```bash
 ddn connector introspect --connector my_subgraph/connector/my_openapi/connector.local.yaml
 ```
 
 ## What did `connector introspect` do?
 
-We specify the connector that we want to introspect with the `--connector` flag and provide it with the location of
-that `connector.local.yaml` configuration file.
+We specify the connector that we want to introspect with the `--connector` flag and provide it with the location of that
+`connector.local.yaml` configuration file.
 
 The CLI will introspect the OpenAPI document and create an `api.ts` file, a `functions.ts` file and other supporting
 files in the `my_subgraph/connector/my_openapi` directory.
 
 - The `api.ts` file contains the Data Types and API calls from the OpenAPI document.
 - The `functions.ts` file contains functions that wrap API calls. You can modify this `functions.ts` file to introduce
-extra business logic.
+  extra business logic.
 
 :::tip o11y via OpenTelemetry
 
@@ -184,32 +183,31 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 :::note Regenerating the functions file
 
 The introspection process checks to see if there are any changes in the `api.ts` file in order to determine if it needs
-to regenerate files. If you make changes to the `api.ts` file, you can run the `connector introspect`
-command again to regenerate the files again. They will only be overwritten if the `NDC_OAS_FILE_OVERWRITE` environment
-variable is set to `true`.
+to regenerate files. If you make changes to the `api.ts` file, you can run the `connector introspect` command again to
+regenerate the files again. They will only be overwritten if the `NDC_OAS_FILE_OVERWRITE` environment variable is set to
+`true`.
 
 :::
 
 ## Step 4. Restart the services
 
-Let's restart our docker compose services so that Docker can create a OpenAPI connector build for us now that we've
-added and introspected the connector.
+Let's restart our docker compose services so that Docker can create an OpenAPI connector build for us now that we've
+added and introspected the connector. **If you have existing services running, bring them down using
+`docker compose down` or `CTRL` + `C` if your terminal tab is still actively logging information.**
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 ```
 
-This starts our Hasura Engine, observability tools and the OpenAPI connector all together since we added the
-connector's Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag when we
-initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's
-authentication token.
+This starts our Hasura Engine, observability tools and the OpenAPI connector all together since we added the connector's
+Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag when we initialized the
+connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's authentication token.
 
 We can navigate to the following address, with the port modified, to see the schema of our PostgreSQL database:
 
 ```text
 http://localhost:8086/schema
 ```
-
 
 ## Next steps
 
