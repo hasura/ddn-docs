@@ -38,51 +38,24 @@ the [supported regions](#supported-regions).
 ## Configuration
 
 If you don't have a project setup that lets you query PostgreSQL, please follow
-[this guide](/getting-started/overview.mdx). Once you have a working project, you can modify the `ConnectorManifest`
-configuration as per the highlighted values in the example below to enable multi-region routing.
+[this guide](/getting-started/overview.mdx). Once you have a working project, you can modify the `Connector` object as
+per the highlighted values in the example below to enable multi-region routing.
 
-```yaml
-kind: ConnectorManifest
+```yaml title="For example, in my_subgraph/connector/my_connector/connector.yaml:"
+kind: Connector
 version: v1
-spec:
-  supergraphManifests:
-    - base
 definition:
-  name: mypg
-  type: cloud
-  connector:
-    type: hub
-    name: hasura/postgres:v0.6.0
-  deployments:
-    - context: .
-      // highlight-start
+  name: my_connector
+  subgraph: my_subgraph
+  source: hasura/connector_name:<version>
+  context: .
+  envFile: .env.cloud
+  #highlight-start
+  regionConfiguration:
+    - region: <region from the list below>
       mode: ReadWrite
-      region: gcp-us-west2
-      // highlight-end
-      env:
-        CONNECTION_URI:
-          valueFrom: CONNECTION_URI_FOR_READ_WRITE_REPLICA
-    - context: .
-      // highlight-start
-      mode: ReadOnly
-      region: gcp-us-east4
-      // highlight-end
-      env:
-        CONNECTION_URI:
-          valueFrom: CONNECTION_URI_FOR_READ_REPLICA_IN_US_EAST4
-    - context: .
-      // highlight-start
-      mode: ReadOnly
-      region: gcp-europe-west1
-      // highlight-end
-      env:
-        CONNECTION_URI:
-          valueFrom: CONNECTION_URI_FOR_READ_REPLICA_IN_EUROPE_WEST1
+  #highlight-end
 ```
-
-In the above configuration example, Hasura DDN will route all the write queries (mutations) to the PostgreSQL database
-in the `gcp-us-west2` region and the read queries (queries and subscriptions) to either `gcp-us-east4` or
-`gcp-europe-west1` based on the geolocation of the client.
 
 ## Supported regions
 
