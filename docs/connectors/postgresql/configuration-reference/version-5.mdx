@@ -1,6 +1,6 @@
 ---
-sidebar_position: 2
-sidebar_label: Version 4
+sidebar_position: 3
+sidebar_label: Version 5
 description:
   "Reference documentation for the setup process for the Hasura PostgreSQL connector, including connection URI details,
   native queries, and mutations."
@@ -18,33 +18,18 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-# Configuration Reference, Version 4
+# Configuration Reference, Version 5
 
 :::info
 
-Supported since data connector version `v0.7.0`
-
-:::
-
-:::warning Deprecated
-
-This configuration version is deprecated and should be [upgraded to the latest version](./index.mdx#upgradingTheConfigurationFormatVersion).
+Supported since data connector version `v1.0.0.0`
 
 :::
 
 ## Changes from the previous version
 
-In version 3 scalar types were identified directly by their unqualified name, precluding the use of database schemas for
-namespacing.
-
-Version 4 introduces tracking of schemas for scalar types and complex types (of non-table provenance). Because of this,
-a scalar type may now be identified by a bespoke name (typically `<schema_name>_<type name>`) in the resulting ndc
-schema, similar to tables.
-
-Along with this change the metadata declarations of comparison operators and aggregation functions are co-located with
-the scalar type they operate on.
-
-Version 4 now also support discovering non-table complex types during introspection.
+Version 5 separates the `nativeQueries` into two fields, `queries` and `mutations`, and nests them under `nativeOperations`,
+as well as nested `scalarTypes` and `compositeTypes` under `types` and renames them to `scalar` and `composite` respectively.
 
 ## The initial configuration
 
@@ -53,7 +38,7 @@ here in abbreviated form:
 
 ```yaml
 {
-  "version": "4",
+  "version": "5",
   "$schema": "./schema.json",
   "connectionSettings":
     {
@@ -69,7 +54,12 @@ here in abbreviated form:
         },
     },
   "mutationsVersion": null,
-  "metadata": { "tables": {}, "compositeTypes": {}, "nativeQueries": {}, "scalarTypes": {} },
+  "metadata":
+    {
+      "tables": {},
+	  "nativeOperations": { "queries": {}, "mutations": {} },
+	  "types": { "scalar": {}, "composite": {} }
+	},
   "introspectionOptions":
     {
       "excludedSchemas":
@@ -101,13 +91,13 @@ The very minimal configuration that is acceptable elides all fields that have de
 and `connectionUri` fields:
 
 ```yaml
-{ "version": "4", "connectionSettings": { "connectionUri": { "value": "postgres://..." } } }
+{ "version": "5", "connectionSettings": { "connectionUri": { "value": "postgres://..." } } }
 ```
 
 or, to get the connection uri from an environment variable:
 
 ```yaml
-{ "version": "4", "connectionSettings": { "connectionUri": { "variable": "CONNECTION_URI" } } }
+{ "version": "5", "connectionSettings": { "connectionUri": { "variable": "CONNECTION_URI" } } }
 ```
 
 Note that the choice of environment variable name `CONNECTION_URI` is only a matter of convention. Any environment
@@ -115,7 +105,7 @@ variable can be used.
 
 ## `version`
 
-This version uses the string-value `"4"`.
+This version uses the string-value `"5"`.
 
 ## `connectionSettings`
 
@@ -258,20 +248,19 @@ Valid column types include all of scalar types, (single-dimension) array types, 
 "type": { "arrayType": { "compositeType": "person_address" } }
 ```
 
-### `nativeQueries`
+### `nativeOperations`
 
-The `nativeQueries` field collects user-specified SQL queries that that may become either queryable collections or
+The `queries` and `mutations` fields collect user-specified SQL queries that that may become either queryable collections or
 mutations in the generated connector schema.
 
 Each query is specified as SQL, and the types of any query arguments and result columns must be specified explicitly.
 
 The following fields should be specified for a Native Operation entry:
 
-- `sql`: SQL expression to use for the Native Query. We can interpolate values using `{{variable_name}}` syntax,
+- `sql`: SQL expression to use for the Native Operation. We can interpolate values using `{{variable_name}}` syntax,
    such as `SELECT * FROM authors WHERE name = {{author_name}}`.
    Can be specify either a path to file in the connector configuration directory with `{ "file": "<file>" }`,
    or an inline SQL query such as `{ "inline": "SELECT 1 as one" }`.
-- `isProcedure`: True if this native operation mutates the database.
 - `columns`: The returning columns from the Native Operation.
 - `arguments`: Names and types of arguments that can be passed to this Native Operation.
 - `description`: Information about the Native Operation.
@@ -279,9 +268,8 @@ The following fields should be specified for a Native Operation entry:
 **Example**
 
 ```json
-"nativeQueries": {
+"queries": {
   "artist_below_id": {
-    "isProcedure": false,
     "sql": {
       "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
     },
@@ -316,9 +304,13 @@ a native query argument are value expressions and cannot be used in the place of
 
 See also the main [Native Operations](/connectors/postgresql/native-operations/) documentation.
 
-### `compositeTypes`
+### `types`
 
-The `compositeTypes` field collects information on all explicitly defined composite types (i.e., those that do not arise
+Information pertaining the database types used by the connector.
+
+#### `types.composite`
+
+The `composite` field collects information on all explicitly defined composite types (i.e., those that do not arise
 implicitly from a table).
 
 **Example**
@@ -348,7 +340,7 @@ CREATE TYPE person AS
 The introspection process will generate the corresponding metadata declarations:
 
 ```yaml
-"compositeTypes":
+"composite":
   {
     "person":
       {
@@ -386,9 +378,9 @@ The introspection process will generate the corresponding metadata declarations:
   }
 ```
 
-### `scalarTypes`
+#### `types.scalar`
 
-The `metadata.scalarTypes` field captures the scalar types that end up appearing in the data connector schema and their
+The `metadata.types.scalar` field captures the scalar types that end up appearing in the data connector schema and their
 associated comparison operators and aggregation functions.
 
 The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
@@ -397,7 +389,7 @@ input argument appear in the metadata.
 **Example**
 
 ```yaml
-"scalarTypes":
+"scalar":
   {
     "bool":
       {
@@ -643,7 +635,7 @@ default this field is omitted, resulting in no mutations being generated.
 Introduction and removal of supported mutations versions will only happen in the context of a version bump of the main
 configuration.
 
-The currently supported value are `"v1"`, `"v2"`.
+The currently supported value are `"v1"`, `"v2"`, where the latest version is preferred.
 
 ### `mutationsVersion: "v1"`
 
@@ -658,12 +650,6 @@ table, allowing selection of fields from the row that was deleted.
 This version of mutations does not support filter-based permissions.
 
 ### `mutationsVersion: "v2"`
-
-:::info
-
-Supported since data connector version `v0.8.0`
-
-:::
 
 "v2" of auto-generated mutations introduces insert, delete and update point mutations per table that include permission arguments.
 
