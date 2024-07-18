@@ -21,9 +21,101 @@ seoFrontMatterUpdated: true
 ## Introduction
 
 Hasura provides powerful tools to control filtering and selecting data. Boolean expression types let us control which
-filters are available for a model or command.
+filters are available for a model or command. They can used to configure filters on models, such as in the
+[filtering](/docs/3.0/graphql-api/queries/filters/index) section, or as the types of arguments to commands or models.
 
-You can see an example of boolean expressions in the [filtering](/docs/3.0/graphql-api/queries/filters/index) section.
+### Types of boolean expression
+
+## Scalar
+
+This specifies how a user is able to compare a scalar field. For instance, we might want to say that we can only check
+if a `String` type is equals to another, or whether it is null or not. We'd do that with the following metadata:
+
+```yaml
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: String_comparison_exp_with_eq_and_is_null
+  operand:
+    scalar:
+      type: String
+      comparisonOperators:
+        - name: equals
+          argumentType: String!
+      dataConnectorOperatorMapping:
+        - dataConnectorName: postgres
+          dataConnectorScalarType: varchar
+          operatorMapping:
+            equals: _eq
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: String_comparison_exp_with_eq_and_is_null
+```
+
+Note the `dataConnectorOperatorMapping`. This allows us to define what these operators mean in zero or more data
+connectors. Here, we want our `equals` operator to use Postgres's `_eq` operator.
+
+This would allow us to write filters like
+
+```json
+{ "first_name": { "_is_null": true } }
+```
+
+```json
+{ "last_name": { "equals": "Bruce" } }
+```
+
+## Object
+
+An object `BooleanExpressionType` is used to define how fields of a type can be filtered. Note that nothing here talks
+about specific data connectors - instead we specify which `BooleanExpressionType` is used to filter each field or
+relationship, and then defer the mappings of individual scalar types to those `BooleanExpressionType`s.
+
+```yaml
+kind: BooleanExpressionType
+version: v2
+definition:
+  name: Album_bool_exp
+  operand:
+    object:
+      type: Album
+      comparableFields:
+        - fieldName: AlbumId
+          booleanExpressionType: Int_comparison_exp
+        - fieldName: ArtistId
+          booleanExpressionType: Int_comparison_exp_with_is_null
+        - fieldName: Address
+          booleanExpressionType: Address_bool_exp
+      comparableRelationships:
+        - relationshipName: artist
+          booleanExpressionType: Artist_bool_exp
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: Album_bool_exp
+```
+
+Note here that we can specify different comparison operators for `AlbumId` and `ArtistId` by using different
+`BooleanExpressionType`s for them. We are also able to define filtering on nested objects such as `Address`.
+
+The above would let us write filters on `Album` types like:
+
+```json
+{ "album": { "AlbumId": { "equals": 100 } } }
+```
+
+```json
+{ "album": { "Address": { "postcode": { "like": "N1" } } } }
+```
+
+```json
+{ "album": { "artist": { "name": { "equals": "Madonna" } } } }
+```
 
 ## Metadata structure
 
