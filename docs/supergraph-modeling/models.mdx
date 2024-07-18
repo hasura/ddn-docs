@@ -24,13 +24,91 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-A "Model" in Hasura DDN  represents a collection of objects of a particular type and serves as the link between your
-data connectors and the API that Hasura generates. A model can be backed by various data sources such as a database
-table, an ad-hoc SQL query, a pre-materialized view, or a custom REST or GraphQL API server.
+A "Model" in Hasura DDN represents a collection of objects (eg: `Users`). Models can have "operations" defined on them
+so that they can be inserted, edited, deleted or fetched (with filtering, pagination, sorting, etc.). Very loosely, you
+can think of models as the nouns, or "things" of your data domain.
 
-It's helpful to think of models as your way of telling Hasura how to interact with your data. They define how to
-query your data, how it's related, and how to interact with it. Once a model is declared it will then often be
-referenced by `Relationship` and/or `Permissions` objects.
+A model serves as the link between your data connectors and the API that Hasura generates. A model can be backed by
+various data sources such as a database table, an ad-hoc SQL query, a pre-materialized view, or a custom REST or
+GraphQL API server.
+
+Once a model is declared it will then often be referenced by `Relationship` objects in order to compose with
+each other or commands, and also by `Permissions` objects to control access to the data.
+
+<details>
+<summary>View an example of a model and an API query it enables</summary>
+
+The following is an example of a model definition for a `Users` model. This model is backed by a Postgres data:
+```yaml
+---
+kind: Model
+version: v1
+definition:
+  name: Users
+  objectType: Users
+  source:
+    dataConnectorName: my_pg
+    collection: users
+  filterExpressionType: UsersBoolExp
+  orderableFields:
+    - fieldName: createdAt
+      orderByDirections:
+        enableAll: true
+    - fieldName: email
+      orderByDirections:
+        enableAll: true
+    - fieldName: favoriteArtist
+      orderByDirections:
+        enableAll: true
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: isEmailVerified
+      orderByDirections:
+        enableAll: true
+    - fieldName: lastSeen
+      orderByDirections:
+        enableAll: true
+    - fieldName: name
+      orderByDirections:
+        enableAll: true
+    - fieldName: password
+      orderByDirections:
+        enableAll: true
+    - fieldName: updatedAt
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: mySubgraph_users
+    selectUniques:
+      - queryRootField: mySubgraph_usersById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: MySubgraph_UsersOrderBy
+```
+
+The above model definition enables the following query in the API:
+```graphql
+query UsersQuery {
+  mySubgraph_users(
+    where: {favoriteArtist: {_eq: "1"}}
+    order_by: {name: Asc}
+    limit: 10
+  ) {
+    id
+    createdAt
+    updatedAt
+    name
+    email
+    isEmailVerified
+    password
+    lastSeen
+    favoriteArtist
+  }
+}
+```
+</details>
 
 <details>
 <summary>Check out Global IDs for relay:</summary>
