@@ -19,15 +19,88 @@ seoFrontMatterUpdated: true
 toc_max_heading_level: 4
 ---
 
+
+# Models
+
+## Introduction
+
+A "Model" in Hasura DDN represents a collection of objects (eg: `Users`). Models can have "operations" defined on them
+so that they can be inserted, edited, deleted or fetched (with filtering, pagination, sorting, etc.). Very loosely, you
+can think of models as the nouns, or "things" of your data domain.
+
+
+
+A model serves as the link between your
+data connectors and the API that Hasura generates. A model can be backed by various data sources such as a database
+table, an ad-hoc SQL query, a pre-materialized view, or a custom REST or GraphQL API server.
+
+Once a model is declared it will then often be
+referenced by `Relationship` and/or `Permissions` objects.
+
+
 # Commands
 
 ## Introduction
 
-Commands are backed by **functions** or **procedures** declared in a
-[DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) allowing you to execute business logic directly from
-your GraphQL API. You can use them to validate, process or enrich data, call another API, or even log a user in.
+A "Command" in Hasura DDN represents an action that can be performed to returning some type of result (eg:
+`LogUserIn`).  Very loosely, you can think of commands as the verbs or, "actions" of your data domain.
 
-Commands are the metadata representation of these functions or procedures. As an example, if we have a TypeScript
+
+Commands have a fixed definition and are backed by **functions** or **procedures** declared in a
+[`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx), allowing you to add top level methods to your
+API, or, add a custom field to an existing [model](./models.mdx) to be used in data transformation, for example.
+
+Commands allow you to execute business logic directly from your GraphQL API and are useful in validating, processing
+or enriching data, calling another API, or even logging a user in.
+
+
+
+
+
+
+i think overall the conceptual idea for the 2 is as follows:
+
+models
+- collection of objects. e.g. cats
+- can have "operations" on them to be fetched (with filtering, pagination, sorting, etc), inserted, deleted, etc.
+- very loosely, can be thought of as a "noun" in your data domain
+
+commands
+- a specific function. e.g. fetch all cats, modify a cat, insert a cat, etc.
+- have fixed signature
+- very loosely, can be thought of as a "verb" in your data domain
+
+
+i think the rest of the content can be made simpler and common. the essential difference is actually just the above
+(edited)
+
+the reason getAllCats becomes a command and not a model is because you can't filter, sort. etc. using getAllCats. if the
+upstream API supported this and the connector allowed mapping what our where, order_by, etc maps to the API, it could
+technically have been mapped as a model as well, called just cats. but as it stands, it behaves as a command, ie. a
+fixed action of fetching all cats, and not as a model, ie. a collection of cats (edited)
+
+
+
+
+
+
+
+
+
+
+# Commands
+
+## Introduction
+
+A "Command" in Hasura DDN is an entity that represents an action that can be performed, returning some type of
+result. Commands are backed by **functions** or **procedures** declared in a
+[`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx), allowing you to add top level methods to your
+API, or, add a custom field to an existing [model](./models.mdx) to be used in data transformation, for example.
+
+Commands allow you to execute business logic directly from your GraphQL API and are useful in validating, processing
+or enriching data, calling another API, or even logging a user in.
+
+Commands are the metadata representation of functions or procedures. As an example, if we have a TypeScript
 function connected using the [Node.js Lambda connector](https://github.com/hasura/ndc-nodejs-lambda):
 
 ```typescript
