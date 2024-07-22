@@ -8,6 +8,7 @@ import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
 import ClickHouseLogo from '@site/static/img/databases/logos/clickhouse-glyph.png';
 import OpenAPILogo from '@site/static/img/databases/logos/openapi.png';
+import PythonLogo from '@site/static/img/databases/logos/python.png';
 
 import PostgreSqlConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
 import MongoDBConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
@@ -34,6 +35,7 @@ import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_
 import TypeScriptDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_typeScript/_03-deploy-a-connector.mdx';
 import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_clickHouse/_03-deploy-a-connector.mdx';
 import OpenAPIDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
+import PythonDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_python/_03-deploy-a-connector.mdx';
 
 const dataSources = {
   PostgreSQL: {
@@ -51,6 +53,10 @@ const dataSources = {
   TypeScript: {
     name: 'TypeScript',
     image: TypeScriptLogo,
+  },
+  Python: {
+    name: 'Python',
+    image: PythonLogo,
   },
   OpenAPI: {
     name: 'OpenAPI',
@@ -169,6 +175,8 @@ export const DatabaseContentLoader = () => {
             return <ClickHouseDeploy />;
           case 'TypeScript':
             return <TypeScriptDeploy />;
+          case 'Python':
+            return <PythonDeploy />;
           case 'OpenAPI':
             return <OpenAPIDeploy />;
           default:
@@ -224,3 +232,4 @@ export const DatabaseContentLoader = () => {
     </div>
   );
 };
+
