@@ -60,8 +60,9 @@ enhancements to performance and security.
 
 The currently supported versions are:
 
-- [`"version": "4"`](version-4) (current).
-- [`"version": "3"`](version-3).
+- [`"version": "5"`](version-5) (current).
+- [`"version": "4"`](version-4) (deprecated).
+- [`"version": "3"`](version-3) (deprecated).
 
 ## Configuration workflows
 
@@ -74,17 +75,20 @@ We provide the `ndc-postgres-cli`, which is a small executable, whose builds can
 
 The intended way to commonly use this plugin is through the main `ddn` CLI.
 
-At the time of this writing this, part of the developer experience is undergoing active development, so the exact
-command invocations are likely to be different from what is described here.
+Some of the commands, such as `initialize` and `update`, do not need to be invoked directly as part of the `ddn` CLI workflow.
 
-Therefore, this document will give workflow descriptions using the data connector CLI plugin directly. This is likely to
-change in the near future.
+The commands can be invoked by changing the directory into the connector directory (e.g. `cd my_subgraph/connector/my_pg/`)
+and invoking the command using the following syntax:
+
+```sh
+ddn connector plugin --connector connector.yaml -- --help
+```
 
 :::
 
 ### The initial configuration
 
-Running `ndc-postgres-cli initialize` in an empty directory will produce a single file, `configuration.json`, containing
+Running `initialize` in an empty directory will produce a single file, `configuration.json`, containing
 a minimal configuration which expects to be given a connection string via the environment variable `CONNECTION_URI`.
 
 This is the same configuration you would get if you were to add a new PostgreSQL data connector to a project with the
@@ -95,10 +99,10 @@ This is the same configuration you would get if you were to add a new PostgreSQL
 Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
 reflect those changes.
 
-Running `ndc-postgres-cli update` in a configuration directory will do the following:
+Running `update` in a configuration directory will do the following:
 
 - Connect to the database with the specified `connectionUri`, and then overwrite all data in the `metadata` field
-  (except for the native queries) based on the contents of the database and the values given in the
+  (except for the native operations) based on the contents of the database and the values given in the
   `introspectionOptions` field.
 
 - Fill in default values for any fields absent from the configuration, as described in the
@@ -109,11 +113,18 @@ Various fields in the `introspectionOptions` object influence the outcome of the
 
 ### Upgrading the configuration format version
 
-The `ndc postgres cli` plugin can assist in upgrading any supported version of a connector configuration to the latest
+The `ndc-postgres-cli` plugin can assist in upgrading any supported version of a connector configuration to the latest
 one.
 
-`ndc-postgres-cli upgrade --from-dir <existing configuration dir> --to-dir <new directory>` will produce an upgraded
+`upgrade --from-dir <existing configuration dir> --to-dir <new directory>` will produce an upgraded
 version of the configuration in `<existing configuration dir>` and place it in `<new directory>`.
+
+For example:
+
+```sh
+cd <connector-path> # E.g. my_subgraph/connector/my_pg/
+ddn connector plugin --connector connector.yaml -- upgrade --dir-from . --dir-to .
+```
 
 Sometimes a configuration format upgrade will need some manual editing of the result, if the new version requires
 information that cannot be derived from the previous version. This can vary from case to case, but the upgrade command
