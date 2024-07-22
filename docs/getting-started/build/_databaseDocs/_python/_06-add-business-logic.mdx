@@ -4,7 +4,7 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 With Hasura, you can integrate — and even host — this business logic directly with Hasura DDN and your API.
 
-You can handle custom business logic using the Node.js Lambda data connector. Using this connector, you can transform or
+You can handle custom business logic using the Python Lambda connector. Using this connector, you can transform or
 enrich data before it reaches your consumers, or perform any other app business logic you may need.
 
 You can then integrate these functions as individual [**commands**](/supergraph-modeling/commands.mdx) in your metadata
@@ -19,28 +19,28 @@ and resulting API. This process enables you to simplify client applications and 
 - [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
 - At least one [subgraph](/getting-started/build/02-init-subgraph.mdx)
-- [Node.js](https://nodejs.org/en) version `>=20.0.0`
+- [Python](https://www.python.org/downloads/) version `>=3.11`
 
 :::
 
 In this guide we will:
 
-- Initialize the `hasura/nodejs` data connector
-- Use Node.js and npm to create a simple script
+- Initialize the `hasura/python` data connector
+- Use Python and pip to create a simple script
 - Add a new `DataConnectorLink`
 - Update the `DataConnectorLink` to track the function script as a command in our metadata
 - Create a new API build and test it
 
-### Step 1. Initialize the Node.js Lambda connector
+### Step 1. Initialize the Python Lambda connector
 
 Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
-values being passed to them. We'll call this the `ts_connector` and use the `hasura/nodejs` connector from the connector
+values being passed to them. We'll call this `my_python` and use the `hasura/python` connector from the connector
 hub:
 
 ```bash title="From the root of your project, run:"
-ddn connector init my_ts \
+ddn connector init my_python \
   --subgraph my_subgraph/subgraph.yaml \
-  --hub-connector hasura/nodejs \
+  --hub-connector hasura/python \
   --configure-port 8085
 ```
 
@@ -48,12 +48,12 @@ In this command, we're passing a few important values.
 
 **Connector name**
 
-We're naming the connector `my_ts` in this example, but you can call it whatever makes sense to you.
+We're naming the connector `my_python` in this example, but you can call it whatever makes sense to you.
 
 **Connector: `--hub-connector`**
 
-We're specifying that this connector should be the: `hasura/nodejs`, connector listed in the
-[Connector Hub](https://hasura.io/connectors/nodejs-lambda).
+We're specifying that this connector should be the: `hasura/python`, connector listed in the
+[Connector Hub](https://hasura.io/connectors/python-lambda).
 
 **Port: `configure-port`**
 
@@ -66,10 +66,10 @@ running.
 Importantly, a data connector can only connect to one data source.
 
 The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_ts` directory if it doesn't exist. You can also change this
+this example the CLI will create a `my_subgraph/connector/my_python` directory if it doesn't exist. You can also change this
 directory by passing a `--dir` flag to the CLI.
 
-We recommend that the name of the connector and the directory in which the configuration is stored, `my_ts` in this
+We recommend that the name of the connector and the directory in which the configuration is stored, `my_python` in this
 example, should match for convenience and clarity sake.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
@@ -79,7 +79,7 @@ string you provide in your subgraph's `.env.my_subgraph` file.
 
 #### What did this do?
 
-This command created the following file structure in a `my_subgraph/connector/my_ts` directory, with the `functions.ts`
+This command created the following file structure in a `my_subgraph/connector/my_python` directory, with the `functions.py`
 file being your connector's entrypoint:
 
 ```bash
@@ -94,20 +94,18 @@ file being your connector's entrypoint:
 ├── connector.cloud.yaml
 ├── connector.local.yaml
 # highlight-start
-├── functions.ts
+├── functions.py
 # highlight-end
-├── package-lock.json
-├── package.json
-└── tsconfig.json
+└── requirements.txt
 ```
 
 ### Step 2. Add the DataConnectorLink
 
-As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our TypeScript
+As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our Python
 functions into `hml` commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
 ```bash title="Run the following from the root of your project:"
-ddn connector-link add my_ts \
+ddn connector-link add my_python \
   --subgraph my_subgraph/subgraph.yaml \
   --configure-host http://local.hasura.dev:8085 \
   --target-env-file my_subgraph/.env.my_subgraph.local
@@ -117,76 +115,82 @@ The `--configure-host` convenience flag added the read and write URL for the con
 for us.
 
 ```env title="Example .env.my_subgraph file"
-MY_SUBGRAPH_MY_TS_READ_URL="http://local.hasura.dev:8085"
-MY_SUBGRAPH_MY_TS_WRITE_URL="http://local.hasura.dev:8085"
+MY_SUBGRAPH_MY_PYTHON_READ_URL="http://local.hasura.dev:8085"
+MY_SUBGRAPH_MY_PYTHON_WRITE_URL="http://local.hasura.dev:8085"
 ```
 
-These keys are already referenced in `my_subgraph/metadata/my_ts/my_ts.hml`.
+These keys are already referenced in `my_subgraph/metadata/my_python/my_python.hml`.
 
-### Step 3. Install npm package dependencies
+### Step 3. Install pip package dependencies
 
 Let's install any necessary dependencies:
 
 ```bash title="Change to the connector directory and install dependencies:"
-cd my_subgraph/connector/my_ts && npm i
+cd my_subgraph/connector/my_python && pip3 install -r requirements.txt
 ```
 
-Then, from the `my_ts` directory run this command to use the included `dotenv` package to load environment variables
+Then, from the `my_python` directory run this command to load environment variables
 from the `. env.local` file, start the connector, and watch for any changes:
 
+On Mac or Linux:
+
 ```bash
-npx dotenv -e .env.local -- npm run watch
+watchmedo auto-restart --patterns="*.py" --recursive -- sh -c "export \$(grep -v '^#' .env.local | xargs) && python3 functions.py serve"
 ```
 
-:::warning Node.js version
+On Windows:
 
-The `hasura/nodejs` connector requires [Node.js](https://nodejs.org/en) version `>=20.0.0`. Please make sure you have
+```bash
+watchmedo auto-restart --patterns="*.py" --recursive -- powershell -Command "Get-Content .env.local | ForEach-Object { if ($_ -notmatch '^#') { $var = $_.Split('='); Set-Item \"env:$($var[0])\" $var[1] } }; python3 functions.py serve"
+```
+
+:::warning Python version
+
+The `hasura/python` connector requires [Python](https://www.python.org/downloads/) version `>=3.11`. Please make sure you have
 the correct version installed.
 
 :::
 
 ### Step 4. Write business logic
 
+The template code that ships with the Python Lambda connector provides some simple examples to help explain how it works.
+We can replace those example functions for now.
+
 In this simple example, we're going to transform a timestamp with timezone (eg: "2024-03-14T08:00:00Z") into a nicely
 formatted version for humans, eg: "8am, Thursday, March 14th, 2024."
 
-We'll replace the default `hello()` function in our `functions.ts` file with the following:
+We'll replace the all the default functions in our `functions.py` file with the following:
 
-```ts
-/**
- * @readonly
- */
-export async function formatTimezoneDate(dateString: string): Promise<string> {
-  const date = new Date(dateString);
+```python
+from hasura_ndc import start
+from hasura_ndc.function_connector import FunctionConnector
+from datetime import datetime # Don't forget to import datetime at the top of the file!
 
-  const day = date.getDate();
-  const nth = (d: number) => {
-    if (d > 3 && d < 21) return "th";
-    switch (d % 10) {
-      case 1:
-        return "st";
-      case 2:
-        return "nd";
-      case 3:
-        return "rd";
-      default:
-        return "th";
-    }
-  };
+connector = FunctionConnector()
 
-  const hours = date.getHours();
-  const ampm = hours >= 12 ? "pm" : "am";
-  const hour = hours % 12 || 12;
+@connector.register_query
+async def format_timezone_data(date_string: str) -> str:
+    date = datetime.fromisoformat(date_string)
 
-  const dayOfWeek = date.toLocaleString("en-US", { weekday: "long" });
-  const month = date.toLocaleString("en-US", { month: "long" });
-  const year = date.getFullYear();
+    day = date.day
+    nth = lambda d: "th" if 11 <= d <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(d % 10, "th")
 
-  return `${hour}${ampm}, ${dayOfWeek}, ${month} ${day}${nth(day)}, ${year}.`;
-}
+    hours = date.hour
+    ampm = "pm" if hours >= 12 else "am"
+    hour = hours % 12 or 12
+
+    day_of_week = date.strftime("%A")
+    month = date.strftime("%B")
+    year = date.year
+
+    return f"{hour}{ampm}, {day_of_week}, {month} {day}{nth(day)}, {year}."
+
+
+if __name__ == "__main__":
+    start(connector)
 ```
 
-As this is a Node.js project, you can install any dependency!
+As this is a Python project, you can install any dependency!
 
 ### Step 5. Track the new function
 
@@ -194,7 +198,7 @@ To add our function, similar to how we added our individual tables earlier, we c
 related Hasura metadata:
 
 ```bash
-ddn connector-link update my_ts \
+ddn connector-link update my_python \
   --subgraph my_subgraph/subgraph.yaml \
   --env-file my_subgraph/.env.my_subgraph.local \
   --add-all-resources
@@ -250,28 +254,28 @@ browsers for the best experience with the Hasura Console including for local dev
 
 :::
 
-:::note Running Node.js in Docker
+:::note Running Python in Docker
 
-As you can see we're running Node.js and your functions directly on your own machine. You can also run your functions in
+As you can see we're running Python and your functions directly on your own machine. You can also run your functions in
 a Docker container along with your other Hasura services. The `connector init` command created a `Dockerfile` and a
 `compose.yaml` file for you, so all you would need to do would be to:
 
 - Make sure your port in your connector's `.env.local` and the one referenced in the
-  `my_subgraph/connector/my_ts/compose.yaml` file `ports:published` field match and don't conflict with any other
+  `my_subgraph/connector/my_python/compose.yaml` file `ports:published` and `ports:target` fields match and don't conflict with any other
   services you may need to run.
-- Add the Node.js Lambda connector compose file to the main compose file in the root of the project if you want them to
+- Add the Python Lambda connector compose file to the main compose file in the root of the project if you want them to
   start all together. Eg:
 
 ```yaml title="At the top of the root compose.yaml"
 include:
-  - path: my_subgraph/connector/my_ts/compose.yaml
+  - path: my_subgraph/connector/my_python/compose.yaml
 ```
 
 :::
 
 ## What did this do?
 
-The commands above initialized a new Node.js Lambda connector, installed dependencies, and created a new function to
+The commands above initialized a new Python Lambda connector, installed dependencies, and created a new function to
 format a timestamp with timezone into a human-readable format. We then added this function to our metadata as a command,
 and created a new build of our supergraph.
 
@@ -283,4 +287,5 @@ then transform or enrich data before sending it back to your consumers.
 
 You can learn more about creating these and other relationships on the
 [next page](/getting-started/build/07-create-a-relationship.mdx), or you can learn about
-[mutating data](/getting-started/build/08-mutate-data.mdx) using the TypeScript connector.
+[mutating data](/getting-started/build/08-mutate-data.mdx) with examples using the TypeScript connector. 
+Although the examples for mutating data are provided in Typescript, you could just as easily use the Python connector.
