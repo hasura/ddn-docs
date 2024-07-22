@@ -1,6 +1,6 @@
 ---
-sidebar_position: 1
-sidebar_label: Version 3
+sidebar_position: 3
+sidebar_label: Version 5
 description:
   "Reference documentation for the setup process for the Hasura PostgreSQL connector, including connection URI details,
   native queries, and mutations."
@@ -18,41 +18,27 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-# Configuration Reference, Version 3
+# Configuration Reference, Version 5
 
-:::warning Deprecated
+:::info
 
-This configuration version is deprecated and should be [upgraded to the latest version](./index.mdx#upgrading-the-configuration-format-version).
-
-:::
-
-## Configuration workflows
-
-The data connector provides a plugin to the hasura CLI to assist you in authoring configuration.
-
-We provide the `ndc-postgres-cli`, which is a small executable whose, builds can be accessed
-[here](https://github.com/hasura/ndc-postgres/releases/).
-
-:::warning Current status
-
-The intended way to commonly use this plugin is through the main `ddn` CLI.
-
-But at the time of this writing this part of the developer experience is undergoing active development, so the exact
-command invocations are likely to be different from what is described here.
-
-Therefore this document will give workflow descriptions using the data connector CLI plugin directly. This is likely to
-change in the near future.
+Supported since data connector version `v1.0.0.0`
 
 :::
 
-### The default configuration
+## Changes from the previous version
+
+Version 5 separates the `nativeQueries` into two fields, `queries` and `mutations`, and nests them under `nativeOperations`,
+as well as nested `scalarTypes` and `compositeTypes` under `types` and renames them to `scalar` and `composite` respectively.
+
+## The initial configuration
 
 Running `ndc-postgres-cli initialize` in an empty directory will produce a single file, `configuration.json`, reproduced
 here in abbreviated form:
 
 ```yaml
 {
-  "version": "3",
+  "version": "5",
   "$schema": "./schema.json",
   "connectionSettings":
     {
@@ -71,11 +57,8 @@ here in abbreviated form:
   "metadata":
     {
       "tables": {},
-      "compositeTypes": {},
-      "nativeQueries": {},
-      "aggregateFunctions": {},
-      "comparisonOperators": {},
-      "typeRepresentations": {},
+      "nativeOperations": { "queries": {}, "mutations": {} },
+      "types": { "scalar": {}, "composite": {} }
     },
   "introspectionOptions":
     {
@@ -87,73 +70,42 @@ here in abbreviated form:
         [
           { "operatorName": "=", "exposedName": "_eq", "operatorKind": "equal" },
           { "operatorName": "<=", "exposedName": "_lte", "operatorKind": "custom" },
-
           ...,
         ],
       "introspectPrefixFunctionComparisonOperators": ["box_above", "box_below", ...],
+      "typeRepresentations": { "bit": "string", "bool": "boolean", ... },
     },
 }
 ```
 
-The various default values of `introspectionOptions` fields are output explicitly. This provides both immediacy, because
-you don't have to look up what the default values are, and versioning flexibly, because it allows the defaults to evolve
-without requiring a version bump.
+The various default values of `introspectionOptions` fields are output explicitly. This provides both immediacy and
+versioning flexibly.
+
+Making defaults explicitly present means you don't have to look up in the reference documentation to know what
+configuration is in force, and it allows the defaults to evolve over time without requiring a version bump of the
+configuration format.
 
 ### A minimal configuration
 
-The very minimal configuration that is acceptable contains just the `version` and `connectionUri` fields:
+The very minimal configuration that is acceptable elides all fields that have defaults and contains just the `version`
+and `connectionUri` fields:
 
 ```yaml
-{ "version": "3", "connectionSettings": { "connectionUri": { "value": "postgres://..." } } }
+{ "version": "5", "connectionSettings": { "connectionUri": { "value": "postgres://..." } } }
 ```
 
 or, to get the connection uri from an environment variable:
 
 ```yaml
-{ "version": "3", "connectionSettings": { "connectionUri": { "variable": "CONNECTION_URI" } } }
+{ "version": "5", "connectionSettings": { "connectionUri": { "variable": "CONNECTION_URI" } } }
 ```
 
 Note that the choice of environment variable name `CONNECTION_URI` is only a matter of convention. Any environment
 variable can be used.
 
-### Updating with introspection
-
-Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
-reflect those changes.
-
-Running `ndc-postgres-cli update` in a configuration directory will do the following:
-
-Connect to the database with the specified `connectionUri`, and then overwrite all data in the `metadata` field (except
-for the native queries) based on the contents of the database and the values given in the `introspectionOptions` field.
-
-Fill in default values for any fields absent from the configuration, as described in the
-[Versioning Policy](/connectors/postgresql/configuration-reference/index.mdx#versioning-policy) section.
-
-Various fields in the `introspectionOptions` object influence the outcome of the introspection process, See
-[Configure options](#manually-editing).
-
-### Manually editing
-
-There are occasions when the automatic introspection falls short of your needs. For instance, it may not detect a
-particular entity type, or it may pick names according to conventions you disagree with.
-
-If you find yourself in this situation you may still be able to bring your configuration into an acceptable state by
-editing it manually. In this case you'd be well advised to keep your configuration files under version control, as
-re-running the `update` command will overwrite your manually-crafted changes.
-
-If there is a pattern to the changes you find yourself applying manually it's possible that your use case could warrant
-a new `introspectionOptions` field that could integrate the pattern with the normal introspection process. Feel free to
-raise a feature request issue on the [Issue Tracker][NDC Postgres Issue Tracker].
-
-One section of the configuration that will always need manual authorship is the user-defined
-[`nativeQueries`](/connectors/postgresql/native-operations/index.mdx).
-
 ## `version`
 
-This field indicates the version of the configuration format that the configuration file adheres to. See
-[Versioning Policy](/connectors/postgresql/configuration-reference/index.mdx#versioning-policy).
-
-The currently supported version is: `"3"`.
+This version uses the string-value `"5"`.
 
 ## `connectionSettings`
 
@@ -296,24 +248,27 @@ Valid column types include all of scalar types, (single-dimension) array types, 
 "type": { "arrayType": { "compositeType": "person_address" } }
 ```
 
-:::info Global scope
+### `nativeOperations`
 
-Note that the support for types is not yet aware of schema namespacing. User-defined types should be defined in the
-`search_path` of the database user used by the data connector (e.g., the `public` schema).
-
-:::
-
-### `nativeQueries`
-
-The `nativeQueries` field collects user-specified SQL queries that that may become either queryable collections or
+The `queries` and `mutations` fields collect user-specified SQL queries that that may become either queryable collections or
 mutations in the generated connector schema.
 
 Each query is specified as SQL, and the types of any query arguments and result columns must be specified explicitly.
 
+The following fields should be specified for a Native Operation entry:
+
+- `sql`: SQL expression to use for the Native Operation. We can interpolate values using `{{variable_name}}` syntax,
+   such as `SELECT * FROM authors WHERE name = {{author_name}}`.
+   Can be specify either a path to file in the connector configuration directory with `{ "file": "<file>" }`,
+   or an inline SQL query such as `{ "inline": "SELECT 1 as one" }`.
+- `columns`: The returning columns from the Native Operation.
+- `arguments`: Names and types of arguments that can be passed to this Native Operation.
+- `description`: Information about the Native Operation.
+
 **Example**
 
 ```json
-"nativeQueries": {
+"queries": {
   "artist_below_id": {
     "sql": {
       "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
@@ -347,19 +302,16 @@ Each query is specified as SQL, and the types of any query arguments and result 
 Note that the arguments are provided as query parameters - they are not textually interpolated into the query. As such,
 a native query argument are value expressions and cannot be used in the place of e.g. a table name.
 
-See also the main [Native Queries](/connectors/postgresql/native-operations/) documentation.
+See also the main [Native Operations](/connectors/postgresql/native-operations/) documentation.
 
-### `compositeTypes`
+### `types`
 
-The `compositeTypes` field collects information on all explicitly defined composite types (i.e., those that do not arise
+Information pertaining the database types used by the connector.
+
+#### `types.composite`
+
+The `composite` field collects information on all explicitly defined composite types (i.e., those that do not arise
 implicitly from a table).
-
-:::warning Not introspectable
-
-Note that the introspection tooling is not yet capable of discovering user-defined composite types. For the time being
-you will need to author the `compositeTypes` section manually if your project relies on them.
-
-:::
 
 **Example**
 
@@ -385,14 +337,15 @@ CREATE TYPE person AS
   );
 ```
 
-Then you may make these types available with the following configuration counterpart:
+The introspection process will generate the corresponding metadata declarations:
 
 ```yaml
-"compositeTypes":
+"composite":
   {
     "person":
       {
         "name": "person",
+        "schema": "public",
         "fields":
           {
             "address": { "name": "address", "type": { "compositeType": "person_address" }, "description": null },
@@ -403,6 +356,7 @@ Then you may make these types available with the following configuration counter
     "person_address":
       {
         "name": "person_address",
+        "schema": "public",
         "fields":
           {
             "address_line_1": { "name": "address_line_1", "type": { "scalarType": "text" }, "description": null },
@@ -413,6 +367,7 @@ Then you may make these types available with the following configuration counter
     "person_name":
       {
         "name": "person_name",
+        "schema": "public",
         "fields":
           {
             "first_name": { "name": "first_name", "type": { "scalarType": "text" }, "description": null },
@@ -423,33 +378,59 @@ Then you may make these types available with the following configuration counter
   }
 ```
 
-### `aggregateFunctions`
+#### `types.scalar`
 
-The `metadata.aggregateFunctions` field captures the aggregation functions that are defined for the various **scalar
-types** that appear in a project.
+The `metadata.types.scalar` field captures the scalar types that end up appearing in the data connector schema and their
+associated comparison operators and aggregation functions.
 
-The introspection process is capable of discovering all compatible aggregation functions.
-
-The only aggregation functions supported are those that take a single argument (which include most of them). The
-configuration groups them by the type of their argument.
+The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
+input argument appear in the metadata.
 
 **Example**
 
 ```yaml
-"aggregateFunctions": {
-  "bool": { // The argument type
-    "bool_and": {
-      "returnType": "bool" // The result type
-    },
-    "bool_or": {
-      "returnType": "bool"
-    },
-    "every": {
-      "returnType": "bool"
-    }
+"scalar":
+  {
+    "bool":
+      {
+        // The name that appears in the data connector schema "typeName": "bool",
+        "schemaName": "pg_catalog",
+        "description": null,
+        "aggregateFunctions":
+          {
+            "bool_and": { "returnType": "bool" },
+            "bool_or": { "returnType": "bool" },
+            "every": { "returnType": "bool" },
+          },
+        "comparisonOperators":
+          {
+            "_eq":
+              {
+                // The name that appears in the data connector schema "operatorName": "=",
+                // Name of the operator in the database "operatorKind": "equal",
+                // The canonical equality operator (for relationships) "argumentType": "char",
+                "isInfix":
+                  true // Indication of whether the operator is syntactically a binary // infix operator or a binary
+                  prefix-function,
+              },
+            "_gt":
+              {
+                "operatorName": ">",
+                "operatorKind": "custom",
+                // A non-equality operator "argumentType": "char",
+                "isInfix": true,
+              },
+            ...,
+          },
+        "typeRepresentation": "boolean",
+      },
   }
-}
 ```
+
+The `aggregateFunctions` field declares the aggregation functions that are defined for the scalar type. The
+introspection process is capable of discovering all compatible aggregation functions.
+
+The only aggregation functions supported are those that take a single argument, which include most builtin functions.
 
 :::info Global scope
 
@@ -458,101 +439,39 @@ should be defined in the `search_path` of the database user used by the data con
 
 :::
 
-### `comparisonOperators`
+The `comparisonOperators` field declares the comparison operators that are defined for the scalar type. A comparison
+operator is any function that takes two arguments and returns a `bool` value. An operator is recorded under the scalar
+type declaration of its first argument.
 
-The `metadata.comparisonOperators` field defines the comparison operators that may be used for the various **scalar
-types** that appear in a project.
-
-In the configuration, the comparison operators are grouped by the type of their first argument.
-
-The introspection process is capable of discovering most compatible comparison operators, including those accessible
+The introspection process is capable of discovering all compatible comparison operators, including those accessible
 through implicit casts.
 
 Many comparison operators in PostgreSQL are syntactically applied as binary infix operators and denoted by
 non-alphabetical symbols. Therefore we map the names of infix operators. This process is controlled by the
 `introspectionOptions.comparisonOperatorMapping` field.
 
-Regular functions (i.e. non-infix) are also usable as comparison operators. Prefix functions too are discoverable by the
-introspection process. However, there is a large body of pre-existing functions that appear to be comparison functions
-according to their type (i.e., they take two arguments and return a bool) yet can't be meaningfully said to be
-performing a comparison operation (such as
+Regular functions which use prefix-application syntax are also usable as comparison operators. These too are
+discoverable by the introspection process. However, there is a large body of pre-existing functions that appear to be
+comparison functions according to their type (i.e., they take two arguments and return a bool) yet can't be meaningfully
+said to be performing a comparison operation (such as
 [`pg_has_role`](https://www.postgresql.org/docs/current/functions-info.html#FUNCTIONS-INFO-ACCESS-TABLE)). Therefore,
 only the names mentioned in
 [`introspectionOptions.introspectPrefixFunctionComparisonOperators`](#introspectPrefixFunctionComparisonOperators) are
 considered by the introspection process.
 
-**Example**
-
-```yaml
-"comparisonOperators":
-  {
-    "char":
-      {
-        // Type of the first argument "_eq":
-          {
-            // Exposed mapped name of the operator "operatorName": "=",
-            // Name of the operator in the database "operatorKind": "equal",
-            // The canonical equality operator (for relationships) "argumentType": "char",
-            "isInfix":
-              true // Indication of whether the operator is syntactically a binary // infix operator or a binary
-              prefix-function,
-          },
-        "_gt":
-          {
-            "operatorName": ">",
-            "operatorKind": "custom",
-            // A non-equality operator "argumentType": "char",
-            "isInfix": true,
-          },
-      },
-  }
-```
-
 :::info Global scope
 
 Note that the support for comparison operators is not yet aware of schema namespacing. User-defined comparison operators
-should be defined in the `search_path` of the database user used by the data connector (e.g., the `public` schema).
+should be defined in the `search_path` of the database user used by the data connector (e.g., the `public` or
+`pg_catalog` schemas).
 
 :::
 
-### `typeRepresentations`
-
-The `metadata.typeRepresentations` field defines the type representations of the various **scalar types** that appear in
-a project. If a type does not have a defined type representation, the default type representation is opaque json.
+The `typeRepresentation` field defines the type representations of the scalar type. If a type does not have a defined
+type representation, the default type representation is opaque json.
 
 The type representation of a scalar type indicates what values are considered acceptable in requests, and what values
 are expected to be returned in the response.
-
-#### `int8` and `numeric` types
-
-The default type representations of `int8` and `numeric` types are `int64AsString` and `bigDecimalAsString`
-respectively. These indicate that values accepted in requests and returned in response will have a string value json
-representation, to improve compatibility with common JavaScript clients.
-
-It is possible to configure this option to represent these types as numbers instead. To do so, configure the type
-representation of the `int8` type to `int64`, and/or configure the type representation of the `numeric` type to
-`bigDecimal` as follows:
-
-```diff
-  { ...
-    "metadata": {
-      ...
-      "typeRepresentations": {
-        "Phone": "string",
-        "CardSuit": {
-          "enum": ["hearts", "clubs", "diamonds", "spades"]
-        },
-        ...
--       "int8": "int64AsString",
-+       "int8": "int64",
--       "numeric": "bigDecimalAsString",
-+       "numeric": "bigDecimal",
-        ...
-      }
-      ...
-    }
-  }
-```
 
 ## `introspectionOptions`
 
@@ -648,6 +567,55 @@ list. Functions not appearing in this list will not be discoverable by the intro
 "introspectPrefixFunctionComparisonOperators": ["box_above", "box_below", "box_contain", ...]
 ```
 
+### `typeRepresentations`
+
+The `typeRepresentations` field define the TypeRepresentation that the introspection process will assign to the types it
+encounters.
+
+**Example**
+
+The default initial type representation mappings:
+
+```yaml
+"typeRepresentations":
+  {
+    "bit": "string",
+    "bool": "boolean",
+    "bpchar": "string",
+    "char": "string",
+    "date": "date",
+    "float4": "float32",
+    "float8": "float64",
+    "int2": "int16",
+    "int4": "int32",
+    "int8": "int64AsString",
+    "numeric": "bigDecimalAsString",
+    "text": "string",
+    "time": "time",
+    "timestamp": "timestamp",
+    "timestamptz": "timestamptz",
+    "timetz": "timetz",
+    "uuid": "uUID",
+    "varchar": "string",
+  }
+```
+
+The type representation guides how the Postgresql type will be exposed in the final DDN API of the project, and may
+influence the output format of queries as well.
+
+For example, type representations enable the API generation to assign e.g. the GraphQL type `String` to all of the
+Postgresql types `varchar`, `text` etc.
+
+#### `int8` and `numeric` types
+
+The default type representations of `int8` and `numeric` types are `int64AsString` and `bigDecimalAsString`
+respectively. These indicate that values accepted in requests and returned in response will have a string value json
+representation, to improve compatibility with common JavaScript clients.
+
+It is possible to configure this option to represent these types as numbers instead. To do so, configure the type
+representation of the `int8` type to `int64`, and/or configure the type representation of the `numeric` type to
+`bigDecimal` as follows:
+
 ## `mutationsVersion`
 
 :::warning Experimental feature under ongoing development
@@ -667,7 +635,7 @@ default this field is omitted, resulting in no mutations being generated.
 Introduction and removal of supported mutations versions will only happen in the context of a version bump of the main
 configuration.
 
-The currently supported value is `"v1"`.
+The currently supported value are `"v1"`, `"v2"`, where the latest version is preferred.
 
 ### `mutationsVersion: "v1"`
 
@@ -680,6 +648,52 @@ with a single argument `my_id_column` of type equal to that of the column. The m
 table, allowing selection of fields from the row that was deleted.
 
 This version of mutations does not support filter-based permissions.
+
+### `mutationsVersion: "v2"`
+
+"v2" of auto-generated mutations introduces insert, delete and update point mutations per table that include permission arguments.
+
+We generate the following procedures:
+
+* A single insert procedure is generated per table, and has the following form:
+
+  ```graphql
+  v2_insert_<table>(
+      objects: [<table-object>],
+      post_check: <boolexpr>
+  )
+  ```
+  Using it, we can insert multiple objects and include a post check for permissions.
+
+* A delete procedure is generated per table X unique constraint, and has the following form:
+
+  ```graphql
+  v2_delete_<table>_by_<column_and_...>(
+      key_<column1>: <value>,
+      key_<column2>: <value>,
+      ...,
+      pre_check: <boolexpr>
+  )
+  ```
+  Using it, we can delete a single row using the uniqueness constraint, and include a pre check for permissions.
+
+* An update procedure is generated per table X unique constraint, and has the following form:
+
+  ```graphql
+  v2_update_<table>_by_<column_and_...>(
+      key_<column1>: <value>,
+      key_<column2>: <value>,
+      ...,
+      update_columns: { <column>: { _set: <value> }, ... },
+      pre_check: <boolexpr>,
+      post_check: <boolexpr>
+  )
+  ```
+  Using it, we can update a single row using the uniqueness constraint by updating the relevant columns,
+  and include a pre check and post check for permissions.
+
+For each `pre_check` and `post_check` arguments of a mutation, an [Argument Preset](/supergraph-modeling/permissions#commandpermissions-argumentpreset)
+should be set in the mutation's [Command Permissions](/supergraph-modeling/permissions#commandpermissions-commandpermission).
 
 [Configuration JSON Schema]: https://github.com/hasura/ndc-postgres/blob/main/static/schema.json
 [NDC Postgres Issue Tracker]: http://github.com/hasura/ndc-postgres/issues
