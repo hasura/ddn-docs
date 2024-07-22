@@ -37,6 +37,9 @@ import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDoc
 import OpenAPIDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
 import PythonDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_python/_03-deploy-a-connector.mdx';
 
+import TypeScriptBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_typescript/_06-add-business-logic.mdx';
+import PythonBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_python/_06-add-business-logic.mdx';
+
 const dataSources = {
   PostgreSQL: {
     name: 'PostgreSQL',
@@ -66,31 +69,41 @@ const dataSources = {
 
 export const DatabaseContentLoader = () => {
   const location = useLocation();
-  const [dbPreference, setDbPreference] = useState<string | null>(null);
+  const [connectorPreference, setConnectorPreference] = useState<string | null>(null);
   const history = useHistory();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const dbParam = params.get('db');
+<<<<<<< Updated upstream
     const savedPreference = localStorage.getItem('hasuraV3DbPreference');
     const isTypeScriptExcluded =
+=======
+    const savedPreference = localStorage.getItem('hasuraV3ConnectorPreference');
+    const isBusinessLogicExcluded =
+>>>>>>> Stashed changes
       location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
 
     if (dbParam && dataSources[dbParam]) {
       savePreference(dbParam);
     } else if (savedPreference) {
-      // Check if the saved preference is a valid data source
       if (dataSources[savedPreference]) {
-        setDbPreference(savedPreference);
+        setConnectorPreference(savedPreference);
       } else {
-        localStorage.removeItem('hasuraV3DbPreference');
+        localStorage.removeItem('hasuraV3ConnectorPreference');
       }
+<<<<<<< Updated upstream
       // If TypeScript is excluded and the saved preference is TypeScript, set preference to null
       // to avoid text at the top of our component
       if (isTypeScriptExcluded && savedPreference === 'TypeScript') {
         setDbPreference(null);
+=======
+
+      if (isBusinessLogicExcluded && (savedPreference === 'TypeScript' || savedPreference === 'Python')) {
+        setConnectorPreference(null);
+>>>>>>> Stashed changes
       } else {
-        setDbPreference(savedPreference);
+        setConnectorPreference(savedPreference);
       }
     }
   }, [location.search, location.pathname]);
@@ -98,23 +111,37 @@ export const DatabaseContentLoader = () => {
   const savePreference = (preference: string) => {
     localStorage.setItem('hasuraV3DbPreference', preference);
 
+<<<<<<< Updated upstream
+=======
+    localStorage.setItem('hasuraV3ConnectorPreference', preference);
+
+>>>>>>> Stashed changes
     history.push({
       search: `db=${preference}`,
     });
 
-    setDbPreference(preference);
+    setConnectorPreference(preference);
   };
 
   const getContent = () => {
-    // Split the path into parts, because sometimes we have a trailing slash with our nginx config
-    let pathParts = location.pathname.split('/').filter(Boolean);
+    const isBusinessLogicExcluded =
+      location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
+    const isAddBusinessLogicPage = location.pathname.includes('add-business-logic');
 
-    // Get the last part of the path, which is the page we want
+    if (
+      isBusinessLogicExcluded &&
+      connectorPreference &&
+      dataSources[connectorPreference].connectorType === 'businessLogic'
+    ) {
+      return <div>Content not available for this selection</div>;
+    }
+
+    let pathParts = location.pathname.split('/').filter(Boolean);
     let route = pathParts.pop();
 
     switch (route) {
       case 'connect-a-source':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlConnect />;
           case 'MongoDB':
@@ -127,7 +154,7 @@ export const DatabaseContentLoader = () => {
             return <div />;
         }
       case 'create-source-metadata':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlCreateSourceMetadata />;
           case 'MongoDB':
@@ -140,7 +167,7 @@ export const DatabaseContentLoader = () => {
             return <div />;
         }
       case 'add-source-entities':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlAddSourceEntities />;
           case 'MongoDB':
@@ -152,8 +179,17 @@ export const DatabaseContentLoader = () => {
           default:
             return <div />;
         }
+      case 'add-business-logic':
+        switch (connectorPreference) {
+          case 'TypeScript':
+            return <TypeScriptBusinessLogic />;
+          case 'Python':
+            return <PythonBusinessLogic />;
+          default:
+            return <div />;
+        }
       case 'mutate-data':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlMutate />;
           case 'MongoDB':
@@ -166,7 +202,7 @@ export const DatabaseContentLoader = () => {
             return <div />;
         }
       case 'deploy-a-connector':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlDeploy />;
           case 'MongoDB':
@@ -187,25 +223,57 @@ export const DatabaseContentLoader = () => {
     }
   };
 
+<<<<<<< Updated upstream
   // We'll use this to exclude the TS connector from any of the data connection pages
   const isTypeScriptExcluded =
+=======
+  const isBusinessLogicExcluded =
+>>>>>>> Stashed changes
     location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
+  const isAddBusinessLogicPage = location.pathname.includes('add-business-logic');
 
   return (
     <div>
       <div className="picker-wrapper">
         <small>
+<<<<<<< Updated upstream
           {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript')
             ? `You are now reading ${dataSources[dbPreference].name}'s documentation`
+=======
+          {connectorPreference &&
+          (!isBusinessLogicExcluded || connectorPreference !== 'TypeScript' || connectorPreference !== 'Python')
+            ? `You are now reading ${dataSources[connectorPreference].name}'s documentation`
+>>>>>>> Stashed changes
             : "Select a data source's documentation"}
         </small>
         <div className="button-wrapper">
           {Object.keys(dataSources).map(key =>
+<<<<<<< Updated upstream
             !isTypeScriptExcluded || key !== 'TypeScript' ? (
+=======
+            isAddBusinessLogicPage ? (
+              (key === 'TypeScript' || key === 'Python') && (
+                <div
+                  key={key}
+                  onClick={() => savePreference(key)}
+                  className={`data-source ${connectorPreference === key ? 'selected' : ''}`}
+                >
+                  {dataSources[key].image ? (
+                    <>
+                      <img src={dataSources[key].image} alt={dataSources[key].name} />
+                      <p>{dataSources[key].name}</p>
+                    </>
+                  ) : (
+                    <button>{dataSources[key].name}</button>
+                  )}
+                </div>
+              )
+            ) : !isBusinessLogicExcluded || (key !== 'TypeScript' && key !== 'Python') ? (
+>>>>>>> Stashed changes
               <div
                 key={key}
                 onClick={() => savePreference(key)}
-                className={`data-source ${dbPreference === key ? 'selected' : ''}`}
+                className={`data-source ${connectorPreference === key ? 'selected' : ''}`}
               >
                 {dataSources[key].image ? (
                   <>
@@ -224,7 +292,11 @@ export const DatabaseContentLoader = () => {
           </Link>
         </div>
       </div>
+<<<<<<< Updated upstream
       {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript') ? (
+=======
+      {connectorPreference && (!isBusinessLogicExcluded || connectorPreference !== 'TypeScript') ? (
+>>>>>>> Stashed changes
         getContent()
       ) : (
         <div>Please select your source preference.</div>
