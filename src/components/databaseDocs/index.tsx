@@ -44,26 +44,32 @@ const dataSources = {
   PostgreSQL: {
     name: 'PostgreSQL',
     image: PostgreSqlLogo,
+    connectorType: 'datasource',
   },
   MongoDB: {
     name: 'MongoDB',
     image: MongoDbLogo,
+    connectorType: 'datasource',
   },
   ClickHouse: {
     name: 'ClickHouse',
     image: ClickHouseLogo,
+    connectorType: 'datasource',
   },
   TypeScript: {
     name: 'TypeScript',
     image: TypeScriptLogo,
+    connectorType: 'businessLogic',
   },
   Python: {
     name: 'Python',
     image: PythonLogo,
+    connectorType: 'businessLogic',
   },
   OpenAPI: {
     name: 'OpenAPI',
     image: OpenAPILogo,
+    connectorType: 'datasource',
   },
 };
 
@@ -75,13 +81,8 @@ export const DatabaseContentLoader = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const dbParam = params.get('db');
-<<<<<<< Updated upstream
-    const savedPreference = localStorage.getItem('hasuraV3DbPreference');
-    const isTypeScriptExcluded =
-=======
     const savedPreference = localStorage.getItem('hasuraV3ConnectorPreference');
     const isBusinessLogicExcluded =
->>>>>>> Stashed changes
       location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
 
     if (dbParam && dataSources[dbParam]) {
@@ -92,16 +93,9 @@ export const DatabaseContentLoader = () => {
       } else {
         localStorage.removeItem('hasuraV3ConnectorPreference');
       }
-<<<<<<< Updated upstream
-      // If TypeScript is excluded and the saved preference is TypeScript, set preference to null
-      // to avoid text at the top of our component
-      if (isTypeScriptExcluded && savedPreference === 'TypeScript') {
-        setDbPreference(null);
-=======
 
       if (isBusinessLogicExcluded && (savedPreference === 'TypeScript' || savedPreference === 'Python')) {
         setConnectorPreference(null);
->>>>>>> Stashed changes
       } else {
         setConnectorPreference(savedPreference);
       }
@@ -109,13 +103,10 @@ export const DatabaseContentLoader = () => {
   }, [location.search, location.pathname]);
 
   const savePreference = (preference: string) => {
-    localStorage.setItem('hasuraV3DbPreference', preference);
+    const connectorObject = dataSources[preference];
 
-<<<<<<< Updated upstream
-=======
     localStorage.setItem('hasuraV3ConnectorPreference', preference);
 
->>>>>>> Stashed changes
     history.push({
       search: `db=${preference}`,
     });
@@ -223,12 +214,7 @@ export const DatabaseContentLoader = () => {
     }
   };
 
-<<<<<<< Updated upstream
-  // We'll use this to exclude the TS connector from any of the data connection pages
-  const isTypeScriptExcluded =
-=======
   const isBusinessLogicExcluded =
->>>>>>> Stashed changes
     location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
   const isAddBusinessLogicPage = location.pathname.includes('add-business-logic');
 
@@ -236,21 +222,13 @@ export const DatabaseContentLoader = () => {
     <div>
       <div className="picker-wrapper">
         <small>
-<<<<<<< Updated upstream
-          {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript')
-            ? `You are now reading ${dataSources[dbPreference].name}'s documentation`
-=======
           {connectorPreference &&
-          (!isBusinessLogicExcluded || connectorPreference !== 'TypeScript' || connectorPreference !== 'Python')
+          (!isBusinessLogicExcluded || (connectorPreference !== 'TypeScript' && connectorPreference !== 'Python'))
             ? `You are now reading ${dataSources[connectorPreference].name}'s documentation`
->>>>>>> Stashed changes
             : "Select a data source's documentation"}
         </small>
         <div className="button-wrapper">
           {Object.keys(dataSources).map(key =>
-<<<<<<< Updated upstream
-            !isTypeScriptExcluded || key !== 'TypeScript' ? (
-=======
             isAddBusinessLogicPage ? (
               (key === 'TypeScript' || key === 'Python') && (
                 <div
@@ -269,7 +247,6 @@ export const DatabaseContentLoader = () => {
                 </div>
               )
             ) : !isBusinessLogicExcluded || (key !== 'TypeScript' && key !== 'Python') ? (
->>>>>>> Stashed changes
               <div
                 key={key}
                 onClick={() => savePreference(key)}
@@ -292,11 +269,7 @@ export const DatabaseContentLoader = () => {
           </Link>
         </div>
       </div>
-<<<<<<< Updated upstream
-      {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript') ? (
-=======
       {connectorPreference && (!isBusinessLogicExcluded || connectorPreference !== 'TypeScript') ? (
->>>>>>> Stashed changes
         getContent()
       ) : (
         <div>Please select your source preference.</div>
@@ -304,4 +277,3 @@ export const DatabaseContentLoader = () => {
     </div>
   );
 };
-
