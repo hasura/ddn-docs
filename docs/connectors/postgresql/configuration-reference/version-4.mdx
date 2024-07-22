@@ -261,9 +261,10 @@ Each query is specified as SQL, and the types of any query arguments and result 
 
 The following fields should be specified for a Native Operation entry:
 
-- `sql`: SQL expression to use for the Native Query. We can interpolate values using `{{variable_name}}` syntax, such as
-  `SELECT * FROM authors WHERE name = {{author_name}}`. Can be specify either a path to file in the connector
-  configuration directory with `{ "file": "<file>" }`, or an inline SQL query such as `{ "inline": "SELECT 1 as one" }`.
+- `sql`: SQL expression to use for the Native Query. We can interpolate values using `{{variable_name}}` syntax,
+   such as `SELECT * FROM authors WHERE name = {{author_name}}`.
+   Can be specify either a path to file in the connector configuration directory with `{ "file": "<file>" }`,
+   or an inline SQL query such as `{ "inline": "SELECT 1 as one" }`.
 - `isProcedure`: True if this native operation mutates the database.
 - `columns`: The returning columns from the Native Operation.
 - `arguments`: Names and types of arguments that can be passed to this Native Operation.
@@ -658,12 +659,11 @@ Supported since data connector version `v0.8.0`
 
 :::
 
-"v2" of auto-generated mutations introduces insert, delete and update point mutations per table that include permission
-arguments.
+"v2" of auto-generated mutations introduces insert, delete and update point mutations per table that include permission arguments.
 
 We generate the following procedures:
 
-- A single insert procedure is generated per table, and has the following form:
+* A single insert procedure is generated per table, and has the following form:
 
   ```graphql
   v2_insert_<table>(
@@ -671,10 +671,9 @@ We generate the following procedures:
       post_check: <boolexpr>
   )
   ```
-
   Using it, we can insert multiple objects and include a post check for permissions.
 
-- A delete procedure is generated per table X unique constraint, and has the following form:
+* A delete procedure is generated per table X unique constraint, and has the following form:
 
   ```graphql
   v2_delete_<table>_by_<column_and_...>(
@@ -684,10 +683,9 @@ We generate the following procedures:
       pre_check: <boolexpr>
   )
   ```
-
   Using it, we can delete a single row using the uniqueness constraint, and include a pre check for permissions.
 
-- An update procedure is generated per table X unique constraint, and has the following form:
+* An update procedure is generated per table X unique constraint, and has the following form:
 
   ```graphql
   v2_update_<table>_by_<column_and_...>(
@@ -699,13 +697,11 @@ We generate the following procedures:
       post_check: <boolexpr>
   )
   ```
+  Using it, we can update a single row using the uniqueness constraint by updating the relevant columns,
+  and include a pre check and post check for permissions.
 
-  Using it, we can update a single row using the uniqueness constraint by updating the relevant columns, and include a
-  pre check and post check for permissions.
-
-For each `pre_check` and `post_check` arguments of a mutation, an
-[Argument Preset](/supergraph-modeling/permissions#commandpermissions-argumentpreset) should be set in the mutation's
-[Command Permissions](/supergraph-modeling/permissions#commandpermissions-commandpermission).
+For each `pre_check` and `post_check` arguments of a mutation, an [Argument Preset](/supergraph-modeling/permissions#commandpermissions-argumentpreset)
+should be set in the mutation's [Command Permissions](/supergraph-modeling/permissions#commandpermissions-commandpermission).
 
 [Configuration JSON Schema]: https://github.com/hasura/ndc-postgres/blob/main/static/schema.json
 [NDC Postgres Issue Tracker]: http://github.com/hasura/ndc-postgres/issues
