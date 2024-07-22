@@ -1,7 +1,11 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
 ## What's about to happen?
 
 We can add business logic to our existing or new functions to modify data before it's sent to the API, or before it's
 returned to the client.
+
+<Thumbnail src="/img/get-started/ERD/mutate-data.png" alt="Mutate data using your API" width="1000px" />
 
 ## Steps
 
@@ -30,9 +34,8 @@ store.
 export async function postPetAddPet(
   /** Request body */
   data: Pet,
-  headers?: hasuraSdk.JSONValue
+  headers?: hasuraSdk.JSONValue,
 ): Promise<Pet> {
-
   // highlight-start
   // Capitalize pet's name
   data.name = data.name?.toUpperCase();
@@ -66,7 +69,7 @@ export async function getPetGetCapPetById(
    * ID of pet to return capitalized name
    */
   petId: number,
-  headers?: hasuraSdk.JSONValue
+  headers?: hasuraSdk.JSONValue,
 ): Promise<Pet> {
   const result = await api.pet.getPetById({
     petId: petId,
@@ -90,9 +93,9 @@ overwritten if we re-introspect the connector.
 
 :::info JSDoc comments
 
-The OpenAPI connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a
-query or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will
-expose the function as a mutation.
+The OpenAPI connector uses [JSDoc comments](https://jsdoc.app/) to determine how to expose a function: either as a query
+or a mutation. If we include the `@readOnly` tag, it will be exposed as a query. Simply omitting this tag will expose
+the function as a mutation.
 
 We can even add documentation that will be visible in the GraphiQL explorer by tagging `@param` for the argument(s) and
 `@returns` for what will be returned by the mutation.
@@ -141,4 +144,3 @@ HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yam
 Finally, should see your command available in the GraphiQL explorer. Head to
 [`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
 and interact with your API using the Hasura Console.
-
