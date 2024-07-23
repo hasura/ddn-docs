@@ -13,89 +13,63 @@ seoFrontMatterUpdated: false
 
 ## Introduction
 
-Native Queries allow you to run custom SQL queries on your PostgreSQL database. This allows you to run queries that are
+Native Queries allow you to run custom SQL queries on your PostgreSQL database. These allow you to run queries that are
 not supported by Hasura's GraphQL engine.
 
-## Setup
+## Structure
 
-Native Queries can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json` for a
-particular connector.
+A Native Query is a single SQL statement that returns results and can take arguments. The SQL structure of a Native
+Query is specified in the [Native Operation syntax](/connectors/postgresql/native-operations/syntax.mdx) page.
 
-Each query is specified as SQL. The return structure of the query must be explicitly specified in the `columns` field.
+## Create a Native Query
 
-Native Queries can take arguments using the `{{argument_name}}` syntax. Arguments must be specified along with their
-type.
+To create a new Native Query, create a new SQL file inside the connector configuration directory, then use the `ddn` CLI
+to add it to the connector configuration. For example:
 
-The arguments are not interpolated, but provided to your data source as parameters, and therefore must be specific
-values, not arbitrary SQL.
+1. Create a new directory structure under the connector configuration:
 
-## Example
+   ```sh
+   mkdir -p my_subgraph/connector/chinook_pg/native_operations/queries/
+   ```
 
-Here's an example which filters a table called `"Artist"`:
+2. Create a new SQL file `my_subgraph/connector/chinook_pg/native_operations/queries/artist_by_name_between.sql` with
+   the following content:
 
-### Configuration
+   ```sql
+   SELECT *
+   FROM "Artist"
+   WHERE "Name" LIKE '%' || {{name}} || '%'
+     AND "ArtistId" > {{lower_bound}}
+     AND "ArtistId" < {{upper_bound}}
+   ```
 
-```json
-"nativeQueries": {
-  "artist_below_id": {
-    "sql": {
-      "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
-    },
-    "columns": {
-      "ArtistId": {
-        "name": "ArtistId",
-        "type": {
-          "scalarType": "int4"
-        }
-      },
-      "Name": {
-        "name": "Name",
-        "type": {
-          "scalarType": "varchar"
-        }
-      }
-    },
-    "arguments": {
-      "id": {
-        "name": "id",
-        "type": {
-          "scalarType": "int4"
-        }
-      }
-    }
-  }
-}
+3. Create a new entry in the connector configuration:
+
+   ```sh
+   ddn connector plugin -c my_subgraph/connector/chinook_pg/connector.yaml -- \
+     native-operation create --operation-path native_operations/queries/artist_by_name_between.sql --kind query
+   ```
+
+4. Add a source entity as described in our
+   [add source entities](/getting-started/build/03-connect-to-data/03-add-source-entities.mdx) guide.
+
+## List Native Operations
+
+To list the existing Native Operations for a specific connector, use the `list` command. For example:
+
+```sh
+ddn connector plugin -c my_subgraph/connector/chinook_pg/connector.yaml -- \
+  native-operation list
 ```
 
-This will create a query called `"artist_below_id"` which takes a single argument called `"id"` of type `int4`. The
-query will return a list of objects with the fields `"ArtistId"` and `"Name"`.
+## Delete a Native Query
 
-Note that the SQL can be defined `inline`, and can also reference a `file` that exists in the configuration directory
-using the following structure:
+A Native Query can be deleted with the `delete` command. For example:
 
-```yaml
-"nativeQueries": {
-  "artist_below_id": {
-    "sql": {
-      "file": "artist_below_id.sql"
-    },
-...
+```sh
+ddn connector plugin -c my_subgraph/connector/chinook_pg/connector.yaml -- \
+  native-operation delete --name artist_by_name_between --kind query
 ```
-
-And the SQL can be written in the `artist_below_id.sql` file without escaping:
-
-```sql
-SELECT *
-  FROM public."Artist"
- WHERE "ArtistId" < {{id}}
-```
-
-:::tip Valid Native Query syntax
-
-Check out our page on writing valid Hasura DDN
-[Native Operation syntax](/connectors/postgresql/native-operations/syntax.mdx).
-
-:::
 
 ### Usage
 
@@ -103,7 +77,7 @@ With the example above, you can then use the query in your GraphQL API like this
 
 ```graphql
 query {
-  artist_below_id(id: 10) {
+  artist_by_name_between(name: "Black", lower_bound: 10, upper_bound: 50) {
     ArtistId
     Name
   }

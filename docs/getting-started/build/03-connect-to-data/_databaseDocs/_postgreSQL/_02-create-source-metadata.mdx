@@ -1,8 +1,12 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
 ## What's about to happen?
 
 After initializing a connector and creating a JSON configuration, which represents our tables in PostgreSQL, we can use
 it to generate Hasura metadata. In the steps below, we'll utilize our `configuration.json` (populated by introspecting
 our PostgreSQL database) to create metadata which Hasura can use to construct our API.
+
+<Thumbnail src="/img/get-started/ERD/create-metadata.png" alt="Create source metadata" width="1000px" />
 
 ## Step 1. Create the Hasura metadata
 
@@ -25,7 +29,7 @@ Let's add and name the `hml` file the same as our connector, `my_pg`:
 ```bash title="Run the following from the root of your project:"
 ddn connector-link add my_pg \
   --subgraph my_subgraph/subgraph.yaml \
-  --configure-host http://local.hasura.dev:8085 \
+  --configure-host http://local.hasura.dev:8082 \
   --target-env-file my_subgraph/.env.my_subgraph.local
 ```
 
@@ -74,9 +78,9 @@ definition:
 The generated file has two environment variables — one for reads and one for writes. Because we used the convenience
 flag: `--configure-host` on the command, these keys are already set in the `.env.my_subgraph.local` file:
 
-```env title="my_subgraph/.env.my_subgraph"
-MY_SUBGRAPH_MY_PG_READ_URL="http://local.hasura.dev:8085"
-MY_SUBGRAPH_MY_PG_WRITE_URL="http://local.hasura.dev:8085"
+```env title="my_subgraph/.env.my_subgraph.local"
+MY_SUBGRAPH_MY_PG_READ_URL="http://local.hasura.dev:8082"
+MY_SUBGRAPH_MY_PG_WRITE_URL="http://local.hasura.dev:8082"
 ```
 
 These values are for the PostgreSQL connector itself and utilize `local.hasura.dev` to ensure proper resolution within

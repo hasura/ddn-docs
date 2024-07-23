@@ -50,41 +50,24 @@ We want to be able to run vector searches on the `vector` column of this table. 
 project the vector similarity given a query vector and expose it as a model in Hasura. Then, we can create a
 relationship from this projection to the full products table and query it flexibly in the GraphQL API.
 
-### Native Query configuration
+### Create a vector search Native Query
 
-In the `configuration.json` of our connector, we'd amend the `nativeQueries` to include:
+1. Create a new SQL file under the connector configuration directory
+   `my_subgraph/connector/my_pg/native_operations/queries/products_vector_distance.sql` with the following content:
 
-```json
-"nativeQueries": {
-      "products_vector_distance": {
-        "sql": {
-          "inline": "SELECT id, vector <=> {{query_vector}} AS distance FROM products"
-        },
-        "columns": {
-          "id": {
-            "name": "id",
-            "type": {
-              "scalarType": "uuid"
-            }
-          },
-          "distance": {
-            "name": "distance",
-            "type": {
-              "scalarType": "float8"
-            }
-          }
-        },
-        "arguments": {
-          "query_vector": {
-            "name": "query_vector",
-            "type": {
-              "scalarType": "vector"
-            }
-          }
-        }
-      }
-    }
-```
+   ```sql
+   SELECT
+   id,
+   vector <=> {{query_vector}} AS distance
+   FROM products
+   ```
+
+2. Create an entry for the Native Query in the connector configuration:
+
+   ```sh
+   ddn connector plugin -c my_subgraph/connector/my_pg/connector.yaml -- \
+     native-operation create --operation-path native_operations/queries/products_vector_distance.sql --kind query
+   ```
 
 ### Hasura metadata
 

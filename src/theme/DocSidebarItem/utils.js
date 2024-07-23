@@ -14,6 +14,7 @@ import CiCd from '@site/static/icons/upload-cloud-02.svg';
 import ProjectConfiguration from '@site/static/icons/dataflow-01.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
+import Enterprise from '@site/static/icons/features/enterprise.svg';
 import Glossary from '@site/static/icons/box.svg';
 import Quickstart from '@site/static/icons/speedometer-04.svg';
 import SupergraphModeling from '@site/static/icons/cpu-chip-01.svg';
@@ -22,6 +23,7 @@ import Community from '@site/static/icons/announcement-02.svg';
 import Actions from '@site/static/icons/features/actions.svg';
 import Help from '@site/static/icons/features/hasura_policies.svg';
 import Billing from '@site/static/icons/features/credit-card-check.svg';
+import Deployment from '@site/static/icons/features/deployment.svg';
 
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
@@ -74,6 +76,9 @@ export function addIconsToLabel(label, className) {
     case 'observability-icon':
       icons = <Observability />;
       break;
+    case 'enterprise-icon':
+      icons = <Enterprise />;
+      break;
     case 'glossary-icon':
       icons = <Glossary />;
       break;
@@ -97,6 +102,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'help-icon':
       icons = <Help />;
+      break;
+    case 'deployment':
+      icons = <Deployment />;
       break;
   }
 

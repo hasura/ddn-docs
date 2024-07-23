@@ -1,8 +1,12 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
 ## What's about to happen?
 
 We want to connect our [PostgreSQL](https://www.postgresql.org/) database to our API. To do this, we use the Hasura
 PostgreSQL data connector to facilitate the connection and then introspect the database to generate JSON which the
 Hasura CLI will then use to create metadata which can then define your API.
+
+<Thumbnail src="/img/get-started/ERD/connect-data.png" alt="Connect a data source" width="1000px" />
 
 ## Step 1. Init the PostgreSQL connector
 
@@ -20,7 +24,7 @@ To initialize the PostgreSQL connector, run the following in your terminal.
 ddn connector init my_pg \
   --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/postgres \
-  --configure-port 8085 \
+  --configure-port 8082 \
   --add-to-compose-file compose.yaml
 ```
 
@@ -158,7 +162,8 @@ your project.
 ## Step 4. Restart the services
 
 Let's restart our docker compose services so that Docker can create a PostgreSQL connector build for us now that we've
-added and introspected the connector.
+added and introspected the connector. **If you have existing services running, bring them down using
+`docker compose down` or `CTRL` + `C` if your terminal tab is still actively logging information.**
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
@@ -172,7 +177,7 @@ authentication token.
 We can navigate to the following address, with the port modified, to see the schema of our PostgreSQL database:
 
 ```text
-http://localhost:8085/schema
+http://localhost:8082/schema
 ```
 
 ## Next steps
