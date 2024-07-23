@@ -9,32 +9,38 @@ import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
 import ClickHouseLogo from '@site/static/img/databases/logos/clickhouse-glyph.png';
 import OpenAPILogo from '@site/static/img/databases/logos/openapi.png';
 import PythonLogo from '@site/static/img/databases/logos/python.png';
+import GraphQlLogo from '@site/static/img/databases/logos/gql.png';
 
 import PostgreSqlConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
 import MongoDBConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
 import ClickHouseConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_01-connect-a-source.mdx';
 import OpenAPIConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_01-connect-a-source.mdx';
+import GraphQLConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_graphql/_01-connect-a-source.mdx';
 
 import PostgreSqlCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
 import MongoDBCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
 import ClickHouseCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
 import OpenAPICreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_02-create-source-metadata.mdx';
+import GraphQLCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_graphql/_02-create-source-metadata.mdx';
 
 import PostgreSqlAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
 import MongoDBAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
 import ClickHouseAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
 import OpenAPIAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_03-add-source-entities.mdx';
+import GraphQlAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_graphql/_03-add-source-entities.mdx';
 
 import PostgreSqlMutate from '@site/docs/getting-started/build/_databaseDocs/_postgreSQL/_08-mutate-data.mdx';
 import MongoDBMutate from '@site/docs/getting-started/build/_databaseDocs/_mongoDB/_08-mutate-data.mdx';
 import ClickHouseMutate from '@site/docs/getting-started/build/_databaseDocs/_clickHouse/_08-mutate-data.mdx';
 import OpenAPIMutate from '@site/docs/getting-started/build/_databaseDocs/_openAPI/_08-mutate-data.mdx';
+import GraphQlMutate from '@site/docs/getting-started/build/_databaseDocs/_graphql/_08-mutate-data.mdx';
 
 import PostgreSqlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_postgreSQL/_03-deploy-a-connector.mdx';
 import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_mongoDB/_03-deploy-a-connector.mdx';
 import TypeScriptDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_typeScript/_03-deploy-a-connector.mdx';
 import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_clickHouse/_03-deploy-a-connector.mdx';
 import OpenAPIDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
+import GraphQlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_graphql/_03-deploy-a-connector.mdx';
 import PythonDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_python/_03-deploy-a-connector.mdx';
 
 import TypeScriptBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_typescript/_06-add-business-logic.mdx';
@@ -69,6 +75,11 @@ const dataSources = {
   OpenAPI: {
     name: 'OpenAPI',
     image: OpenAPILogo,
+    connectorType: 'datasource',
+  },
+  GraphQL: {
+    name: 'GraphQL',
+    image: GraphQlLogo,
     connectorType: 'datasource',
   },
 };
@@ -141,6 +152,8 @@ export const DatabaseContentLoader = () => {
             return <ClickHouseConnect />;
           case 'OpenAPI':
             return <OpenAPIConnect />;
+          case 'GraphQL':
+            return <GraphQLConnect />;
           default:
             return <div />;
         }
@@ -154,6 +167,8 @@ export const DatabaseContentLoader = () => {
             return <ClickHouseCreateSourceMetadata />;
           case 'OpenAPI':
             return <OpenAPICreateSourceMetadata />;
+          case 'GraphQL':
+            return <GraphQLCreateSourceMetadata />;
           default:
             return <div />;
         }
@@ -167,6 +182,8 @@ export const DatabaseContentLoader = () => {
             return <ClickHouseAddSourceEntities />;
           case 'OpenAPI':
             return <OpenAPIAddSourceEntities />;
+          case 'GraphQL':
+            return <GraphQlAddSourceEntities />;
           default:
             return <div />;
         }
@@ -187,6 +204,8 @@ export const DatabaseContentLoader = () => {
             return <MongoDBMutate />;
           case 'ClickHouse':
             return <ClickHouseMutate />;
+          case 'GraphQL':
+            return <GraphQlMutate />;
           case 'OpenAPI':
             return <OpenAPIMutate />;
           default:
@@ -206,6 +225,8 @@ export const DatabaseContentLoader = () => {
             return <PythonDeploy />;
           case 'OpenAPI':
             return <OpenAPIDeploy />;
+          case 'GraphQL':
+            return <GraphQlDeploy />;
           default:
             return <div />;
         }
