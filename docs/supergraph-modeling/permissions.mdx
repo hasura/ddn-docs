@@ -46,6 +46,103 @@ error checking as you write your permissions.
 
 :::
 
+## Argument presets
+
+Argument presets can be used to enforce row-level security. They can be defined
+on arguments for `Types`, `Models` and `Commands`.
+
+## Argument presets
+
+### Literals
+
+For example, given a `Command` called `get_article_by_id`, with a single
+argument called `id`, we can prepopulate that argument for the `user` role.
+
+```yaml
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: get_article_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: id
+          value:
+            literal: 100
+```
+
+This means that `admin` users are able to provide whatever `id` they like to
+`get_article_by_id`, but the argument is not available in the GraphQL schema
+for the `user` role, and instead they always receive the same article every
+time.
+
+### Session variables
+
+What might be a little more helpful is a a `Command` called `get_articles_by_author_id`, with a single
+argument called `author_id`. Here we can make it so that a `user` can only
+fetch articles with an `author_id` that matches their `x-hasura-user-id`
+header.
+
+```yaml
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: get_articles_by_author_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: id
+          value:
+            sessionVariable: x-hasura-user-id
+```
+
+This means `admin` users, once again, are able to provide their own
+`author_id`, but a `user` can only see the articles they have written.
+
+### Boolean expressions
+
+We can also use argument presets to pass actual logical expressions to our data
+sources to control how they do things.
+
+For example, a data connector might expose a `Command` called
+`delete_user_by_id`
+with two arguments - `user_id` and `pre_check`. `user_id` is the primary key of
+the user we'd like to remove, and `pre_check` lets us provide a custom boolean
+expression.
+
+```yaml
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: delete_user_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: pre_check
+          value:
+            booleanExpression:
+              fieldComparison:
+                field: is_invincible
+                operator: _eq
+                value:
+                  literal: false
+```
+
+Now, when `admin` runs this command, once again, they can do what they want,
+and provide their own `pre_check` if they want. The `user` however, is able to
+pass a `user_id` argument, but the `pre_check` expression is passed to the data
+connector which will only let them delete the row if the row's
+`is_invincible` value is set to `false`.
+
 ## Metadata structure
 
 ### TypePermissions {#typepermissions-typepermissions}
