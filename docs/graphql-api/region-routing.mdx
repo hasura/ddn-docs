@@ -1,12 +1,12 @@
 ---
-title: Multi-Region Routing
-sidebar_label: Multi-Region Routing
+title: Region Routing
 sidebar_position: 3
 description:
-  "Understand how to set up multi-region routing in Hasura DDN to achieve efficient data fetching and lower latency.
+  "Understand how to set up region routing in Hasura DDN to achieve efficient data fetching and lower latency.
   Benefit from optimal database performance and global data access with Hasura."
 keywords:
   - multi-region routing
+  - region routing
   - hasura
   - postgreSQL
   - data fetching
@@ -14,10 +14,35 @@ keywords:
   - geo-routing
   - hasura data connector
   - database optimization
-  - microservices
-  - data management
 seoFrontMatterUpdated: true
 ---
+
+# Region Routing
+
+With region routing, you can force the deployment of your data connector to a region you specify.
+
+## Configuration
+
+If you don't have a project setup, please follow [this guide](/getting-started/overview.mdx). Once you have a
+working project, you can modify the `Connector` object as per the highlighted values in the example below to enable
+fetching data from a specific region.
+
+```yaml title="For example, in my_subgraph/connector/my_connector/connector.yaml:"
+kind: Connector
+version: v1
+definition:
+  name: my_connector
+  subgraph: my_subgraph
+  source: hasura/connector_name:<version>
+  context: .
+  envFile: .env.cloud
+  #highlight-start
+  regionConfiguration:
+  - region: <region from the list below>
+    mode: ReadWrite
+    envFile: # CONNECTION_URI will point to the read write replica
+  #highlight-end
+```
 
 # Multi-Region Routing
 
@@ -33,13 +58,7 @@ Multi-region routing is currently supported only for PostgreSQL and PostgreSQL-c
 :::
 
 To use multi-region routing in Hasura DDN, you only need a supported data source deployed in (or near) more than one of
-the [supported regions](#supported-regions).
-
-## Configuration
-
-If you don't have a project setup that lets you query PostgreSQL, please follow
-[this guide](/getting-started/overview.mdx). Once you have a working project, you can modify the `Connector` object as
-per the highlighted values in the example below to enable multi-region routing.
+the supported regions.
 
 ```yaml title="For example, in my_subgraph/connector/my_connector/connector.yaml:"
 kind: Connector
@@ -75,3 +94,4 @@ Currently, Hasura DDN supports the following regions in GCP for multi-region rou
 - `gcp-southamerica-east1`
 - `gcp-us-east4`
 - `gcp-us-west2`
+
