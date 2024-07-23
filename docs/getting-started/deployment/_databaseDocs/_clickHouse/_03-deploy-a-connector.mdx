@@ -63,6 +63,29 @@ In this command we're passing a few arguments:
 - `--target-subgraph` specifies the path to the subgraph's configuration yaml file to which the target env file belongs.
 - `--target-connector-link` where the latest schema for the connector will be updated.
 
+:::tip Deploy to a specific region
+
+If you want to deploy your connector to a specific data center region you can use configuration in your
+`Connector` object in metadata as below:
+
+```yaml
+kind: Connector
+version: v1
+definition:
+  name: my_connector
+  subgraph: my_subgraph
+  source: hasura/connector:<version>
+  context: .
+  envFile: .env.cloud
+  #highlight-start
+  regionConfiguration:
+    - region: <region> # choose one of these supported regions: https://hasura.io/docs/3.0/graphql-api/multi-region-routing#supported-regions
+      mode: ReadWrite
+  #highlight-end
+```
+
+:::
+
 You're now ready to build and deploy your supergraph!
 
 ## What did this do?
