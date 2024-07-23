@@ -51,9 +51,10 @@ and how they map to features in Hasura DDN.
 In Hasura v2, you added a connection string to your project and Hasura instantly generated a GraphQL API.
 
 **In Hasura DDN, this is also true!** However, you're now given more flexibility and have the tools to rapidly iterate
-and expand that API to include a dynamic range of sources, all organized into what we term **subgraphs** for clear team
-ownership and rapid, risk-free development and deployment. You can learn more about
-[the GraphQL API here](graphql-api/overview.mdx).
+and expand that API to include a dynamic range of sources. With Hasura DDN, you generate this API using a code-first
+declarative experience — assisted by the CLI — instead of the console as in v2.
+
+You can learn more about [the GraphQL API here](graphql-api/overview.mdx).
 
 ### The Hasura console
 
@@ -62,9 +63,11 @@ associated metadata. The console provided a user-friendly graphical interface fo
 configure and interact with your Hasura instance without needing to write complex code or commands.
 
 **In Hasura DDN, the console serves exclusively as an exploration and management tool**. It allows you to visualize,
-explore, test, and deploy your API. The key difference here is that the console in Hasura DDN is not used to author or
-edit your API. Learn how the console can be used to
-[explore and manage your API here](getting-started/explore/index.mdx).
+explore, test, and deploy your API. Unlike in v2, the console in Hasura DDN is not used to author or edit your API.
+However, we've expanded the console's features to include granular analytics and the ability to add collaborators with
+read-only status. This makes it easy to share and onboard an API quickly and efficiently.
+
+Learn how the console can be used to [explore and manage your API here](getting-started/explore/index.mdx).
 
 ### The Hasura CLI
 
@@ -75,7 +78,15 @@ easier to integrate Hasura into CI/CD pipelines.
 **In Hasura DDN, the CLI becomes your primary tool for constructing an API**. It is used for creating local projects,
 scaffolding out metadata, and creating iterative, immutable builds of your API. Additionally, the CLI helps streamline
 deployment processes and allows for easy automation, maintaining the functionality of managing and configuring your API
-from the command line. Check out the [new command structure here](cli/overview.mdx) or
+from the command line.
+
+The CLI also facilitates declarative work with Hasura metadata in conjunction with
+[Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura), which provides
+auto-complete and error hinting. The new metadata folder and file structure enhances your ability to reason and navigate
+your metadata intuitively.
+
+The CLI is at the center of it all, interacting with key components to help you iterate faster. Check out the
+[new command structure here](cli/overview.mdx) or
 [learn how to create your first project here](getting-started/build/index.mdx).
 
 ### Connecting data sources
@@ -86,14 +97,30 @@ database schema.
 
 **In Hasura DDN, connecting data sources is simplified and more flexible**. You can easily connect multiple types of
 data sources, including relational databases, REST APIs, and other GraphQL services, all using a concept called
-[**data connectors**](connectors/overview.mdx). This expanded capability allows for more diverse and comprehensive data
-integration, facilitating a more unified API experience. The modular architecture of Hasura DDN ensures that changes in
-one part of the API do not negatively impact others, allowing for greater autonomy and flexibility in development.
+[**native data connectors**](connectors/overview.mdx). This expanded capability allows for more diverse and
+comprehensive data integration, facilitating a more unified API experience. You can learn more about what native data
+connectors we offer on the [Connector Hub](https://hasura.io/connectors), or
+[build your own](connectors/build-your-own/index.mdx) using one of our SDKs.
+
+The modular architecture of Hasura DDN ensures that changes in one part of the API do not negatively impact others,
+allowing for greater autonomy and flexibility in development.
 
 Further, you can easily configure all your relationships and permissions using a simple declarative syntax. Our
 [Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) makes this easier than
 ever with scaffolding, auto-completion, and validation — ensuring your metadata is consistent and up-to-date before you
 ship it to prod.
+
+### Federation
+
+In Hasura v2, federation was available in a variety of ways for integrating multiple data sources into a single unified
+GraphQL API. This allowed for combining various schemas and data services, enabling a cohesive data access layer.
+
+**In Hasura DDN, all your sources are organized into what we term subgraphs for clear team ownership and rapid,
+risk-free development and deployment**. Each subgraph represents a distinct domain of your overall API, enabling teams
+to work independently on their respective domains without impacting other parts of the API. This structure promotes
+better collaboration, as changes in one subgraph do not interfere with others, reducing the risk of breaking the overall
+system. Subgraphs provide a clear boundary for team ownership, making it easier to manage, deploy, and scale each part
+of the API efficiently.
 
 ### Metadata and migrations
 
@@ -108,19 +135,21 @@ services or users. You can learn more about the new metadata concepts in our
 
 ### Actions
 
-In Hasura v2, Actions allowed you to integrate REST APIS or define custom business logic that could be executed as part
-of your GraphQL API. This feature enabled bringing in existing REST APIS and extending the functionality of the API
-beyond what was directly available through the database schema.
+In Hasura v2, Actions allowed you to integrate REST APIs or define custom business logic that could be executed as part
+of your GraphQL API. You could quickly and easily integrate OpenAPI-compliant services and expose them as Actions using
+the console. This feature enabled bringing in existing REST APIs and extending the functionality of the API beyond what
+was directly available through the database schema.
 
-**In Hasura DDN, the [TypeScript connector](business-logic/typescript.mdx) takes the place of Actions**. You can define
-more complex business logic — allowing enrichment and transformation of your data — and seamlessly integrate it with
-other services via your existing API. This allows for creating richer and more dynamic APIs that can handle a wide range
-of business requirements.
+**In Hasura DDN, business-logic connectors take the place of Actions**. These connectors allow you to define more
+complex business logic, enabling the enrichment and transformation of your data, and seamlessly integrate it with other
+services via your existing API. These functions are introspected by Hasura DDN and then exposed as part of your GraphQL
+API. Currently, we support business logic via the [TypeScript](business-logic/typescript.mdx) and Python connectors.
 
-And, we'll host it all for you 🎉
+You can also use the [OpenAPI connector](business-logic/open-api.mdx) — which leverages the TypeScript connector — to
+immediately integrate any OpenAPI-compliant APIs into your supergraph.
 
-Finally, you can use the [OpenAPI connector](business-logic/open-api.mdx) — which leverages the TypeScript connector —
-to immediately integrate any OpenAPI-compliant APIs.
+This setup allows for the creation of richer and more dynamic APIs that can handle a wide range of business
+requirements. And, we'll host it all for you 🎉
 
 ### Remote Schemas
 
