@@ -1,9 +1,11 @@
 name: Merge main into PR and test build
 
 on:
-  pull_request_review:
-    types:
-      - submitted
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - main
 
 jobs:
   merge_and_build:
@@ -13,14 +15,6 @@ jobs:
       - name: Get PR branch name
         id: pr_branch
         run: echo "::set-output name=branch::${{ github.event.pull_request.head.ref }}"
-
-      - name: Check if PR is approved
-        id: approved
-        run: echo "::set-output name=approved::${{ github.event.review.state == 'approved' }}"
-
-      - name: Fail if PR is not approved
-        if: steps.approved.outputs.approved == 'false'
-        run: exit 1
 
       - name: Checkout code
         uses: actions/checkout@v2
