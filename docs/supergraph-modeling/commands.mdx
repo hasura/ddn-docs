@@ -23,13 +23,22 @@ toc_max_heading_level: 4
 
 ## Introduction
 
-Commands are backed by **functions** or **procedures** declared in a
-[DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) allowing you to execute business logic directly from
-your GraphQL API. You can use them to validate, process or enrich data, call another API, or even log a user in.
+A "Command" in Hasura DDN represents an action that can be performed to returning some type of result (eg:
+`LogUserIn`).  Very loosely, you can think of commands as the verbs or, "actions" of your data domain.
 
-Commands are the metadata representation of these functions or procedures. As an example, if we have a TypeScript
-function connected using the [Node.js Lambda connector](https://github.com/hasura/ndc-nodejs-lambda):
+Commands have a fixed definition and are backed by **functions** or **procedures**, allowing you to add top level
+methods to your API, or, add a custom field to an existing [model](./models.mdx).
 
+Commands allow you to execute business logic directly from your GraphQL API and are useful in validating, processing
+or enriching data, calling another API, or, for example, logging a user in.
+
+Once a command is declared it will then often be referenced by `Relationship` objects in order to compose them with
+each other or models, and also by `Permissions` objects to control access to the command execution.
+
+<details>
+<summary>View an example of a function, the command and an API query it enables</summary>
+
+A function in TypeScript with the [Node.js Lambda connector](https://github.com/hasura/ndc-nodejs-lambda):
 ```typescript
 /**
  * @readonly Exposes the function as an NDC function (the function should only query data without making modifications)
@@ -52,13 +61,23 @@ definition:
     - name: name
       type: String
   source:
-    dataConnectorName: <connector_name>
+    dataConnectorName: my_data_connector
     dataConnectorCommand:
       function: hello
   graphql:
-    rootFieldName: app_hello
+    rootFieldName: my_subgraph_hello
     rootFieldKind: Query
 ```
+
+And then queried in the API like so:
+
+```graphql
+query {
+  my_subgraph_hello(name: "Hasura")
+}
+```
+
+</details>
 
 ### Functions vs. Procedures
 
