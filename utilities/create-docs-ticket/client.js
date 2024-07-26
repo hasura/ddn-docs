@@ -1,4 +1,4 @@
-import { LinearClient } from '@linear/sdk';
+const { LinearClient } = require('@linear/sdk');
 require('dotenv').config();
 
 export default client = new LinearClient({
