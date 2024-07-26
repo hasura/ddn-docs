@@ -1,10 +1,8 @@
 require('dotenv').config();
-const { determineReviewer } = require('./helpers');
 
 const assignReviewer = async prUrl => {
   const prNumber = prUrl.split('/').pop();
-  let reviewer = determineReviewer();
-  reviewer = JSON.parse(reviewer);
+  const reviewer = JSON.parse(process.env.REVIEWER);
   const apiUrl = `https://api.github.com/repos/${process.env.REPO_OWNER}/${process.env.REPO_NAME}/pulls/${prNumber}/requested_reviewers`;
   const assignResponse = await fetch(apiUrl, {
     method: 'POST',
