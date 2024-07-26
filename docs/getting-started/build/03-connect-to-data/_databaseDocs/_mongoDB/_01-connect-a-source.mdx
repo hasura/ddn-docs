@@ -42,7 +42,7 @@ We're specifying the subgraph config file that this connector will be added to u
 
 **Connector: --hub-connector**
 
-We're specifying that this connector should be the: `hasura/mongodb`, connector listed in the
+We're specifying that this connector should be the `hasura/mongodb` connector listed in the
 [Connector Hub](https://hasura.io/connectors/mongodb).
 
 **Port: `configure-port`**
@@ -68,7 +68,7 @@ We recommend that the name of the connector and the directory in which the confi
 example, should match for convenience and clarity sake.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
+string you provide in your subgraph's `.env.my_subgraph.local` file.
 
 :::
 
@@ -121,13 +121,21 @@ This value is already referenced in the scaffolded out
 ---
 supportedEnvironmentVariables:
   - name: MONGODB_DATABASE_URI
-description: The URI for the MongoDB database
+  description: The URI for the MongoDB database
 ```
 
 You can use a local MongoDB database, or a cloud-hosted one like MongoDB Atlas. Check out
 [this page](https://www.mongodb.com/docs/manual/installation/) for a list of options for running a MongoDB database if
 you don't already have one. If you already have one you can connect to, you can go ahead and do that. Hasura DDN will
 not modify your database in any way, so you can use an existing database without any worries.
+
+:::tip Docker networking Inside a Docker container
+
+`local.hasura.dev` is set to the `host-gateway` alias in the `extra_hosts` option. With this option set,
+`local.hasura.dev` resolves to the host machine's gateway IP address from _inside_ the container. This allows various
+containers, such as the GraphQL Engine and data connectors, to communicate with each other and out the host machine.
+
+:::
 
 :::info Environment-specific caveats
 
