@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { generateComment, determineReviewer } = require('./helpers');
+const { generateComment } = require('./helpers');
 
 // get the author of the PR's username
 const getAuthor = async prUrl => {
@@ -19,8 +19,7 @@ const getAuthor = async prUrl => {
 const addGitHubComment = async prUrl => {
   const prNumber = prUrl.split('/').pop();
   const apiUrl = `https://api.github.com/repos/${process.env.REPO_OWNER}/${process.env.REPO_NAME}/issues/${prNumber}/comments`;
-  let reviewer = determineReviewer();
-  reviewer = JSON.parse(reviewer);
+  const reviewer = JSON.parse(process.env.REVIEWER);
   const addComment = await fetch(apiUrl, {
     method: 'POST',
     headers: {
