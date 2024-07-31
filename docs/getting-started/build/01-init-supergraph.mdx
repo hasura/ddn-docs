@@ -10,14 +10,18 @@ keywords:
   - guide
 ---
 
+import Thumbnail from "@site/src/components/Thumbnail";
+
 # Create a Supergraph
 
 ## What's about to happen?
 
-We're going to create a [**supergraph**](glossary.mdx#supergraph).
+We're going to create a [**supergraph**](/support/glossary.mdx#supergraph).
 
 Your supergraph is the composite of all your subgraphs, their various data sources and business logic, and when we
 "build" a supergraph, we create a GraphQL API.
+
+<Thumbnail src="/img/get-started/ERD/create-supergraph.png" alt="Create a supergraph" width="1000px" />
 
 ## Steps
 
@@ -33,10 +37,19 @@ Your supergraph is the composite of all your subgraphs, their various data sourc
 ddn supergraph init --dir .
 ```
 
+:::tip Specifying a directory
+
+Instead of passing a `.` (the "this" directory specifier) you can pass a directory name to the `--dir` flag of the
+`supergraph init` command to create your supergraph in a specific directory. If it doesn't exist it will be created.
+
+:::
+
 ### Step 2. Start your supergraph
 
 **With the Docker daemon running on your machine**, you can immediately start the Hasura Engine, your supergraph and its
-accompanying services.
+accompanying services. The following command will take control of the terminal tab in which it's executed and will
+output log information from the Hasura Engine, and any other services — such as data connectors — that are included in
+your project's compose file. As such, for subsequent commands, you'll need to open a new terminal tab.
 
 ```bash title="From the project's root, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
@@ -57,12 +70,34 @@ HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
     You should see your various services returned as `Running` or `Started` in the terminal. We also use the `--watch`
     flag which will allow us to iteratively modify and test our API locally with blazing-fast feedback loops.
 
-:::tip Specifying a directory
+</details>
 
-Instead of passing a `.` (the "this" directory specifier) you can pass a directory name to the `--dir` flag of the
-`supergraph init` command to create your supergraph in a specific directory. If it doesn't exist it will be created.
+<details>
+  <summary>
+    Running the Docker daemon as a non-root user
+  </summary>
+  If you're running the Docker daemon as a non-root user (rootless mode), `v26.0` now allows you to disable the default
+  `host-loopback-isolation` which prevents communication back to the host machine.
 
-:::
+To disable this feature, set the environment variable `DOCKERD_ROOTLESS_ROOTLESSKIT_DISABLE_HOST_LOOPBACK` to `false`
+before starting the daemon.
+
+This will now allow container-to-host communication via `10.0.2.2` address.
+
+You should also amend this line in your `compose.yaml` files for both the main services and connectors to reflect this
+change:
+
+```yaml
+extra_hosts:
+  - local.hasura.dev=host-gateway
+```
+
+to:
+
+```yaml
+extra_hosts:
+  - local.hasura.dev=10.0.2.2
+```
 
 </details>
 
@@ -90,8 +125,6 @@ browsers for the best experience with the Hasura Console including for local dev
 As a feature of convenience, we'll set the `context` in the CLI which removes the need to set frequently used default
 values (such as the flag `--supergraph` or `--subgraph`) when running CLI commands. This command will save the path of
 your `supergraph.local.yaml` to a context file in your `.hasura` directory.
-
-You could do the same with a `subgraph` too. But we're going to keep it explicit for now for clarity in this guide.
 
 You can learn more about using context [here](/cli/commands/ddn_context.mdx).
 

@@ -26,6 +26,12 @@ Supported since data connector version `v0.7.0`
 
 :::
 
+:::warning Deprecated
+
+This configuration version is deprecated and should be [upgraded to the latest version](./index.mdx#upgrading-the-configuration-format-version).
+
+:::
+
 ## Changes from the previous version
 
 In version 3 scalar types were identified directly by their unqualified name, precluding the use of database schemas for
@@ -259,11 +265,23 @@ mutations in the generated connector schema.
 
 Each query is specified as SQL, and the types of any query arguments and result columns must be specified explicitly.
 
+The following fields should be specified for a Native Operation entry:
+
+- `sql`: SQL expression to use for the Native Query. We can interpolate values using `{{variable_name}}` syntax,
+   such as `SELECT * FROM authors WHERE name = {{author_name}}`.
+   Can be specify either a path to file in the connector configuration directory with `{ "file": "<file>" }`,
+   or an inline SQL query such as `{ "inline": "SELECT 1 as one" }`.
+- `isProcedure`: True if this native operation mutates the database.
+- `columns`: The returning columns from the Native Operation.
+- `arguments`: Names and types of arguments that can be passed to this Native Operation.
+- `description`: Information about the Native Operation.
+
 **Example**
 
 ```json
 "nativeQueries": {
   "artist_below_id": {
+    "isProcedure": false,
     "sql": {
       "inline": "SELECT * FROM public.\"Artist\" WHERE \"ArtistId\" < {{id}}"
     },
@@ -296,7 +314,7 @@ Each query is specified as SQL, and the types of any query arguments and result 
 Note that the arguments are provided as query parameters - they are not textually interpolated into the query. As such,
 a native query argument are value expressions and cannot be used in the place of e.g. a table name.
 
-See also the main [Native Queries](/connectors/postgresql/native-operations/) documentation.
+See also the main [Native Operations](/connectors/postgresql/native-operations/) documentation.
 
 ### `compositeTypes`
 
@@ -625,7 +643,7 @@ default this field is omitted, resulting in no mutations being generated.
 Introduction and removal of supported mutations versions will only happen in the context of a version bump of the main
 configuration.
 
-The currently supported value is `"v1"`.
+The currently supported value are `"v1"`, `"v2"`.
 
 ### `mutationsVersion: "v1"`
 
@@ -638,6 +656,58 @@ with a single argument `my_id_column` of type equal to that of the column. The m
 table, allowing selection of fields from the row that was deleted.
 
 This version of mutations does not support filter-based permissions.
+
+### `mutationsVersion: "v2"`
+
+:::info
+
+Supported since data connector version `v0.8.0`
+
+:::
+
+"v2" of auto-generated mutations introduces insert, delete and update point mutations per table that include permission arguments.
+
+We generate the following procedures:
+
+* A single insert procedure is generated per table, and has the following form:
+
+  ```graphql
+  v2_insert_<table>(
+      objects: [<table-object>],
+      post_check: <boolexpr>
+  )
+  ```
+  Using it, we can insert multiple objects and include a post check for permissions.
+
+* A delete procedure is generated per table X unique constraint, and has the following form:
+
+  ```graphql
+  v2_delete_<table>_by_<column_and_...>(
+      key_<column1>: <value>,
+      key_<column2>: <value>,
+      ...,
+      pre_check: <boolexpr>
+  )
+  ```
+  Using it, we can delete a single row using the uniqueness constraint, and include a pre check for permissions.
+
+* An update procedure is generated per table X unique constraint, and has the following form:
+
+  ```graphql
+  v2_update_<table>_by_<column_and_...>(
+      key_<column1>: <value>,
+      key_<column2>: <value>,
+      ...,
+      update_columns: { <column>: { _set: <value> }, ... },
+      pre_check: <boolexpr>,
+      post_check: <boolexpr>
+  )
+  ```
+  Using it, we can update a single row using the uniqueness constraint by updating the relevant columns,
+  and include a pre check and post check for permissions.
+
+For each `pre_check` and `post_check` arguments of a mutation, an [Argument Preset](/supergraph-modeling/permissions#commandpermissions-argumentpreset)
+should be set in the mutation's [Command Permissions](/supergraph-modeling/permissions#commandpermissions-commandpermission).
 
 [Configuration JSON Schema]: https://github.com/hasura/ndc-postgres/blob/main/static/schema.json
 [NDC Postgres Issue Tracker]: http://github.com/hasura/ndc-postgres/issues

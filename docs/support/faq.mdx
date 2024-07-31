@@ -1,7 +1,6 @@
 ---
-sidebar_position: 11
+sidebar_position: 1
 sidebar_label: FAQ
-sidebar_class_name: faq-icon
 description:
   "Explore the Frequently Asked Questions (FAQs) for Hasura DDN and get essential insights about its architecture, CI/CD
   features, benefits for developers, data connectivity, and more. Understand how Hasura DDN is transforming API
@@ -170,11 +169,8 @@ to your users.
 ## Will Hasura DDN be compatible with Hasura v1/v2 and how do I migrate?
 
 The default generated GraphQL schema (ie: the API your consumers use) of Hasura DDN is compatible with v2 schemas and
-will not change. However, Hasura DDN uses a completely new metadata structure and hence will require migration tools to
-move metadata from v1/v2 metadata. Please keep an eye on our
-[official announcements and releases](https://hasura.io/community/) for upcoming information about migration tools. To
-start evaluating v3, you can leverage the [GraphQL Connector](https://github.com/hasura/ndc-graphql) to bring in your v2
-project as a subgraph in v3.
+will not change. You can learn more about the similarities between Hasura v2 and Hasura DDN in
+[these docs](basics/v3-for-v2-users.mdx).
 
 ## Will Hasura v2 be supported after Hasura DDN is released?
 
@@ -184,26 +180,7 @@ move Hasura v2 deployments to DDN in the near future.
 
 # If I have an Alpha/Beta DDN project, will it be compatible with the GA release?
 
-We recommend creating a new project and use the new CLI to populate metadata again.
-
-## What is the difference between how Hasura v2 and DDN metadata is handled?
-
-In practical terms, the Hasura v2 metadata system was designed to draw extra information directly from the data source,
-specifically details such as columns and fields.
-
-This meant that whenever the Hasura GraphQL Engine was initialized, it had to probe or "introspect" the data source's
-schema to create a GraphQL schema. This introduced delays at start-up especially if the data source was large or if
-there were network issues.
-
-Hasura v3 Metadata operates differently as it is inherently self-contained and exists independent of any data source.
-This leads to instant startup and build times and ensures consistency as the system is no longer polling an underlying
-data source for schema information which may have changed.
-
-This means your metadata has full coverage, and details like fields and their respective types are predefined and
-embedded within it. This design choice removes the need for the system to check the data source schema every time during
-startup to shape a GraphQL schema. Instead, this introspection or probing of the data source's structure is now carried
-out during the metadata creation, or build phase. This leads to massively improved startup times and ensures that the
-metadata is consistent and self-contained.
+We recommend [creating a new project](getting-started/build/index.mdx) and use the new CLI to populate metadata again.
 
 ## Will Hasura continue supporting existing plans, specifically, the Cloud Free and Professional plans?
 
@@ -230,42 +207,3 @@ available. Our teams are available to make the migration process as smooth as po
 The migration is an opt-in process, so you do not need to request to have yourselves locked to a particular version. If
 however, you see no upgrade path even in the next two years, please give us a heads-up and we will work out options with
 you.
-
-### Will Event and Scheduled Triggers be supported in Hasura DDN?
-
-Yes they will be but the developer experience will change. We are still in the design phase for this and will provide
-more details in the coming months.
-
-### Will Actions be supported in Hasura DDN?
-
-If you mean business logic and API integration then yes but there is no concept of 'Actions' in Hasura DDN. In Hasura
-DDN Beta you can now use Typescript directly for 'Action-like' functionality. What is better is that now you can host
-your Action webhooks/functions on Hasura itself. Moreover, we will be scaling support to most other popular languages
-such as Java, GoLang, Rust, Python and more. Check out the
-[Node.js Lambda Connector](https://github.com/hasura/ndc-nodejs-lambda) for more information.
-
-### Will Remote Schemas (external GraphQL APIs) be supported in Hasura DDN?
-
-Yes, but there will not be a tab in Console or metadata object represented for Remote Schemas. All external GraphQL
-APIs, previously known as Remote Schemas, will be utilized via Native Data Connectors. Check out the newly released
-[GraphQL Connector](https://github.com/hasura/ndc-graphql) that you can use to bring in external GraphQL APIs in the
-low-code manner you are used to in v2.
-
-### Will mutations be supported in Hasura DDN?
-
-Yes, of course, but the developer experience of configuring mutations will change. Please
-[stay tuned](https://github.com/hasura/graphql-engine/issues/10041) for more details.
-
-### What are the main changes to the Hasura Console?
-
-There has been a complete redesign of the Hasura Console with new panels for visualization and operational health. We
-have totally revamped the GraphiQL and Data Manager tabs and have implemented all new settings panel.
-
-Moreover, there is no longer the concept of an admin secret in Hasura DDN. In fact, we will auto generate a Personal
-Access Token (PAT) which will provide the previous admin secret functionality.
-
-### What about database migrations?
-
-Database migrations are deprecated. We will soon provide a generated SQL file that you can use in an ORM tool of your
-choice but this is not yet implemented. We are open to any feedback on this product strategy. Do let us know about your
-pain point, and we can recommend a solution that works best for you.

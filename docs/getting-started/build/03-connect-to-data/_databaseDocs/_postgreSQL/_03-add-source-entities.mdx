@@ -1,3 +1,5 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
 ## What's about to happen?
 
 Entities from your PostgreSQL database — such as tables, views, or
@@ -5,6 +7,8 @@ Entities from your PostgreSQL database — such as tables, views, or
 [models](/supergraph-modeling/models.mdx). You can use the CLI to generate an `hml` file which will represent a model,
 allowing you to easily and declaratively customize authorization rules, create relationships, or even deprecate certain
 fields.
+
+<Thumbnail src="/img/get-started/ERD/add-entities.png" alt="Add entities from the source" width="1000px" />
 
 ## Add a model
 
@@ -21,21 +25,21 @@ fields.
 If you look in your `my_subgraph/metadata/my_pg.hml` file, you'll see `collections` for each table in your PostgreSQL
 database. For each of these, you can run the following command to create a model:
 
-```bash title="For example, with an collection of users"
+```bash title="For example, with a collection of users"
 ddn model add --name users \
-  --connector-link my_pg \
-  --subgraph my_subgraph/subgraph.yaml
+  --connector-link my_pg
 ```
 
 :::tip Casing matters
 
-When adding a model, it is critical to use the same casing as the `collection` from your connector's configuration file.
+When adding a model, it is critical to use the same casing as the `object_type` from your connector's configuration
+file.
 
 :::
 
 ## What did this do?
 
-When you ran this command, the CLI generated an `hml` file in the `models` directory for the `collection` you passed it.
+When you ran this command, the CLI generated an `hml` file in the `metadata` directory for the `subgraph` you passed it.
 This `hml` file contains all the auto-configured information — such as the names and types of fields — along with
 serving as a file to which you can add new metadata objects to customize the model.
 
@@ -193,7 +197,6 @@ If you like, when updating the connector link with the `connector-link update` c
 
 ```bash title="From the root of your project, run:"
 ddn connector-link update my_pg \
-  --subgraph my_subgraph/subgraph.yaml \
   --env-file my_subgraph/.env.my_subgraph.local \
   --add-all-resources
 ```

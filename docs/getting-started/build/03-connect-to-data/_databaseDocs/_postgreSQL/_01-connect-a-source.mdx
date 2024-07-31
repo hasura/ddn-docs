@@ -1,8 +1,12 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
 ## What's about to happen?
 
 We want to connect our [PostgreSQL](https://www.postgresql.org/) database to our API. To do this, we use the Hasura
 PostgreSQL data connector to facilitate the connection and then introspect the database to generate JSON which the
 Hasura CLI will then use to create metadata which can then define your API.
+
+<Thumbnail src="/img/get-started/ERD/connect-data.png" alt="Connect a data source" width="1000px" />
 
 ## Step 1. Init the PostgreSQL connector
 
@@ -18,9 +22,8 @@ To initialize the PostgreSQL connector, run the following in your terminal.
 
 ```bash title="From the root of your project, run:"
 ddn connector init my_pg \
-  --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/postgres \
-  --configure-port 8085 \
+  --configure-port 8082 \
   --add-to-compose-file compose.yaml
 ```
 
@@ -38,7 +41,7 @@ We're specifying the subgraph config file that this connector will be added to u
 
 **Connector: `--hub-connector`**
 
-We're specifying that this connector should be the: `hasura/postgres`, connector listed in the
+We're specifying that this connector should be the `hasura/postgres` connector listed in the
 [Connector Hub](https://hasura.io/connectors/postgres).
 
 **Port: `configure-port`**
@@ -64,7 +67,7 @@ We recommend that the name of the connector and the directory in which the confi
 example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
+string you provide in your subgraph's `.env.my_subgraph.local` file.
 
 :::
 
@@ -105,6 +108,14 @@ CONNECTION_URI=<your-custom-postgres-connection-uri>
 You can use a local PostgreSQL database or a cloud-hosted option. If you already have one you can connect to, you can go
 ahead and do that using the steps above. Hasura DDN will not modify your database in any way, so you can use an existing
 database without any worries.
+
+:::tip Docker networking Inside a Docker container
+
+`local.hasura.dev` is set to the `host-gateway` alias in the `extra_hosts` option. With this option set,
+`local.hasura.dev` resolves to the host machine's gateway IP address from _inside_ the container. This allows various
+containers, such as the GraphQL Engine and data connectors, to communicate with each other and out the host machine.
+
+:::
 
 :::info Environment-specific caveats
 
@@ -150,7 +161,8 @@ your project.
 ## Step 4. Restart the services
 
 Let's restart our docker compose services so that Docker can create a PostgreSQL connector build for us now that we've
-added and introspected the connector.
+added and introspected the connector. **If you have existing services running, bring them down using
+`docker compose down` or `CTRL` + `C` if your terminal tab is still actively logging information.**
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
@@ -164,7 +176,7 @@ authentication token.
 We can navigate to the following address, with the port modified, to see the schema of our PostgreSQL database:
 
 ```text
-http://localhost:8085/schema
+http://localhost:8082/schema
 ```
 
 ## Next steps

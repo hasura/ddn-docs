@@ -10,6 +10,8 @@ keywords:
   - guide
 ---
 
+import Thumbnail from "@site/src/components/Thumbnail";
+
 # Create a Subgraph
 
 ## What's about to happen?
@@ -20,6 +22,8 @@ A [**subgraph**](/project-configuration/subgraphs.mdx) is a way of organizing yo
 multiple data sources to your supergraph. A supergraph must have at least one subgraph, at least if you want it to do
 anything. 😉
 
+<Thumbnail src="/img/get-started/ERD/create-subgraph.png" alt="Create a subgraph" width="1000px" />
+
 ## Steps
 
 :::tip Required
@@ -28,6 +32,8 @@ anything. 😉
 - A new or existing [supergraph](/getting-started/build/01-init-supergraph.mdx)
 
 :::
+
+### Step 1. Init a subgraph
 
 ```bash title="At the root of your project, run:"
 ddn subgraph init my_subgraph \
@@ -54,7 +60,7 @@ For convenience we're specifying the supergraph(s) to which this subgraph will b
 local and cloud supergraphs which were created when we initialized our supergraph. The CLI will edit these supergraph
 configuration files and add details of our subgraph to both of them.
 
-## What did `subgraph init` do?
+#### What did `subgraph init` do?
 
 The `subgraph init` command created a new subgraph directory and a `subgraph.yaml` file in the root of the new subgraph
 directory. It also created two environment variable files, one for local and one for cloud, respectively named
@@ -68,7 +74,7 @@ subgraph is just a placeholder which doesn't do much, yet...
 
 :::info More about subgraphs
 
-### Subgraph independence
+##### Subgraph independence
 
 Subgraphs are used to maintain a logical separation of concerns and/or to allow different teams to work on different
 parts of the supergraph at the same time without stepping on each other's toes. Usually, a subgraph is "owned" and
@@ -93,7 +99,7 @@ developed, tested, and built independently while the supergraph guarantees the i
 Meaning that the supergraph will only build, and generate an API if all subgraphs are in a valid state. In this Getting
 Started section we propose best-practice for organizing your subgraphs, but it can be done however you choose.
 
-### Naming
+##### Naming
 
 Let's say we're in an organization and the data source we'll be connecting to is for customer profile data. The team
 responsible for this data and some services related to it is called the "Customer Data" team. As such, we could create a
@@ -103,10 +109,25 @@ teams are going to work on it.
 
 Another example is, if we're working with a data source for a small project which we plan on using to contain all the
 data for our whole project, and it's all in PostgreSQL, with some business logic in TypeScript, we could name it
-`postgres_data`, or `app` to keep it simple. This one subgraph would contain all the data domain specific metadata for
+`postgres_data` or `app` to keep it simple. This one subgraph would contain all the data domain specific metadata for
 the whole project, at least for the time being.
 
 :::
+
+### Step 2. Set subgraph context
+
+Next, for convenience, we'll set the subgraph using the `context set` command in the CLI. This will simplify any
+commands we use later on and save us from having to explicitly call out to which subgraph we're applying certain
+actions.
+
+```bash title="Run the following in your project, changing the directory to match where your subgraph.yaml is located:"
+ddn context set subgraph ./my_subgraph/subgraph.yaml
+```
+
+#### What did `context set subgraph` do?
+
+This command simply adds a new key-value pair to a context file in a project's `.hasura` folder. The key is `subgraph`
+and the value is the path to the `subgraph.yaml` which you just passed.
 
 ## Next steps
 

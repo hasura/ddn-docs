@@ -33,6 +33,8 @@ any `hml` file.
 
 :::
 
+<Thumbnail src="/img/get-started/ERD/add-auth.png" alt="Add authorization to your API" width="1000px" />
+
 ## Steps
 
 :::tip Required
@@ -47,9 +49,9 @@ any `hml` file.
 
 ### Step 1. Create a modelPermission
 
-By default, a role of `admin` exists for your API and can access all models. To create a new role, such as `editor`,
+By default, a role of `admin` exists for your API and can access all models. To create a new role, such as `user`,
 simply add the role to the list of `permissions` for a model and set up your access control rules. In the example below,
-we'll allow users with the role of `editor` to access only their own rows from a `Users` model by checking for a header
+we'll allow users with the role of `user` to access only their own rows from a `Users` model by checking for a header
 value matching their `id`:
 
 ```yaml title="For example, in a Users.hml"
@@ -63,7 +65,7 @@ definition:
       select:
         filter: null
         #highlight-start
-    - role: editor
+    - role: user
       select:
         filter:
           fieldComparison:
@@ -83,7 +85,7 @@ Remember, models are under the `metadata` subdirectory under the subgraph direct
 ### Step 2. Create a typePermission
 
 The `admin` role also has access to all fields for each model. However, adding a new role and limiting what columns can
-be returned from your data source is just as simple. For example, let's restrict what a `editor` can see by omitting
+be returned from your data source is just as simple. For example, let's restrict what a `user` can see by omitting
 several fields from the `typePermissions`:
 
 ```yaml title="For example, in a Users.hml"
@@ -157,16 +159,15 @@ headers can be part of your claims when using [JWTs](/auth/authentication/jwt/in
 [webhooks](/auth/authentication/webhook/index.mdx) for authentication. You can read more about Hasura's approach to
 authentication [here](/auth/overview.mdx).
 
-By adding `modelPermissions`, we've enabled access to the `Users` model for the `editor` role. As shown in the
-screenshot above, this means that _only_ the `Users` model is available to a consumer with the `x-hasura-role` value of
-`editor`.
+By adding `modelPermissions`, we've enabled access to the `Users` model for the `user` role. As shown in the screenshot
+above, this means that _only_ the `Users` model is available to a consumer with the `x-hasura-role` value of `user`.
 
 Additionally, `modelPermissions` are used to filter the rows that can be returned from this model. They don't simply
 check if the returned data is allowed; instead, they filter the data before it can be returned. In our example, this is
 achieved by validating the `x-hasura-user-id` value against the matching record with the same `id` in the data source.
 
-Finally, we limited the fields they can access to the ones listed above, thereby preventing someone with the `editor`
-role from accessing irrelevant system information, such as when users were last seen.
+Finally, we limited the fields they can access to the ones listed above, thereby preventing someone with the `user` role
+from accessing irrelevant system information, such as when users were last seen.
 
 We recommend you keep going and check out the
 [custom business logic section](/getting-started/build/06-add-business-logic.mdx) next.

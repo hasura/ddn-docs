@@ -1,0 +1,146 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
+## What's about to happen?
+
+API endpoints in your OpenAPI document are exposed to your Hasura API via [commands](/supergraph-modeling/commands).
+
+You can use the CLI to generate an `hml` file which will describe a command and any other supporting objects, allowing
+you to then easily and declaratively customize authorization rules, create relationships, or deprecate certain fields.
+
+<Thumbnail src="/img/get-started/ERD/add-entities.png" alt="Add entities from the source" width="1000px" />
+
+## Add a command
+
+:::tip Required
+
+- [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/build/01-init-supergraph.mdx)
+- A new or existing [subgraph](/getting-started/build/02-init-subgraph.mdx)
+- An [OpenAPI connector](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) initialized
+- A [DataConnectorLink](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx) configured
+
+:::
+
+Hasura DDN works by deploying your API as immutable builds, similar to git commits, based on changes to your project's
+metadata. This frees you to iteratively and rapidly test incremental changes to your API without causing disruption to
+other collaborators or downstream consumers. Before we create a supergraph build, let's first add a
+[command](supergraph-modeling/commands.mdx) to our subgraph.
+
+Along with [models](supergraph-modeling/models.mdx), commands serve as the link between your data connector and the API
+Hasura generates. For the OpenAPI data connector, commands correspond to API endpoints.
+
+If you look in your `my_subgraph/connector/my_openapi/connector/my_openapi.hml` file, you'll see `functions` and
+`procedures` for each endpoint in your OpenAPI document. For each of these, you can run the following to create a
+command for them:
+
+```bash
+ddn command add --name <function_or_procedure> \
+  --connector-link my_openapi
+```
+
+:::tip Casing matters
+
+When adding a command, it is critical to use the same casing as the `function` or `procedure` from your connector's
+schema definition file.
+
+:::
+
+:::info Functions vs Procedures
+
+[Functions](/support/glossary.mdx#function) are used for read operations without side-effects, while
+[procedures](/support/glossary.mdx#procedure) are used for write operations with side-effects. Tracking of either of
+these will result in the creation of a [Command](/support/glossary.mdx#command) in your subgraph.
+
+:::
+
+<details>
+  <summary>
+    Each time you add a command, you'll see a new named file in the `metadata` directory of your subgraph. For example,
+    if we ran the previous command on the `getUserLoginUser` function, we'd then see a `GetUserLoginUser.hml` file that contains
+    all the metadata Hasura DDN needs to add it to our API. Click here to see an example `hml` file.
+  </summary>
+
+```yaml
+# GetUserLoginUser.hml
+---
+kind: ObjectType
+version: v1
+definition:
+  name: GetUserLoginUserQuery
+  fields:
+    - name: password
+      type: String
+      description: The password for login in clear text
+    - name: username
+      type: String
+      description: The user name for login
+  graphql:
+    typeName: MySubgraph_GetUserLoginUserQuery
+    inputTypeName: MySubgraph_GetUserLoginUserQueryInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: my_openapi
+      dataConnectorObjectType: getUserLoginUser_query
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: GetUserLoginUserQuery
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - password
+          - username
+
+---
+kind: Command
+version: v1
+definition:
+  name: GetUserLoginUser
+  outputType: String!
+  arguments:
+    - name: headers
+      type: Json
+    - name: query
+      type: GetUserLoginUserQuery!
+  source:
+    dataConnectorName: my_openapi
+    dataConnectorCommand:
+      function: getUserLoginUser
+  graphql:
+    rootFieldName: mySubgraph_getUserLoginUser
+    rootFieldKind: Query
+  description: Logs user into the system
+
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: GetUserLoginUser
+  permissions:
+    - role: admin
+      allowExecution: true
+```
+
+</details>
+
+## Next steps
+
+:::tip Ready to import _all_ your endpoints?
+
+You can do this in one convenience command:
+
+```bash
+ddn connector-link update my_openapi \
+  --env-file my_subgraph/.env.my_subgraph.local \
+  --add-all-resources
+```
+
+:::
+
+This model can now be used to [query data via your API](/getting-started/build/04-build-your-api.mdx). You can also
+customize the model by adding [access control rules](/getting-started/build/05-add-permissions.mdx),
+
+[creating relationships](/getting-started/build/07-create-a-relationship.mdx) to other entities, or deprecating certain
+fields.

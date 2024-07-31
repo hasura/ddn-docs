@@ -1,8 +1,12 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
 ## What's about to happen?
 
 We want to connect our [ClickHouse](https://clickhouse.com/) instance to our API. To do this, we use the Hasura
 ClickHouse data connector to facilitate the connection and then introspect the database to generate JSON which the
 Hasura CLI will then use to create metadata which can then define your API.
+
+<Thumbnail src="/img/get-started/ERD/connect-data.png" alt="Connect a data source" width="1000px" />
 
 ## Step 1. Init the ClickHouse connector
 
@@ -18,7 +22,6 @@ To initialize the ClickHouse connector, run the following command in your termin
 
 ```bash title="From the root of your project, run:"
 ddn connector init my_clickhouse \
-  --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/clickhouse \
   --configure-port 8084 \
   --add-to-compose-file compose.yaml
@@ -38,7 +41,7 @@ We're specifying the subgraph config file that this connector will be added to u
 
 **Connector: --hub-connector**
 
-We're specifying that this connector should be the: `hasura/clickhouse`, connector listed in the
+We're specifying that this connector should be the `hasura/clickhouse` connector listed in the
 [Connector Hub](https://hasura.io/connectors/clickhouse).
 
 **Port: `configure-port`**
@@ -64,7 +67,7 @@ We recommend that the name of the connector and the directory in which the confi
 this example, should match for convenience and clarity sake.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
+string you provide in your subgraph's `.env.my_subgraph.local` file.
 
 :::
 
@@ -99,7 +102,7 @@ The file, after adding the `CONNECTION_URI` should look like this example:
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
 OTEL_SERVICE_NAME=my_subgraph_my_clickhouse
 #highlight-start
-CONNECTION_URL=<clickhouse-connection-uri>
+CLICKHOUSE_URL=<clickhouse-connection-uri>
 CLICKHOUSE_USERNAME=<your-username>
 CLICKHOUSE_PASSWORD=<your-password>
 #highlight-end
@@ -108,6 +111,14 @@ CLICKHOUSE_PASSWORD=<your-password>
 You can use a local ClickHouse database or a cloud-hosted option. If you already have one you can connect to, you can go
 ahead and do that using the steps above. Hasura DDN will not modify your database in any way, so you can use an existing
 database without any worries.
+
+:::tip Docker networking Inside a Docker container
+
+`local.hasura.dev` is set to the `host-gateway` alias in the `extra_hosts` option. With this option set,
+`local.hasura.dev` resolves to the host machine's gateway IP address from _inside_ the container. This allows various
+containers, such as the GraphQL Engine and data connectors, to communicate with each other and out the host machine.
+
+:::
 
 :::info Environment-specific caveats
 
@@ -139,7 +150,8 @@ ddn connector introspect --connector my_subgraph/connector/my_clickhouse/connect
 ## Step 4. Restart the services
 
 Let's restart our docker compose services so that Docker can create a ClickHouse connector build for us now that we've
-added and introspected the connector.
+added and introspected the connector. **If you have existing services running, bring them down using
+`docker compose down` or `CTRL` + `C` if your terminal tab is still actively logging information.**
 
 ```bash title="From the root of your project, run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
