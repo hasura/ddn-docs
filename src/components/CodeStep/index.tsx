@@ -33,7 +33,7 @@ const CodeStep = props => {
         </div>
       </div>
       <div className={'item'}>
-        <CodeBlock className={`language-${props.language}`}>{props.code}</CodeBlock>
+        <CodeBlock className={`language-${props.language} main-block`}>{props.code}</CodeBlock>
         {props.output && (
           <details>
             <summary>Output</summary>
