@@ -1,6 +1,4 @@
-# Website
-
-The docs site uses [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+# Hasura DDN Docs
 
 ## Installation
 

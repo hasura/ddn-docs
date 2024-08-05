@@ -1,56 +1,31 @@
 require('dotenv').config();
+const client = require('./client');
 
-const createTicketPayload = prInfo => {
-  return {
-    fields: {
-      summary: `v3 Review: ${prInfo.title}`,
-      issuetype: {
-        id: `${process.env.DOCS_JIRA_ISSUE_TYPE}`,
-      },
-      project: {
-        key: `${process.env.DOCS_JIRA_PROJECT_KEY}`,
-      },
-      description: {
-        type: 'doc',
-        version: 1,
-        content: [
-          {
-            type: 'paragraph',
-            content: [
-              {
-                type: 'text',
-                text: `Link to PR: ${prInfo.url}`,
-              },
-            ],
-          },
-        ],
-      },
-    },
-  };
+const getCurrentCycle = async () => {
+  try {
+    const team = await client.team(process.env.LINEAR_TEAM_ID);
+    const activeCycle = await team.activeCycle;
+    return activeCycle.id;
+  } catch (error) {
+    console.error('Error fetching current cycle:', error);
+    throw error;
+  }
 };
 
-const createTicket = async issuePayload => {
-  const headers = {
-    Authorization: `Basic ${Buffer.from(
-      `${process.env.DOCS_JIRA_USER_EMAIL}:${process.env.DOCS_JIRA_API_KEY}`
-    ).toString('base64')}`,
-    'Content-Type': 'application/json',
-  };
-
-  const newTicket = await fetch(process.env.DOCS_JIRA_API_ENDPOINT, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(issuePayload),
+const createTicket = async ({ title, url }) => {
+  const reviewer = JSON.parse(process.env.REVIEWER);
+  await client.createIssue({
+    teamId: process.env.LINEAR_TEAM_ID,
+    title: `DDN Review: ${title}`,
+    description: `Link to PR: ${url}`,
+    stateId: process.env.LINEAR_TODO_COLUMN_ID,
+    assigneeId: reviewer.linear_id,
+    cycleId: await getCurrentCycle(),
   });
-
-  const data = await newTicket.json();
-
-  return data.key;
 };
 
 const generateNewTicket = async prInfo => {
-  const issuePayload = createTicketPayload(prInfo);
-  return await createTicket(issuePayload);
+  return await createTicket(prInfo);
 };
 
 module.exports = generateNewTicket;
