@@ -16,9 +16,8 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## What's about to happen?
 
-After [connecting a data source](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) and
-[exposing a model](/getting-started/build/03-connect-to-data/03-add-source-entities.mdx), we'll create a new local build
-of our API.
+After [connecting a data source](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) and exposing models,
+you can create a new local build of your API.
 
 A build is a compiled, immutable state of your metadata which the Hasura Engine uses to run your API.
 
@@ -35,7 +34,8 @@ a GraphQL query on your API using any models you've added.
 - A new or existing [project](/getting-started/deployment/01-create-a-project.mdx)
 - At least one [subgraph](/getting-started/build/02-init-subgraph.mdx)
 - At least one [data connector running](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx)
-- [Models and/or Commands added](/getting-started/build/03-connect-to-data/03-add-source-entities.mdx) to your subgraph
+- [Models and/or Commands added](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx) to your
+  subgraph
 
 :::
 
@@ -45,35 +45,17 @@ Pass the `local` subcommand along with specifying the output directory as `engin
 directory is used by the docker-compose file to serve the engine locally:
 
 ```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-ddn supergraph build local \
-  --output-dir engine \
-  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
+ddn supergraph build local
 ```
 
 This will create a build of your supergraph.
-
-With this command we're specifying the supergraph we want to use to build locally with `--supergraph`, the output
-directory name for the engine with `--output-dir`, and the environment variables needed for each subgraph to build with
-`--subgraph-env-file`.
-
-:::info Environment variables
-
-Note that when building a supergraph there can be multiple subgraphs, and we can add environment variables needed for
-each. We can either specify the environment **file** with the subgraph as a prefix as we're doing above with
-`--subgraph-env-file` or we can use the `--subgraph-env` flag to specify **individual environment variables** in the
-command itself eg: `--subgraph-env my_subgraph:key=val`.
-
-You should repeat `--subgraph-env-file` or `--subgraph-env` flags to specify multiple environment files — such as when
-working with multiple subgraphs — or variables.
-
-::::
 
 :::tip Start your engines!
 
 Want to test your supergraph? Make sure that your services are still up and running with the following command.
 
 ```bash title="Run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
 **If you haven't [included your connector(s)](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx) in your

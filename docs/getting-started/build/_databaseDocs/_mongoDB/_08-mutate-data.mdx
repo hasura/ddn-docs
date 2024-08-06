@@ -34,11 +34,35 @@ npm i dotenv mongodb
 
 ### Step 2. Add the connection URI
 
-We'll add our MongoDB connection string as an environment variable to our connector's `.env.local` file. This will allow
-us to access the connection string in our function.
+If you've added a MongoDB connector, you'll have an environment variable available in your project's `.env` file.
+However, we'll need to make it available to our TypeScript connector by doing the following:
 
-```env title="my_subgraph/connectors/my_mongo/.env.local"
-CONNECTION_URI=<your-mongodb-connection-string>
+#### Step 2.1 Update the TypeScript connector's `compose.yaml`
+
+```yaml title="Add the reference to the connection URI used in your project's root .env:"
+environment:
+  HASURA_SERVICE_TOKEN_SECRET: $APP_MY_TS_HASURA_SERVICE_TOKEN_SECRET
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: $APP_MY_TS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+  OTEL_SERVICE_NAME: $APP_MY_TS_OTEL_SERVICE_NAME
+  #highlight-start
+  MY_MONGO_MONGODB_DATABASE_URI: $APP_MY_MONGO_MONGODB_DATABASE_URI
+  #highlight-end
+```
+
+#### Step 2.2 Update the TypeScript connector's `connector.yaml`
+
+```bash title="Add the environment mapping:"
+envMapping:
+    HASURA_CONNECTOR_PORT:
+      fromEnv: APP_MY_TS_HASURA_CONNECTOR_PORT
+    HASURA_SERVICE_TOKEN_SECRET:
+      fromEnv: APP_MY_TS_HASURA_SERVICE_TOKEN_SECRET
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+      fromEnv: APP_MY_TS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    OTEL_SERVICE_NAME:
+      fromEnv: APP_MY_TS_OTEL_SERVICE_NAME
+    MY_MONGO_MONGODB_DATABASE_URI:
+      fromEnv: APP_MY_MONGO_MONGODB_DATABASE_URI
 ```
 
 ### Step 3. Create a function
@@ -52,16 +76,13 @@ We can even add documentation that will be visible in the GraphiQL explorer by t
 
 ```ts title="my_subgraph/connectors/my_ts/functions.ts"
 import { MongoClient } from "mongodb";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 /**
  * @param productData An object containing the product's data.
  * @returns The ID of the newly inserted product.
  */
 export async function insertProduct(productData: { title: string; description: string }): Promise<string> {
-  const client = new MongoClient(process.env.CONNECTION_URI!, {
+  const client = new MongoClient(process.env.MY_MONGO_MONGODB_DATABASE_URI!, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
@@ -89,27 +110,24 @@ export async function insertProduct(productData: { title: string; description: s
 
 ## Step 2. Track the function
 
-We'll track our function using the CLI by first updating our `DataConnectorLink` for this data connector:
+Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`.
 
-```bash
-ddn connector-link update my_mongo \
-  --env-file my_subgraph/.env.my_subgraph.local
+```bash title="From any directory in the project, run:"
+ddn connector-link update my_ts
 ```
 
-And then bringing in the new command:
+And then bringing in the new command.
 
-```bash
-ddn command add --connector-link my_mongo --name insertProduct
+```bash title="From any directory in the project, run:"
+ddn command add my_ts insertProduct
 ```
 
-## Step 3. Create a new build and test
+### Step 5. Create a new build and test
 
-Next, let's create a new build of our supergraph:
+Next, let's create a new build of our supergraph.
 
-```bash
-ddn supergraph build local \
-  --output-dir engine \
-  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
+```bash title="Run:"
+ddn supergraph build local
 ```
 
 :::tip Start your engines!
@@ -117,7 +135,7 @@ ddn supergraph build local \
 Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
 
 ```bash title="Run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
 **If you haven't [included your connector(s)](/getting-started/build/01-init-supergraph.mdx) in your `compose.yaml`,
@@ -127,4 +145,9 @@ don't forget to start it as well.**
 
 Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
 
-<!-- TODO: Add screenshot of console -->
+## What did this do?
+
+This function created a mutation that we can use to insert data directly into our database. We utilized the `mongodb`
+package to leverage the native features of MongoDB directly from our TypeScript function. While the example above is
+used to insert data, you can use the same principles to modify or delete existing data in your database via your GraphQL
+API.
