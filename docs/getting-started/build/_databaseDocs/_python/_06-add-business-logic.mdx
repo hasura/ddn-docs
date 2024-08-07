@@ -34,12 +34,10 @@ In this guide we will:
 ### Step 1. Initialize the Python Lambda connector
 
 Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
-values being passed to them. We'll call this `my_python` and use the `hasura/python` connector from the connector
-hub:
+values being passed to them. We'll call this `my_python` and use the `hasura/python` connector from the connector hub:
 
-```bash title="From the root of your project, run:"
+```bash title="Run the following command, updating the referenced paths to match your directory structure:"
 ddn connector init my_python \
-  --subgraph my_subgraph/subgraph.yaml \
   --hub-connector hasura/python \
   --configure-port 8085
 ```
@@ -66,8 +64,8 @@ running.
 Importantly, a data connector can only connect to one data source.
 
 The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_python` directory if it doesn't exist. You can also change this
-directory by passing a `--dir` flag to the CLI.
+this example the CLI will create a `my_subgraph/connector/my_python` directory if it doesn't exist. You can also change
+this directory by passing a `--dir` flag to the CLI.
 
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_python` in this
 example, should match for convenience and clarity sake.
@@ -79,8 +77,8 @@ string you provide in your subgraph's `.env.my_subgraph` file.
 
 #### What did this do?
 
-This command created the following file structure in a `my_subgraph/connector/my_python` directory, with the `functions.py`
-file being your connector's entrypoint:
+This command created the following file structure in a `my_subgraph/connector/my_python` directory, with the
+`functions.py` file being your connector's entrypoint:
 
 ```bash
 .
@@ -101,12 +99,11 @@ file being your connector's entrypoint:
 
 ### Step 2. Add the DataConnectorLink
 
-As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our Python
-functions into `hml` commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
+As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our Python functions
+into `hml` commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
-```bash title="Run the following from the root of your project:"
+```bash title="Run the following command, updating the referenced paths to match your directory structure:"
 ddn connector-link add my_python \
-  --subgraph my_subgraph/subgraph.yaml \
   --configure-host http://local.hasura.dev:8085 \
   --target-env-file my_subgraph/.env.my_subgraph.local
 ```
@@ -129,8 +126,8 @@ Let's install any necessary dependencies:
 cd my_subgraph/connector/my_python && pip3 install -r requirements.txt
 ```
 
-Then, from the `my_python` directory run this command to load environment variables
-from the `. env.local` file, start the connector, and watch for any changes:
+Then, from the `my_python` directory run this command to load environment variables from the `. env.local` file, start
+the connector, and watch for any changes:
 
 On Mac or Linux:
 
@@ -146,15 +143,15 @@ watchmedo auto-restart --patterns="*.py" --recursive -- powershell -Command "Get
 
 :::warning Python version
 
-The `hasura/python` connector requires [Python](https://www.python.org/downloads/) version `>=3.11`. Please make sure you have
-the correct version installed.
+The `hasura/python` connector requires [Python](https://www.python.org/downloads/) version `>=3.11`. Please make sure
+you have the correct version installed.
 
 :::
 
 ### Step 4. Write business logic
 
-The template code that ships with the Python Lambda connector provides some simple examples to help explain how it works.
-We can replace those example functions for now.
+The template code that ships with the Python Lambda connector provides some simple examples to help explain how it
+works. We can replace those example functions for now.
 
 In this simple example, we're going to transform a timestamp with timezone (eg: "2024-03-14T08:00:00Z") into a nicely
 formatted version for humans, eg: "8am, Thursday, March 14th, 2024."
@@ -199,7 +196,6 @@ related Hasura metadata:
 
 ```bash
 ddn connector-link update my_python \
-  --subgraph my_subgraph/subgraph.yaml \
   --env-file my_subgraph/.env.my_subgraph.local \
   --add-all-resources
 ```
@@ -218,7 +214,7 @@ ddn supergraph build local \
 
 Want to test your supergraph? Don't forget to start your GraphQL engine using the following command:
 
-```bash title="From the root of your project, run:"
+```bash title="Run:"
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
 ```
 
@@ -261,8 +257,8 @@ a Docker container along with your other Hasura services. The `connector init` c
 `compose.yaml` file for you, so all you would need to do would be to:
 
 - Make sure your port in your connector's `.env.local` and the one referenced in the
-  `my_subgraph/connector/my_python/compose.yaml` file `ports:published` and `ports:target` fields match and don't conflict with any other
-  services you may need to run.
+  `my_subgraph/connector/my_python/compose.yaml` file `ports:published` and `ports:target` fields match and don't
+  conflict with any other services you may need to run.
 - Add the Python Lambda connector compose file to the main compose file in the root of the project if you want them to
   start all together. Eg:
 
@@ -287,5 +283,5 @@ then transform or enrich data before sending it back to your consumers.
 
 You can learn more about creating these and other relationships on the
 [next page](/getting-started/build/07-create-a-relationship.mdx), or you can learn about
-[mutating data](/getting-started/build/08-mutate-data.mdx) with examples using the TypeScript connector. 
-Although the examples for mutating data are provided in Typescript, you could just as easily use the Python connector.
+[mutating data](/getting-started/build/08-mutate-data.mdx) with examples using the TypeScript connector. Although the
+examples for mutating data are provided in Typescript, you could just as easily use the Python connector.
