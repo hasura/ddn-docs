@@ -157,6 +157,9 @@ definition:
       fromEnv: APP_POSTGRES_READ_URL
     POSTGRES_WRITE_URL:
       fromEnv: APP_POSTGRES_READ_URL
+  connectors:
+    - path: connector/mypg/connector.yaml
+      connectorLinkName: mypg
 ```
 
 - `version` is the version of the subgraph object
@@ -169,7 +172,10 @@ definition:
       fromEnv: APP_POSTGRES_WRITE_URL
    ```
    This means that some metadata in the subgraph requires an env var called `POSTGRES_WRITE_URL`. The value of this has to be read 
-   from an env var called `APP_POSTGRES_WRITE_URL` from any of the .env.* files passed as input.
+   from an env var called `APP_POSTGRES_WRITE_URL` from any of the .env.* files passed as input. Only env vars declared in the `envMapping`
+   are passed into the subgraph.
+- `connectors` lists all the connectors that are to be built when this subgraph is built. It contains `path` to the connector configuration
+   and the name of the corresponding connector link.
 
 By default, the CLI generates a single file called `subgraph.yaml` for a new subgraph but any number of subgraph config files
 can be created and referenced in CLI commands.
@@ -183,23 +189,24 @@ For example:
 
 ```yaml
 kind: Connector
-version: v1
+version: v2
 definition:
   name: mypg
-  source: hasura/postgres:v0.7.0
+  source: hasura/postgres:v1.0.1
   context: .
-  envFile: .env.local
+  envMapping:
+    CONNECTION_URI:
+      fromEnv: APP_MYPG_CONNECTION_URI
 ```
 
 - `version` is the version of the connector object
 - `name` is a name given to the connector
 - `source` is the connector to use specific to the data source
 - `context` specifies the connector directory
-- `envFile` specifies the connector specific environment variables to use for introspecting and building the connector.
-  If you are deploying your connector on DDN cloud, you also need to specify `subgraph`. Value of this field is name of
-  the subgraph you want to deploy your connector to.
+- `envMapping` declares the environment variables needed by the subgraph and where to get it from. It works the same
+  way as it does for subgraphs. Only env vars declared in the `envMapping` are passed into the subgraph.
 
-By default, the CLI generates two files - `connector.cloud.yaml` and `connector.local.yaml` but any number of connector
+By default, the CLI generates a single `connector.yaml` file for every new connector that is added but any number of connector
 config files can be created and referenced in CLI commands.
 
 ### .hasura/context.yaml {#context-file}
