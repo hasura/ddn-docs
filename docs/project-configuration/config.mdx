@@ -31,37 +31,34 @@ The following is a sample directory structure of a local project:
 ```bash
 .
 ├── .devcontainer
-│  └── devcontainer.json
-├── .hasura
-│  └── context.yaml
-├── .vscode
-│  ├── extensions.json
-│  ├── launch.json
-│  └── tasks.json
-├── engine
-│  ├── .env.engine
-│  ├── auth_config.json
-│  ├── metadata.json
-│  └── open_dd.json
-├── globals
-│  ├── .env.globals.cloud
-│  ├── .env.globals.local
-│  ├── subgraph.cloud.yaml
-│  ├── subgraph.local.yaml
-│  ├── auth-config.cloud.hml
-│  ├── auth-config.local.hml
-│  ├── compatibility-config.hml
-│  └── graphql-config.hml
-├── app
-│  ├── .env.app.cloud
-│  ├── .env.app.local
-│  └── subgraph.yaml
+│   └── devcontainer.json
+├── .env
 ├── .gitattributes
+├── .gitignore
+├── .hasura
+│   └── context.yaml
+├── .vscode
+│   ├── extensions.json
+│   ├── launch.json
+│   └── tasks.json
+├── app
+│   ├── metadata
+│   └── subgraph.yaml
 ├── compose.yaml
+├── engine
+│   ├── .env.engine
+│   └── build
+│       ├── auth_config.json
+│       ├── metadata.json
+│       └── open_dd.json
+├── globals
+│   ├── auth-config.hml
+│   ├── compatibility-config.hml
+│   ├── graphql-config.hml
+│   └── subgraph.yaml
 ├── hasura.yaml
 ├── otel-collector-config.yaml
-├── supergraph.cloud.yaml
-└── supergraph.local.yaml
+└── supergraph.yaml
 ```
 
 ## Types of files
@@ -89,7 +86,7 @@ The new configuration relies on the following types of files:
 For example:
 
 ```yaml
-version: v2
+version: v3
 ```
 
 - `version` specifies the version of the project directory structure.
@@ -102,14 +99,19 @@ This file is used to store environment variables. The file should be in the form
 ENV1=val1
 ENV2=val2
 ```
+When a new project directory is initialized with the DDN CLI, it creates a single .env file by default. This .env
+file will store all the environment variables required for local development.
 
-These files are referenced inside:
+`ddn project init` command will initialize a single .env.cloud file which will be used to store all environment variables
+required by the DDN project.
 
-- Docker Compose files: Docker Compose files use \*.env files to specify environment variables needed for containers.
-- Subgraph files: Subgraph files use \*.env files to specify environment variables. This is needed by `globals` and
-  other subgraphs. Each subgraph can have its own .env file.
-- Connector files (such as `connector.yaml`): Connector files use \*.env files to specify environment variables needed
-  for building the connector.
+It is also possible to split the .env file into different .env files required for:
+- Docker Compose: Docker Compose files can use .env files to specify environment variables needed for containers.
+- Subgraph files (such as `subgraph.yaml`): Each subgraph can have its own .env file which will be used to specify environment variables required for building the subgraph.
+- Connector files (such as `connector.yaml`): Each connector file can have its own .env file which will be used to specify environment variables
+  needed for building the connector.
+
+Other than this, .env files can also be passed into various DDN commands using `--env-file` flag.
 
 ### supergraph.\*.yaml {#supergraph-config}
 
@@ -131,8 +133,8 @@ definition:
 - `subgraphs` specifies paths to all the subgraph config files. These are then read recursively to construct the
   metadata for the supergraph.
 
-By default, the CLI generates two files - `supergraph.cloud.yaml` and `supergraph.local.yaml` but any number of
-supergraph config files can be created and referenced in CLI commands.
+By default, the CLI generates a single supergraph file - `supergraph.yaml` but any number of supergraph config files can be created 
+and referenced in CLI commands.
 
 ### subgraph.\*.yaml {#subgraph-config}
 
@@ -143,21 +145,39 @@ For example:
 
 ```yaml
 kind: Subgraph
-version: v1
+version: v2
 definition:
   name: app
   generator:
     rootPath: .
   includePaths:
     - metadata
+  envMapping:
+    POSTGRES_READ_URL:
+      fromEnv: APP_POSTGRES_READ_URL
+    POSTGRES_WRITE_URL:
+      fromEnv: APP_POSTGRES_READ_URL
+  connectors:
+    - path: connector/mypg/connector.yaml
+      connectorLinkName: mypg
 ```
 
 - `version` is the version of the subgraph object
 - `includePaths` specifies the directories and files where metadata for the subgraph can be found. If a directory is
   specified, all the \*.hml files inside the directory and its subdirectories will be used to construct the metadata.
 - `generator.rootPath` specifies the directory into which any new files will be generated.
+- `envMapping` declares the environment variables needed by the subgraph and where to read it from. For example,
+   ```
+   POSTGRES_WRITE_URL:
+      fromEnv: APP_POSTGRES_WRITE_URL
+   ```
+   This means that some metadata in the subgraph requires an env var called `POSTGRES_WRITE_URL`. The value of this has to be read 
+   from an env var called `APP_POSTGRES_WRITE_URL` from any of the .env.* files passed as input. Only env vars declared in the `envMapping`
+   are passed into the subgraph.
+- `connectors` lists all the connectors that are to be built when this subgraph is built. It contains `path` to the connector configuration
+   and the name of the corresponding connector link.
 
-By default, the CLI generates a file called `subgraph.yaml` for a new subgraph but any number of subgraph config files
+By default, the CLI generates a single file called `subgraph.yaml` for a new subgraph but any number of subgraph config files
 can be created and referenced in CLI commands.
 
 ### connector.\*.yaml {#connector-config}
@@ -169,38 +189,48 @@ For example:
 
 ```yaml
 kind: Connector
-version: v1
+version: v2
 definition:
   name: mypg
-  source: hasura/postgres:v0.7.0
+  source: hasura/postgres:v1.0.1
   context: .
-  envFile: .env.local
+  envMapping:
+    CONNECTION_URI:
+      fromEnv: APP_MYPG_CONNECTION_URI
 ```
 
 - `version` is the version of the connector object
 - `name` is a name given to the connector
 - `source` is the connector to use specific to the data source
 - `context` specifies the connector directory
-- `envFile` specifies the connector specific environment variables to use for introspecting and building the connector.
-  If you are deploying your connector on DDN cloud, you also need to specify `subgraph`. Value of this field is name of
-  the subgraph you want to deploy your connector to.
+- `envMapping` declares the environment variables needed by the connector and where to read it from. It works the same
+  way as it does for subgraphs. Only env vars declared in the `envMapping` are passed into the connector.
 
-By default, the CLI generates two files - `connector.cloud.yaml` and `connector.local.yaml` but any number of connector
+By default, the CLI generates a single `connector.yaml` file for every new connector that is added but any number of connector
 config files can be created and referenced in CLI commands.
 
 ### .hasura/context.yaml {#context-file}
 
 This specifies the default DDN project and supergraph file path. The default values are used by all commands that accept
-`--supergraph` flag, `--subgraph` flag and `--project` flag. The flags can be used to override the default values.
+`--supergraph` flag, `--subgraph` flag and `--project` flag. The flags can be used to override the default values. `localEnvFile`
+is used by default by all local development commands (like `ddn connector introspect`) and similarly `cloudEnvFile` is used by 
+default by all cloud commands (like `ddn supergraph build create`).
 
 ```yaml
-context:
-  project: emerging-stag-9129
-  supergraph: ../supergraph.cloud.yaml
-  subgraph: ../app/subgraph.yaml
+kind: Context
+version: v2
+definition:
+  current: default
+  contexts:
+    default:
+      project: emerging-stag-9129
+      supergraph: ../supergraph.yaml
+      subgraph: ../app/subgraph.yaml
+      localEnvFile: ../.env
+      cloudEnvFile: ../.env.cloud
 ```
 
-This file is configured by the `ddn context set` command.
+This file can be configured using the `ddn context` set of commands.
 
 ### Engine {#engine}
 
@@ -208,16 +238,20 @@ The `engine` directory contains the files required for Hasura v3 engine containe
 structure:
 
 ```bash
+.
 ├── .env.engine
-├── auth_config.json
-├── metadata.json
-└── open_dd.json
+└── build
+    ├── auth_config.json
+    ├── metadata.json
+    └── open_dd.json
 ```
 
 The `.env.engine` file specifies environment variables required by the Hasura v3 engine container.
 
 The `auth_config.json`, `metadata.json` and `open_dd.json` are generated as a result of `ddn supergraph build local`
 command and do not need to be edited by the user.
+
+All files inside `build` directory are ignored by default by the `.gitignore` file generated by the CLI.
 
 ### Globals {#globals}
 
@@ -227,20 +261,13 @@ supergraph-level metadata objects, i.e. `AuthConfig`, `GraphqlConfig` and `Compa
 For example:
 
 ```bash
-├── .env.globals.cloud
-├── .env.globals.local
-├── auth-config.cloud.hml
-├── auth-config.local.hml
+.
+├── auth-config.hml
 ├── compatibility-config.hml
 ├── graphql-config.hml
-├── subgraph.cloud.yaml
-└── subgraph.local.yaml
 ```
 
-- `auth-config.cloud.hml` and `auth-config.local.hml` files contain the `AuthConfig` object which define the
-  authentication configuration for the supergraph for cloud and local deployments respectively.
+- `auth-config.hml` contain the `AuthConfig` object which define the authentication configuration for the supergraph.
 - `compatibility-config.hml` file contains the compatibility date configuration for the supergraph.
 - `graphql-config.hml` file contains the GraphQL configuration for the supergraph, which allows you to customize the
   available query and mutation capabilities along with the schema.
-- `.env.globals.cloud` and `.env.globals.local` files contain all the environment variables, if any, which are required
-  by the **globals** subgraph's metadata objects for cloud and local deployments respectively.
