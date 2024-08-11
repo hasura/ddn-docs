@@ -103,12 +103,12 @@ MongoDB Atlas cluster, see the [official documentation](https://www.mongodb.com/
 ## Step 2. Introspect your database
 
 With the connector configured, we can now use the CLI to introspect our MongoDB database. This step will create a data
-connector specific configuration file, and generate the necessary Hasura metadata which describes our API by creating
+connector specific configuration files, and generate the necessary Hasura metadata which describes our API by creating
 files for each collection in our database. These collections will be tracked as
-[models](/supergraph-modeling/models.mdx).
+[Models](/supergraph-modeling/models.mdx).
 
-```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-ddn connector introspect my_mongo --add-all-resources
+```bash title="Run the following command:"
+ddn connector introspect my_mongo
 ```
 
 ## What did `connector introspect` do?
@@ -144,7 +144,20 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 :::
 
-## Step 3. Create a new build and restart the services
+## Step 3. Track your collections
+
+Collections from MongoDB are represented as [Models](/supergraph-modeling/models.mdx) and
+[Commands](/supergraph-modeling/commands.mdx) in your API. The next command we'll run will take each collection in your
+database and create an `hml` file for it. These files will then be used by the Hasura engine to generate your API.
+
+```bash title="Run the following to create your models and commands:"
+ddn connector-link add-resources my_mongo
+```
+
+If you look in the `metadata` directory for your subgraph, you'll see named files for each resource. These will also
+contain relationships based on foreign keys, allowing you to make nested queries in your GraphQL API.
+
+## Step 4. Create a new build and restart the services
 
 To reflect the changes in your API, create a new build.
 
@@ -158,15 +171,7 @@ And, if your services are not already running, start them.
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
-You should see your models available in your API at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
-🎉
-
-If you want a quick way of opening the console, you can run the following command:
-
-```bash title="Run:"
-ddn console -l
-```
+You should see your models available in your API by opening your console using `ddn console --local` 🎉
 
 ## Next steps
 

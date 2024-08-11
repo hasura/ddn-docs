@@ -34,8 +34,7 @@ ddn connector init -i
 Importantly, a data connector can only connect to one data source.
 
 The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_pg` directory if it doesn't exist. You can also change this
-directory by passing a `--dir` flag to the CLI.
+this example the CLI will create a `my_subgraph/connector/my_pg` directory if it doesn't exist.
 
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_pg` in this
 example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
@@ -116,8 +115,8 @@ data connector specific configuration file, and generate the necessary Hasura me
 creating files for each table in our database. These tables will be tracked as
 [Models](/supergraph-modeling/models.mdx).
 
-```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-ddn connector introspect my_pg --add-all-resources
+```bash title="Run the following command:"
+ddn connector introspect my_pg
 ```
 
 ## What did `connector introspect` do?
@@ -142,7 +141,20 @@ your project.
 
 :::
 
-## Step 4. Create a new build and restart the services
+## Step 4. Track your tables
+
+Tables from PostgreSQL are represented as [models](/supergraph-modeling/models.mdx) and
+[commands](/supergraph-modeling/commands.mdx) in your API. The next command we'll run will take each table or view in
+your database and create an `hml` file for it. These files will then be used by the Hasura engine to generate your API.
+
+```bash title="Run the following to create your models and commands:"
+ddn connector-link add-resources my_pg
+```
+
+If you look in the `metadata` directory for your subgraph, you'll see named files for each resource. These will also
+contain relationships based on foreign keys, allowing you to make nested queries in your GraphQL API.
+
+## Step 5. Create a new build and restart the services
 
 To reflect the changes in your API, create a new build.
 
@@ -156,15 +168,7 @@ And, if your services are not already running, start them.
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
-You should see your models available in your API at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
-🎉
-
-If you want a quick way of opening the console, you can run the following command:
-
-```bash title="Run:"
-ddn console -l
-```
+You should see your models available in your API by opening your console using `ddn console --local` 🎉
 
 ## Next steps
 
@@ -172,3 +176,6 @@ With our data source connected and all of our models tracked, we can move on to
 [add custom authorization rules](/getting-started/build/05-add-permissions.mdx) using permissions,
 [incorporate custom business logic](/getting-started/build/06-add-business-logic.mdx), or
 [create relationships](/getting-started/build/07-create-a-relationship.mdx) across data sources!
+
+Additionally, if your curious how to update your API after the underlying data source schema changes, check out the next
+page on [updating data source metadata](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).
