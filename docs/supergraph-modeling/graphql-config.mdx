@@ -70,9 +70,9 @@ Configuration for the GraphQL schema of Hasura features for Apollo Federation.
 
 Configuration for the GraphQL schema of Hasura features for mutations.
 
-| Key                     | Value  | Required | Description                                                                 |
-| ----------------------- | ------ | -------- | --------------------------------------------------------------------------- |
-| `rootOperationTypeName` | string | true     | The name of the root operation type name for mutations. Usually `mutation`. |
+| Key                     | Value                                             | Required | Description                                                                 |
+| ----------------------- | ------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `rootOperationTypeName` | [GraphQlTypeName](#graphqlconfig-graphqltypename) | true     | The name of the root operation type name for mutations. Usually `mutation`. |
 
 #### QueryGraphqlConfig {#graphqlconfig-querygraphqlconfig}
 
@@ -80,7 +80,7 @@ Configuration for the GraphQL schema of Hasura features for queries. `None` mean
 
 | Key                     | Value                                                                            | Required | Description                                                            |
 | ----------------------- | -------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| `rootOperationTypeName` | string                                                                           | true     | The name of the root operation type name for queries. Usually `query`. |
+| `rootOperationTypeName` | [GraphQlTypeName](#graphqlconfig-graphqltypename)                                | true     | The name of the root operation type name for queries. Usually `query`. |
 | `argumentsInput`        | [ArgumentsInputGraphqlConfig](#graphqlconfig-argumentsinputgraphqlconfig) / null | false    | Configuration for the arguments input.                                 |
 | `limitInput`            | [LimitInputGraphqlConfig](#graphqlconfig-limitinputgraphqlconfig) / null         | false    | Configuration for the limit operation.                                 |
 | `offsetInput`           | [OffsetInputGraphqlConfig](#graphqlconfig-offsetinputgraphqlconfig) / null       | false    | Configuration for the offset operation.                                |
@@ -96,19 +96,13 @@ Configuration for the GraphQL schema of Hasura features for queries. `None` mean
 | `countFieldName`         | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the \_count field used for the count aggregate function                     |
 | `countDistinctFieldName` | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the \_count_distinct field used for the count distinct aggregate function   |
 
-#### GraphQlFieldName {#graphqlconfig-graphqlfieldname}
-
-The name of a GraphQL object field.
-
-**Value:** string
-
 #### OrderByInputGraphqlConfig {#graphqlconfig-orderbyinputgraphqlconfig}
 
 Configuration for the sort operation.
 
 | Key                   | Value                                                           | Required | Description                                                 |
 | --------------------- | --------------------------------------------------------------- | -------- | ----------------------------------------------------------- |
-| `fieldName`           | string                                                          | true     | The name of the filter operation field. Usually `order_by`. |
+| `fieldName`           | [GraphQlFieldName](#graphqlconfig-graphqlfieldname)             | true     | The name of the filter operation field. Usually `order_by`. |
 | `enumDirectionValues` | [OrderByDirectionValues](#graphqlconfig-orderbydirectionvalues) | true     | The names of the direction parameters.                      |
 | `enumTypeNames`       | [[OrderByEnumTypeName](#graphqlconfig-orderbyenumtypename)]     | true     |                                                             |
 
@@ -117,7 +111,7 @@ Configuration for the sort operation.
 | Key          | Value                                                 | Required | Description |
 | ------------ | ----------------------------------------------------- | -------- | ----------- |
 | `directions` | [[OrderByDirection](#graphqlconfig-orderbydirection)] | true     |             |
-| `typeName`   | string                                                | true     |             |
+| `typeName`   | [GraphQlTypeName](#graphqlconfig-graphqltypename)     | true     |             |
 
 #### OrderByDirection {#graphqlconfig-orderbydirection}
 
@@ -134,10 +128,10 @@ Sort direction.
 
 The names of the direction parameters.
 
-| Key    | Value  | Required | Description                                           |
-| ------ | ------ | -------- | ----------------------------------------------------- |
-| `asc`  | string | true     | The name of the ascending parameter. Usually `Asc`.   |
-| `desc` | string | true     | The name of the descending parameter. Usually `Desc`. |
+| Key    | Value                                               | Required | Description                                           |
+| ------ | --------------------------------------------------- | -------- | ----------------------------------------------------- |
+| `asc`  | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the ascending parameter. Usually `Asc`.   |
+| `desc` | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the descending parameter. Usually `Desc`. |
 
 #### FilterInputGraphqlConfig {#graphqlconfig-filterinputgraphqlconfig}
 
@@ -145,40 +139,52 @@ Configuration for the filter operation.
 
 | Key             | Value                                                               | Required | Description                                              |
 | --------------- | ------------------------------------------------------------------- | -------- | -------------------------------------------------------- |
-| `fieldName`     | string                                                              | true     | The name of the filter operation field. Usually `where`. |
+| `fieldName`     | [GraphQlFieldName](#graphqlconfig-graphqlfieldname)                 | true     | The name of the filter operation field. Usually `where`. |
 | `operatorNames` | [FilterInputOperatorNames](#graphqlconfig-filterinputoperatornames) | true     | The names of built-in filter operators.                  |
 
 #### FilterInputOperatorNames {#graphqlconfig-filterinputoperatornames}
 
 The names of built-in filter operators.
 
-| Key      | Value  | Required | Description                                             |
-| -------- | ------ | -------- | ------------------------------------------------------- |
-| `and`    | string | true     | The name of the `and` operator. Usually `_and`.         |
-| `or`     | string | true     | The name of the `or` operator. Usually `_or`.           |
-| `not`    | string | true     | The name of the `not` operator. Usually `_not`.         |
-| `isNull` | string | true     | The name of the `is null` operator. Usually `_is_null`. |
+| Key      | Value                                               | Required | Description                                             |
+| -------- | --------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `and`    | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the `and` operator. Usually `_and`.         |
+| `or`     | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the `or` operator. Usually `_or`.           |
+| `not`    | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the `not` operator. Usually `_not`.         |
+| `isNull` | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the `is null` operator. Usually `_is_null`. |
 
 #### OffsetInputGraphqlConfig {#graphqlconfig-offsetinputgraphqlconfig}
 
 Configuration for the offset operation.
 
-| Key         | Value  | Required | Description                                               |
-| ----------- | ------ | -------- | --------------------------------------------------------- |
-| `fieldName` | string | true     | The name of the offset operation field. Usually `offset`. |
+| Key         | Value                                               | Required | Description                                               |
+| ----------- | --------------------------------------------------- | -------- | --------------------------------------------------------- |
+| `fieldName` | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the offset operation field. Usually `offset`. |
 
 #### LimitInputGraphqlConfig {#graphqlconfig-limitinputgraphqlconfig}
 
 Configuration for the limit operation.
 
-| Key         | Value  | Required | Description                                             |
-| ----------- | ------ | -------- | ------------------------------------------------------- |
-| `fieldName` | string | true     | The name of the limit operation field. Usually `limit`. |
+| Key         | Value                                               | Required | Description                                             |
+| ----------- | --------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `fieldName` | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of the limit operation field. Usually `limit`. |
 
 #### ArgumentsInputGraphqlConfig {#graphqlconfig-argumentsinputgraphqlconfig}
 
 Configuration for the arguments input.
 
-| Key         | Value  | Required | Description                                          |
-| ----------- | ------ | -------- | ---------------------------------------------------- |
-| `fieldName` | string | true     | The name of arguments passing field. Usually `args`. |
+| Key         | Value                                               | Required | Description                                          |
+| ----------- | --------------------------------------------------- | -------- | ---------------------------------------------------- |
+| `fieldName` | [GraphQlFieldName](#graphqlconfig-graphqlfieldname) | true     | The name of arguments passing field. Usually `args`. |
+
+#### GraphQlFieldName {#graphqlconfig-graphqlfieldname}
+
+The name of a GraphQL object field.
+
+**Value:** string
+
+#### GraphQlTypeName {#graphqlconfig-graphqltypename}
+
+The name of a GraphQL type.
+
+**Value:** string
