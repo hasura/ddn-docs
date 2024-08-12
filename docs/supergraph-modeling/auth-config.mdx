@@ -40,6 +40,31 @@ and error checking as you create this object.
 
 Definition of the authentication configuration used by the API server.
 
+**One of the following values:**
+
+| Value                                  | Description    |
+| -------------------------------------- | -------------- |
+| [AuthConfig2](#authconfig-authconfig2) | Auth config V2 |
+| [AuthConfig1](#authconfig-authconfig1) | Auth config V1 |
+
+#### AuthConfig2 {#authconfig-authconfig2}
+
+| Key          | Value                                    | Required | Description                                                            |
+| ------------ | ---------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| `kind`       | `AuthConfig`                             | true     |                                                                        |
+| `version`    | `v2`                                     | true     |                                                                        |
+| `definition` | [AuthConfigV2](#authconfig-authconfigv2) | true     | Definition of the authentication configuration used by the API server. |
+
+#### AuthConfigV2 {#authconfig-authconfigv2}
+
+Definition of the authentication configuration used by the API server.
+
+| Key    | Value                                        | Required | Description |
+| ------ | -------------------------------------------- | -------- | ----------- |
+| `mode` | [AuthModeConfig](#authconfig-authmodeconfig) | true     |             |
+
+#### AuthConfig1 {#authconfig-authconfig1}
+
 | Key          | Value                                    | Required | Description                                                            |
 | ------------ | ---------------------------------------- | -------- | ---------------------------------------------------------------------- |
 | `kind`       | `AuthConfig`                             | true     |                                                                        |
@@ -50,14 +75,14 @@ Definition of the authentication configuration used by the API server.
 
 Definition of the authentication configuration used by the API server.
 
-| Key                    | Value                                        | Required | Description                                                            |
-| ---------------------- | -------------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| `allowRoleEmulationBy` | [Role](#authconfig-role) / null              | false    |                                                                        |
-| `mode`                 | [AuthModeConfig](#authconfig-authmodeconfig) | true     | The configuration for the authentication mode to use - webhook or JWT. |
+| Key                    | Value                                        | Required | Description                                                                    |
+| ---------------------- | -------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
+| `allowRoleEmulationBy` | [Role](#authconfig-role) / null              | false    |                                                                                |
+| `mode`                 | [AuthModeConfig](#authconfig-authmodeconfig) | true     | The configuration for the authentication mode to use - webhook, JWT or NoAuth. |
 
 #### AuthModeConfig {#authconfig-authmodeconfig}
 
-The configuration for the authentication mode to use - webhook or JWT.
+The configuration for the authentication mode to use - webhook, JWT or NoAuth.
 
 **Must have exactly one of the following fields:**
 
@@ -65,6 +90,32 @@ The configuration for the authentication mode to use - webhook or JWT.
 | --------- | -------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
 | `webhook` | [AuthHookConfig](#authconfig-authhookconfig) | false    | The configuration of the authentication webhook.                                                                    |
 | `jwt`     | [JWTConfig](#authconfig-jwtconfig)           | false    | JWT config according to which the incoming JWT will be verified and decoded to extract the session variable claims. |
+| `noAuth`  | [NoAuthConfig](#authconfig-noauthconfig)     | false    | Configuration used when running engine without authentication                                                       |
+
+#### NoAuthConfig {#authconfig-noauthconfig}
+
+Configuration used when running engine without authentication
+
+| Key                | Value                                            | Required | Description                                               |
+| ------------------ | ------------------------------------------------ | -------- | --------------------------------------------------------- |
+| `role`             | [Role](#authconfig-role)                         | true     | role to assume whilst running the engine                  |
+| `sessionVariables` | [SessionVariables](#authconfig-sessionvariables) | true     | static session variables to use whilst running the engine |
+
+**Example:**
+
+```yaml
+role: admin
+sessionVariables:
+  x-hasura-user-id: "100"
+```
+
+#### SessionVariables {#authconfig-sessionvariables}
+
+static session variables to use whilst running the engine
+
+| Key           | Value  | Required | Description                 |
+| ------------- | ------ | -------- | --------------------------- |
+| `<customKey>` | string | false    | Value of a session variable |
 
 #### JWTConfig {#authconfig-jwtconfig}
 

@@ -71,35 +71,41 @@ definition:
 
 Definition of a data connector - version 1.
 
-| Key               | Value                                                                   | Required | Description                                                                                                                                                    |
-| ----------------- | ----------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`            | [DataConnectorName](#dataconnectorlink-dataconnectorname)               | true     | The name of the data connector.                                                                                                                                |
-| `url`             | [DataConnectorUrlV1](#dataconnectorlink-dataconnectorurlv1)             | true     | The url(s) to access the data connector.                                                                                                                       |
-| `headers`         | [HttpHeaders](#dataconnectorlink-httpheaders)                           | false    | Key value map of HTTP headers to be sent with each request to the data connector. This is meant for protocol level use between engine and the data connector.  |
-| `schema`          | [SchemaAndCapabilitiesV01](#dataconnectorlink-schemaandcapabilitiesv01) | true     | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
-| `argumentPresets` | [[ArgumentPreset](#dataconnectorlink-argumentpreset)]                   | false    | Argument presets that applies to all functions and procedures of this data connector. Defaults to no argument presets.                                         |
-| `responseHeaders` | [ResponseHeaders](#dataconnectorlink-responseheaders) / null            | false    | HTTP response headers configuration that is forwarded from a data connector to the client.                                                                     |
+| Key               | Value                                                                           | Required | Description                                                                                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`            | [DataConnectorName](#dataconnectorlink-dataconnectorname)                       | true     | The name of the data connector.                                                                                                                                |
+| `url`             | [DataConnectorUrlV1](#dataconnectorlink-dataconnectorurlv1)                     | true     | The url(s) to access the data connector.                                                                                                                       |
+| `headers`         | [HttpHeaders](#dataconnectorlink-httpheaders)                                   | false    | Key value map of HTTP headers to be sent with each request to the data connector. This is meant for protocol level use between engine and the data connector.  |
+| `schema`          | [SchemaAndCapabilitiesV01](#dataconnectorlink-schemaandcapabilitiesv01)         | true     | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
+| `argumentPresets` | [[DataConnectorArgumentPreset](#dataconnectorlink-dataconnectorargumentpreset)] | false    | Argument presets that applies to all functions and procedures of this data connector. Defaults to no argument presets.                                         |
+| `responseHeaders` | [ResponseHeaders](#dataconnectorlink-responseheaders) / null                    | false    | HTTP response headers configuration that is forwarded from a data connector to the client.                                                                     |
 
 #### ResponseHeaders {#dataconnectorlink-responseheaders}
 
 Configuration of what HTTP response headers should be forwarded from a data connector to the client in HTTP response.
 
-| Key              | Value    | Required | Description                                                                                  |
-| ---------------- | -------- | -------- | -------------------------------------------------------------------------------------------- |
-| `headersField`   | string   | true     | Name of the field in the NDC function/procedure's result which contains the response headers |
-| `resultField`    | string   | true     | Name of the field in the NDC function/procedure's result which contains the result           |
-| `forwardHeaders` | [string] | true     | List of actual HTTP response headers from the data conector to be set as response headers    |
+| Key              | Value                                                                 | Required | Description                                                                                  |
+| ---------------- | --------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `headersField`   | [DataConnectorColumnName](#dataconnectorlink-dataconnectorcolumnname) | true     | Name of the field in the NDC function/procedure's result which contains the response headers |
+| `resultField`    | [DataConnectorColumnName](#dataconnectorlink-dataconnectorcolumnname) | true     | Name of the field in the NDC function/procedure's result which contains the result           |
+| `forwardHeaders` | [string]                                                              | true     | List of actual HTTP response headers from the data connector to be set as response headers   |
 
-#### ArgumentPreset {#dataconnectorlink-argumentpreset}
+#### DataConnectorColumnName {#dataconnectorlink-dataconnectorcolumnname}
+
+The name of a column in a data connector.
+
+**Value:** string
+
+#### DataConnectorArgumentPreset {#dataconnectorlink-dataconnectorargumentpreset}
 
 An argument preset that can be applied to all functions/procedures of a connector
 
-| Key        | Value                                                         | Required | Description |
-| ---------- | ------------------------------------------------------------- | -------- | ----------- |
-| `argument` | [ArgumentName](#dataconnectorlink-argumentname)               | true     |             |
-| `value`    | [ArgumentPresetValue](#dataconnectorlink-argumentpresetvalue) | true     |             |
+| Key        | Value                                                                                   | Required | Description |
+| ---------- | --------------------------------------------------------------------------------------- | -------- | ----------- |
+| `argument` | [ArgumentName](#dataconnectorlink-argumentname)                                         | true     |             |
+| `value`    | [DataConnectorArgumentPresetValue](#dataconnectorlink-dataconnectorargumentpresetvalue) | true     |             |
 
-#### ArgumentPresetValue {#dataconnectorlink-argumentpresetvalue}
+#### DataConnectorArgumentPresetValue {#dataconnectorlink-dataconnectorargumentpresetvalue}
 
 | Key           | Value                                                     | Required | Description                                  |
 | ------------- | --------------------------------------------------------- | -------- | -------------------------------------------- |
@@ -128,77 +134,14 @@ An expression which evaluates to a value that can be used in permissions and var
 
 **Must have exactly one of the following fields:**
 
-| Key                 | Value                                               | Required | Description                                                             |
-| ------------------- | --------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `literal`           |                                                     | false    |                                                                         |
-| `sessionVariable`   | string                                              | false    | Used to represent the name of a session variable, like "x-hasura-role". |
-| `booleanExpression` | [ModelPredicate](#dataconnectorlink-modelpredicate) | false    |                                                                         |
-
-#### ModelPredicate {#dataconnectorlink-modelpredicate}
-
-A predicate that can be used to restrict the objects returned when querying a model.
-
-**Must have exactly one of the following fields:**
-
-| Key               | Value                                                                   | Required | Description                                                                                         |
-| ----------------- | ----------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
-| `fieldComparison` | [FieldComparisonPredicate](#dataconnectorlink-fieldcomparisonpredicate) | false    | Field comparison predicate filters objects based on a field value.                                  |
-| `fieldIsNull`     | [FieldIsNullPredicate](#dataconnectorlink-fieldisnullpredicate)         | false    | Predicate to check if the given field is null.                                                      |
-| `relationship`    | [RelationshipPredicate](#dataconnectorlink-relationshippredicate)       | false    | Relationship predicate filters objects of a source model based on a predicate on the related model. |
-| `and`             | [[ModelPredicate](#dataconnectorlink-modelpredicate)]                   | false    |                                                                                                     |
-| `or`              | [[ModelPredicate](#dataconnectorlink-modelpredicate)]                   | false    |                                                                                                     |
-| `not`             | [ModelPredicate](#dataconnectorlink-modelpredicate)                     | false    |                                                                                                     |
-
-**Example:**
-
-```yaml
-fieldComparison:
-  field: author_id
-  operator: _eq
-  value:
-    sessionVariable: x-hasura-user-id
-```
-
-#### RelationshipPredicate {#dataconnectorlink-relationshippredicate}
-
-Relationship predicate filters objects of a source model based on a predicate on the related model.
-
-| Key         | Value                                                      | Required | Description                                                                                                                                                   |
-| ----------- | ---------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`      | [RelationshipName](#dataconnectorlink-relationshipname)    | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
-| `predicate` | [ModelPredicate](#dataconnectorlink-modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
-
-#### RelationshipName {#dataconnectorlink-relationshipname}
-
-The name of the GraphQL relationship field.
-
-**Value:** string
-
-#### FieldIsNullPredicate {#dataconnectorlink-fieldisnullpredicate}
-
-Predicate to check if the given field is null.
-
-| Key     | Value                                     | Required | Description                                                    |
-| ------- | ----------------------------------------- | -------- | -------------------------------------------------------------- |
-| `field` | [FieldName](#dataconnectorlink-fieldname) | true     | The name of the field that should be checked for a null value. |
-
-#### FieldComparisonPredicate {#dataconnectorlink-fieldcomparisonpredicate}
-
-Field comparison predicate filters objects based on a field value.
-
-| Key        | Value                                                 | Required | Description                                                |
-| ---------- | ----------------------------------------------------- | -------- | ---------------------------------------------------------- |
-| `field`    | [FieldName](#dataconnectorlink-fieldname)             | true     | The field name of the object type of the model to compare. |
-| `operator` | string                                                | true     | The name of the operator to use for comparison.            |
-| `value`    | [ValueExpression](#dataconnectorlink-valueexpression) | true     | The value expression to compare against.                   |
-
-#### FieldName {#dataconnectorlink-fieldname}
-
-The name of a field in a user-defined object type.
-
-**Value:** string
+| Key               | Value  | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
 
 #### ArgumentName {#dataconnectorlink-argumentname}
+
+The name of an argument.
 
 **Value:** string
 
@@ -261,20 +204,21 @@ The name of a data connector.
 
 The representation of a data connector scalar in terms of Open DD types
 
-| Key          | Value                                                                                                         | Required | Description                                                             |
-| ------------ | ------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `kind`       | `DataConnectorScalarRepresentation`                                                                           | true     |                                                                         |
-| `version`    | `v1`                                                                                                          | true     |                                                                         |
-| `definition` | [DataConnectorScalarRepresentationV1](#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1) | true     | The representation of a data connector scalar in terms of Open DD types |
+| Key          | Value                                                                                                         | Required | Description                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `kind`       | `DataConnectorScalarRepresentation`                                                                           | true     |                                                                                                                           |
+| `version`    | `v1`                                                                                                          | true     |                                                                                                                           |
+| `definition` | [DataConnectorScalarRepresentationV1](#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1) | true     | The representation of a data connector scalar in terms of Open DD types. Deprecated in favour of `BooleanExpressionType`. |
 
 #### DataConnectorScalarRepresentationV1 {#dataconnectorscalarrepresentation-dataconnectorscalarrepresentationv1}
 
-The representation of a data connector scalar in terms of Open DD types
+The representation of a data connector scalar in terms of Open DD types. Deprecated in favour of
+`BooleanExpressionType`.
 
 | Key                       | Value                                                                                                                        | Required | Description                                                                                 |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
 | `dataConnectorName`       | [DataConnectorName](#dataconnectorscalarrepresentation-dataconnectorname)                                                    | true     | The name of the data connector that this scalar type comes from.                            |
-| `dataConnectorScalarType` | string                                                                                                                       | true     | The name of the scalar type coming from the data connector.                                 |
+| `dataConnectorScalarType` | [DataConnectorScalarType](#dataconnectorscalarrepresentation-dataconnectorscalartype)                                        | true     | The name of the scalar type coming from the data connector.                                 |
 | `representation`          | [TypeName](#dataconnectorscalarrepresentation-typename)                                                                      | true     | The name of the Open DD type that this data connector scalar type should be represented as. |
 | `graphql`                 | [DataConnectorScalarGraphQLConfiguration](#dataconnectorscalarrepresentation-dataconnectorscalargraphqlconfiguration) / null | false    | Configuration for how this scalar's operators should appear in the GraphQL schema.          |
 
@@ -297,6 +241,8 @@ GraphQL configuration of a data connector scalar
 | `comparisonExpressionTypeName` | [GraphQlTypeName](#dataconnectorscalarrepresentation-graphqltypename) / null | false    |             |
 
 #### GraphQlTypeName {#dataconnectorscalarrepresentation-graphqltypename}
+
+The name of a GraphQL type.
 
 **Value:** string
 
@@ -322,6 +268,12 @@ The name of a user-defined type.
 An inbuilt primitive OpenDD type.
 
 **Value:** `ID` / `Int` / `Float` / `Boolean` / `String`
+
+#### DataConnectorScalarType {#dataconnectorscalarrepresentation-dataconnectorscalartype}
+
+The name of a scalar type in a data connector.
+
+**Value:** string
 
 #### DataConnectorName {#dataconnectorscalarrepresentation-dataconnectorname}
 
