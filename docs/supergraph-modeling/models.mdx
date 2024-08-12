@@ -24,21 +24,21 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-A "Model" in Hasura DDN represents a collection of data objects (eg: `Users`). Models can have "operations"
-defined on them so that they can be inserted, edited, deleted or fetched (with filtering, pagination, sorting, etc.).
-Very loosely, you can think of models as the nouns, or "things" of your data domain.
+A "Model" in Hasura DDN represents a collection of data objects (eg: `Users`). Models can have "operations" defined on
+them so that they can be inserted, edited, deleted or fetched (with filtering, pagination, sorting, etc.). Very loosely,
+you can think of models as the nouns, or "things" of your data domain.
 
-Models as the link between a data connector and the API that Hasura generates. Models can be backed by
-various data sources such as a database table, an ad-hoc SQL query, a pre-materialized view, or a custom REST or
-GraphQL API server.
+Models as the link between a data connector and the API that Hasura generates. Models can be backed by various data
+sources such as a database table, an ad-hoc SQL query, a pre-materialized view, or a custom REST or GraphQL API server.
 
-Once a model is declared it will then often be referenced by `Relationship` objects in order to compose them with
-each other or commands, and also by `Permissions` objects to control access to the data.
+Once a model is declared it will then often be referenced by `Relationship` objects in order to compose them with each
+other or commands, and also by `Permissions` objects to control access to the data.
 
 <details>
 <summary>View an example of a model and an API query it enables</summary>
 
 The following is an example of a model definition for a `Users` model. This model is backed by a Postgres data:
+
 ```yaml
 ---
 kind: Model
@@ -89,13 +89,10 @@ definition:
 ```
 
 The above model definition enables the following query in the API:
+
 ```graphql
 query UsersQuery {
-  mySubgraph_users(
-    where: {favoriteArtist: {_eq: "1"}}
-    order_by: {name: Asc}
-    limit: 10
-  ) {
+  mySubgraph_users(where: { favoriteArtist: { _eq: "1" } }, order_by: { name: Asc }, limit: 10) {
     id
     createdAt
     updatedAt
@@ -108,6 +105,7 @@ query UsersQuery {
   }
 }
 ```
+
 </details>
 
 <details>
@@ -301,6 +299,8 @@ aggregate:
 
 #### GraphQlTypeName {#model-graphqltypename}
 
+The name of a GraphQL type.
+
 **Value:** string
 
 #### SelectManyGraphQlDefinition {#model-selectmanygraphqldefinition}
@@ -378,7 +378,7 @@ Description of how a model maps to a particular data connector
 | Key                 | Value                                         | Required | Description                                                                    |
 | ------------------- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
 | `dataConnectorName` | [DataConnectorName](#model-dataconnectorname) | true     | The name of the data connector backing this model.                             |
-| `collection`        | string                                        | true     | The collection in the data connector that backs this model.                    |
+| `collection`        | [CollectionName](#model-collectionname)       | true     | The collection in the data connector that backs this model.                    |
 | `argumentMapping`   | [ArgumentMapping](#model-argumentmapping)     | false    | Mapping from model argument names to data connector collection argument names. |
 
 **Example:**
@@ -394,11 +394,19 @@ Mapping of a comand or model argument name to the corresponding argument name us
 this object is the argument name used in the command or model and the value is the argument name used in the data
 connector.
 
-| Key           | Value                                                         | Required | Description |
-| ------------- | ------------------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [DataConnectorArgumentName](#model-dataconnectorargumentname) | false    |             |
+| Key           | Value                                                         | Required | Description                                             |
+| ------------- | ------------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `<customKey>` | [DataConnectorArgumentName](#model-dataconnectorargumentname) | false    | The name of an argument as defined by a data connector. |
 
 #### DataConnectorArgumentName {#model-dataconnectorargumentname}
+
+The name of an argument as defined by a data connector.
+
+**Value:** string
+
+#### CollectionName {#model-collectionname}
+
+The name of a collection in a data connector.
 
 **Value:** string
 
@@ -412,11 +420,11 @@ The name of a data connector.
 
 The definition of an argument for a field, command, or model.
 
-| Key           | Value                                 | Required | Description |
-| ------------- | ------------------------------------- | -------- | ----------- |
-| `name`        | [ArgumentName](#model-argumentname)   | true     |             |
-| `type`        | [TypeReference](#model-typereference) | true     |             |
-| `description` | string / null                         | false    |             |
+| Key           | Value                                 | Required | Description              |
+| ------------- | ------------------------------------- | -------- | ------------------------ |
+| `name`        | [ArgumentName](#model-argumentname)   | true     | The name of an argument. |
+| `type`        | [TypeReference](#model-typereference) | true     |                          |
+| `description` | string / null                         | false    |                          |
 
 #### TypeReference {#model-typereference}
 
@@ -426,6 +434,8 @@ and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array 
 **Value:** string
 
 #### ArgumentName {#model-argumentname}
+
+The name of an argument.
 
 **Value:** string
 
