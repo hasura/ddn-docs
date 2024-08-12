@@ -28,8 +28,9 @@ filters are available for a model or command. They can be used to configure filt
 
 ## Scalar
 
-This specifies how a user is able to compare a scalar field. For instance, you might want to say that a user can only check
-if a `String` type is equals to another, or whether it is null or not. You can do that with the following metadata:
+This specifies how a user is able to compare a scalar field. For instance, you might want to say that a user can only
+check if a `String` type is equals to another, or whether it is null or not. You can do that with the following
+metadata:
 
 ```yaml
 kind: BooleanExpressionType
@@ -179,7 +180,7 @@ GraphQL configuration of an OpenDD boolean expression type.
 
 #### GraphQlTypeName {#booleanexpressiontype-graphqltypename}
 
-The name to use for the GraphQL type representation of this boolean expression type.
+The name of a GraphQL type.
 
 **Value:** string
 
@@ -222,20 +223,32 @@ Definition of a scalar type representing a boolean expression on an OpenDD objec
 
 #### DataConnectorOperatorMapping {#booleanexpressiontype-dataconnectoroperatormapping}
 
-| Key                       | Value                                                         | Required | Description                                                                                                                                                             |
-| ------------------------- | ------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dataConnectorName`       | [DataConnectorName](#booleanexpressiontype-dataconnectorname) | true     | Name of the data connector this mapping applies to                                                                                                                      |
-| `dataConnectorScalarType` | string                                                        | true     | Name of the scalar type according to the data connector's schema                                                                                                        |
-| `operatorMapping`         | [operator_mapping](#booleanexpressiontype-operator_mapping)   | true     | Mapping between OpenDD operator names and the data connector's operator names Defaults to the same operator name (e.g. "\_eq: \_eq") if no explicit mapping is present. |
+| Key                       | Value                                                                     | Required | Description                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dataConnectorName`       | [DataConnectorName](#booleanexpressiontype-dataconnectorname)             | true     | Name of the data connector this mapping applies to                                                                                                                      |
+| `dataConnectorScalarType` | [DataConnectorScalarType](#booleanexpressiontype-dataconnectorscalartype) | true     | Name of the scalar type according to the data connector's schema                                                                                                        |
+| `operatorMapping`         | [operator_mapping](#booleanexpressiontype-operator_mapping)               | true     | Mapping between OpenDD operator names and the data connector's operator names Defaults to the same operator name (e.g. "\_eq: \_eq") if no explicit mapping is present. |
 
 #### operator_mapping {#booleanexpressiontype-operator_mapping}
 
 Mapping between OpenDD operator names and the data connector's operator names Defaults to the same operator name (e.g.
 "\_eq: \_eq") if no explicit mapping is present.
 
-| Key           | Value  | Required | Description                                  |
-| ------------- | ------ | -------- | -------------------------------------------- |
-| `<customKey>` | string | false    | The name of an operator in a data connector. |
+| Key           | Value                                                                         | Required | Description                                  |
+| ------------- | ----------------------------------------------------------------------------- | -------- | -------------------------------------------- |
+| `<customKey>` | [DataConnectorOperatorName](#booleanexpressiontype-dataconnectoroperatorname) | false    | The name of an operator in a data connector. |
+
+#### DataConnectorOperatorName {#booleanexpressiontype-dataconnectoroperatorname}
+
+The name of an operator in a data connector.
+
+**Value:** string
+
+#### DataConnectorScalarType {#booleanexpressiontype-dataconnectorscalartype}
+
+The name of a scalar type in a data connector.
+
+**Value:** string
 
 #### DataConnectorName {#booleanexpressiontype-dataconnectorname}
 
@@ -247,13 +260,19 @@ The name of a data connector.
 
 | Key            | Value                                                 | Required | Description                                            |
 | -------------- | ----------------------------------------------------- | -------- | ------------------------------------------------------ |
-| `name`         | string                                                | true     | Name you want to give the operator in OpenDD / GraphQL |
+| `name`         | [OperatorName](#booleanexpressiontype-operatorname)   | true     | Name you want to give the operator in OpenDD / GraphQL |
 | `argumentType` | [TypeReference](#booleanexpressiontype-typereference) | true     | An OpenDD type                                         |
 
 #### TypeReference {#booleanexpressiontype-typereference}
 
 A reference to an Open DD type including nullable values and arrays. Suffix '!' to indicate a non-nullable reference,
 and wrap in '[]' to indicate an array. Eg: '[String!]!' is a non-nullable array of non-nullable strings.
+
+**Value:** string
+
+#### OperatorName {#booleanexpressiontype-operatorname}
+
+The name of an operator
 
 **Value:** string
 
@@ -322,11 +341,11 @@ The name of a user-defined type.
 
 Definition of a type representing a boolean expression on an Open DD object type.
 
-| Key          | Value                                                                                       | Required | Description                                                                       |
-| ------------ | ------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------- |
-| `kind`       | `ObjectBooleanExpressionType`                                                               | true     |                                                                                   |
-| `version`    | `v1`                                                                                        | true     |                                                                                   |
-| `definition` | [ObjectBooleanExpressionTypeV1](#objectbooleanexpressiontype-objectbooleanexpressiontypev1) | true     | Definition of a type representing a boolean expression on an Open DD object type. |
+| Key          | Value                                                                                       | Required | Description                                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `kind`       | `ObjectBooleanExpressionType`                                                               | true     |                                                                                                                                    |
+| `version`    | `v1`                                                                                        | true     |                                                                                                                                    |
+| `definition` | [ObjectBooleanExpressionTypeV1](#objectbooleanexpressiontype-objectbooleanexpressiontypev1) | true     | Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of `BooleanExpressionType`. |
 
 **Example:**
 
@@ -354,7 +373,8 @@ definition:
 
 #### ObjectBooleanExpressionTypeV1 {#objectbooleanexpressiontype-objectbooleanexpressiontypev1}
 
-Definition of a type representing a boolean expression on an Open DD object type.
+Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of
+`BooleanExpressionType`.
 
 | Key                       | Value                                                                                                                                  | Required | Description                                                                                                                                                    |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -375,7 +395,7 @@ GraphQL configuration of an Open DD boolean expression type.
 
 #### GraphQlTypeName {#objectbooleanexpressiontype-graphqltypename}
 
-The name to use for the GraphQL type representation of this boolean expression type.
+The name of a GraphQL type.
 
 **Value:** string
 
@@ -390,10 +410,16 @@ The name to use for the GraphQL type representation of this boolean expression t
 
 **Must have exactly one of the following fields:**
 
-| Key              | Value    | Required | Description |
-| ---------------- | -------- | -------- | ----------- |
-| `enableAll`      | boolean  | false    |             |
-| `enableSpecific` | [string] | false    |             |
+| Key              | Value                                                       | Required | Description |
+| ---------------- | ----------------------------------------------------------- | -------- | ----------- |
+| `enableAll`      | boolean                                                     | false    |             |
+| `enableSpecific` | [[OperatorName](#objectbooleanexpressiontype-operatorname)] | false    |             |
+
+#### OperatorName {#objectbooleanexpressiontype-operatorname}
+
+The name of an operator
+
+**Value:** string
 
 #### FieldName {#objectbooleanexpressiontype-fieldname}
 

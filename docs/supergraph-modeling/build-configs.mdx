@@ -64,19 +64,44 @@ Defines the configuration used to build the Subgraph.
 | Key          | Value                                                  | Required | Description |
 | ------------ | ------------------------------------------------------ | -------- | ----------- |
 | `kind`       | `Subgraph`                                             | true     |             |
-| `version`    | `v1`                                                   | true     |             |
-| `definition` | [SubgraphDefinitionV1](#subgraph-subgraphdefinitionv1) | true     |             |
+| `version`    | `v2`                                                   | true     |             |
+| `definition` | [SubgraphDefinitionV2](#subgraph-subgraphdefinitionv2) | true     |             |
 
-#### SubgraphDefinitionV1 {#subgraph-subgraphdefinitionv1}
-
-Subgraph Definition.
+#### SubgraphDefinitionV2 {#subgraph-subgraphdefinitionv2}
 
 | Key            | Value                                                        | Required | Description                                          |
 | -------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------- |
+| `name`         | string                                                       | true     | Subgraph Name.                                       |
 | `generator`    | [SubgraphGeneratorConfig](#subgraph-subgraphgeneratorconfig) | true     | Subgraph generator Configuration.                    |
 | `envFile`      | string                                                       | false    | Path to the Subgraph .env file.                      |
 | `includePaths` | [string]                                                     | true     | Paths to be included to construct Subgraph metadata. |
-| `name`         | string                                                       | true     | Subgraph Name.                                       |
+| `envMapping`   | [EnvMapping](#subgraph-envmapping)                           | false    | Environment Variable mapping config.                 |
+| `connectors`   | [[SubgraphConnector](#subgraph-subgraphconnector)]           | false    | Connectors used in subgraph.                         |
+
+#### SubgraphConnector {#subgraph-subgraphconnector}
+
+Subgraph Connector config.
+
+| Key                 | Value  | Required | Description |
+| ------------------- | ------ | -------- | ----------- |
+| `path`              | string | true     |             |
+| `connectorLinkName` | string | false    |             |
+
+#### EnvMapping {#subgraph-envmapping}
+
+Environment Variables mapping config.
+
+| Key           | Value                            | Required | Description |
+| ------------- | -------------------------------- | -------- | ----------- |
+| `<customKey>` | [EnvSource](#subgraph-envsource) | false    |             |
+
+#### EnvSource {#subgraph-envsource}
+
+Environment Variable Source.
+
+| Key       | Value  | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `fromEnv` | string | true     |             |
 
 #### SubgraphGeneratorConfig {#subgraph-subgraphgeneratorconfig}
 
@@ -96,28 +121,45 @@ Defines the configuration used to build the connector.
 | Key          | Value                                                     | Required | Description |
 | ------------ | --------------------------------------------------------- | -------- | ----------- |
 | `kind`       | `Connector`                                               | true     |             |
-| `version`    | `v1`                                                      | true     |             |
-| `definition` | [ConnectorDefinitionV1](#connector-connectordefinitionv1) | true     |             |
+| `version`    | `v2`                                                      | true     |             |
+| `definition` | [ConnectorDefinitionV2](#connector-connectordefinitionv2) | true     |             |
 
-#### ConnectorDefinitionV1 {#connector-connectordefinitionv1}
+#### ConnectorDefinitionV2 {#connector-connectordefinitionv2}
 
-Connector deployment definition.
+Connector deployment definition V2.
 
-| Key                   | Value                                                   | Required | Description                               |
-| --------------------- | ------------------------------------------------------- | -------- | ----------------------------------------- |
-| `name`                | string                                                  | true     | Connector name.                           |
-| `subgraph`            | string                                                  | false    | DDN project subgraph name.                |
-| `source`              | string                                                  | true     | Connector Hub ID.                         |
-| `context`             | string                                                  | true     | Path to the context directory.            |
-| `envFile`             | string                                                  | false    | Path to the shared .env file.             |
-| `regionConfiguration` | [[RegionConfiguration](#connector-regionconfiguration)] | false    | Connector deployment Region configuration |
+| Key                   | Value                                                       | Required | Description                               |
+| --------------------- | ----------------------------------------------------------- | -------- | ----------------------------------------- |
+| `name`                | string                                                      | true     | Connector name.                           |
+| `subgraph`            | string                                                      | false    | DDN project subgraph name.                |
+| `source`              | string                                                      | true     | Connector Hub ID.                         |
+| `context`             | string                                                      | true     | Path to the context directory.            |
+| `envFile`             | string                                                      | false    | Path to the shared .env file.             |
+| `envMapping`          | [EnvMapping](#connector-envmapping)                         | false    | Environment Variable mapping config.      |
+| `regionConfiguration` | [[RegionConfigurationV2](#connector-regionconfigurationv2)] | false    | Connector deployment Region configuration |
 
-#### RegionConfiguration {#connector-regionconfiguration}
+#### RegionConfigurationV2 {#connector-regionconfigurationv2}
 
-Connector deployment Region Configuration.
+Connector deployment Region Configuration V2.
 
-| Key       | Value                    | Required | Description                        |
-| --------- | ------------------------ | -------- | ---------------------------------- |
-| `region`  | string                   | true     | Region to deploy the connector to. |
-| `mode`    | `ReadOnly` / `ReadWrite` | true     | Connector deployment mode.         |
-| `envFile` | string                   | false    | Path to the regional .env file.    |
+| Key          | Value                               | Required | Description                          |
+| ------------ | ----------------------------------- | -------- | ------------------------------------ |
+| `region`     | string                              | true     | Region to deploy the connector to.   |
+| `mode`       | `ReadOnly` / `ReadWrite`            | true     | Connector deployment mode.           |
+| `envMapping` | [EnvMapping](#connector-envmapping) | false    | Environment Variable mapping config. |
+
+#### EnvMapping {#connector-envmapping}
+
+Environment Variables mapping config.
+
+| Key           | Value                             | Required | Description |
+| ------------- | --------------------------------- | -------- | ----------- |
+| `<customKey>` | [EnvSource](#connector-envsource) | false    |             |
+
+#### EnvSource {#connector-envsource}
+
+Environment Variable Source.
+
+| Key       | Value  | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| `fromEnv` | string | true     |             |
