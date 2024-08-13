@@ -270,6 +270,37 @@ API from unauthorized access from anyone without a valid JWT token.
   width="1000px"
 />
 
+### Step 7. Revert changes to AuthConfig (optional)
+
+With the update to your `AuthConfig` made in the above steps you will now need to provide an `Authorization` header with
+JWT tokens to make any queries to your API. You might want to revert your `AuthConfig` to the following to continue
+exploring DDN till you integrate your actual authentication provider.
+
+```yaml title="In globals/auth-config.hml:"
+kind: AuthConfig
+version: v2
+definition:
+  mode:
+    noAuth:
+      role: admin
+      sessionVariables: {}
+
+```
+
+Create a supergraph build using this `AuthConfig`.
+
+```bash
+ddn supergraph build local
+```
+
+:::tip Start your engines!
+
+Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
+
+```bash title="Run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+```
+
 ## What did this do?
 
 By adding `modelPermissions`, we've enabled access to the `Users` model for the `user` role. This means that _only_
@@ -288,22 +319,7 @@ up to allow only the `Users` model to be accessed by a user with the `user` role
 against our secret key, decoded the token, extracted the `x-hasura-*` session variables, and applied the permissions
 we've set up to the request.
 
-## What's next?
-
 In a production environment, you would be creating JWT tokens for your users using your authentication provider and
 passing them in the `Authorization` header of your requests.
 
-With the update to your `AuthConfig` made in the above guide you will now need to provide an `Authorization` header with
-JWT tokens to make any queries to your API. You might want to revert your `AuthConfig` to the following to continue
-exploring DDN till you integrate your actual authentication provider.
-
-```yaml title="In globals/auth-config.hml:"
-kind: AuthConfig
-version: v2
-definition:
-  mode:
-    noAuth:
-      role: admin
-      sessionVariables: {}
-
-```
+## What's next?
