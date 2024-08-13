@@ -37,7 +37,7 @@ other or commands, and also by `Permissions` objects to control access to the da
 <details>
 <summary>View an example of a model and an API query it enables</summary>
 
-The following is an example of a model definition for a `Users` model. This model is backed by a Postgres data:
+The following is an example of a model definition for a `Users` model. This model is backed by a Postgres database:
 
 ```yaml
 ---
@@ -51,57 +51,41 @@ definition:
     collection: users
   filterExpressionType: UsersBoolExp
   orderableFields:
-    - fieldName: createdAt
-      orderByDirections:
-        enableAll: true
-    - fieldName: email
-      orderByDirections:
-        enableAll: true
-    - fieldName: favoriteArtist
-      orderByDirections:
-        enableAll: true
     - fieldName: id
-      orderByDirections:
-        enableAll: true
-    - fieldName: isEmailVerified
-      orderByDirections:
-        enableAll: true
-    - fieldName: lastSeen
       orderByDirections:
         enableAll: true
     - fieldName: name
       orderByDirections:
         enableAll: true
-    - fieldName: password
+    - fieldName: email
       orderByDirections:
         enableAll: true
-    - fieldName: updatedAt
+    - fieldName: createdAt
       orderByDirections:
         enableAll: true
   graphql:
     selectMany:
-      queryRootField: mySubgraph_users
+      queryRootField: users
     selectUniques:
-      - queryRootField: mySubgraph_usersById
+      - queryRootField: usersById
         uniqueIdentifier:
           - id
-    orderByExpressionType: MySubgraph_UsersOrderBy
+    orderByExpressionType: UsersOrderBy
 ```
 
 The above model definition enables the following query in the API:
 
 ```graphql
 query UsersQuery {
-  mySubgraph_users(where: { favoriteArtist: { _eq: "1" } }, order_by: { name: Asc }, limit: 10) {
+  users(
+    where: { name: { _eq: "Bob" } },
+    order_by: { createdAt: Asc },
+    limit: 10
+  ) {
     id
-    createdAt
-    updatedAt
     name
     email
-    isEmailVerified
-    password
-    lastSeen
-    favoriteArtist
+    createdAt
   }
 }
 ```

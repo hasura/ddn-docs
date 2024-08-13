@@ -36,28 +36,13 @@ In this guide we will:
 Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
 values being passed to them. We'll call this `my_python` and use the `hasura/python` connector from the connector hub:
 
-```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-ddn connector init my_python \
-  --hub-connector hasura/python \
-  --configure-port 8085
+```bash title="Run the following command:"
+ddn connector init -i
 ```
 
-In this command, we're passing a few important values.
-
-**Connector name**
-
-We're naming the connector `my_python` in this example, but you can call it whatever makes sense to you.
-
-**Connector: `--hub-connector`**
-
-We're specifying that this connector should be the: `hasura/python`, connector listed in the
-[Connector Hub](https://hasura.io/connectors/python-lambda).
-
-**Port: `configure-port`**
-
-We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
-services which you might have running on your machine. Remember to use a different port for each connector you may have
-running.
+- Select `hasura/python` from the list of connectors.
+- Name it something descriptive. For this example, we'll call it `my_python`.
+- Choose a port (press enter to accept the default recommended by the CLI).
 
 :::tip Best practices
 
@@ -89,8 +74,7 @@ This command created the following file structure in a `my_subgraph/connector/my
 ├── .hasura-connector
 │  ├── ...
 ├── compose.yaml
-├── connector.cloud.yaml
-├── connector.local.yaml
+├── connector.yaml
 # highlight-start
 ├── functions.py
 # highlight-end
@@ -102,21 +86,9 @@ This command created the following file structure in a `my_subgraph/connector/my
 As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our Python functions
 into `hml` commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
 
-```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-ddn connector-link add my_python \
-  --configure-host http://local.hasura.dev:8085 \
-  --target-env-file my_subgraph/.env.my_subgraph.local
+```bash
+ddn connector introspect my_python --add-all-resources
 ```
-
-The `--configure-host` convenience flag added the read and write URL for the connection to the `.env.my_subgraph` file
-for us.
-
-```env title="Example .env.my_subgraph file"
-MY_SUBGRAPH_MY_PYTHON_READ_URL="http://local.hasura.dev:8085"
-MY_SUBGRAPH_MY_PYTHON_WRITE_URL="http://local.hasura.dev:8085"
-```
-
-These keys are already referenced in `my_subgraph/metadata/my_python/my_python.hml`.
 
 ### Step 3. Install pip package dependencies
 
@@ -195,9 +167,7 @@ To add our function, similar to how we added our individual tables earlier, we c
 related Hasura metadata:
 
 ```bash
-ddn connector-link update my_python \
-  --env-file my_subgraph/.env.my_subgraph.local \
-  --add-all-resources
+ddn connector-link update my_python
 ```
 
 ### Step 6. Create a new API build and test
@@ -205,9 +175,7 @@ ddn connector-link update my_python \
 Next, let's create a new build of our supergraph:
 
 ```bash
-ddn supergraph build local \
-  --output-dir engine \
-  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
+ddn supergraph build local
 ```
 
 :::tip Start your engines!
@@ -215,7 +183,7 @@ ddn supergraph build local \
 Want to test your supergraph? Don't forget to start your GraphQL engine using the following command:
 
 ```bash title="Run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
 This starts our Hasura Engine and observability tools. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine
@@ -226,6 +194,12 @@ access to the DDN CLI's authentication token.
 You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
 to access at
 [`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000).
+
+If you want a quick way of opening the console, you can run the following command:
+
+```bash title="Run:"
+ddn console -l
+```
 
 ```graphql title=" You can then test your new command with the following query:"
 query MyQuery {
@@ -256,9 +230,9 @@ As you can see, we're running Python and your functions directly on your own mac
 a Docker container along with your other Hasura services. The `connector init` command created a `Dockerfile` and a
 `compose.yaml` file for you, so all you would need to do would be to:
 
-- Make sure your port in your connector's `.env.local` and the one referenced in the
-  `my_subgraph/connector/my_python/compose.yaml` file `ports:published` and `ports:target` fields match and don't
-  conflict with any other services you may need to run.
+- Make sure your port in your connector's `.env` and the one referenced in the
+  `my_subgraph/connector/my_ts/compose.yaml` file `ports:published` field match and don't conflict with any other
+  services you may need to run.
 - Add the Python Lambda connector compose file to the main compose file in the root of the project if you want them to
   start all together. Eg:
 

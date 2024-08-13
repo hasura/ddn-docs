@@ -21,40 +21,13 @@ connection.
 
 To initialize the GraphQL connector, run the following in your terminal:
 
-```bash
-ddn connector init my_graphql \
-  --hub-connector hasura/graphql \
-  --configure-port 8087 \
-  --add-to-compose-file compose.yaml
+```bash title="Run the following command:"
+ddn connector init -i
 ```
 
-With this `connector init` command, we're passing a few important values.
-
-**Connector name**
-
-We're naming the connector `my_graphql` in this example, but you can call it whatever makes sense to you. For example,
-if this connector is integrating a GraphQL API from a content management service (CMS), it would make sense to name it
-something like `content`.
-
-**Subgraph: `--subgraph`**
-
-We're specifying the subgraph config file that this connector will be added to using the `--subgraph` flag.
-
-**Connector: `--hub-connector`**
-
-We're specifying that this connector should be the: `hasura/graphql`, connector listed in the
-[Connector Hub](https://hasura.io/connectors/graphql).
-
-**Port: `configure-port`**
-
-We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
-services which you might have running on your machine. Remember to use a different port for each connector or service
-you may have running.
-
-**Compose file: `--add-to-compose-file`**
-
-We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors together.
+- Select `hasura/graphql` from the list of connectors.
+- Name it something descriptive. For this example, we'll call it `my_graphql`.
+- Choose a port (press enter to accept the default recommended by the CLI).
 
 :::tip Best practices
 
@@ -76,18 +49,15 @@ string you provide in your subgraph's `.env.my_subgraph` file.
 
 In the `my_subgraph/connector/my_graphql` directory which we specified in the command, the CLI created:
 
-- A `connector.local.yaml` file which contains the local configuration for the connector.
-- A `connector.cloud.yaml` file which contains the cloud configuration for the connector.
-- A `configuration.json` file which contains the connector' configuration.
-- A `configuration.schema.json` file which will contain information about the API's schema.
-- A `.hasura-connector/connector-metadata.yaml` file which contains extra metadata for the connector.
+- A `connector.yaml` file which contains the local configuration for the connector.
+- A `.hasura-connector` folder which contains the connector definition used to build and run it.
+- A `compose.yaml` a file to run the MongoDB data connector locally in Docker.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
-- A `compose.yaml` file which includes the connector's Docker compose file.
-- An `.env.local` placeholder file for environment variables for pertaining to running this connector locally.
-- An `.env.cloud` file for environment variables for pertaining to running this connector in the cloud.
+- A `configuration.json` that we'll update with values like our connection string(s) and any relevant headers.
+- A `configuration.schema.json` that the connector will use generate your API.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
-about the GraphQL API's schema. That's coming up in the next steps.
+about the GraphQL schema. That's coming up in the next steps.
 
 ## Step 2. Configure the roles
 
@@ -145,10 +115,11 @@ Under the `execution` section, add the URL for your GraphQL endpoint.
 
 ## Step 3. Introspect your GraphQL API
 
-This will introspect your GraphQL API and fetch all the required information for your connector.
+This will start the connector using the `compose.yaml` in its directory, and then introspect your GraphQL API and fetch
+all the required information for your connector.
 
 ```bash
-ddn connector introspect --connector my_subgraph/connector/my_graphql/connector.local.yaml
+ddn connector introspect my_graphql
 ```
 
 :::tip Remove placeholder environment variables
@@ -160,11 +131,11 @@ your config. Otherwise, introspection will fail.
 
 ## What did `connector introspect` do?
 
-We specify the connector that we want to introspect with the `--connector` flag and provide it with the location of that
-`connector.local.yaml` configuration file.
-
-The CLI will introspect the introspect the GraphQL schema and create a `schema.graphql` file in the
-`my_subgraph/connector/my_graphql` directory. This schema is a representation of your external GraphQL API.
+The CLI will introspect the GraphQL schema and create a `schema.graphql` file in the `my_subgraph/connector/my_graphql`
+directory. This schema is a representation of your external GraphQL API. Additionally, the CLI generated and updated a
+`DataConnectorLink`. Hasura DDN uses a concept called "connector linking" to take configuration JSON files for a data
+connector and transform them into an `hml` (Hasura Metadata Language) file as a
+[`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx) metadata object which describes our data source.
 
 :::tip o11y via OpenTelemetry
 
@@ -172,27 +143,35 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 :::
 
-## Step 4. Restart the services
+## Step 4. Track your types
 
-Let's restart our docker compose services so that Docker can create a GraphQL connector build for us now that we've
-added and introspected the connector. **If you have existing services running, bring them down using
-`docker compose down` or `CTRL` + `C` if your terminal tab is still actively logging information.**
+Types exposed by your GraphQL API are represented as [Models](/supergraph-modeling/models.mdx) and
+[Commands](/supergraph-modeling/commands.mdx) in your API. The next command we'll run will take each type in your
+GraphQL schema and create an `hml` file for it. These files will then be used by the Hasura engine to generate your API.
 
-```bash title="Run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```bash title="Run the following to create your models and commands:"
+ddn connector-link add-resources my_graphql
 ```
 
-This starts our Hasura Engine, observability tools and the GraphQL connector all together since we added the connector's
-Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag when we initialized the
-connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's authentication token.
+## Step 4. Create a new build and restart the services
 
-We can navigate to the following address, with the port modified, to see the schema of our GraphQL API:
+To reflect the changes in your API, create a new build.
 
-```text
-http://localhost:8087/schema
+```bash title= "Run the following:"
+ddn supergraph build local
 ```
+
+And, if your services are not already running, start them.
+
+```bash title="Run the following:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+```
+
+You should see your models available in your API by opening your console using `ddn console --local` 🎉
 
 ## Next steps
 
-With these files, which represent the GraphQL API, we can now use it to
-[generate Hasura metadata](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).
+With our data source connected and all of our models tracked, we can move on to
+[add custom authorization rules](/getting-started/build/09-add-permissions.mdx) using permissions,
+[incorporate custom business logic](/getting-started/build/06-add-business-logic.mdx), or
+[create relationships](/getting-started/build/07-create-a-relationship.mdx) across data sources!
