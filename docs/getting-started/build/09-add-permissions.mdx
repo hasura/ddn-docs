@@ -1,6 +1,6 @@
 ---
 sidebar_position: 10
-sidebar_label: Add permissions
+sidebar_label: Add authorization
 description: "Learn how to get started with Hasura DDN and your GraphQL API."
 keywords:
   - hasura ddn
@@ -12,14 +12,14 @@ keywords:
 
 import Thumbnail from "@site/src/components/Thumbnail";
 
-# Add Permissions
+# Add Authorization
 
 ## What's about to happen?
 
 If you've already created and tested your supergraph, you'll have seen that queries are executed by default using the
-`admin` role. However, you can easily add authorization rules — what we term permissions — by simply using the same
-declarative metadata approach you can use for relationships and versioning. This allows you to control what data can be
-accessed and what fields can be returned by your API based on the user role, or any other value in session variables.
+`admin` role. However, you can easily add authorization rules — what we term permissions — by declaring them in metadata.
+This allows you to control what data can be accessed and what fields can be returned by your API based on the user role,
+or any other value in session variables.
 
 In the steps below, we'll add
 [`modelPermissions`](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) to filter the data that can
@@ -52,17 +52,23 @@ any `hml` file.
 
 :::
 
-### Step 1. Get a User ID to test your permissions
+[//]: # ()
+[//]: # (### Step 1. Get a User ID to test your permissions)
 
-We'll be creating a set of permissions in our metadata which effectively says: _"Only allow users to access certain
-fields of their own data"._
+[//]: # ()
+[//]: # (We'll be creating a set of permissions in our metadata which effectively says: _"Only allow users to access certain)
 
-To test this, if you want to follow along in your own project, we'll first need to know the `id` of a user in your
-own data source so the permission can filter results for them. You can find this by running a query in the console
-for a user ID. Copy it. We'll use this value in the JWT we're going to create.
+[//]: # (fields of their own data"._)
+
+[//]: # ()
+[//]: # (To test this, if you want to follow along in your own project, we'll first need to know the `id` of a user in your)
+
+[//]: # (own data source so the permission can filter results for them. You can find this by running a query in the console)
+
+[//]: # (for a user ID. Copy it. We'll use this value in the JWT we're going to create.)
 
 
-### Step 2. Create a modelPermission
+### Step 1. Create a modelPermission
 
 By default, a role of `admin` exists for your API and can access all models. To create a new role, such as `user`,
 simply add the role to the list of `permissions` for a model and set up your access control rules. In the example below,
@@ -97,7 +103,7 @@ Remember, models are under the `metadata` subdirectory under the subgraph direct
 
 :::
 
-### Step 3. Create a typePermission
+### Step 2. Create a typePermission
 
 The `admin` role also has access to all fields for each model. However, adding a new role and limiting what columns can
 be returned from your data source is just as simple. For example, let's restrict what a `user` can see by omitting
@@ -134,20 +140,19 @@ definition:
     #highlight-end
 ```
 
-### Step 4. Create a JWT token
+### Step 3. Add sample JWT authentication
 
 In a production environment, you would be creating JWT tokens using your authentication provider or custom
-business logic solution. We're going to use the `jwt-cli` to encode and generate a new token with the different claims
-to run a test of our new permissions.
+business logic solution. In this guide, we're going to use the `jwt-cli` to encode and generate a new token with the
+different claims to run a test of our new permissions.
 
-Install the [`jwt-cli`](https://github.com/mike-engel/jwt-cli), which allows you to generate tokens from the command
-line. You can follow their list of installation instructions found
-[here](https://github.com/mike-engel/jwt-cli?tab=readme-ov-file#installation).
-
-
-### Step 5. Generate a random string
+#### Step 3.1. Generate a JWT secret key
 
 Generate a random string that we'll use as the JWT secret key:
+
+```bash title="In your teminal, run the following command"
+openssl rand -hex 16
+```
 
 Copy the value returned by the terminal.
 
@@ -159,7 +164,7 @@ string must be at least 32 characters.
 :::
 
 
-### Step 6. Set up your AuthConfig object
+#### Step 3.2. Set up your AuthConfig object
 
 Set up an `AuthConfig` object in your project which uses this secret key.
 
@@ -184,7 +189,7 @@ definition:
         name: Auth-Token
 ```
 
-### Step 7. Create a new supergraph build
+#### Step 3.3. Create a new supergraph build
 
 Create a supergraph build using this `AuthConfig`.
 
@@ -205,7 +210,9 @@ don't forget to start it as well.**
 
 :::
 
-### Step 8. Generate a JWT
+### Step 4. Generate JWT token
+
+TODO: generate using jwt.io
 
 For this test we'll use `jwt-cli` to encode and generate a new token with our claims.
 
@@ -238,7 +245,7 @@ For more information about the claims Hasura expects, check out [this page](/aut
 Note that in our `AuthConfig` object, we've set the token location to be in the header `Auth-Token`. This means that
 when we test our permissions, we'll need to pass the JWT token value in that header in our request.
 
-### Step 9: Test your permissions with a custom JWT
+### Step 5: Test your permissions with a custom JWT
 
 In the Hasura console, add the JWT generated by the console as the value of a new header called `Auth-Token` on the
 `GraphiQL` tab.
@@ -257,7 +264,7 @@ query PermissionTest {
 }
 ```
 
-### Step 10. Check the results
+### Step 6. Check the results
 
 If you've followed the steps correctly, you should see only the email of the user you've tested with.
 
