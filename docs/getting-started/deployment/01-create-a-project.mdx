@@ -38,7 +38,7 @@ Eventually, this can be used to serve your API.
 Let's start by creating the project on Hasura DDN.
 
 ```bash title="From any directory, run:"
-ddn project create
+ddn project init
 ```
 
 <details>
@@ -46,31 +46,56 @@ ddn project create
 
 ```bash title="Example output:"
 4:19PM INF Project "cool-cat-3685" created on Hasura DDN successfully
-+-------------+----------------------------------------------------+
-| Name        |                                      cool-cat-3685 |
-+-------------+----------------------------------------------------+
-| Console URL | https://console.hasura.io/project/causal-worm-3685 |
-+-------------+----------------------------------------------------+
++-----------+---------------+
+| Project   | fast-pug-7230 |
++-----------+---------------+
+| Subgraphs | globals,app   |
++-----------+---------------+
 ```
 
 </details>
 
-### Step 2. Set the project context
+#### What did this do?
 
-As a convenience feature — and to prevent the need to pass the flag with every command — we can set the project context
-using this command with the value returned from the CLI in the previous command.
+The CLI did a lot under the hood:
 
-```bash title="From any project directory, run:"
-ddn context set project <project-name>
+- It provisioned a new project for you on Hasura DDN and then returned the project name and console URL for your
+  project.
+- This command also set context so this local project is mapped to the newly-created Hasura DDN project.
+- The CLI created a new `.env.cloud` file for variables to be used in your hosted project.
+- It created subgraphs from your existing local project for the project on Hasura DDN.
+
+### Step 2. Add your environment variables
+
+For each connector with a connection string, you'll need a key-value pair added in your `.env.cloud` file.
+
+```env title="For example, if we have a MY_SUBGRAPH_MY_PG_CONNECTION_URI variable, we'll need to add the connection string here:"
+MY_SUBGRAPH_MY_PG_CONNECTION_URI="postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
-## What did this do?
+This value can be different from the connection string used in your local `.env` and should be mapped to whatever data
+source you intend to use with your deployed API.
 
-The CLI provisioned a new project for you on Hasura DDN and then returned the project name and console URL for your
-project. You then used the `context set project` command to give the CLI context as to which DDN project this local
-directory is connected.
+### Step 3. Deploy your supergraph
+
+You're ready to deploy your supergraph! The following command will build and deploy your data connectors, update the
+connectors' URLs in your `.env.cloud` file, and — finally — create a new build of your supergraph and deploy it 🎉
+
+```bash title="Run:"
+ddn supergraph build create
+```
 
 ## Next steps
 
-Now that your local metadata is mapped to a project on Hasura DDN, you can
-[begin to create](/getting-started/deployment/create-a-subgraph) your subgraphs on Hasura DDN as well.
+After you check out your newly-deployed supergraph, we recommend applying a build so it's served by your project. You
+can do that from the `GraphiQL` tab of the console, or using the CLI.
+
+```bash title="First, get the list of all builds:"
+ddn supergraph build get
+```
+
+After the CLI returns the list of builds, you can apply one using its build version:
+
+```bash title="Pass a build version to apply it:"
+ddn supergraph build apply <supergraph-build-version>
+```

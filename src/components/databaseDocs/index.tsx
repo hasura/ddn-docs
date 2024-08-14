@@ -17,18 +17,6 @@ import ClickHouseConnect from '@site/docs/getting-started/build/03-connect-to-da
 import OpenAPIConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_01-connect-a-source.mdx';
 import GraphQLConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_graphql/_01-connect-a-source.mdx';
 
-import PostgreSqlCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
-import MongoDBCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
-import ClickHouseCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
-import OpenAPICreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_02-create-source-metadata.mdx';
-import GraphQLCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_graphql/_02-create-source-metadata.mdx';
-
-import PostgreSqlAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
-import MongoDBAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
-import ClickHouseAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
-import OpenAPIAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_03-add-source-entities.mdx';
-import GraphQlAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_graphql/_03-add-source-entities.mdx';
-
 import PostgreSqlMutate from '@site/docs/getting-started/build/_databaseDocs/_postgreSQL/_08-mutate-data.mdx';
 import MongoDBMutate from '@site/docs/getting-started/build/_databaseDocs/_mongoDB/_08-mutate-data.mdx';
 import ClickHouseMutate from '@site/docs/getting-started/build/_databaseDocs/_clickHouse/_08-mutate-data.mdx';
@@ -154,36 +142,6 @@ export const DatabaseContentLoader = () => {
             return <OpenAPIConnect />;
           case 'GraphQL':
             return <GraphQLConnect />;
-          default:
-            return <div />;
-        }
-      case 'create-source-metadata':
-        switch (connectorPreference) {
-          case 'PostgreSQL':
-            return <PostgreSqlCreateSourceMetadata />;
-          case 'MongoDB':
-            return <MongoDBCreateSourceMetadata />;
-          case 'ClickHouse':
-            return <ClickHouseCreateSourceMetadata />;
-          case 'OpenAPI':
-            return <OpenAPICreateSourceMetadata />;
-          case 'GraphQL':
-            return <GraphQLCreateSourceMetadata />;
-          default:
-            return <div />;
-        }
-      case 'add-source-entities':
-        switch (connectorPreference) {
-          case 'PostgreSQL':
-            return <PostgreSqlAddSourceEntities />;
-          case 'MongoDB':
-            return <MongoDBAddSourceEntities />;
-          case 'ClickHouse':
-            return <ClickHouseAddSourceEntities />;
-          case 'OpenAPI':
-            return <OpenAPIAddSourceEntities />;
-          case 'GraphQL':
-            return <GraphQlAddSourceEntities />;
           default:
             return <div />;
         }
