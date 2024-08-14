@@ -23,22 +23,23 @@ toc_max_heading_level: 4
 
 ## Introduction
 
-A "Command" in Hasura DDN represents an action that can be performed to returning some type of result (eg:
-`LogUserIn`).  Very loosely, you can think of commands as the verbs or, "actions" of your data domain.
+A "Command" in Hasura DDN represents an action that can be performed to returning some type of result (eg: `LogUserIn`).
+Very loosely, you can think of commands as the verbs or, "actions" of your data domain.
 
 Commands have a fixed definition and are backed by **functions** or **procedures**, allowing you to add top level
 methods to your API, or, add a custom field to an existing [model](./models.mdx).
 
-Commands allow you to execute business logic directly from your GraphQL API and are useful in validating, processing
-or enriching data, calling another API, or, for example, logging a user in.
+Commands allow you to execute business logic directly from your GraphQL API and are useful in validating, processing or
+enriching data, calling another API, or, for example, logging a user in.
 
-Once a command is declared it will then often be referenced by `Relationship` objects in order to compose them with
-each other or models, and also by `Permissions` objects to control access to the command execution.
+Once a command is declared it will then often be referenced by `Relationship` objects in order to compose them with each
+other or models, and also by `Permissions` objects to control access to the command execution.
 
 <details>
 <summary>View an example of a function, the command and an API query it enables</summary>
 
 A function in TypeScript with the [Node.js Lambda connector](https://github.com/hasura/ndc-nodejs-lambda):
+
 ```typescript
 /**
  * @readonly Exposes the function as an NDC function (the function should only query data without making modifications)
@@ -65,7 +66,7 @@ definition:
     dataConnectorCommand:
       function: hello
   graphql:
-    rootFieldName: my_subgraph_hello
+    rootFieldName: hello
     rootFieldKind: Query
 ```
 
@@ -73,7 +74,7 @@ And then queried in the API like so:
 
 ```graphql
 query {
-  my_subgraph_hello(name: "Hasura")
+  hello(name: "Hasura")
 }
 ```
 
@@ -197,11 +198,13 @@ Mapping of a comand or model argument name to the corresponding argument name us
 this object is the argument name used in the command or model and the value is the argument name used in the data
 connector.
 
-| Key           | Value                                                           | Required | Description |
-| ------------- | --------------------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [DataConnectorArgumentName](#command-dataconnectorargumentname) | false    |             |
+| Key           | Value                                                           | Required | Description                                             |
+| ------------- | --------------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| `<customKey>` | [DataConnectorArgumentName](#command-dataconnectorargumentname) | false    | The name of an argument as defined by a data connector. |
 
 #### DataConnectorArgumentName {#command-dataconnectorargumentname}
+
+The name of an argument as defined by a data connector.
 
 **Value:** string
 
@@ -211,10 +214,22 @@ The function/procedure in the data connector that backs this command.
 
 **Must have exactly one of the following fields:**
 
-| Key         | Value  | Required | Description                                  |
-| ----------- | ------ | -------- | -------------------------------------------- |
-| `function`  | string | false    | The name of a function backing the command.  |
-| `procedure` | string | false    | The name of a procedure backing the command. |
+| Key         | Value                                   | Required | Description                                  |
+| ----------- | --------------------------------------- | -------- | -------------------------------------------- |
+| `function`  | [FunctionName](#command-functionname)   | false    | The name of a function backing the command.  |
+| `procedure` | [ProcedureName](#command-procedurename) | false    | The name of a procedure backing the command. |
+
+#### ProcedureName {#command-procedurename}
+
+The name of a procedure backing the command.
+
+**Value:** string
+
+#### FunctionName {#command-functionname}
+
+The name of a function backing the command.
+
+**Value:** string
 
 #### DataConnectorName {#command-dataconnectorname}
 
@@ -226,13 +241,15 @@ The name of a data connector.
 
 The definition of an argument for a field, command, or model.
 
-| Key           | Value                                   | Required | Description |
-| ------------- | --------------------------------------- | -------- | ----------- |
-| `name`        | [ArgumentName](#command-argumentname)   | true     |             |
-| `type`        | [TypeReference](#command-typereference) | true     |             |
-| `description` | string / null                           | false    |             |
+| Key           | Value                                   | Required | Description              |
+| ------------- | --------------------------------------- | -------- | ------------------------ |
+| `name`        | [ArgumentName](#command-argumentname)   | true     | The name of an argument. |
+| `type`        | [TypeReference](#command-typereference) | true     |                          |
+| `description` | string / null                           | false    |                          |
 
 #### ArgumentName {#command-argumentname}
+
+The name of an argument.
 
 **Value:** string
 
