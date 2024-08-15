@@ -1,5 +1,5 @@
 ---
-sidebar_position: 10
+sidebar_position: 6
 sidebar_label: Add authorization
 description: "Learn how to get started with Hasura DDN and your GraphQL API."
 keywords:
@@ -276,9 +276,23 @@ API from unauthorized access from anyone without a valid JWT token.
 ### Step 7. Revert changes to authentication (optional)
 
 With the update to your `AuthConfig` made in the above steps you will now need to provide an `Authorization` header with
-JWT tokens to make any queries to your API. You might want to revert your `AuthConfig` to the following to make all API
-requests to be made with the `admin` role as earlier to continue exploring DDN till you integrate your actual
-authentication provider.
+JWT tokens to make any queries to your API.
+
+To make requests with an `admin` role you will need to pass a JWT token with the following claims:
+
+```json
+{
+  "exp": 1739905122,
+  "iat": 1708369122,
+  "https://hasura.io/jwt/claims":{
+    "x-hasura-default-role": "admin",
+    "x-hasura-allowed-roles":["admin"]
+  }
+}
+```
+
+Instead, you can choose to revert your `AuthConfig` to the following to make all API requests to be made with the
+`admin` role without need for any authentication.
 
 ```yaml title="In globals/auth-config.hml:"
 kind: AuthConfig

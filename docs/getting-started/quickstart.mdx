@@ -55,16 +55,16 @@ code={`ddn supergraph init .`}
 The `ddn supergraph init` command initializes a supergraph — which is a composite API — by setting up all necessary
 files and directories for development.
 
-When you execute this command, the CLI creates a Docker Compose file to run the DDN engine locally and other configuration
-files describing your supergraph. Additionally, the CLI creates two [subgraphs](/project-configuration/subgraphs.mdx),
-`globals` and `app`, to get you started with building your API. This setup allows you to start and manage your supergraph
-services locally with Docker.
+When you execute this command, the CLI creates a Docker Compose file and a .env file to run the Hasura engine locally
+and other configuration files describing your supergraph. Additionally, the CLI creates two
+[subgraphs](/project-configuration/subgraphs.mdx), `globals` and `app`, to get you started with building your API.
+This setup allows you to start and manage your supergraph services locally with Docker.
 
 </Step>
 
 <Step
 language="bash"
-code={`ddn connector init -i`}
+code={`ddn connector init my_connector -i`}
 >
 
 ## Connect to data
@@ -72,13 +72,15 @@ code={`ddn connector init -i`}
 The `ddn connector init` command adds a new native data connector to your supergraph project.
 
 [Data connectors](/connectors/overview.mdx) allow you to connect to a specific type of data source (such as PostgreSQL,
-MongoDB, MySQL, ClickHouse, etc.). When you run this command with the interactive flag (`-i`), you'll be prompted to
-select a data connector from a dropdown menu. You'll then need to provide a name for the connector, choose a free port
-for it to use, and — if applicable — enter the connection details for your data source. Additionally, the CLI will add a
+MongoDB, MySQL, ClickHouse, etc.). We're also passing the name `my_connector` for the connector which is referenced in
+subsequent commands. When you run this command with the interactive flag (`-i`), you'll be prompted to select a
+data connector and enter the connection details for your data source. The CLI will add a
 [DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) metadata object to link your connector to the
 supergraph.
 
-Don't have a data source at hand? You can choose our `hasura/postgres` connector which by default connects to our sample
+**Don't have a data source at hand?**
+
+You can choose our `hasura/postgres` connector which by default connects to our sample
 Postgres database for you to explore.
 
 </Step>
@@ -146,7 +148,8 @@ and try it out!
 
 **Congratulations! At this point, you've created your very first, fully-functioning supergraph 🎉**
 
-Next, lets deploy your supergraph to Hasura DDN.
+Next, lets deploy your supergraph to Hasura DDN. Note that your data source will need to accessible from the internet to
+be able to connect to it from Hasura DDN.
 
 </Step>
 
@@ -155,13 +158,14 @@ language="bash"
 code={`ddn project init`}
 >
 
-## Create a Hasura Cloud project
+## Create a Hasura DDN project
 
 The `ddn project init` command will provision a new project on Hasura DDN to deploy your supergraph.
 
-The CLI will also create a `.env.cloud` file that contains any environment variables necessary to run your supergraph,
-such as the connection string to a data source. It will also set the project's name in your local context so you can run
-simplified commands. Finally, the CLI will generate your `globals` and `app` subgraphs on your Hasura DDN project.
+The CLI will also create a `.env.cloud` file based on your `.env` file that contains any environment variables necessary
+to run your supergraph, such as the connection string to a data source. It will also set the project's name in your local
+context so you can run simplified commands. Finally, the CLI will generate your `globals` and `app` subgraphs on your
+Hasura DDN project.
 
 </Step>
 
@@ -176,9 +180,9 @@ Running `ddn supergraph build create` will build your data connector and the sup
 Hasura DDN.
 
 This command builds each data connector associated with the project, updates any environment variables to match the
-connectors' URLs, and creates a new immutable build of your supergraph. You can access this build in the project's
-console on Hasura DDN. And, when ready, you can [apply the build](/cli/commands/ddn_supergraph_build_apply.mdx) so it's
-served by your project.
+connectors' URLs, and creates a new immutable build of your supergraph. You can explore this build on the
+[DDN console](https://console.hasura.io/). And, when ready, you can
+[apply the build](/cli/commands/ddn_supergraph_build_apply.mdx) so it's served by your project's API endpoint.
 
 **That's it! you've created your very first, fully-functioning supergraph and deployed it to Hasura DDN 🎉**
 
@@ -203,7 +207,13 @@ the ability to add relationships and permissions for each function. Check it out
 You can quickly and easily create access-control rules for any entity in your supergraph using
 [permissions](/supergraph-modeling/permissions.mdx). Learn how to add ModelPermissions to control row-level access, and
 TypePermissions to control which columns are exposed to specific user roles. You can check both out in
-[this guide](/getting-started/build/09-add-permissions.mdx).
+[this guide](/getting-started/build/05-add-permissions.mdx).
+
+### Iterate on your API
+
+In your day-to-day development cycle, you will be making changes to your data source's schema while developing new
+features. When this happens, you'll need to update your Hasura metadata to bring those changes into your API. Check out
+how to iterate on your API [here](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).
 
 ### Create relationships across sources
 
