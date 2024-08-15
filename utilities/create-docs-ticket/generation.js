@@ -21,6 +21,7 @@ const createTicket = async ({ title, url }) => {
     stateId: process.env.LINEAR_TODO_COLUMN_ID,
     assigneeId: reviewer.linear_id,
     cycleId: await getCurrentCycle(),
+    url: url,
   });
 };
 
