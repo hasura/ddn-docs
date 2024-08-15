@@ -1,6 +1,6 @@
 import Thumbnail from "@site/src/components/Thumbnail";
 
-We provide two main ways to mutate PostgreSQL data - Via auto-generated mutations, and via the TypeScript connector.
+We provide two main ways to mutate PostgreSQL data - Via auto-generated PostgreSQL mutations, and via the TypeScript connector.
 The auto-generated mutations are more convenient, while the TypeScript connector is more flexible. Let's explore what
 each option has to offer.
 
@@ -11,8 +11,6 @@ each option has to offer.
 The PostgreSQL connector provides auto-generated [point mutations](https://hasura.io/docs/3.0/connectors/postgresql/#point-mutations) -
 these are insert, delete and update mutations affecting a single row using uniqueness constraints.
 You can follow these steps to enable this feature, generate GraphQL mutations models, and define permissions for them.
-
-<Thumbnail src="/img/get-started/ERD/mutate-data.png" alt="Mutate data using your API" width="1000px" />
 
 :::tip Required
 
@@ -27,22 +25,22 @@ You can follow these steps to enable this feature, generate GraphQL mutations mo
 
 #### Step 1. Enable auto-generated mutations
 
-These auto-generated mutations are disabled by default by the PostgreSQL connector. In order to enable them,
-open the ndc-postgres configuration.json found in the connector's directory, and edit the field `mutationsVersion`
+These auto-generated mutations feature is disabled by default by the PostgreSQL connector. In order to enable it,
+open the ndc-postgres `configuration.json` found in the connector's directory, and edit the field `mutationsVersion`
 to `"v2"`. This will tell the connector to generate mutations based on the configuration, for which we can create
 models.
 
 This can be done with the following sed script:
 
-```sh
+```bash title="Run the following command, updating the referenced paths to match your directory structure:"
 sed -i 's/"mutationsVersion" = null/"mutationsVersion" = "v2"/' app/connector/my_pg/configuration.json
 ```
 
 #### Step 2. Introspect the connector and add resources
 
-Next, we will introspect the connector and import all of the newly available mutations.
+Next, we will introspect the connector and import all of the newly available mutation commands.
 
-```sh
+```bash title="Run:"
 ddn connector introspect my_pg --add-all-resources
 ```
 
@@ -62,7 +60,7 @@ This will create `.hml` files for each mutation model, such as:
 #### Step 3. Set command permissions via argument presets
 
 Using [argument presets](/supergraph-modeling/permissions.mdx#boolean-expressions) we can specify a boolean expression
-as a pre-set argument in place of the permission checks for each command.
+as a preset argument in place of the permission checks for each command.
 
 Each command requires entries for the following arguments:
 
@@ -101,12 +99,10 @@ definition:
 
 #### Step 4. Build and run
 
-After editing the `.hml` files of your models, build the supergraph:
+After editing the `.hml` files of your models, create a new build of our supergraph:
 
-```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-ddn supergraph build local \
-  --output-dir engine \
-  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
+```bash title="Run:"
+ddn supergraph build local
 ```
 
 :::tip Start your engines!
@@ -114,7 +110,7 @@ ddn supergraph build local \
 Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
 
 ```bash title="Run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
 **If you haven't [included your connector(s)](/getting-started/build/01-init-supergraph.mdx) in your `compose.yaml`,
@@ -122,7 +118,13 @@ don't forget to start it as well.**
 
 :::
 
-Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
+Then, open your development console.
+
+```bash title="Run:"
+ddn console --local
+```
+
+Finally, you should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
 
 ## Via the TypeScript connector
 
