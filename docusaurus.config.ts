@@ -144,7 +144,7 @@ const config: Config = {
           dropdownActiveClassDisabled: true,
           dropdownItemsAfter: [
             {
-              href: 'https://hasura.io/docs/',
+              href: 'https://hasura.io/docs/2.0/index/',
               label: 'v2.x',
             },
             {
