@@ -1,6 +1,6 @@
 ---
 title: Region Routing
-sidebar_position: 3
+sidebar_position: 4
 description:
   "Understand how to set up region routing in Hasura DDN to achieve efficient data fetching and lower latency.
   Benefit from optimal database performance and global data access with Hasura."
@@ -19,28 +19,30 @@ seoFrontMatterUpdated: true
 
 # Region Routing
 
+## Introduction
+
 With region routing, you can force the deployment of your data connector to a region you specify.
 
 ## Configuration
 
-If you don't have a project set up, please follow [this guide](/getting-started/overview.mdx). Once you have a
-working project, you can modify the `Connector` object as per the highlighted values in the example below to enable
+You can modify the `Connector` object as per the highlighted values in the example below to enable
 fetching data from a specific region.
 
 ```yaml title="For example, in my_subgraph/connector/my_connector/connector.yaml:"
 kind: Connector
-version: v1
+version: v2
 definition:
   name: my_connector
   subgraph: my_subgraph
   source: hasura/connector_name:<version>
   context: .
-  envFile: .env.cloud
   #highlight-start
   regionConfiguration:
   - region: <region from the list below>
     mode: ReadWrite
-    envFile: # CONNECTION_URI will point to the read write replica
+    envMapping:
+        <CONNECTOR_ENV_VAR>:
+            fromEnv: <CONNECTOR_ENV_VAR>
   #highlight-end
 ```
 
@@ -62,24 +64,29 @@ the supported regions.
 
 ```yaml title="For example, in my_subgraph/connector/my_connector/connector.yaml:"
 kind: Connector
-version: v1
+version: v2
 definition:
   name: my_connector
   subgraph: my_subgraph
   source: hasura/connector_name:<version>
   context: .
-  envFile: .env.cloud
   #highlight-start
   regionConfiguration:
-  - region: <region from the list below>
-    mode: ReadWrite
-    envFile: # CONNECTION_URI will point to the read write replica
-  - region: <region from the list below>
-    mode: ReadOnly
-    envFile: # CONNECTION_URI will point to the read only replica
-  - region: <region from the list below>
-    mode: ReadOnly
-    envFile: # CONNECTION_URI will point to the read only replica
+    - region: <region1: region from the list below>
+      mode: ReadWrite
+      envMapping:
+          <CONNECTOR_ENV_VAR>:
+              fromEnv: <CONNECTOR_ENV_VAR_REGION_1> # e.g. DB read write replica URL
+    - region: <region2: region from the list below>
+      mode: ReadOnly
+      envMapping:
+          <CONNECTOR_ENV_VAR>:
+              fromEnv: <CONNECTOR_ENV_VAR_REGION_2> # e.g. DB read only replica URL in region2
+    - region: <region3: region from the list below>
+      mode: ReadOnly
+      envMapping:
+          <CONNECTOR_ENV_VAR>:
+              fromEnv: <CONNECTOR_ENV_VAR_REGION_3> # e.g. DB read only replica URL in region3
   #highlight-end
 ```
 
