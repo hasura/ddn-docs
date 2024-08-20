@@ -33,7 +33,7 @@ You can change these in the Docker compose file in case you have other services 
 
 Copy the following to a new file, say `compose.postgres-adminer.yaml`:
 
-```dockerfile
+```dockerfile title="compose.postgres-adminer.yaml"
 version: "3.9"
 services:
   postgres:
@@ -88,7 +88,7 @@ configs:
 
 Run the Docker Compose file:
 
-```bash
+```bash title="In directory with compose file, run:"
 docker compose -f compose.postgres-adminer.yaml up
 ```
 
@@ -104,17 +104,31 @@ You can now create tables, add data, etc. on the Postgres database and iterate o
 
 ## Next Steps
 
+### Connect the database to your supergraph
+
+You can connect the Postgres database to your supergraph using the [hasura/postgres](connectors/postgresql/index.mdx) data
+connector by following the steps in [this guide](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx?db=PostgreSQL)
+and providing the database connection string as the following:
+
+```bash title="Connection string to connect to local supergraph"
+postgresql://user:password@local.hasura.dev:5432/dev
+```
+
+As you iterate on your database schema you can update your supergraph metadata using the steps in [this guide](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).
+
+:::warning
+
+Note that as this is a locally running database, it cannot be used with supergraph builds on Hasura DDN as the
+cloud-hosted version of your data connector cannot connect to the database. You'll need to use a tool like
+[ngrok](https://ngrok.com/) to provide a tunnel to access your database from the cloud. This will expose the port, most
+likely `5432`, on which the database is running and allow Hasura DDN to connect to it.
+
+:::
+
 ### Connect to the database directly
 
 You can also connect to the database directly using other tools, such as `psql`, using the database connection string:
 
-```bash
+```bash title="To connect using psql, run:"
 psql postgresql://user:password@localhost:5432/dev
 ```
-
-### Connect the database to your supergraph
-
-You can connect the Postgres database to your supergraph by following the steps in [this guide](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx?db=PostgreSQL)
-and providing the database connection string as `postgresql://user:password@local.hasura.dev:5432/dev`.
-
-As you iterate on your database schema you can update your supergraph using the steps in [this guide](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx)
