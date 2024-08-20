@@ -33,7 +33,7 @@ operations involved in these queries.
 By tracking the frequency and context of field queries, you can make informed decisions about API evolution, performance
 optimization, and data governance.
 
-In the `Insights` page on the `Model & Field Analytics` tab , you can view field analytics for either an entire project or a single build.
+In the `Insights` page on the `Analytics` tab , you can view field analytics for either an entire project or a single build.
 
 <Thumbnail src="/img/model-analytics/field-analytics.png" alt="Field Analytics" width="1000px" />
 
@@ -66,25 +66,54 @@ These access modes help understand the operations calling fields across subgraph
 The Access Mode provides a breakdown of the different ways in which fields are accessed within your API. This provides a very unique insight into the kind of access of your fields: `direct queries`, usage `via relationships`, and usage `as arguments`.
 
 ```graphql
-query Cart_Product {
-  app_cartItems(where: { productId: { _eq: "6dfe1074-65b5-11ed-8611-6a8b11ef7372" } }) {
-    quantity
-    cartId
-    product {
-      categoryId
-      name
-    }
-  }
-}
+query ProductHomePage {
+  topTShirtsInUS: products( #1 Select list
+	where: {countryOfOrigin: {_eq: "US"}, category: {name: {_eq: "T-Shirts"}}} # 2 Filtering and 7 Nested Filtering
+	# order_by: {price: Asc} # 3 Sorting
+	order_by: {category: {name: Asc}} # 8 Nested Sorting Same Database
+	offset: 1 # 4 Pagination
+	limit: 5 # 4 Pagination
+  ) {
+	id
+	name
+	price
+	description
+	manufacturedBy: manufacturer {
+  	name # 5 Same Database Join
+	}
+	latestOrders: orders{  # Two level nested join across database
+  	createdAt
+  	userActivity:user{
+    	name  # 6 Three Level Nested Join across database
+  	}
+	}
+	# 9 Nested paginate (top n)
+	topReviews: reviews(
+  	where: {createdAt: {_gt: "2023-10-15"}} # Filtering
+  	order_by: {rating: Desc} # Sorting
+  	limit: 3 # Pagination
+	) {
+  	rating
+  	text
+	}
+  }}
 ```
 
-- **Direct Queries:** Fields accessed directly in the query without nesting. For example, in the query above, `quantity`
-  and `cartId` are accessed directly.
+- **Direct Queries:** Fields accessed directly in the query without nesting. For example, in the query above, `price`
+  and `description` are accessed directly.
 - **Usage via Relationships:** Fields accessed in a query via relationship within a subgraph or across subgraphs. For
-  example, in the query above, `product.name` is accessed via the relationship from source `app_cartItems` and
-  relationship `product`.
+  example, in the query above, `orders.createdAt` is accessed via the relationship from source `products` and
+  relationship `orders`.
 - **Usage as Arguments:** Fields used as a argument to filter data in a query. For example, in the query above,
   `productId` is used as an argument to filter data.
+
+:::info Field accessed as arguments via relatioships
+
+Some fields are accessed as both as arguments and via relationships.
+
+In the query above, `category.name` is accessed as argument via relationship name `category`.
+
+:::
 
 ## Field List
 
