@@ -217,7 +217,9 @@ export const DatabaseContentLoader = () => {
                 >
                   {dataSources[key].image ? (
                     <>
-                      <img src={dataSources[key].image} alt={dataSources[key].name} />
+                      <div className="image-container">
+                        <img src={dataSources[key].image} alt={dataSources[key].name} />
+                      </div>
                       <p>{dataSources[key].name}</p>
                     </>
                   ) : (
@@ -233,7 +235,9 @@ export const DatabaseContentLoader = () => {
               >
                 {dataSources[key].image ? (
                   <>
-                    <img src={dataSources[key].image} alt={dataSources[key].name} />
+                    <div className="image-container">
+                      <img src={dataSources[key].image} alt={dataSources[key].name} />
+                    </div>
                     <p>{dataSources[key].name}</p>
                   </>
                 ) : (
@@ -243,7 +247,9 @@ export const DatabaseContentLoader = () => {
             ) : null
           )}
           <Link to="/connectors/overview#supported-sources" className="data-source">
-            <Icon />
+            <div className="image-container">
+              <Icon />
+            </div>
             <p>Other connectors</p>
           </Link>
         </div>
