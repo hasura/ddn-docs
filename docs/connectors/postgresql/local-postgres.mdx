@@ -1,0 +1,120 @@
+---
+sidebar_position: 5
+sidebar_label: Run Postgres locally
+description:
+  "Guide to run a local Postgres connected with Adminer via Docker Compose"
+keywords:
+  - local
+  - postgres
+  - docker
+  - adminer
+seoFrontMatterUpdated: false
+---
+
+import Thumbnail from '@site/src/components/Thumbnail';
+
+# Run Postgres locally
+
+## Introduction
+
+This guide will help you set up a local Postgres database along with [Adminer](https://www.adminer.org/) to help you
+manage the database using Docker Compose.
+
+## Step 1: Create Docker Compose file
+
+The following Docker Compose file contains a Postgres service along with an Adminer service configured to
+automatically connect to the Postgres database.
+
+By default,
+- Postgres will run on port `5432` and the database connection string will be `postgresql://user:password@localhost:5432/dev`
+- Adminer will run on port `8081` and can be accessed on `http://localhost:8081/`
+
+You can change these in the Docker compose file in case you have other services running on those ports already.
+
+Copy the following to a new file, say `compose.postgres-adminer.yaml`:
+
+```dockerfile
+version: "3.9"
+services:
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    #highlight-start
+    ports:
+      - "5432:5432"  # Run Postgres on port 5432
+    #highlight-end
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dev
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_DRIVER: pgsql # server=mysql, pgsql, sqlite, sqlite2, oracle, mssql, mongo, elastic
+      ADMINER_DEFAULT_DB: dev
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_USERNAME: user
+      ADMINER_DEFAULT_PASSWORD: password
+    #highlight-start
+    ports:
+      - "8081:8080"  # Run Adminer on port 8081
+    #highlight-end
+    depends_on:
+      - postgres
+    configs:
+      - source: adminer-index.php
+        target: /var/www/html/index.php
+
+configs:
+  adminer-index.php:
+    content: |
+      <?php
+        if(!count($$_GET)) {
+          $$_POST['auth'] = [
+            'server' => $$_ENV['ADMINER_DEFAULT_SERVER'],
+            'username' => $$_ENV['ADMINER_DEFAULT_USERNAME'],
+            'password' => $$_ENV['ADMINER_DEFAULT_PASSWORD'],
+            'driver' => $$_ENV['ADMINER_DEFAULT_DRIVER'],
+            'db'    => $$_ENV['ADMINER_DEFAULT_DB'],
+          ];
+        }
+        include './adminer.php';
+      ?>
+```
+
+## Step 2: Start Postgres database and Adminer
+
+Run the Docker Compose file:
+
+```bash
+docker compose -f compose.postgres-adminer.yaml up
+```
+
+## Step 3: Manage your database via Adminer
+
+To access Adminer, head to: http://localhost:8081/
+
+You should see the Adminer console as follows:
+
+<Thumbnail src="/img/databases/local-postgres/adminer.png" alt="Adminer" width="1000px" />
+
+You can now create tables, add data, etc. on the Postgres database and iterate on your database schema.
+
+## Next Steps
+
+### Connect to the database directly
+
+You can also connect to the database directly using other tools, such as `psql`, using the database connection string:
+
+```bash
+psql postgresql://user:password@localhost:5432/dev
+```
+
+### Connect the database to your supergraph
+
+You can connect the Postgres database to your supergraph by following the steps in [this guide](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx?db=PostgreSQL)
+and providing the database connection string as `postgresql://user:password@local.hasura.dev:5432/dev`.
+
+As you iterate on your database schema you can update your supergraph using the steps in [this guide](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx)
