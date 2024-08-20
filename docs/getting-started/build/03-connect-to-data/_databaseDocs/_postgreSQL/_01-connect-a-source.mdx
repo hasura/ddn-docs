@@ -20,55 +20,27 @@ Hasura CLI will then use to create metadata which can then define your API.
 
 To initialize the PostgreSQL connector, run the following in your terminal.
 
-```bash title="From the root of your project, run:"
-ddn connector init my_pg \
-  --subgraph my_subgraph/subgraph.yaml \
-  --hub-connector hasura/postgres \
-  --configure-port 8082 \
-  --add-to-compose-file compose.yaml
+```bash title="Run the following command:"
+ddn connector init -i
 ```
 
-With this `connector init` command, we're passing a few important values.
-
-**Connector name**
-
-We're naming the connector `my_pg` in this example, but you can call it whatever makes sense to you. For example, if
-this connector is integrating a database all about product metadata, it would make sense to name it something like
-`product_metadata_postgres_connector`.
-
-**Subgraph: `--subgraph`**
-
-We're specifying the subgraph config file that this connector will be added to using the `--subgraph` flag.
-
-**Connector: `--hub-connector`**
-
-We're specifying that this connector should be the `hasura/postgres` connector listed in the
-[Connector Hub](https://hasura.io/connectors/postgres).
-
-**Port: `configure-port`**
-
-We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
-services which you might have running on your machine. Remember to use a different port for each connector you may have
-running.
-
-**Compose file: `--add-to-compose-file`**
-
-We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors together.
+- Select `hasura/postgres` from the list of connectors.
+- Name it something descriptive. For this example, we'll call it `my_pg`.
+- Choose a port (press enter to accept the default recommended by the CLI).
+- Enter your connection string (press enter to accept the sample, read-only database).
 
 :::tip Best practices
 
 Importantly, a data connector can only connect to one data source.
 
 The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_pg` directory if it doesn't exist. You can also change this
-directory by passing a `--dir` flag to the CLI.
+this example the CLI will create a `my_subgraph/connector/my_pg` directory if it doesn't exist.
 
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_pg` in this
 example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph.local` file.
+string you provide in the key-value pair for your `.env` file.
 
 :::
 
@@ -76,34 +48,40 @@ string you provide in your subgraph's `.env.my_subgraph.local` file.
 
 In the `my_subgraph/connector/my_pg` directory which we specified in the command, the CLI created:
 
-- A `connector.local.yaml` file which contains the local configuration for the connector.
-- A `connector.cloud.yaml` file which contains the cloud configuration for the connector.
+- A `connector.yaml` file which contains the local configuration for the connector.
 - A `.hasura-connector` folder which contains the connector definition used to build and run it.
 - A `compose.yaml` a file to run the PostgreSQL data connector locally in Docker.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
-- An `.env.local` file for environment variables for pertaining to running this connector locally.
-- An `.env.cloud` file for environment variables for pertaining to running this connector in the cloud.
 - A `configuration.json` file which contains configuration for the data connector itself.
 - A `schema.json` file which is the JSON schema that `configuration.json` follows. This is to enable autocomplete in VS
   Code.
 
-Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
+In the `my_subgraph/metadata` directory, the CLI created:
+
+- A `my_pg.hml` file which contains the [`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx)
+  metadata object which describes how the supergraph can interact with the connector.
+
+Right now, the CLI only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.
 
 ## Step 2. Update the connection URI
 
 The PostgreSQL connector ships with a sample read-only database connection as the default `CONNECTION_URI`.
 
-The CLI provides an `.env.local` file for our connector in the `my_subgraph/connector/my_pg` directory. **If you wish to
-override the default demo connection, you can update the key-value pair of `CONNECTION_URI` with your custom connection
-string to this file.**
+In the root of our project, our `.env` was updated by the CLI to include a new set of values, including the connection
+URI. **If you wish to override the default demo connection, you can update the key-value pair of `CONNECTION_URI` with
+your custom connection string to this file.**
 
-```env title="my_subgraph/connector/my_pg/.env.local"
-OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://local.hasura.dev:4317
-OTEL_SERVICE_NAME=my_subgraph_my_pg
+```env title="The .env in the root of our project:"
+APP_MY_PG_AUTHORIZATION_HEADER="Bearer <sample token>"
 #highlight-start
-CONNECTION_URI=<your-custom-postgres-connection-uri>
+APP_MY_PG_CONNECTION_URI="postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 #highlight-end
+APP_MY_PG_HASURA_SERVICE_TOKEN_SECRET="<sample token>"
+APP_MY_PG_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT="http://local.hasura.dev:4317"
+APP_MY_PG_OTEL_SERVICE_NAME="app_my_pg"
+APP_MY_PG_READ_URL="http://local.hasura.dev:8082"
+APP_MY_PG_WRITE_URL="http://local.hasura.dev:8082"
 ```
 
 You can use a local PostgreSQL database or a cloud-hosted option. If you already have one you can connect to, you can go
@@ -137,20 +115,26 @@ allowlisted `0.0.0.0/0` (for now) so that DDN is able to reach it.
 
 ## Step 3. Introspect your database
 
-With the connector configured, we can now use the CLI to introspect our PostgreSQL database and create a data connector
-specific configuration file. This configuration file, which describes the schema of our PostgreSQL database, will then
-be used in a later step to generate Hasura metadata which describes our API.
+With the connector configured, we can now use the CLI to introspect our PostgreSQL database. This step will create a
+data connector specific configuration file, and generate the necessary Hasura metadata which describes our API by
+creating files for each table in our database. These tables will be tracked as
+[Models](/supergraph-modeling/models.mdx).
 
-```bash title="From the root of your project run:"
-ddn connector introspect --connector my_subgraph/connector/my_pg/connector.local.yaml
+```bash title="Run the following command:"
+ddn connector introspect my_pg
 ```
 
 ## What did `connector introspect` do?
 
 The command introspected your data source to create a JSON configuration file.
 
+In your terminal window, the CLI started your connector using its `compose.yaml` and then fetched the schema of your
+PostgreSQL database.
+
 If you look at the `configuration.json` for your connector, you'll see metadata describing your PostgreSQL schema in a
 format which the connector specifies.
+
+Additionally, the CLI updated the `DataConnectorLink` object with the latest metadata to interact with the connector.
 
 :::tip Initialize a Git repository
 
@@ -159,28 +143,41 @@ your project.
 
 :::
 
-## Step 4. Restart the services
+## Step 4. Track your tables
 
-Let's restart our docker compose services so that Docker can create a PostgreSQL connector build for us now that we've
-added and introspected the connector. **If you have existing services running, bring them down using
-`docker compose down` or `CTRL` + `C` if your terminal tab is still actively logging information.**
+Tables from PostgreSQL are represented as [models](/supergraph-modeling/models.mdx) and
+[commands](/supergraph-modeling/commands.mdx) in your API. The next command we'll run will take each table or view in
+your database and create an `hml` file for it. These files will then be used by the Hasura engine to generate your API.
 
-```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```bash title="Run the following to create your models and commands:"
+ddn connector-link add-resources my_pg
 ```
 
-This starts our Hasura Engine, observability tools and the PostgreSQL connector all together since we added the
-connector's Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag when we
-initialized the connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's
-authentication token.
+If you look in the `metadata` directory for your subgraph, you'll see named files for each resource. These will also
+contain relationships based on foreign keys, allowing you to make nested queries in your GraphQL API.
 
-We can navigate to the following address, with the port modified, to see the schema of our PostgreSQL database:
+## Step 5. Create a new build and restart the services
 
-```text
-http://localhost:8082/schema
+To reflect the changes in your API, create a new build.
+
+```bash title= "Run the following:"
+ddn supergraph build local
 ```
+
+And, if your services are not already running, start them.
+
+```bash title="Run the following:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+```
+
+You should see your models available in your API by opening your console using `ddn console --local` 🎉
 
 ## Next steps
 
-With this JSON configuration, which represents the tables in PostgreSQL, we can now use it to
-[generate Hasura metadata](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).
+With our data source connected and all of our models tracked, we can move on to
+[add custom authorization rules](/getting-started/build/05-add-permissions.mdx) using permissions,
+[incorporate custom business logic](/getting-started/build/06-add-business-logic.mdx), or
+[create relationships](/getting-started/build/07-create-a-relationship.mdx) across data sources!
+
+Additionally, if your curious how to update your API after the underlying data source schema changes, check out the next
+page on [updating data source metadata](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).

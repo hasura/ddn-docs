@@ -25,9 +25,8 @@ GraphQL API.
 
 The TypeScript connector is a regular TypeScript project. We can use any Node.js packages we want.
 
-We'll use the `dotenv` and
-[`@clickhouse/client` packages](https://clickhouse.com/docs/en/integrations/language-clients/javascript) to access our
-ClickHouse credentials and connection string, saved as environment variables, and to connect to our database.
+We'll use the [`@clickhouse/client` package](https://clickhouse.com/docs/en/integrations/language-clients/javascript) to
+access our ClickHouse credentials and connection string, saved as environment variables, and to connect to our database.
 
 ```bash title="From the my_subgraph/connector/my_ts directory, run:"
 npm i dotenv @clickhouse/client
@@ -35,13 +34,43 @@ npm i dotenv @clickhouse/client
 
 ### Step 2. Add the connection URI
 
-We'll add our ClickHouse connection string and credentials as an environment variables to our connector's `.env.local`
-file. This will allow us to access the connection string in our function.
+If you've added a ClickHouse connector, you'll have a set of environment variables available in your project's `.env`
+file. However, we'll need to make them available to our TypeScript connector by doing the following:
 
-```env title="my_subgraph/connectors/my_ts/.env.local"
-CLICKHOUSE_URL=<your-clickhouse-connection-string>
-CLICKHOUSE_USERNAME=<your-username>
-CLICKHOUSE_PASSWORD=<your-passowrd>
+#### Step 2.1 Update the TypeScript connector's `compose.yaml`
+
+```yaml title="Add the reference to the connection URI used in your project's root .env:"
+environment:
+  HASURA_SERVICE_TOKEN_SECRET: $APP_MY_TS_HASURA_SERVICE_TOKEN_SECRET
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: $APP_MY_TS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+  OTEL_SERVICE_NAME: $APP_MY_TS_OTEL_SERVICE_NAME
+  #highlight-start
+  CLICKHOUSE_URL: $APP_MY_CLICKHOUSE_URL
+  CLICKHOUSE_USERNAME: $APP_MY_CLICKHOUSE_USERNAME
+  CLICKHOUSE_PASSWORD: $APP_MY_CLICKHOUSE_PASSWORD
+  #highlight-end
+```
+
+#### Step 2.2 Update the TypeScript connector's `connector.yaml`
+
+```bash title="Add the environment mapping:"
+envMapping:
+    HASURA_CONNECTOR_PORT:
+      fromEnv: APP_MY_TS_HASURA_CONNECTOR_PORT
+    HASURA_SERVICE_TOKEN_SECRET:
+      fromEnv: APP_MY_TS_HASURA_SERVICE_TOKEN_SECRET
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+      fromEnv: APP_MY_TS_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    OTEL_SERVICE_NAME:
+      fromEnv: APP_MY_TS_OTEL_SERVICE_NAME
+    #highlight-start
+    CLICKHOUSE_URL:
+      fromEnv: APP_MY_CLICKHOUSE_URL
+    CLICKHOUSE_USERNAME:
+      fromEnv: APP_MY_CLICKHOUSE_USERNAME
+    CLICKHOUSE_PASSWORD:
+      fromEnv: APP_MY_CLICKHOUSE_PASSWORD
+    #highlight-end
 ```
 
 ### Step 3. Create a function
@@ -55,9 +84,6 @@ We can even add documentation that will be visible in the GraphiQL explorer by t
 
 ```ts title="my_subgraph/connectors/my_ts/functions.ts"
 import { ClickHouseClient, createClient } from "@clickhouse/client";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 /**
  * @param userData An object containing the user's data.
@@ -66,7 +92,7 @@ dotenv.config();
 export async function insertUser(userData: { name: string; email: string }): Promise<string> {
   const client: ClickHouseClient = createClient({
     url: process.env.CLICKHOUSE_URL,
-    username: process.env.CLICKHOUSE_USER,
+    username: process.env.CLICKHOUSE_USERNAME,
     password: process.env.CLICKHOUSE_PASSWORD,
   });
 
@@ -103,38 +129,34 @@ export async function insertUser(userData: { name: string; email: string }): Pro
 }
 ```
 
-### Step 3. Track the function
+### Step 4. Track the function
 
 Just as before, we'll track our function using the CLI by first updating our `DataConnectorLink`.
 
 ```bash title="From any directory in the project, run:"
-ddn connector-link update my_ts \
-  --subgraph my_subgraph/subgraph.yaml \
-  --env-file my_subgraph/.env.my_subgraph.local
+ddn connector-link update my_ts
 ```
 
 And then bringing in the new command.
 
 ```bash title="From any directory in the project, run:"
-ddn command add --connector-link my_ts --name insertUser
+ddn command add my_ts insertUser
 ```
 
-### Step 4. Create a new build and test
+### Step 5. Create a new build and test
 
 Next, let's create a new build of our supergraph.
 
-```bash title="From the root of the project, run:"
-ddn supergraph build local \
-  --output-dir engine \
-  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
+```bash title="Run:"
+ddn supergraph build local
 ```
 
 :::tip Start your engines!
 
 Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
 
-```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```bash title="Run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
 **If you haven't [included your connector(s)](/getting-started/build/01-init-supergraph.mdx) in your `compose.yaml`,
@@ -142,10 +164,17 @@ don't forget to start it as well.**
 
 :::
 
-Finally, should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
+Then, open your development console.
+
+```bash title="Run:"
+ddn console --local
+```
+
+Finally, you should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
 
 ## What did this do?
 
-This function created a mutation that we can use to insert data directly into our database. We utilized raw SQL to
-leverage the native features of ClickHouse directly from our TypeScript function. While the example above is used to
-insert data, you can use the same principles to modify or delete existing data in your database via your GraphQL API.
+This function created a mutation that we can use to insert data directly into our database. We utilized the `clickhouse`
+package to leverage the native features of ClickHouse directly from our TypeScript function. While the example above is
+used to insert data, you can use the same principles to modify or delete existing data in your database via your GraphQL
+API.

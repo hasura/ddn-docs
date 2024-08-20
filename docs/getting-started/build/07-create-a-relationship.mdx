@@ -36,7 +36,7 @@ to the target `model` or `command`.
 - A new or existing [subgraph](/getting-started/build/02-init-subgraph.mdx)
 - Existing models or commands in your supergraph which can be related to an `ObjectType`. For more information on
   creating a model in your supergraph you can see the sections on
-  [adding data source entities to the API](/getting-started/build/03-connect-to-data/03-add-source-entities.mdx) for
+  [adding data source entities to the API](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx) for
   your data source. And for commands you can see the
   [integrating business logic](/getting-started/build/06-add-business-logic.mdx) section.
 
@@ -74,15 +74,21 @@ definition:
           - fieldName:
 ```
 
+:::tip Intellisense autocomplete
+
+The Hasura VS Code extension is powerful. At any point in authoring your object you can press `ctrl + space` to trigger
+Intellisense and see the available options you have.
+
+:::
+
 Now we can fill out these fields. To enable an Orders to Customers relationship:
 
+- We know that when we query this relationship on an order, we want it to be named: "customer". (Hit `tab` to go the next editable placeholder.)
 - We know we want the source of the relationship to be an order. This must be the `Orders` `ObjectType`.
 - We know we want the target to be a customer. This must be the `Customers` `Model`.
-- We know that on the `Orders` `ObjectType` there is a `customerId` field that maps to the id field `customerId` on the
-  actual customer which we want to use to define the relationship.
-- We know that the relationship will be 1-to-1. As in, an order only has one related customer. So this will be an Object
-  not an Array.
-- We know that when we query this relationship on an order, we want it to be named: "customer".
+- We know that the relationship will be 1-to-1. As in, an order only has one related customer. So the `relationshipType` will be an Object not an Array.
+- We know that on the source `Orders` `ObjectType` there is a `customerId` field that maps to the id field `customerId` on the
+  target `Customer` `Model` which we want to use to define the relationship.
 
 So, from this we can fill in this object like the following:
 
@@ -107,33 +113,30 @@ definition:
   description: The customer details for an order
 ```
 
-:::tip Intellisense autocomplete
-
-The Hasura VS Code extension is powerful. At any point in authoring your object you can press `ctrl + space` to trigger
-Intellisense and see the available options you have.
-
-:::
-
 Create a new build to test this.
 
-```bash title="From the root of your project, run:"
-ddn supergraph build local \
-  --output-dir engine \
-  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
+```bash title="Run:"
+ddn supergraph build local
 ```
 
 :::tip Start your engines!
 
 Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
 
-```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```bash title="Run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
 **If you haven't [included your connector(s)](/getting-started/build/01-init-supergraph.mdx) in your `compose.yaml`,
 don't forget to start it as well.**
 
 :::
+
+Then, open your development console.
+
+```bash title="Run:"
+ddn console --local
+```
 
 ## What did this do?
 
