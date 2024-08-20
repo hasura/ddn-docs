@@ -2,7 +2,7 @@
 
 ## Quick Links 🚀
 
- <!-- Links to the relevant place(s) in the CloudFlare pages build. Wait for CF comment update. -->
+ <!-- Links to the relevant place(s) in the CloudFlare Pages build. Wait for CF comment for link. -->
 
 ## 🤖 Assertion Tests
 
