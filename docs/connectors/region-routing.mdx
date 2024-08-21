@@ -21,12 +21,26 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-With region routing, you can force the deployment of your data connector to a region you specify.
+With region routing, you can define the deployment configuration of your data connector for different regions.
 
-## Configuration
+For data connectors that connect to a data source, e.g. [PostgreSQL](/connectors/postgresql/index.mdx), it is recommended
+to deploy your connector in a region closest to the data source to ensure efficient communication between the
+connector and the data source.
 
-You can modify the `Connector` object as per the highlighted values in the example below to enable
-fetching data from a specific region.
+For other data connectors, e.g. [Typescript](/business-logic/typescript.mdx), it is recommended to deploy your connector
+in a region closest to the consumers of the API to ensure efficient communication between the
+connector and the Hasura engine.
+
+If you have a distributed data source, with multi-region routing, you can ensure that data is fetched from the data
+source closest to the user, thus minimizing latency for the request, improving the performance of your application, and
+providing a better user experience.
+
+See the list of supported regions [below](#regions).
+
+## Single region Routing
+
+You can modify the `Connector` object as per the highlighted values in the example below to force the deployment of your
+data connector to a specific region.
 
 ```yaml title="For example, in my_subgraph/connector/my_connector/connector.yaml:"
 kind: Connector
@@ -42,25 +56,22 @@ definition:
       mode: ReadWrite
       envMapping:
           <CONNECTOR_ENV_VAR>:  # e.g. CONNECTION_URI
-              fromEnv: <CONNECTOR_ENV_VAR> # e.g. Env Var set as DB read write replica URL
+              fromEnv: <CONNECTOR_ENV_VAR> # e.g. Env Var set as DB read write URL
   #highlight-end
 ```
 
 ## Multi-Region Routing
 
-With multi-region routing, you can easily ensure that data is fetched from the data source closest to the user, thus
-minimizing latency for the request, improving the performance of your application, and providing a better user
-experience.
+You can modify the `Connector` object as per the highlighted values in the example below to define the deployment
+configuration of your connector across multiple regions.
 
 :::note Currently only supported for PostgreSQL
 
-Multi-region routing is currently supported only for PostgreSQL and PostgreSQL-compatible
-[data sources](https://hasura.io/connectors#connectors-list).
+Multi-region routing is currently supported only for the [PostgreSQL connector](/connectors/postgresql/index.mdx).
+
+Support for other data connectors will be added soon.
 
 :::
-
-To use multi-region routing in Hasura DDN, you only need a supported data source deployed in (or near) more than one of
-the supported regions.
 
 ```yaml title="For example, in my_subgraph/connector/my_connector/connector.yaml:"
 kind: Connector
@@ -76,7 +87,7 @@ definition:
       mode: ReadWrite
       envMapping:
           <CONNECTOR_ENV_VAR>: # e.g. CONNECTION_URI
-              fromEnv: <CONNECTOR_ENV_VAR_REGION_1> # e.g. Env Var set as DB read write replica URL
+              fromEnv: <CONNECTOR_ENV_VAR_REGION_1> # e.g. Env Var set as DB read write replica URL in region1
     - region: <region2: region from the list below>
       mode: ReadOnly
       envMapping:
@@ -90,7 +101,7 @@ definition:
   #highlight-end
 ```
 
-## Supported regions
+## Supported regions {#regions}
 
 Currently, Hasura DDN supports the following regions in GCP for multi-region routing:
 
