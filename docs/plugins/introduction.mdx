@@ -1,0 +1,92 @@
+---
+sidebar_position: 2
+sidebar_label: Introduction
+description:
+  "Explore the Engine Plugins. Understand the architecture of engine plugins and
+  how they can be used to add new functionalities on top of the Hasura DDN"
+keywords:
+  - hasura plugins
+  - plugins
+  - engine plugins
+  - custom execution
+seoFrontMatterUpdated: true
+---
+
+# Introduction
+
+Hasura gives you the power to add HTTP hooks to different execution steps of the
+DDN. This allows you to add new functionalities on top of the Hasura DDN by
+writing custom code that runs at different stages of the execution.
+
+Engine plugins are a way to extend the capabilities of the Hasura DDN by adding
+custom logic to different execution steps. Engine plugins can be used at the following
+execution steps:
+
+- **Pre-Parse**: This is the first step in the execution pipeline. You can use
+  this step to add custom logic before the query is parsed. For example, you can
+  use this step to add an allowlist layer on top of your DDN to restrict access
+  to only specific queries and mutations.
+- **Pre-Response (Upcoming)**: This is the last step in the execution pipeline.
+  You can use this step to add custom logic after the query is executed but
+  before the response is sent back to the client. For example, you can use this
+  step to add some Slack notifications after a mutation is executed.
+
+Engine plugins are HTTP servers that run alongside the Hasura DDN. They can be
+written in any language that can run an HTTP server. Engine plugins are
+configured in the DDN using OpenDD metadata. The DDN sends HTTP requests to the
+engine plugin at the configured execution step. The engine plugin processes the
+request and sends a response back to the DDN. The DDN then continues with the
+execution based on the response from the engine plugin.
+
+## Plugin Configuration
+
+Engine plugins are configured in the DDN using OpenDD metadata. The metadata
+specifies the URL of the engine plugin and the execution step at which the
+plugin should be called. The configuration also can control the request that is
+sent to the engine plugin.
+
+Here is an example of a plugin configuration in OpenDD metadata:
+
+```yaml
+kind: LifecyclePluginHook
+version: v1
+definition:
+name: cloudflare allow list
+url:
+  valueFromEnv: ALLOW_LIST_URL
+pre: parse
+config:
+  request:
+  headers:
+    additional:
+    hasura-m-auth:
+      value: "your-strong-m-auth-key"
+  session: {}
+  rawRequest:
+    query: {}
+    variables: {}
+```
+
+In this example, the plugin is configured to run at the `pre-parse` execution step.
+The plugin is called `cloudflare allow list`. The URL of the plugin is read from
+the `ALLOW_LIST_URL` environment variable. The plugin is configured to add a
+`hasura-m-auth` header to the request with the value `your-strong-m-auth-key`.
+
+Also, the request that is sent to the plugin is configured to have the query and
+variables from the incoming GraphQL request. It is also configured to have the
+session information from the incoming request.
+
+## Pre-Parse Plugin
+
+The `pre-parse` plugin is called before the query is parsed. This is the first
+step in the execution pipeline. You can use this step to add custom logic before
+the query is parsed.
+
+The `pre-parse` plugin can control the execution pipeline by returning a response
+to the DDN. The response can be one of the following:
+
+| Response Type    | HTTP Status Code | Response Body | Description                                                |
+|------------------|------------------|---------------|------------------------------------------------------------|
+| `Continue`       | 204              | -             | Continue with the execution                                |
+| `User Error`     | 400              | Error object  | Stop the execution and return the error to the client      |
+| `Internal Error` | 500              | Error object  | Stop the execution and return internal error to the client |

@@ -8,6 +8,7 @@ import Basics from '@site/static/icons/book-open-01.svg';
 import GettingStarted from '@site/static/icons/home-smile.svg';
 import Auth from '@site/static/icons/shield-tick.svg';
 import Connectors from '@site/static/icons/event-triggers.svg';
+import Plugins from '@site/static/icons/remote-schema.svg';
 import DataDomainModeling from '@site/static/icons/database-01.svg';
 import GraphQLAPI from '@site/static/icons/graphql-logo.svg';
 import CiCd from '@site/static/icons/upload-cloud-02.svg';
@@ -57,6 +58,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'connectors-icon':
       icons = <Connectors />;
+      break;
+    case 'plugins-icon':
+      icons = <Plugins/>;
       break;
     case 'data-domain-modeling-icon':
       icons = <DataDomainModeling />;
