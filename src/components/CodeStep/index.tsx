@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 import './styles.css';
 import CodeBlock from '@theme/CodeBlock';
 import { MDXProvider } from '@mdx-js/react';
@@ -23,25 +24,29 @@ const CodeStep = props => {
   }, [startIndex]);
 
   return (
-    <div className={'step_container'}>
-      <div className={'item'}>
-        <div className={'heading'}>
-          <MDXProvider children={directive} />
+    <BrowserOnly>
+      {() => (
+        <div className={'step_container'}>
+          <div className={'item'}>
+            <div className={'heading'}>
+              <MDXProvider children={directive} />
+            </div>
+            <div className={'description'}>
+              <MDXProvider children={description} />
+            </div>
+          </div>
+          <div className={'item'}>
+            <CodeBlock className={`language-${props.language} main-block`}>{props.code}</CodeBlock>
+            {props.output && (
+              <details>
+                <summary>Output</summary>
+                <CodeBlock className={`language-plaintext`}>{props.output}</CodeBlock>
+              </details>
+            )}
+          </div>
         </div>
-        <div className={'description'}>
-          <MDXProvider children={description} />
-        </div>
-      </div>
-      <div className={'item'}>
-        <CodeBlock className={`language-${props.language} main-block`}>{props.code}</CodeBlock>
-        {props.output && (
-          <details>
-            <summary>Output</summary>
-            <CodeBlock className={`language-plaintext`}>{props.output}</CodeBlock>
-          </details>
-        )}
-      </div>
-    </div>
+      )}
+    </BrowserOnly>
   );
 };
 
