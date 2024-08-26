@@ -68,35 +68,41 @@ The Access Mode provides a breakdown of the different ways in which fields are a
 ```graphql
 query ProductHomePage {
   topTShirtsInUS: products( #1 Select list
-	where: {countryOfOrigin: {_eq: "US"}, category: {name: {_eq: "T-Shirts"}}} # 2 Filtering and 7 Nested Filtering
-	# order_by: {price: Asc} # 3 Sorting
-	order_by: {category: {name: Asc}} # 8 Nested Sorting Same Database
-	offset: 1 # 4 Pagination
-	limit: 5 # 4 Pagination
+    where: {
+      countryOfOrigin: { _eq: "US" }
+      category: { name: { _eq: "T-Shirts" } }
+    } # 2 Filtering and 7 Nested Filtering
+    # order_by: {price: Asc} # 3 Sorting
+    order_by: { category: { name: Asc } } # 8 Nested Sorting Same Database
+    offset: 1 # 4 Pagination
+    limit: 5 # 4 Pagination
   ) {
-	id
-	name
-	price
-	description
-	manufacturedBy: manufacturer {
-  	name # 5 Same Database Join
-	}
-	latestOrders: orders{  # Two level nested join across database
-  	createdAt
-  	userActivity:user{
-    	name  # 6 Three Level Nested Join across database
-  	}
-	}
-	# 9 Nested paginate (top n)
-	topReviews: reviews(
-  	where: {createdAt: {_gt: "2023-10-15"}} # Filtering
-  	order_by: {rating: Desc} # Sorting
-  	limit: 3 # Pagination
-	) {
-  	rating
-  	text
-	}
-  }}
+    id
+    name
+    price
+    description
+    manufacturedBy: manufacturer {
+      name # 5 Same Database Join
+    }
+    latestOrders: orders {
+      # Two level nested join across database
+      createdAt
+      userActivity: user {
+        name # 6 Three Level Nested Join across database
+      }
+    }
+    # 9 Nested paginate (top n)
+    topReviews: reviews(
+      where: { createdAt: { _gt: "2023-10-15" } } # Filtering
+      order_by: { rating: Desc } # Sorting
+      limit: 3 # Pagination
+    ) {
+      rating
+      text
+    }
+  }
+}
+
 ```
 
 - **Direct Queries:** Fields accessed directly in the query without nesting. For example, in the query above, `price`
