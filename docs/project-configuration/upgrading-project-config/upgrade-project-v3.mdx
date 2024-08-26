@@ -30,6 +30,7 @@ directory structure and CLI commands. With this release, local project directory
 
 - The project config version defined in `hasura.yaml` is bumped from `v2` to `v3`.
 - You can now create multiple contexts to easily switch between different deployment scenarios.
+- The CLI now doesn't add the subgraph name as a prefix to metadata objects by default.
 - The `Connector` object is upgraded from `v1` to `v2`.
   - The env variables expected by the connector now need to be explicitly defined in an `envMapping` property.
 - The `Subgraph` object is upgraded from `v1` to `v2`.
@@ -96,17 +97,7 @@ ddn codemod upgrade-project-config-v2-to-v3 --dir <project-dir-path>
 
 This command will guide you through a series of transformations to update your project to the latest format.
 
-The transformations are as follows:
-
-1. Upgrade project context to v2
-
-2. Upgrade Subgraph configs to v2
-
-3. Upgrade Connector configs to v2
-
-4. Secure Connector with a token
-
-5. Add connector mappings in subgraph
+[//]: # (The transformations are as follows:)
 
 
 
@@ -152,9 +143,29 @@ services:
   ...
 ```
 
+As the engine build directory contains your local build assets, it can be ignored from you version control. You can
+choose to do so by adding it to a `.gitignore` file.
 
+### Step 5: Add metadata generator prefix (optional)
 
-### Step 4: Create top level .env files (optional)
+The CLI now doesn't add the subgraph name as a prefix to metadata objects by default. You can keep the earlier behaviour
+by updating the generator config in your Subgraph configs.
+
+```yaml title="For example, app/subgraph.yaml"
+kind: Subgraph
+version: v2
+definition:
+  name: app
+  generator:
+    rootPath: .
+    #highlight-start
+    graphqlRootFieldPrefix: app_
+    graphqlTypeNamePrefix: App_
+    #highlight-end
+  envFile: .env.mysg.local
+```
+
+### Step 6: Create top level .env files (optional)
 
 To simplify management of the environment variables used by the various connectors and subgraphs in your supergraph,
 you could choose to combine all the individual env files into single top level env files, e.g. `.env.local` and
