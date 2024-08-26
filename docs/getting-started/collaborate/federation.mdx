@@ -41,22 +41,22 @@ Let's imagine an example with two teams: The Fulfillment Team and the UX team, a
 Fulfillment Team is responsible for products and orders, whereas the UX handles everything related to users.
 
 | Team | Name        | Responsibilities |
-|------|-------------|------------------|
+| ---- | ----------- | ---------------- |
 | 1    | Fulfillment | Products, Orders |
 | 2    | UX          | Users            |
 
 The Fulfillment team is already using Hasura DDN and has created a supergraph project with their Products and Orders
 [models](/supergraph-modeling/models.mdx) enabled.
 
-When the UX Team joins the project, you'll use the [CLI](/cli/installation.mdx) to create a new subgraph for them,
-named `ux` and [invite developers](/getting-started/collaborate/invite.mdx) from the team to collaborate on this
-subgraph via the console.
+When the UX Team joins the project, you'll use the [CLI](/cli/installation.mdx) to create a new subgraph for them, named
+`ux` and [invite developers](/getting-started/collaborate/invite.mdx) from the team to collaborate on this subgraph via
+the console.
 
-The UX team will start by initializing a new local DDN project with their own new version control repository and set
-the project context to match the existing project set up by the Fulfillment team.
+The UX team will start by initializing a new local DDN project with their own new version control repository and set the
+project context to match the existing project set up by the Fulfillment team.
 
-The UX team will then set up their data connector in their subgraph, track the `Users` model, deploy the connector,
-then create and apply a new subgraph build which will be added to the supergraph.
+The UX team will then set up their data connector in their subgraph, track the `Users` model, deploy the connector, then
+create and apply a new subgraph build which will be added to the supergraph.
 
 The UX team can also add relationships and permissions in their that integrate with the Fulfillment team's existing
 subgraphs too.
@@ -78,16 +78,15 @@ ddn project subgraph create <subgraph-name>
 
 #### Step 2. Invite collaborators
 
-[Follow the steps ](/getting-started/collaborate/invite.mdx#invite-collaborators) to invite subgraph
-collaborators. Take care to select the appropriate role — either **Admin** or **Developer** — for each subgraph
-team member.
+[Follow the steps ](/getting-started/collaborate/invite.mdx#invite-collaborators) to invite subgraph collaborators. Take
+care to select the appropriate role — either **Admin** or **Developer** — for each subgraph team member.
 
 ### Steps for subgraph collaborators
 
 #### Step 1. Accept the invite
 
-[Reference these docs](/getting-started/collaborate/invite.mdx#accept-invite) to accept an
-invitation and explore the existing supergraph.
+[Reference these docs](/getting-started/collaborate/invite.mdx#accept-invite) to accept an invitation and explore the
+existing supergraph.
 
 #### Step 2. Create a new local project
 
@@ -155,7 +154,7 @@ supergraph and data connector:
 HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
-**Note: You'll only see your subgraph available locally. This is because your local supergraph only contains *your*
+**Note: You'll only see your subgraph available locally. This is because your local supergraph only contains _your_
 subgraph. You are free to iterate on it and make changes without causing disruption to other subgraphs or downstream
 consumers. To test your subgraph within the project's supergraph, follow the next steps.**
 
@@ -163,16 +162,35 @@ consumers. To test your subgraph within the project's supergraph, follow the nex
 
 #### Step 6. Deploy the connector
 
-You'll need to [deploy the connector](/getting-started/deployment/deploy-a-connector/) so its available in your cloud project.
+You'll need to [deploy the connector](/getting-started/deployment/deploy-a-connector/) so its available in your cloud
+project.
 
-#### Step 7. Test and apply the subgraph build
+#### Step 7. Validate your metadata
 
-Finally, you'll need to create a build.
+Next, you can validate your metadata by creating a build using the latest applied supergraph metadata.
 
-```bash
-$ ddn subgraph build create --subgraph another_subgraph/subgraph.yaml --env-file another_subgraph/.env.another_subgraph.cloud
+```bash title="Create a new subgraph build:"
+ddn subgraph build create
 ```
-Please note the `Build Version` from the output of this command. We will need it in the next step. 
+
+#### Step 8. Test your subgraph changes
+
+And then test your changes by creating a new supergraph build with your latest subgraph build.
+
+```bash title="Create a supergraph build using your subgraph build:"
+ddn supergraph build create --subgraph-version <subgraph-name:build-id> --base-supergraph-version <applied-supergraph-build-id>
+```
+
+Please note the `Build Version` from the output of this command. We will need it in the next step.
+
+#### Step 9. Deploy your subgraph changes
+
+When you're satisfied with the state of your supergraph after testing the subgraph changes, create a new supergraph
+build.
+
+```bash title="Using the build ID returned from the previous step:"
+ddn supergraph build apply <build-id>
+```
 
 :::info To apply a build
 
