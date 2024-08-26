@@ -4,14 +4,18 @@ exports.writeVersionToFile = void 0;
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+// writeVersionToFile invokes our getLatestVersion function, which calls the API,
+// and writes the result to our json source file.
 const writeVersionToFile = async () => {
     const version = await getLatestVersion();
     const versionData = { tag_name: version || 'v1.0.0' };
     const filePath = path.resolve(__dirname, '../latest-version.json');
     fs.writeFileSync(filePath, JSON.stringify(versionData, null, 2));
-    console.log('Latest version written to', filePath);
+    console.log(`Latest version written to ${filePath}`);
 };
 exports.writeVersionToFile = writeVersionToFile;
+// getLatestVersion makes a call to the GitHub API using a PAT.
+// It returns a string (or null) which is the latest version of the DDN CLI.
 const getLatestVersion = async () => {
     const URL = process.env.V3_CLI_RELEASE_URL;
     const TOKEN = process.env.GH_CLI_VERSION_TOKEN;
@@ -38,4 +42,3 @@ const getLatestVersion = async () => {
         return null;
     }
 };
-(0, exports.writeVersionToFile)();
