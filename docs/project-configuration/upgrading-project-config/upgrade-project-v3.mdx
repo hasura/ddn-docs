@@ -32,18 +32,28 @@ directory structure and CLI commands. With this release, local project directory
 - You can now create multiple contexts to easily switch between different deployment scenarios.
 - The `Connector` object is upgraded from `v1` to `v2`.
   - The env variables expected by the connector now need to be explicitly defined in an `envMapping` property.
-  - the `region-env` flag has now been deprecated.
 - The `Subgraph` object is upgraded from `v1` to `v2`.
   - The env variables required to build the subgraph now need to be explicitly defined in an `envMapping` property.
   - The connectors in the subgraph and their corresponding connector links can now be defined in the subgraph config to
     simplify connector update and supergraph build operations.
   - the `subgraph-env` flag has now been deprecated.
-- The behaviour, arguments and flags of certain CLI commands have a few changes.
-  - supergraph init
-  - connector init
-  - connector introspect
-  - supergraph build local
-  - supergraph build create
+- The behaviour, arguments and flags of certain CLI commands have a few changes. Some major changes are listed below:
+  - `supergraph init`
+    - Takes directory as an argument. `--dir` flag is deprecated.
+    - Also creates a subgraph `app` in the supergraph by default.
+  - `connector init`
+    - Introduces an interactive flag (`-i`) to simplify choosing the connector type and providing any required env
+      variables.
+    - Also creates the corresponding data connector link for the connector by default.
+  - `connector introspect`
+    - Also updates the schema of the corresponding data connector link for the connector by default.
+  - `connector build create`
+    - the `region-env` flag has now been deprecated.
+  - `supergraph build local`
+    - the `subgraph-env` flag has now been deprecated.
+    - now outputs the build artifacts to the `/engine/build` directory without the need for the `--output-dir` flag.
+  - `supergraph build create`
+    - the `subgraph-env` flag has now been deprecated.
 
 We recommend you go through our [new quickstart guide](/getting-started/quickstart.mdx) to check the simplified workflow
 to develop your API with DDN.
@@ -88,15 +98,82 @@ This command will guide you through a series of transformations to update your p
 
 The transformations are as follows:
 
-1.
+1. Upgrade project context to v2
+
+2. Upgrade Subgraph configs to v2
+
+3. Upgrade Connector configs to v2
+
+4. Secure Connector with a token
+
+5. Add connector mappings in subgraph
+
+
 
 ### Step 3: Update engine build dir (optional)
 
-The `ddn supergraph build local` now outputs the build artifacts to the `/engine/build` directory
+As mentioned above, the `ddn supergraph build local` now outputs the build artifacts to the `/engine/build` directory
+without the need for the `--output-dir` flag. To avoid having to provide the flag in the future, you can move your
+build assets to this directory and update the engine compose file to use this directory instead.
+
+#### Step 3.1: Move engine build assets
+
+```bash title="in project root directory, run:"
+mkdir engine/build
+mv engine/*.json engine/build
+```
+
+#### Step 3.2: Update engine compose file
+
+```yaml title="e.g. compose.yaml"
+services:
+  ...
+  engine:
+    ...
+    build:
+      context: engine
+      dockerfile_inline: |-
+        FROM ghcr.io/hasura/v3-engine
+        #highlight-start
+        # update to the following
+        COPY ./build /md/
+        #highlight-end
+    develop:
+      watch:If you have a shared supergraph config file,
+        - action: sync+restart
+          #highlight-start
+          # update to the following
+          path: engine/build
+          #highlight-end
+          target: /md/
+    env_file:
+      - engine/.env.engine
+    ...
+  ...
+```
+
 
 
 ### Step 4: Create top level .env files (optional)
 
+To simplify management of the environment variables used by the various connectors and subgraphs in your supergraph,
+you could choose to combine all the individual env files into single top level env files, e.g. `.env.local` and
+`.env.cloud`. You can then pass the same env files to your connector and subgraph config objects.
+
+If you have a shared supergraph config file for local and cloud, both these env files can then be set into your context
+to allow managing both local and cloud deployments using the same context. ie.
+
+```bash title="In project root with single top level env files:"
+ddn context set localEnvFile .env.local
+ddn context set cloudEnvFile .env.cloud
+````
+
+You can then run supergraph build command for both local and DDN using the same context.
+
+```bash
+ddn supergraph build local  # will use localEnvFile from context, ie. .env.local
+ddn supergraph build create  # will use cloudEnvFile from context, ie. .env.cloud
+```
 
 
 ## Legacy project structure
