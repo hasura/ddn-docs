@@ -14,6 +14,7 @@ keywords:
   - hasura subgraphs
   - hasura project management
 seoFrontMatterUpdated: true
+toc_max_heading_level: 4
 ---
 
 import InstallTheCli from "@site/docs/_install-the-cli.mdx";
@@ -29,35 +30,55 @@ directory structure and CLI commands. With this release, local project directory
 ## What has changed?
 
 - The project config version defined in `hasura.yaml` is bumped from `v2` to `v3`.
-- You can now create multiple contexts to easily switch between different deployment scenarios.
-- The CLI now doesn't add the subgraph name as a prefix to metadata objects by default.
 - The `Connector` object is upgraded from `v1` to `v2`.
-  - The env variables expected by the connector now need to be explicitly defined in an `envMapping` property.
 - The `Subgraph` object is upgraded from `v1` to `v2`.
-  - The env variables required to build the subgraph now need to be explicitly defined in an `envMapping` property.
-  - The connectors in the subgraph and their corresponding connector links can now be defined in the subgraph config to
-    simplify connector update and supergraph build operations.
-  - the `subgraph-env` flag has now been deprecated.
-- The behaviour, arguments and flags of certain CLI commands have a few changes. Some major changes are listed below:
-  - `supergraph init`
-    - Takes directory as an argument. `--dir` flag is deprecated.
-    - Also creates a subgraph `app` in the supergraph by default.
-  - `connector init`
-    - Introduces an interactive flag (`-i`) to simplify choosing the connector type and providing any required env
-      variables.
-    - Also creates the corresponding data connector link for the connector by default.
-  - `connector introspect`
-    - Also updates the schema of the corresponding data connector link for the connector by default.
-  - `connector build create`
-    - the `region-env` flag has now been deprecated.
-  - `supergraph build local`
-    - the `subgraph-env` flag has now been deprecated.
-    - now outputs the build artifacts to the `/engine/build` directory without the need for the `--output-dir` flag.
-  - `supergraph build create`
-    - the `subgraph-env` flag has now been deprecated.
+
+### Named contexts
+
+Named contexts are introduced. You can now create multiple contexts to easily switch between different deployment
+scenarios.
+
+### Default naming convention for GraphQL types/fields
+
+The default naming convention for GraphQL types/fields has changed. The CLI now doesn't add the subgraph name as a
+prefix to the generated GraphQL types and fields by default.
+
+### Subgraph and Connector config env mapping
+
+The environment variables expected by a connector or subgraph now need to be explicitly defined in an `envMapping`
+property in their config files.
+
+The `envMapping` field defines how any provided environment variables are mapped to the environment variables
+expected by the connector / subgraph.
+
+### Simplified workflows using connector mapping
+
+The mapping between connectors in the subgraph and their corresponding connector links can now be defined in the
+subgraph config to simplify connector update and supergraph build operations.
 
 We recommend you go through our [new quickstart guide](/getting-started/quickstart.mdx) to check the simplified workflow
-to develop your API with DDN.
+to develop your API.
+
+### Command behaviour
+
+The behaviour, arguments and flags of certain CLI commands have a few changes. Some major changes are listed below:
+
+- `supergraph init`
+  - Takes directory as an argument. `--dir` flag is deprecated.
+  - Also creates a subgraph `app` in the supergraph by default.
+- `connector init`
+  - Introduces an interactive flag (`-i`) to simplify choosing the connector type and providing any required env
+    variables.
+  - Also creates the corresponding data connector link for the connector by default.
+- `connector introspect`
+  - Also updates the schema of the corresponding data connector link for the connector by default.
+- `connector build create`
+  - the `region-env` flag has now been deprecated.
+- `supergraph build local`
+  - the `subgraph-env` flag has now been deprecated.
+  - now outputs the build artifacts to the `/engine/build` directory without the need for the `--output-dir` flag.
+- `supergraph build create`
+  - the `subgraph-env` flag has now been deprecated.
 
 :::info No changes to existing DDN projects
 
@@ -97,24 +118,47 @@ ddn codemod upgrade-project-config-v2-to-v3 --dir <project-dir-path>
 
 This command will guide you through a series of transformations to update your project to the latest format.
 
-[//]: # (The transformations are as follows:)
+### Step 3: Verify the migration
 
+Create a new local supergraph build using:
 
+```bash
+# set context with local supergraph config e.g. local
+ddn context set-current-context local
+ddn supergraph build local
+```
 
-### Step 3: Update engine build dir (optional)
+Run your local supergraph and verify the generated API is the same as what you had earlier.
+
+Create a new supergraph build on Hasura DDN using:
+
+```bash
+# set context with cloud supergraph config e.g. cloud
+ddn context set-current-context cloud
+ddn supergraph build create
+```
+
+On build completion, the build version, API endpoint, and console URLs will be returned as in the response.
+
+You can now head to your project console using the console URL returned in the previous step and verify the API
+generated with the above build is the same as what you had earlier.
+
+### Step 4: Make optional changes
+
+#### Step 3.1: Update engine build dir
 
 As mentioned above, the `ddn supergraph build local` now outputs the build artifacts to the `/engine/build` directory
 without the need for the `--output-dir` flag. To avoid having to provide the flag in the future, you can move your
 build assets to this directory and update the engine compose file to use this directory instead.
 
-#### Step 3.1: Move engine build assets
+##### Step 3.1.1: Move engine build assets
 
 ```bash title="in project root directory, run:"
 mkdir engine/build
 mv engine/*.json engine/build
 ```
 
-#### Step 3.2: Update engine compose file
+##### Step 3.1.2: Update engine compose file
 
 ```yaml title="e.g. compose.yaml"
 services:
@@ -146,26 +190,29 @@ services:
 As the engine build directory contains your local build assets, it can be ignored from you version control. You can
 choose to do so by adding it to a `.gitignore` file.
 
-### Step 5: Add metadata generator prefix (optional)
+#### Step 3.2: Add metadata generator prefix
 
-The CLI now doesn't add the subgraph name as a prefix to metadata objects by default. You can keep the earlier behaviour
-by updating the generator config in your Subgraph configs.
+As the CLI now doesn't add the subgraph name as a prefix to the generated GraphQL types and fields by default. You can
+keep the earlier behaviour by updating the generator config in your Subgraph configs.
 
 ```yaml title="For example, app/subgraph.yaml"
 kind: Subgraph
 version: v2
 definition:
+  #highlight-start
   name: app
+  #highlight-end
   generator:
     rootPath: .
     #highlight-start
     graphqlRootFieldPrefix: app_
     graphqlTypeNamePrefix: App_
     #highlight-end
-  envFile: .env.mysg.local
+  envFile: .env.app.local
+  ...
 ```
 
-### Step 6: Create top level .env files (optional)
+#### Step 3.3: Create top level .env files
 
 To simplify management of the environment variables used by the various connectors and subgraphs in your supergraph,
 you could choose to combine all the individual env files into single top level env files, e.g. `.env.local` and
