@@ -15,4 +15,57 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## Introduction
 
-Boilerplate...
+Currently, there is no in-place upgrade path from Hasura v2 to Hasura DDN. You can follow the
+[Strangler Fig pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig) to migrate your
+existing Hasura v2 applications to Hasura DDN. This pattern involves creating a new Hasura DDN project and migrating
+your existing Hasura v2 application to it incrementally. Then, you can decommission your Hasura v2 project once the
+migration is complete.
+
+**We'd like to remind you as well that Hasura v2 is still supported and will be maintained according to our
+[LTS policy](https://hasura.io/docs/2.0/policies/versioning/).**
+
+:::info Help is available
+
+Please know that our field engineering team is here to help you with the migration process. If you need assistance or
+have any questions, please reach out to us [here](https://hasura.io/contact-us).
+
+:::
+
+## Migration
+
+When upgrading from Hasura v2 to Hasura DDN, you have two primary approaches to ensure a smooth transition while
+maintaining service continuity for your existing API clients. Depending on your needs, you can either introduce the DDN
+API as a completely separate endpoint or gradually phase out the v2 API by marking fields as deprecated. Below are the
+details of each approach:
+
+### Parallel deployment
+
+**Introduce DDN as a new API alongside your existing v2 API.**
+
+- Create a new Hasura DDN project and configure it to provide the same or extended functionalities as your existing
+  Hasura v2 setup.
+- Deploy the DDN project and make it available via its own endpoint.
+- Update your documentation and notify your team or clients about the new API endpoint. Allow them to transition to the
+  DDN API at their own pace.
+- Continue maintaining the Hasura v2 API alongside DDN, ensuring that any new features or updates are made to the DDN
+  project.
+- Once all consumers have transitioned to the DDN API, you can decommission the Hasura v2 project.
+
+### Phased deprecation
+
+**Gradually transition to DDN using GraphQL deprecated flags.**
+
+- Start by creating a new Hasura DDN project that mirrors your existing Hasura v2 schema and functionalities.
+- Gradually introduce new features or improvements through the DDN API, marking equivalent fields, types, or queries in
+  the v2 API as deprecated using GraphQL's deprecation mechanism.
+- Communicate these deprecations clearly to your API consumers, providing them with documentation and timelines for when
+  the deprecated features will be removed.
+- Monitor the usage of deprecated features and work closely with API consumers to ensure a smooth transition to the DDN
+  API.
+- As more consumers adopt the DDN API, reduce the reliance on the Hasura v2 API until it can be safely decommissioned.
+
+## Learn more
+
+With either of these strategies, you'll need a clear understanding of features and functionalities that need to be
+migrated. Check out [this page](/upgrade/feature-availability/index.mdx) for a detailed comparison of the features
+available between Hasura v2 and Hasura DDN, and a guide on how to migrate them.
