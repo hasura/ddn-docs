@@ -1,3 +1,5 @@
+import Thumbnail from "@site/src/components/Thumbnail";
+
 ## What's about to happen?
 
 You can easily and quickly connect any API defined in the [OpenAPI](https://www.openapis.org/) spec format to your
@@ -10,6 +12,8 @@ functions, and then use those to create Hasura metadata which defines our API.
 In addition, once we've generated functions from our OpenAPI document, we can modify them or add new ones to implement
 additional business logic.
 
+<Thumbnail src="/img/get-started/ERD/connect-data.png" alt="Connect a data source" width="1000px" />
+
 ## Step 1. Initialize the OpenAPI connector
 
 :::tip Required
@@ -20,57 +24,28 @@ additional business logic.
 
 :::
 
-To initialize the OpenAPI connector, run the following in your terminal:
-
-```bash
-ddn connector init my_openapi \
-  --subgraph my_subgraph/subgraph.yaml \
-  --hub-connector hasura/openapi \
-  --configure-port 8086 \
-  --add-to-compose-file compose.yaml
+```bash title="Run the following command:"
+ddn connector init -i
 ```
 
-With this `connector init` command, we're passing a few important values.
-
-**Connector name**
-
-We're naming the connector `my_openapi` in this example, but you can call it whatever makes sense to you. For example,
-if this connector is integrating an OpenAPI API regarding payments, it would make sense to name it something like
-`payments_api`.
-
-**Subgraph: `--subgraph`**
-
-We're specifying the subgraph config file that this connector will be added to using the `--subgraph` flag.
-
-**Connector: `--hub-connector`**
-
-We're specifying that this connector should be the: `hasura/openapi`, connector listed in the
-[Connector Hub](https://hasura.io/connectors/openapi).
-
-**Port: `configure-port`**
-
-We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
-services which you might have running on your machine. Remember to use a different port for each connector or service
-you may have running.
-
-**Compose file: `--add-to-compose-file`**
-
-We're specifying the `--add-to-compose-file` flag to add the connector's **own** Docker compose file to the main
-`compose.yaml` file. This is for convenience and allows us to start the Hasura Engine and connectors together.
+- Select `hasura/openapi` from the list of connectors.
+- Name it something descriptive. For this example, we'll call it `my_openapi`.
+- Choose a port (press enter to accept the default recommended by the CLI).
+- Enter your connection details. For more information, see Step 2 below.
 
 :::tip Best practices
 
 Importantly, a data connector can only connect to one data source.
 
 The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_pg` directory if it doesn't exist. You can also change this
-directory by passing a `--dir` flag to the CLI.
+this example the CLI will create a `my_subgraph/connector/my_openapi` directory if it doesn't exist. You can also change
+this directory by passing a `--dir` flag to the CLI.
 
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_openapi` in this
 example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
 
 In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
+string you provide in the key-value pair for your `.env` file.
 
 :::
 
@@ -78,31 +53,28 @@ string you provide in your subgraph's `.env.my_subgraph` file.
 
 In the `my_subgraph/connector/my_openapi` directory which we specified in the command, the CLI created:
 
-- A `connector.local.yaml` file which contains the local configuration for the connector.
-- A `connector.cloud.yaml` file which contains the cloud configuration for the connector.
-- A `.hasura-connector/connector-metadata.yaml` file which contains extra metadata for the connector.
-- A `docker-compose.my_openapi.yaml` a file to run the OpenAPI data connector locally in Docker. Includes the specified
-  port.
+- A `connector.yaml` file which contains the local configuration for the connector.
+- A `.hasura-connector` folder which contains the connector definition used to build and run it.
+- A `compose.yaml` a file to run the OpenAPI data connector locally in Docker. Includes the specified port.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
-- A `compose.yaml` file which includes the connector's Docker compose file.
-- An `.env.local` placeholder file for environment variables for pertaining to running this connector locally.
-- An `.env.cloud` file for environment variables for pertaining to running this connector in the cloud.
+
+In the `my_subgraph/metadata` directory, the CLI created:
+
+- A `my_openapi.hml` file which contains the [`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx)
+  metadata object which describes how the supergraph can interact with the connector.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the OpenAPI document. That's coming up in the next steps.
 
 ## Step 2. Specifying the OpenAPI document location
 
-Now that our OpenAPI data connector has been scaffolded out for us, we need to provide it a **connection string** or
-**swagger file** of the OpenAPI document for the service.
-
-In the `.env.local` file which the CLI has provided for our connector, we can add the `NDC_OAS_DOCUMENT_URI` environment
-variable which should point to the OpenAPI document. If you're using a file instead of a HTTP link, please ensure that
-it is named `swagger.json` and is present in the root directory of the volume which is mounted to `/etc/connector` (for
-this tutorial, the `swagger.json` file should be present at `my_subgraph/connector/my_openapi/`).
+In the root `.env` file, we can add the `MY_OPENAPI_NDC_OAS_DOCUMENT_URI` environment variable which should point to the
+OpenAPI document. If you're using a file instead of a HTTP link, please ensure that it is named `swagger.json` and is
+present in the root directory of the volume which is mounted to `/etc/connector` (for this tutorial, the `swagger.json`
+file should be present at `my_subgraph/connector/my_openapi/`).
 
 ```text
-NDC_OAS_DOCUMENT_URI=<your-openapi-document-uri>
+MY_OPENAPI_NDC_OAS_DOCUMENT_URI=<your-openapi-document-uri>
 ```
 
 This OpenAPI document is only used in the next, `connector introspect` step to generate the TypeScript files.
@@ -159,13 +131,13 @@ These environment variables are already referenced in the scaffolded out
 This will introspect your OpenAPI document and files required to run the Typescript project.
 
 ```bash
-ddn connector introspect --connector my_subgraph/connector/my_openapi/connector.local.yaml
+ddn connector introspect my_openapi --add-all-resources
 ```
 
 ## What did `connector introspect` do?
 
-We specify the connector that we want to introspect with the `--connector` flag and provide it with the location of that
-`connector.local.yaml` configuration file.
+In your terminal window, the CLI started your connector using its `compose.yaml` and then fetched the schema of your
+OpenAPI spec.
 
 The CLI will introspect the OpenAPI document and create an `api.ts` file, a `functions.ts` file and other supporting
 files in the `my_subgraph/connector/my_openapi` directory.
@@ -173,6 +145,8 @@ files in the `my_subgraph/connector/my_openapi` directory.
 - The `api.ts` file contains the Data Types and API calls from the OpenAPI document.
 - The `functions.ts` file contains functions that wrap API calls. You can modify this `functions.ts` file to introduce
   extra business logic.
+
+Additionally, the CLI updated the `DataConnectorLink` object with the latest metadata to interact with the connector.
 
 :::tip o11y via OpenTelemetry
 
@@ -189,27 +163,33 @@ regenerate the files again. They will only be overwritten if the `NDC_OAS_FILE_O
 
 :::
 
-## Step 4. Restart the services
+## Step 4. Create a new build and restart the services
 
-Let's restart our docker compose services so that Docker can create an OpenAPI connector build for us now that we've
-added and introspected the connector. **If you have existing services running, bring them down using
-`docker compose down` or `CTRL` + `C` if your terminal tab is still actively logging information.**
+To reflect the changes in your API, create a new build.
 
-```bash title="From the root of your project, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```bash title= "Run the following:"
+ddn supergraph build local
 ```
 
-This starts our Hasura Engine, observability tools and the OpenAPI connector all together since we added the connector's
-Docker compose file to the main `compose.yaml` file using the `--add-to-compose-file` flag when we initialized the
-connector. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine access to the DDN CLI's authentication token.
+And, if your services are not already running, start them.
 
-We can navigate to the following address, with the port modified, to see the schema of our PostgreSQL database:
+```bash title="Run the following:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+```
 
-```text
-http://localhost:8086/schema
+You should see your models available in your API at
+[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
+🎉
+
+If you want a quick way of opening the console, you can run the following command:
+
+```bash title="Run:"
+ddn console -l
 ```
 
 ## Next steps
 
-With these TypeScript files, which represent the endpoints in the OpenAPI document, we can now use it to
-[generate Hasura metadata](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).
+With our data source connected and all of our models tracked, we can move on to
+[add custom authorization rules](/getting-started/build/05-add-permissions.mdx) using permissions,
+[incorporate custom business logic](/getting-started/build/06-add-business-logic.mdx), or
+[create relationships](/getting-started/build/07-create-a-relationship.mdx) across data sources!

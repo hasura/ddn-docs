@@ -1,39 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import styles from './styles.css';
+import React, { ReactNode } from 'react';
+import './styles.css';
 import CodeBlock from '@theme/CodeBlock';
 import { MDXProvider } from '@mdx-js/react';
 
-const CodeStep = props => {
-  const [startIndex, setStartIndex] = useState(null);
-  const [directive, setDirective] = useState('');
-  const [description, setDescription] = useState('');
+interface CodeStepProps {
+  language: string;
+  code: string;
+  heading: string;
+  children?: ReactNode;
+  output?: string;
+}
 
-  useEffect(() => {
-    if (props.children && props.children.length) {
-      // find the start of the description by finding the first p tag - everything before that is the directive
-      for (let i = 0; i < props.children.length; i++) {
-        if (props.children[i].props && props.children[i].props.originalType === 'p') {
-          setStartIndex(i);
-          break;
-        }
-      }
-      setDirective(props.children.slice(0, startIndex));
-      setDescription(props.children.slice(startIndex));
-    }
-  }, [startIndex]);
-
+const CodeStep = (props: CodeStepProps) => {
   return (
-    <div className={"step_container"}>
-      <div className={"item"}>
-        <div className={"code_heading"}>
-          <MDXProvider children={directive} />
+    <div className={'step_container'}>
+      <div className={'item'}>
+        <div className={'heading'}>
+          <h2 children={props.heading} />
         </div>
-        <div className={"description"}>
-          <MDXProvider children={description} />
+        <div className={'description'}>
+          <MDXProvider children={props.children} />
         </div>
       </div>
-      <div className={"item"}>
-        <CodeBlock className={`language-${props.language}`}>{props.code}</CodeBlock>
+      <div className={'item'}>
+        <CodeBlock className={`language-${props.language} main-block`}>{props.code}</CodeBlock>
         {props.output && (
           <details>
             <summary>Output</summary>

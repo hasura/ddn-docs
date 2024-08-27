@@ -148,7 +148,7 @@ GraphQL configuration of an Open DD scalar type
 
 #### GraphQlTypeName {#scalartype-graphqltypename}
 
-The name of the GraphQl type to use for this scalar.
+The name of a GraphQL type.
 
 **Value:** string
 
@@ -258,10 +258,10 @@ Source field directly maps to some column in the data connector.
 
 The target column in a data connector object that a source field maps to.
 
-| Key               | Value                                                 | Required | Description                   |
-| ----------------- | ----------------------------------------------------- | -------- | ----------------------------- |
-| `name`            | string                                                | true     | The name of the target column |
-| `argumentMapping` | [ArgumentMapping](#objecttype-argumentmapping) / null | false    | Arguments to the column field |
+| Key               | Value                                                          | Required | Description                   |
+| ----------------- | -------------------------------------------------------------- | -------- | ----------------------------- |
+| `name`            | [DataConnectorColumnName](#objecttype-dataconnectorcolumnname) | true     | The name of the target column |
+| `argumentMapping` | [ArgumentMapping](#objecttype-argumentmapping) / null          | false    | Arguments to the column field |
 
 #### ArgumentMapping {#objecttype-argumentmapping}
 
@@ -269,11 +269,19 @@ Mapping of a comand or model argument name to the corresponding argument name us
 this object is the argument name used in the command or model and the value is the argument name used in the data
 connector.
 
-| Key           | Value                                                              | Required | Description |
-| ------------- | ------------------------------------------------------------------ | -------- | ----------- |
-| `<customKey>` | [DataConnectorArgumentName](#objecttype-dataconnectorargumentname) | false    |             |
+| Key           | Value                                                              | Required | Description                                             |
+| ------------- | ------------------------------------------------------------------ | -------- | ------------------------------------------------------- |
+| `<customKey>` | [DataConnectorArgumentName](#objecttype-dataconnectorargumentname) | false    | The name of an argument as defined by a data connector. |
 
 #### DataConnectorArgumentName {#objecttype-dataconnectorargumentname}
+
+The name of an argument as defined by a data connector.
+
+**Value:** string
+
+#### DataConnectorColumnName {#objecttype-dataconnectorcolumnname}
+
+The name of a column in a data connector.
 
 **Value:** string
 
@@ -313,6 +321,8 @@ GraphQL configuration of an Open DD object type.
 
 #### GraphQlTypeName {#objecttype-graphqltypename}
 
+The name of a GraphQL type.
+
 **Value:** string
 
 #### ObjectFieldDefinition {#objecttype-objectfielddefinition}
@@ -336,6 +346,8 @@ The definition of a field in a user-defined object type.
 | `description`  | string / null                              | false    |             |
 
 #### ArgumentName {#objecttype-argumentname}
+
+The name of an argument.
 
 **Value:** string
 
@@ -362,107 +374,6 @@ The name of a field in a user-defined object type.
 **Value:** string
 
 #### CustomTypeName {#objecttype-customtypename}
-
-The name of a user-defined type.
-
-**Value:** string
-
-### ObjectBooleanExpressionType {#objectbooleanexpressiontype-objectbooleanexpressiontype}
-
-Definition of a type representing a boolean expression on an Open DD object type.
-
-| Key          | Value                                                                                       | Required | Description                                                                       |
-| ------------ | ------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------- |
-| `kind`       | `ObjectBooleanExpressionType`                                                               | true     |                                                                                   |
-| `version`    | `v1`                                                                                        | true     |                                                                                   |
-| `definition` | [ObjectBooleanExpressionTypeV1](#objectbooleanexpressiontype-objectbooleanexpressiontypev1) | true     | Definition of a type representing a boolean expression on an Open DD object type. |
-
-**Example:**
-
-```yaml
-kind: ObjectBooleanExpressionType
-version: v1
-definition:
-  name: AuthorBoolExp
-  objectType: Author
-  dataConnectorName: my_db
-  dataConnectorObjectType: author
-  comparableFields:
-    - fieldName: article_id
-      operators:
-        enableAll: true
-    - fieldName: title
-      operators:
-        enableAll: true
-    - fieldName: author_id
-      operators:
-        enableAll: true
-  graphql:
-    typeName: Author_bool_exp
-```
-
-#### ObjectBooleanExpressionTypeV1 {#objectbooleanexpressiontype-objectbooleanexpressiontypev1}
-
-Definition of a type representing a boolean expression on an Open DD object type.
-
-| Key                       | Value                                                                                                                                  | Required | Description                                                                                                                                                    |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                    | [CustomTypeName](#objectbooleanexpressiontype-customtypename)                                                                          | true     | The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph. |
-| `objectType`              | [CustomTypeName](#objectbooleanexpressiontype-customtypename)                                                                          | true     | The name of the object type that this boolean expression applies to.                                                                                           |
-| `dataConnectorName`       | [DataConnectorName](#objectbooleanexpressiontype-dataconnectorname)                                                                    | true     | The data connector this boolean expression type is based on.                                                                                                   |
-| `dataConnectorObjectType` | [DataConnectorObjectType](#objectbooleanexpressiontype-dataconnectorobjecttype)                                                        | true     | The object type in the data connector's schema this boolean expression type is based on.                                                                       |
-| `comparableFields`        | [[ComparableField](#objectbooleanexpressiontype-comparablefield)]                                                                      | true     | The list of fields of the object type that can be used for comparison when evaluating this boolean expression.                                                 |
-| `graphql`                 | [ObjectBooleanExpressionTypeGraphQlConfiguration](#objectbooleanexpressiontype-objectbooleanexpressiontypegraphqlconfiguration) / null | false    | Configuration for how this object type should appear in the GraphQL schema.                                                                                    |
-
-#### ObjectBooleanExpressionTypeGraphQlConfiguration {#objectbooleanexpressiontype-objectbooleanexpressiontypegraphqlconfiguration}
-
-GraphQL configuration of an Open DD boolean expression type.
-
-| Key        | Value                                                           | Required | Description                                                                          |
-| ---------- | --------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
-| `typeName` | [GraphQlTypeName](#objectbooleanexpressiontype-graphqltypename) | true     | The name to use for the GraphQL type representation of this boolean expression type. |
-
-#### GraphQlTypeName {#objectbooleanexpressiontype-graphqltypename}
-
-The name to use for the GraphQL type representation of this boolean expression type.
-
-**Value:** string
-
-#### ComparableField {#objectbooleanexpressiontype-comparablefield}
-
-| Key         | Value                                                                   | Required | Description |
-| ----------- | ----------------------------------------------------------------------- | -------- | ----------- |
-| `fieldName` | [FieldName](#objectbooleanexpressiontype-fieldname)                     | true     |             |
-| `operators` | [EnableAllOrSpecific](#objectbooleanexpressiontype-enableallorspecific) | true     |             |
-
-#### EnableAllOrSpecific {#objectbooleanexpressiontype-enableallorspecific}
-
-**Must have exactly one of the following fields:**
-
-| Key              | Value    | Required | Description |
-| ---------------- | -------- | -------- | ----------- |
-| `enableAll`      | boolean  | false    |             |
-| `enableSpecific` | [string] | false    |             |
-
-#### FieldName {#objectbooleanexpressiontype-fieldname}
-
-The name of a field in a user-defined object type.
-
-**Value:** string
-
-#### DataConnectorObjectType {#objectbooleanexpressiontype-dataconnectorobjecttype}
-
-The name of an object type in a data connector.
-
-**Value:** string
-
-#### DataConnectorName {#objectbooleanexpressiontype-dataconnectorname}
-
-The name of a data connector.
-
-**Value:** string
-
-#### CustomTypeName {#objectbooleanexpressiontype-customtypename}
 
 The name of a user-defined type.
 

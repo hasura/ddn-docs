@@ -1,5 +1,5 @@
 ---
-sidebar_position: 9
+sidebar_position: 11
 sidebar_label: Permissions
 description:
   "This page provides an understanding of how to define permissions, control access or set authorization rules on output
@@ -45,6 +45,95 @@ will help you write permissions more efficiently. It will provide you with auto-
 error checking as you write your permissions.
 
 :::
+
+## Argument presets
+
+Argument presets can be used to enforce row-level security. They can be defined on arguments for `Types`, `Models` and
+`Commands`.
+
+## Argument presets
+
+### Literals
+
+For example, given a `Command` called `get_article_by_id`, with a single argument called `id`, you can prepopulate that
+argument for the `user` role.
+
+```yaml
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: get_article_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: id
+          value:
+            literal: 100
+```
+
+This means that `admin` users are able to provide whatever `id` they like to `get_article_by_id`, but the argument is
+not available in the GraphQL schema for the `user` role, and instead they always receive the same article every time.
+
+### Session variables
+
+What might be a little more helpful is a a `Command` called `get_articles_by_author_id`, with a single argument called
+`author_id`. Here you can make it so that a `user` can only fetch articles with an `author_id` that matches their
+`x-hasura-user-id` header.
+
+```yaml
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: get_articles_by_author_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: id
+          value:
+            sessionVariable: x-hasura-user-id
+```
+
+This means `admin` users, once again, are able to provide their own `author_id`, but a `user` can only see the articles
+they have written.
+
+### Boolean expressions
+
+We can also use argument presets to pass actual logical expressions to our data sources to control how they do things.
+
+For example, a data connector might expose a `Command` called `delete_user_by_id` with two arguments - `user_id` and
+`pre_check`. `user_id` is the primary key of the user you'd like to remove, and `pre_check` lets you provide a custom
+boolean expression.
+
+```yaml
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: delete_user_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: pre_check
+          value:
+            booleanExpression:
+              fieldComparison:
+                field: is_invincible
+                operator: _eq
+                value:
+                  literal: false
+```
+
+Now, when `admin` runs this command, once again, they can do what they want, and provide their own `pre_check` if they
+want. The `user` however, is able to pass a `user_id` argument, but the `pre_check` expression is passed to the data
+connector which will only let them delete the row if the row's `is_invincible` value is set to `false`.
 
 ## Metadata structure
 
@@ -136,69 +225,10 @@ An expression which evaluates to a value that can be used in permissions and var
 
 **Must have exactly one of the following fields:**
 
-| Key                 | Value                                             | Required | Description                                                             |
-| ------------------- | ------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `literal`           |                                                   | false    |                                                                         |
-| `sessionVariable`   | string                                            | false    | Used to represent the name of a session variable, like "x-hasura-role". |
-| `booleanExpression` | [ModelPredicate](#typepermissions-modelpredicate) | false    |                                                                         |
-
-#### ModelPredicate {#typepermissions-modelpredicate}
-
-A predicate that can be used to restrict the objects returned when querying a model.
-
-**Must have exactly one of the following fields:**
-
-| Key               | Value                                                                 | Required | Description                                                                                         |
-| ----------------- | --------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
-| `fieldComparison` | [FieldComparisonPredicate](#typepermissions-fieldcomparisonpredicate) | false    | Field comparison predicate filters objects based on a field value.                                  |
-| `fieldIsNull`     | [FieldIsNullPredicate](#typepermissions-fieldisnullpredicate)         | false    | Predicate to check if the given field is null.                                                      |
-| `relationship`    | [RelationshipPredicate](#typepermissions-relationshippredicate)       | false    | Relationship predicate filters objects of a source model based on a predicate on the related model. |
-| `and`             | [[ModelPredicate](#typepermissions-modelpredicate)]                   | false    |                                                                                                     |
-| `or`              | [[ModelPredicate](#typepermissions-modelpredicate)]                   | false    |                                                                                                     |
-| `not`             | [ModelPredicate](#typepermissions-modelpredicate)                     | false    |                                                                                                     |
-
-**Example:**
-
-```yaml
-fieldComparison:
-  field: author_id
-  operator: _eq
-  value:
-    sessionVariable: x-hasura-user-id
-```
-
-#### RelationshipPredicate {#typepermissions-relationshippredicate}
-
-Relationship predicate filters objects of a source model based on a predicate on the related model.
-
-| Key         | Value                                                    | Required | Description                                                                                                                                                   |
-| ----------- | -------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`      | [RelationshipName](#typepermissions-relationshipname)    | true     | The name of the relationship of the object type of the model to follow.                                                                                       |
-| `predicate` | [ModelPredicate](#typepermissions-modelpredicate) / null | false    | The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present. |
-
-#### RelationshipName {#typepermissions-relationshipname}
-
-The name of the GraphQL relationship field.
-
-**Value:** string
-
-#### FieldIsNullPredicate {#typepermissions-fieldisnullpredicate}
-
-Predicate to check if the given field is null.
-
-| Key     | Value                                   | Required | Description                                                    |
-| ------- | --------------------------------------- | -------- | -------------------------------------------------------------- |
-| `field` | [FieldName](#typepermissions-fieldname) | true     | The name of the field that should be checked for a null value. |
-
-#### FieldComparisonPredicate {#typepermissions-fieldcomparisonpredicate}
-
-Field comparison predicate filters objects based on a field value.
-
-| Key        | Value                                               | Required | Description                                                |
-| ---------- | --------------------------------------------------- | -------- | ---------------------------------------------------------- |
-| `field`    | [FieldName](#typepermissions-fieldname)             | true     | The field name of the object type of the model to compare. |
-| `operator` | string                                              | true     | The name of the operator to use for comparison.            |
-| `value`    | [ValueExpression](#typepermissions-valueexpression) | true     | The value expression to compare against.                   |
+| Key               | Value  | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
 
 #### TypeOutputPermission {#typepermissions-typeoutputpermission}
 
@@ -303,37 +333,28 @@ Defines the permissions for selecting a model for a role.
 
 #### ArgumentPreset {#modelpermissions-argumentpreset}
 
-An argument preset that can be applied to all functions/procedures of a connector
+Preset value for an argument
 
-| Key        | Value                                                        | Required | Description |
-| ---------- | ------------------------------------------------------------ | -------- | ----------- |
-| `argument` | [ArgumentName](#modelpermissions-argumentname)               | true     |             |
-| `value`    | [ArgumentPresetValue](#modelpermissions-argumentpresetvalue) | true     |             |
+| Key        | Value                                                                      | Required | Description              |
+| ---------- | -------------------------------------------------------------------------- | -------- | ------------------------ |
+| `argument` | [ArgumentName](#modelpermissions-argumentname)                             | true     | Argument name for preset |
+| `value`    | [ValueExpressionOrPredicate](#modelpermissions-valueexpressionorpredicate) | true     | Value for preset         |
 
-#### ArgumentPresetValue {#modelpermissions-argumentpresetvalue}
+#### ValueExpressionOrPredicate {#modelpermissions-valueexpressionorpredicate}
 
-| Key           | Value                                                    | Required | Description                                  |
-| ------------- | -------------------------------------------------------- | -------- | -------------------------------------------- |
-| `httpHeaders` | [HttpHeadersPreset](#modelpermissions-httpheaderspreset) | true     | HTTP headers that can be preset from request |
+An expression which evaluates to a value that can be used in permissions and various presets.
 
-#### HttpHeadersPreset {#modelpermissions-httpheaderspreset}
+**Must have exactly one of the following fields:**
 
-Configuration of what HTTP request headers should be forwarded to a data connector.
-
-| Key          | Value                                                            | Required | Description                                                      |
-| ------------ | ---------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| `forward`    | [string]                                                         | true     | List of HTTP headers that should be forwarded from HTTP requests |
-| `additional` | [AdditionalHttpHeaders](#modelpermissions-additionalhttpheaders) | true     | Additional headers that should be forwarded, from other contexts |
-
-#### AdditionalHttpHeaders {#modelpermissions-additionalhttpheaders}
-
-Additional headers that should be forwarded, from other contexts
-
-| Key           | Value                                                | Required | Description |
-| ------------- | ---------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [ValueExpression](#modelpermissions-valueexpression) | false    |             |
+| Key                 | Value                                              | Required | Description                                                             |
+| ------------------- | -------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
+| `literal`           |                                                    | false    |                                                                         |
+| `sessionVariable`   | string                                             | false    | Used to represent the name of a session variable, like "x-hasura-role". |
+| `booleanExpression` | [ModelPredicate](#modelpermissions-modelpredicate) | false    |                                                                         |
 
 #### ArgumentName {#modelpermissions-argumentname}
+
+The name of an argument.
 
 **Value:** string
 
@@ -392,7 +413,7 @@ Field comparison predicate filters objects based on a field value.
 | Key        | Value                                                | Required | Description                                                |
 | ---------- | ---------------------------------------------------- | -------- | ---------------------------------------------------------- |
 | `field`    | [FieldName](#modelpermissions-fieldname)             | true     | The field name of the object type of the model to compare. |
-| `operator` | string                                               | true     | The name of the operator to use for comparison.            |
+| `operator` | [OperatorName](#modelpermissions-operatorname)       | true     | The name of the operator to use for comparison.            |
 | `value`    | [ValueExpression](#modelpermissions-valueexpression) | true     | The value expression to compare against.                   |
 
 #### ValueExpression {#modelpermissions-valueexpression}
@@ -401,11 +422,16 @@ An expression which evaluates to a value that can be used in permissions and var
 
 **Must have exactly one of the following fields:**
 
-| Key                 | Value                                              | Required | Description                                                             |
-| ------------------- | -------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `literal`           |                                                    | false    |                                                                         |
-| `sessionVariable`   | string                                             | false    | Used to represent the name of a session variable, like "x-hasura-role". |
-| `booleanExpression` | [ModelPredicate](#modelpermissions-modelpredicate) | false    |                                                                         |
+| Key               | Value  | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
+
+#### OperatorName {#modelpermissions-operatorname}
+
+The name of an operator
+
+**Value:** string
 
 #### FieldName {#modelpermissions-fieldname}
 
@@ -481,37 +507,14 @@ argumentPresets:
 
 #### ArgumentPreset {#commandpermissions-argumentpreset}
 
-An argument preset that can be applied to all functions/procedures of a connector
+Preset value for an argument
 
-| Key        | Value                                                          | Required | Description |
-| ---------- | -------------------------------------------------------------- | -------- | ----------- |
-| `argument` | [ArgumentName](#commandpermissions-argumentname)               | true     |             |
-| `value`    | [ArgumentPresetValue](#commandpermissions-argumentpresetvalue) | true     |             |
+| Key        | Value                                                                        | Required | Description              |
+| ---------- | ---------------------------------------------------------------------------- | -------- | ------------------------ |
+| `argument` | [ArgumentName](#commandpermissions-argumentname)                             | true     | Argument name for preset |
+| `value`    | [ValueExpressionOrPredicate](#commandpermissions-valueexpressionorpredicate) | true     | Value for preset         |
 
-#### ArgumentPresetValue {#commandpermissions-argumentpresetvalue}
-
-| Key           | Value                                                      | Required | Description                                  |
-| ------------- | ---------------------------------------------------------- | -------- | -------------------------------------------- |
-| `httpHeaders` | [HttpHeadersPreset](#commandpermissions-httpheaderspreset) | true     | HTTP headers that can be preset from request |
-
-#### HttpHeadersPreset {#commandpermissions-httpheaderspreset}
-
-Configuration of what HTTP request headers should be forwarded to a data connector.
-
-| Key          | Value                                                              | Required | Description                                                      |
-| ------------ | ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------- |
-| `forward`    | [string]                                                           | true     | List of HTTP headers that should be forwarded from HTTP requests |
-| `additional` | [AdditionalHttpHeaders](#commandpermissions-additionalhttpheaders) | true     | Additional headers that should be forwarded, from other contexts |
-
-#### AdditionalHttpHeaders {#commandpermissions-additionalhttpheaders}
-
-Additional headers that should be forwarded, from other contexts
-
-| Key           | Value                                                  | Required | Description |
-| ------------- | ------------------------------------------------------ | -------- | ----------- |
-| `<customKey>` | [ValueExpression](#commandpermissions-valueexpression) | false    |             |
-
-#### ValueExpression {#commandpermissions-valueexpression}
+#### ValueExpressionOrPredicate {#commandpermissions-valueexpressionorpredicate}
 
 An expression which evaluates to a value that can be used in permissions and various presets.
 
@@ -578,8 +581,25 @@ Field comparison predicate filters objects based on a field value.
 | Key        | Value                                                  | Required | Description                                                |
 | ---------- | ------------------------------------------------------ | -------- | ---------------------------------------------------------- |
 | `field`    | [FieldName](#commandpermissions-fieldname)             | true     | The field name of the object type of the model to compare. |
-| `operator` | string                                                 | true     | The name of the operator to use for comparison.            |
+| `operator` | [OperatorName](#commandpermissions-operatorname)       | true     | The name of the operator to use for comparison.            |
 | `value`    | [ValueExpression](#commandpermissions-valueexpression) | true     | The value expression to compare against.                   |
+
+#### ValueExpression {#commandpermissions-valueexpression}
+
+An expression which evaluates to a value that can be used in permissions and various presets.
+
+**Must have exactly one of the following fields:**
+
+| Key               | Value  | Required | Description |
+| ----------------- | ------ | -------- | ----------- |
+| `literal`         |        | false    |             |
+| `sessionVariable` | string | false    |             |
+
+#### OperatorName {#commandpermissions-operatorname}
+
+The name of an operator
+
+**Value:** string
 
 #### FieldName {#commandpermissions-fieldname}
 
@@ -588,6 +608,8 @@ The name of a field in a user-defined object type.
 **Value:** string
 
 #### ArgumentName {#commandpermissions-argumentname}
+
+The name of an argument.
 
 **Value:** string
 

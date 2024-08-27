@@ -1,9 +1,11 @@
-import { JSONSchema7Definition } from './types';
 import { readFileSync } from 'fs';
 
+import { JSONSchema7Definition } from './types';
+
 /**
- * These are our top-level objects from the metadata. They're mapped to their respective pages.
- * Our goal is to have them looped over and we can recursively search for a metadata object and any nested structures it uses.
+ * These are our top-level objects from the metadata. They're mapped to their
+ * respective pages. Our goal is to have them looped over and we can recursively
+ * search for a metadata object and any nested structures it uses.
  */
 
 export const parentSchema: JSONSchema7Definition = JSON.parse(readFileSync('./schema.json', 'utf8'));
@@ -14,7 +16,9 @@ export const topLevelMetadataObjects: Record<string, string> = {
   GraphqlConfig: 'graphql-config',
   ScalarType: 'types',
   ObjectType: 'types',
-  ObjectBooleanExpressionType: 'types',
+  AggregateExpression: 'aggregate-expressions',
+  BooleanExpressionType: 'boolean-expressions',
+  ObjectBooleanExpressionType: 'boolean-expressions',
   Model: 'models',
   Command: 'commands',
   Relationship: 'relationships',

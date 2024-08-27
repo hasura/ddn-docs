@@ -10,14 +10,18 @@ keywords:
   - guide
 ---
 
+import Thumbnail from "@site/src/components/Thumbnail";
+
 # Create a Supergraph
 
 ## What's about to happen?
 
-We're going to create a [**supergraph**](glossary.mdx#supergraph).
+We're going to create a [**supergraph**](/support/glossary.mdx#supergraph).
 
 Your supergraph is the composite of all your subgraphs, their various data sources and business logic, and when we
 "build" a supergraph, we create a GraphQL API.
+
+<Thumbnail src="/img/get-started/ERD/create-supergraph.png" alt="Create a supergraph" width="1000px" />
 
 ## Steps
 
@@ -30,12 +34,12 @@ Your supergraph is the composite of all your subgraphs, their various data sourc
 ### Step 1. Initialize your supergraph
 
 ```bash title="To initialize your supergraph, from an empty directory, run:"
-ddn supergraph init --dir .
+ddn supergraph init .
 ```
 
 :::tip Specifying a directory
 
-Instead of passing a `.` (the "this" directory specifier) you can pass a directory name to the `--dir` flag of the
+Instead of passing a `.` (the "this" directory specifier) you can pass the `--dir` flag and a directory name to the
 `supergraph init` command to create your supergraph in a specific directory. If it doesn't exist it will be created.
 
 :::
@@ -47,8 +51,8 @@ accompanying services. The following command will take control of the terminal t
 output log information from the Hasura Engine, and any other services — such as data connectors — that are included in
 your project's compose file. As such, for subsequent commands, you'll need to open a new terminal tab.
 
-```bash title="From the project's root, run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
+```bash title="Run:"
+HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
 ```
 
 <details>
@@ -75,32 +79,38 @@ HASURA_DDN_PAT=$(ddn auth print-pat) docker compose up --build --watch
   If you're running the Docker daemon as a non-root user (rootless mode), `v26.0` now allows you to disable the default
   `host-loopback-isolation` which prevents communication back to the host machine.
 
-  To disable this feature, set the environment variable `DOCKERD_ROOTLESS_ROOTLESSKIT_DISABLE_HOST_LOOPBACK` to `false`
-  before starting the daemon.
+To disable this feature, set the environment variable `DOCKERD_ROOTLESS_ROOTLESSKIT_DISABLE_HOST_LOOPBACK` to `false`
+before starting the daemon.
 
-  This will now allow container-to-host communication via `10.0.2.2` address.
+This will now allow container-to-host communication via `10.0.2.2` address.
 
-  You should also amend this line in your `compose.yaml` files for both the main services and connectors to reflect this
-  change:
+You should also amend this line in your `compose.yaml` files for both the main services and connectors to reflect this
+change:
 
-  ```yaml
-  extra_hosts:
+```yaml
+extra_hosts:
   - local.hasura.dev=host-gateway
-  ```
+```
 
-  to:
+to:
 
-  ```yaml
-  extra_hosts:
+```yaml
+extra_hosts:
   - local.hasura.dev=10.0.2.2
-  ```
+```
+
 </details>
 
 ### Step 3. View your supergraph API
 
-You can now navigate to:
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
-and view your (still empty) API running on your own machine using the Hasura Console!
+In a new terminal window, you can launch your local project's console using the CLI.
+
+```bash title="From a new terminal window, run:"
+ddn console --local
+```
+
+This will open [`https://console.hasura.io/local/graphql`](https://console.hasura.io/local/graphql) and allow you to
+view your (still empty) API running on your own machine using the Hasura console!
 
 ![Hasura Console showing an empty schema](/img/get-started/console-init-supergraph.png)
 
@@ -115,40 +125,31 @@ browsers for the best experience with the Hasura Console including for local dev
 
 :::
 
-### Step 4. Set the supergraph context
-
-As a feature of convenience, we'll set the `context` in the CLI which removes the need to set frequently used default
-values (such as the flag `--supergraph` or `--subgraph`) when running CLI commands. This command will save the path of
-your `supergraph.local.yaml` to a context file in your `.hasura` directory.
-
-You could do the same with a `subgraph` too. But we're going to keep it explicit for now for clarity in this guide.
-
-You can learn more about using context [here](/cli/commands/ddn_context.mdx).
-
-```bash title="In the project's root directory, run:"
-ddn context set supergraph ./supergraph.local.yaml
-```
-
 ### Step 5. Create a new build of your supergraph
 
 Hasura utilizes a system of [immutable builds](/project-configuration/builds.mdx) which provide a stable snapshot of
-your API at any point in your development process. Let's create a new one:
+your API at any point in your development process.
 
-```bash title="From the project's root, run:"
-ddn supergraph build local --output-dir engine
+```bash title="Let's create a new one:"
+ddn supergraph build local
 ```
 
-The above command regenerates all the JSON for our supergraph. As we passed the `local` subcommand, and an output
-directory of `engine` this will output the files to our local `./engine` directory which is referenced in our Docker
-`compose.yaml`. We won't see any difference to our deployed API from running this now, but once we start to add
-subgraphs and data sources we'll need to run this command to update our API.
+The above command regenerates all the JSON for our supergraph. As we passed the `local` subcommand, this will output the
+files to our local `./engine` directory by default, which is referenced in our Docker `compose.yaml`. We won't see any
+difference to our deployed API from running this now, but once we start to add subgraphs and data sources we'll need to
+run this command to update our API.
+
+As a feature of convenience, when initializing the supergraph, we also set the `context` in the CLI. This removes the
+need to set frequently used default values (such as the flag `--supergraph` or `--subgraph`) when running CLI commands.
+
+You can learn more about using context [here](/cli/commands/ddn_context.mdx).
 
 ## What did this do?
 
-The CLI created all the files needed for local and cloud development in your local `build` directory, including a docker
+The CLI created all the files needed for local and cloud development in your local project directory, including a docker
 compose file for local development and helper files for VS Code. We then started the Hasura Engine and all the services
-needed to run your supergraph locally and viewed the Hasura Console to see our empty API. Finally, we set the context
-for our supergraph and created a new build of our supergraph.
+needed to run your supergraph locally and viewed the Hasura console to see our empty API. Finally, we set the context
+for our supergraph and created a new — albeit empty — build of our supergraph.
 
 ## Starting a new supergraph or joining an existing one
 

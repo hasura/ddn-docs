@@ -8,107 +8,130 @@ import MongoDbLogo from '@site/static/img/databases/logos/mongodb.webp';
 import TypeScriptLogo from '@site/static/img/databases/logos/ts.png';
 import ClickHouseLogo from '@site/static/img/databases/logos/clickhouse-glyph.png';
 import OpenAPILogo from '@site/static/img/databases/logos/openapi.png';
+import PythonLogo from '@site/static/img/databases/logos/python.png';
+import GraphQlLogo from '@site/static/img/databases/logos/gql.png';
 
 import PostgreSqlConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
 import MongoDBConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
 import ClickHouseConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_01-connect-a-source.mdx';
 import OpenAPIConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_01-connect-a-source.mdx';
-
-import PostgreSqlCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_02-create-source-metadata.mdx';
-import MongoDBCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_02-create-source-metadata.mdx';
-import ClickHouseCreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_02-create-source-metadata.mdx';
-import OpenAPICreateSourceMetadata from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_02-create-source-metadata.mdx';
-
-import PostgreSqlAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_03-add-source-entities.mdx';
-import MongoDBAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_03-add-source-entities.mdx';
-import ClickHouseAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_clickHouse/_03-add-source-entities.mdx';
-import OpenAPIAddSourceEntities from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_openAPI/_03-add-source-entities.mdx';
+import GraphQLConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_graphql/_01-connect-a-source.mdx';
 
 import PostgreSqlMutate from '@site/docs/getting-started/build/_databaseDocs/_postgreSQL/_08-mutate-data.mdx';
 import MongoDBMutate from '@site/docs/getting-started/build/_databaseDocs/_mongoDB/_08-mutate-data.mdx';
 import ClickHouseMutate from '@site/docs/getting-started/build/_databaseDocs/_clickHouse/_08-mutate-data.mdx';
 import OpenAPIMutate from '@site/docs/getting-started/build/_databaseDocs/_openAPI/_08-mutate-data.mdx';
+import GraphQlMutate from '@site/docs/getting-started/build/_databaseDocs/_graphql/_08-mutate-data.mdx';
 
 import PostgreSqlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_postgreSQL/_03-deploy-a-connector.mdx';
 import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_mongoDB/_03-deploy-a-connector.mdx';
 import TypeScriptDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_typeScript/_03-deploy-a-connector.mdx';
 import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_clickHouse/_03-deploy-a-connector.mdx';
 import OpenAPIDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
+import GraphQlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_graphql/_03-deploy-a-connector.mdx';
+import PythonDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_python/_03-deploy-a-connector.mdx';
+
+import TypeScriptBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_typescript/_06-add-business-logic.mdx';
+import PythonBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_python/_06-add-business-logic.mdx';
 
 const dataSources = {
   PostgreSQL: {
     name: 'PostgreSQL',
     image: PostgreSqlLogo,
+    connectorType: 'datasource',
   },
   MongoDB: {
     name: 'MongoDB',
     image: MongoDbLogo,
+    connectorType: 'datasource',
   },
   ClickHouse: {
     name: 'ClickHouse',
     image: ClickHouseLogo,
+    connectorType: 'datasource',
   },
   TypeScript: {
     name: 'TypeScript',
     image: TypeScriptLogo,
+    connectorType: 'businessLogic',
+  },
+  Python: {
+    name: 'Python',
+    image: PythonLogo,
+    connectorType: 'businessLogic',
   },
   OpenAPI: {
     name: 'OpenAPI',
     image: OpenAPILogo,
+    connectorType: 'datasource',
+  },
+  GraphQL: {
+    name: 'GraphQL',
+    image: GraphQlLogo,
+    connectorType: 'datasource',
   },
 };
 
 export const DatabaseContentLoader = () => {
   const location = useLocation();
-  const [dbPreference, setDbPreference] = useState<string | null>(null);
+  const [connectorPreference, setConnectorPreference] = useState<string | null>(null);
   const history = useHistory();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const dbParam = params.get('db');
-    const savedPreference = localStorage.getItem('hasuraV3DbPreference');
-    const isTypeScriptExcluded =
+    const savedPreference = localStorage.getItem('hasuraV3ConnectorPreference');
+    const isBusinessLogicExcluded =
       location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
 
     if (dbParam && dataSources[dbParam]) {
       savePreference(dbParam);
     } else if (savedPreference) {
-      // Check if the saved preference is a valid data source
       if (dataSources[savedPreference]) {
-        setDbPreference(savedPreference);
+        setConnectorPreference(savedPreference);
       } else {
-        localStorage.removeItem('hasuraV3DbPreference');
+        localStorage.removeItem('hasuraV3ConnectorPreference');
       }
-      // If TypeScript is excluded and the saved preference is TypeScript, set preference to null
-      // to avoid text at the top of our component
-      if (isTypeScriptExcluded && savedPreference === 'TypeScript') {
-        setDbPreference(null);
+
+      if (isBusinessLogicExcluded && (savedPreference === 'TypeScript' || savedPreference === 'Python')) {
+        setConnectorPreference(null);
       } else {
-        setDbPreference(savedPreference);
+        setConnectorPreference(savedPreference);
       }
     }
   }, [location.search, location.pathname]);
 
   const savePreference = (preference: string) => {
-    localStorage.setItem('hasuraV3DbPreference', preference);
+    const connectorObject = dataSources[preference];
+
+    localStorage.setItem('hasuraV3ConnectorPreference', preference);
 
     history.push({
       search: `db=${preference}`,
     });
 
-    setDbPreference(preference);
+    setConnectorPreference(preference);
   };
 
   const getContent = () => {
-    // Split the path into parts, because sometimes we have a trailing slash with our nginx config
-    let pathParts = location.pathname.split('/').filter(Boolean);
+    const isBusinessLogicExcluded =
+      location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
+    const isAddBusinessLogicPage = location.pathname.includes('add-business-logic');
 
-    // Get the last part of the path, which is the page we want
+    if (
+      isBusinessLogicExcluded &&
+      connectorPreference &&
+      dataSources[connectorPreference].connectorType === 'businessLogic'
+    ) {
+      return <div>Content not available for this selection</div>;
+    }
+
+    let pathParts = location.pathname.split('/').filter(Boolean);
     let route = pathParts.pop();
 
     switch (route) {
       case 'connect-a-source':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlConnect />;
           case 'MongoDB':
@@ -117,50 +140,37 @@ export const DatabaseContentLoader = () => {
             return <ClickHouseConnect />;
           case 'OpenAPI':
             return <OpenAPIConnect />;
+          case 'GraphQL':
+            return <GraphQLConnect />;
           default:
             return <div />;
         }
-      case 'create-source-metadata':
-        switch (dbPreference) {
-          case 'PostgreSQL':
-            return <PostgreSqlCreateSourceMetadata />;
-          case 'MongoDB':
-            return <MongoDBCreateSourceMetadata />;
-          case 'ClickHouse':
-            return <ClickHouseCreateSourceMetadata />;
-          case 'OpenAPI':
-            return <OpenAPICreateSourceMetadata />;
-          default:
-            return <div />;
-        }
-      case 'add-source-entities':
-        switch (dbPreference) {
-          case 'PostgreSQL':
-            return <PostgreSqlAddSourceEntities />;
-          case 'MongoDB':
-            return <MongoDBAddSourceEntities />;
-          case 'ClickHouse':
-            return <ClickHouseAddSourceEntities />;
-          case 'OpenAPI':
-            return <OpenAPIAddSourceEntities />;
+      case 'add-business-logic':
+        switch (connectorPreference) {
+          case 'TypeScript':
+            return <TypeScriptBusinessLogic />;
+          case 'Python':
+            return <PythonBusinessLogic />;
           default:
             return <div />;
         }
       case 'mutate-data':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlMutate />;
           case 'MongoDB':
             return <MongoDBMutate />;
           case 'ClickHouse':
             return <ClickHouseMutate />;
+          case 'GraphQL':
+            return <GraphQlMutate />;
           case 'OpenAPI':
             return <OpenAPIMutate />;
           default:
             return <div />;
         }
       case 'deploy-a-connector':
-        switch (dbPreference) {
+        switch (connectorPreference) {
           case 'PostgreSQL':
             return <PostgreSqlDeploy />;
           case 'MongoDB':
@@ -169,8 +179,12 @@ export const DatabaseContentLoader = () => {
             return <ClickHouseDeploy />;
           case 'TypeScript':
             return <TypeScriptDeploy />;
+          case 'Python':
+            return <PythonDeploy />;
           case 'OpenAPI':
             return <OpenAPIDeploy />;
+          case 'GraphQL':
+            return <GraphQlDeploy />;
           default:
             return <div />;
         }
@@ -179,29 +193,51 @@ export const DatabaseContentLoader = () => {
     }
   };
 
-  // We'll use this to exclude the TS connector from any of the data connection pages
-  const isTypeScriptExcluded =
+  const isBusinessLogicExcluded =
     location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
+  const isAddBusinessLogicPage = location.pathname.includes('add-business-logic');
 
   return (
     <div>
       <div className="picker-wrapper">
         <small>
-          {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript')
-            ? `You are now reading ${dataSources[dbPreference].name}'s documentation`
+          {connectorPreference &&
+          (!isBusinessLogicExcluded || (connectorPreference !== 'TypeScript' && connectorPreference !== 'Python'))
+            ? `You are now reading ${dataSources[connectorPreference].name}'s documentation`
             : "Select a data source's documentation"}
         </small>
         <div className="button-wrapper">
           {Object.keys(dataSources).map(key =>
-            !isTypeScriptExcluded || key !== 'TypeScript' ? (
+            isAddBusinessLogicPage ? (
+              (key === 'TypeScript' || key === 'Python') && (
+                <div
+                  key={key}
+                  onClick={() => savePreference(key)}
+                  className={`data-source ${connectorPreference === key ? 'selected' : ''}`}
+                >
+                  {dataSources[key].image ? (
+                    <>
+                      <div className="image-container">
+                        <img src={dataSources[key].image} alt={dataSources[key].name} />
+                      </div>
+                      <p>{dataSources[key].name}</p>
+                    </>
+                  ) : (
+                    <button>{dataSources[key].name}</button>
+                  )}
+                </div>
+              )
+            ) : !isBusinessLogicExcluded || (key !== 'TypeScript' && key !== 'Python') ? (
               <div
                 key={key}
                 onClick={() => savePreference(key)}
-                className={`data-source ${dbPreference === key ? 'selected' : ''}`}
+                className={`data-source ${connectorPreference === key ? 'selected' : ''}`}
               >
                 {dataSources[key].image ? (
                   <>
-                    <img src={dataSources[key].image} alt={dataSources[key].name} />
+                    <div className="image-container">
+                      <img src={dataSources[key].image} alt={dataSources[key].name} />
+                    </div>
                     <p>{dataSources[key].name}</p>
                   </>
                 ) : (
@@ -211,12 +247,14 @@ export const DatabaseContentLoader = () => {
             ) : null
           )}
           <Link to="/connectors/overview#supported-sources" className="data-source">
-            <Icon />
+            <div className="image-container">
+              <Icon />
+            </div>
             <p>Other connectors</p>
           </Link>
         </div>
       </div>
-      {dbPreference && (!isTypeScriptExcluded || dbPreference !== 'TypeScript') ? (
+      {connectorPreference && (!isBusinessLogicExcluded || connectorPreference !== 'TypeScript') ? (
         getContent()
       ) : (
         <div>Please select your source preference.</div>

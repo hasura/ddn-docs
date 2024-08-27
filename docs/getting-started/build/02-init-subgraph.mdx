@@ -10,6 +10,8 @@ keywords:
   - guide
 ---
 
+import Thumbnail from "@site/src/components/Thumbnail";
+
 # Create a Subgraph
 
 ## What's about to happen?
@@ -20,6 +22,15 @@ A [**subgraph**](/project-configuration/subgraphs.mdx) is a way of organizing yo
 multiple data sources to your supergraph. A supergraph must have at least one subgraph, at least if you want it to do
 anything. 😉
 
+:::info By default
+
+When you initialize a new supergraph, the CLI will create a default subgraph called `app`. However, you can follow this
+guide to add subsequent subgraphs, extending your API.
+
+:::
+
+<Thumbnail src="/img/get-started/ERD/create-subgraph.png" alt="Create a subgraph" width="1000px" />
+
 ## Steps
 
 :::tip Required
@@ -29,11 +40,10 @@ anything. 😉
 
 :::
 
-```bash title="At the root of your project, run:"
-ddn subgraph init my_subgraph \
-  --dir my_subgraph \
-  --target-supergraph supergraph.local.yaml \
-  --target-supergraph supergraph.cloud.yaml
+### Step 1. Init a subgraph
+
+```bash title="Run the following command, passing the desired name and location to store the metadata for your subgraph:"
+ddn subgraph init my_subgraph --dir ./my_subgraph --target-supergraph ./supergraph.yaml
 ```
 
 The CLI will respond with a success message (and a hint to add a connector to the subgraph).
@@ -54,21 +64,19 @@ For convenience we're specifying the supergraph(s) to which this subgraph will b
 local and cloud supergraphs which were created when we initialized our supergraph. The CLI will edit these supergraph
 configuration files and add details of our subgraph to both of them.
 
-## What did `subgraph init` do?
+#### What did `subgraph init` do?
 
 The `subgraph init` command created a new subgraph directory and a `subgraph.yaml` file in the root of the new subgraph
-directory. It also created two environment variable files, one for local and one for cloud, respectively named
-`.env.my_subgraph.local` and `.env.my_subgraph.cloud`.
+directory.
 
-The CLI also edited the supergraph configuration files to include the new subgraph in both the local and cloud
-supergraphs.
+The CLI also edited the supergraph configuration files to include the new subgraph in your supergraph.
 
 The subgraph is where we will be organizing metadata objects which define our API and without a data connector, our
 subgraph is just a placeholder which doesn't do much, yet...
 
 :::info More about subgraphs
 
-### Subgraph independence
+##### Subgraph independence
 
 Subgraphs are used to maintain a logical separation of concerns and/or to allow different teams to work on different
 parts of the supergraph at the same time without stepping on each other's toes. Usually, a subgraph is "owned" and
@@ -93,7 +101,7 @@ developed, tested, and built independently while the supergraph guarantees the i
 Meaning that the supergraph will only build, and generate an API if all subgraphs are in a valid state. In this Getting
 Started section we propose best-practice for organizing your subgraphs, but it can be done however you choose.
 
-### Naming
+##### Naming
 
 Let's say we're in an organization and the data source we'll be connecting to is for customer profile data. The team
 responsible for this data and some services related to it is called the "Customer Data" team. As such, we could create a
@@ -107,6 +115,45 @@ data for our whole project, and it's all in PostgreSQL, with some business logic
 the whole project, at least for the time being.
 
 :::
+
+### Step 2. Set subgraph context
+
+Next, for convenience, we'll set the subgraph using the `context set` command in the CLI. This will simplify any
+commands we use later on and save us from having to explicitly call out to which subgraph we're applying certain
+actions.
+
+```bash title="Run the following in your project, changing the directory to match where your subgraph.yaml is located:"
+ddn context set subgraph ./my_subgraph/subgraph.yaml
+```
+
+#### What did `context set subgraph` do?
+
+This command simply updates a key-value pair in a context file in a project's `.hasura` folder to set your current
+subgraph to whatever value you passed.
+
+### Step 3. Customize prefixes
+
+To avoid collisions between GraphQL root fields and type names, you can optionally customize the prefixes for each
+subgraph. For example, if two subgraphs both have a `Users` type, you can apply different prefixes to distinguish one
+from the other. This ensures that each subgraph remains unique and prevents any naming conflicts.
+
+You can make these modifications in the `subgraph.yaml` file for a subgraph.
+
+```yaml title="Add the highlighted lines:"
+kind: Subgraph
+version: v2
+definition:
+  name: my_subgraph
+  generator:
+    rootPath: .
+    #highlight-start
+    graphqlRootFieldPrefix: my_subgraph_
+    graphqlTypeNamePrefix: My_subgraph_
+    #highlight-end
+```
+
+By default, the `subgraph.yaml` file is generated without any prefixes. You can read more about these fields
+[here](supergraph-modeling/build-configs.mdx#subgraph-subgraphgeneratorconfig).
 
 ## Next steps
 
