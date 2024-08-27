@@ -65,16 +65,39 @@ The CLI did a lot under the hood:
 - The CLI created a new `.env.cloud` file for variables to be used in your hosted project.
 - It created subgraphs from your existing local project for the project on Hasura DDN.
 
-### Step 2. Add your environment variables
+### Step 2. Update your environment variables
 
-For each connector with a connection string, you'll need a key-value pair added in your `.env.cloud` file.
+:::info Environment variables
 
-```env title="For example, if we have a MY_SUBGRAPH_MY_PG_CONNECTION_URI variable, we'll need to add the connection string here:"
+The following variables were generated with **each** initialized data connector for local development, and are
+overwritten with the appropriate values for a cloud deployment when building your connectors and supergraph:
+
+- `APP_MY_CONNECTOR_AUTHORIZATION_HEADER`
+- `APP_MY_CONNECTOR_READ_URL`
+- `APP_MY_CONNECTOR_WRITE_URL`
+
+Additionally, Hasura DDN will override the following values at runtime, so they can be left blank in the `.env.cloud`
+file:
+
+- `APP_MY_CONNECTOR_HASURA_CONNECTOR_PORT`
+- `APP_MY_CONNECTOR_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`
+- `APP_MY_CONNECTOR_HASURA_SERVICE_TOKEN_SECRET`
+
+:::
+
+If your deployed data source is available at a different address than what was used locally, you'll need to update the
+connection strings in your `.env.cloud` file for each connector. This is especially important for variables like
+database connection URIs.
+
+For example, if your local environment uses a `MY_SUBGRAPH_MY_PG_CONNECTION_URI` variable, and your cloud database is
+hosted elsewhere, update the `.env.cloud` file with the correct connection string:
+
+```env title="Example of updating a connection string:"
 MY_SUBGRAPH_MY_PG_CONNECTION_URI="postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app"
 ```
 
-This value can be different from the connection string used in your local `.env` and should be mapped to whatever data
-source you intend to use with your deployed API.
+This updated value should point to the data source you intend to use with your deployed API, ensuring it can connect
+properly in the cloud environment.
 
 ### Step 3. Deploy your supergraph
 
