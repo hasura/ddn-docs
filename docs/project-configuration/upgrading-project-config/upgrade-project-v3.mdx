@@ -36,10 +36,36 @@ directory structure and CLI commands. With this release, local project directory
 ### Named contexts
 
 Named contexts are introduced. You can now create multiple contexts to easily switch between different deployment
-scenarios.
+scenarios. e.g.
 
-Additionally, you can now set env files for local development and for cloud builds in the context via the `localEnvFile`
-and `cloudEnvFile` keys. These values will be used for local and cloud builds by default.
+```bash
+ddn supergraph build create --context staging  # will use cloudEnvFile from staging context, e.g. .env.stg
+ddn supergraph build create --context prod  # will use cloudEnvFile from prod context, e.g. .env.prod
+```
+
+### Top-level env files
+
+You can now set env files for local development and for cloud builds in the context via the `localEnvFile`
+and `cloudEnvFile` keys.
+
+**If you have a shared supergraph config file for local and cloud**, both these env files can then be set into your context
+to allow managing both local and cloud deployments using the same context. i.e.
+
+```bash title="In project root with single top-level env files:"
+ddn context set localEnvFile .env
+ddn context set cloudEnvFile .env.cloud
+````
+
+You can then run supergraph build command for both local and DDN using the same context.
+
+```bash
+ddn supergraph build local  # will use localEnvFile from context, i.e. .env
+ddn supergraph build create  # will use cloudEnvFile from context, i.e. .env.cloud
+```
+
+To simplify management of the environment variables used by the various connectors and subgraphs in your supergraph,
+the CLI now doesn't generate individual env files for subgraphs and connectors by default and instead uses the
+common top-level env files.
 
 ### Default naming convention for GraphQL types/fields
 
@@ -82,6 +108,7 @@ The behaviour, arguments and flags of certain CLI commands have a few changes. S
 - `ddn connector init`
   - Introduces an interactive flag (`-i`) to simplify choosing the connector type and providing any required env
     variables.
+  - Writes the required env variables to a `target-env` file.
   - Also creates the corresponding data connector link for the connector by default.
 - `ddn connector introspect`
   - Also updates the schema of the corresponding data connector link for the connector by default.
@@ -225,27 +252,6 @@ definition:
     #highlight-end
   envFile: .env.my_subgraph.local
   ...
-```
-
-#### Step 4.3: Create top level .env files
-
-To simplify management of the environment variables used by the various connectors and subgraphs in your supergraph,
-you could choose to combine all the individual env files into single top level env files, e.g. `.env.local` and
-`.env.cloud`. You can then pass the same env files to your connector and subgraph config objects.
-
-If you have a shared supergraph config file for local and cloud, both these env files can then be set into your context
-to allow managing both local and cloud deployments using the same context. ie.
-
-```bash title="In project root with single top level env files:"
-ddn context set localEnvFile .env.local
-ddn context set cloudEnvFile .env.cloud
-````
-
-You can then run supergraph build command for both local and DDN using the same context.
-
-```bash
-ddn supergraph build local  # will use localEnvFile from context, ie. .env.local
-ddn supergraph build create  # will use cloudEnvFile from context, ie. .env.cloud
 ```
 
 ## Need help?
