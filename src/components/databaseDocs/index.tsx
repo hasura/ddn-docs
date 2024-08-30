@@ -4,11 +4,11 @@ import './styles.css';
 import { dataSources } from './dataSources';
 import { isBusinessLogicConnector, savePreference } from './utils';
 import { getContent } from './contentLoader';
-import { Selector } from './Selector';
+import { Selector } from './selector';
 
 export const DatabaseContentLoader = () => {
   const location = useLocation();
-  const history = useHistory(); // Get the history object here
+  const history = useHistory();
   const [connectorPreference, setConnectorPreference] = useState<string | null>(null);
 
   useEffect(() => {

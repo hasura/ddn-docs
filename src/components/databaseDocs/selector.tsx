@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from '@docusaurus/router';
 import Link from '@docusaurus/Link';
 import Icon from '@site/static/icons/event-triggers.svg';
@@ -21,15 +21,29 @@ export const Selector: React.FC<SelectorProps> = ({
   isAddBusinessLogicPage,
 }) => {
   const history = useHistory();
+  const [isMinified, setIsMinified] = useState(false);
+
+  useEffect(() => {
+    if (typeof window != undefined) {
+      const handleScroll = () => {
+        const scrollPosition = window.scrollY;
+        const triggerPosition = 200;
+        setIsMinified(scrollPosition > triggerPosition);
+      };
+
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   return (
-    <div className="picker-wrapper">
+    <div className={`picker-wrapper ${isMinified ? 'minified' : ''}`}>
       <small>
         {connectorPreference && (!isBusinessLogicExcluded || !isBusinessLogicConnector(connectorPreference))
           ? `You are now reading ${dataSources[connectorPreference].name}'s documentation`
           : "Select a data source's documentation"}
       </small>
-      <div className="button-wrapper">
+      <div className={`button-wrapper`}>
         {Object.keys(dataSources).map(key =>
           isAddBusinessLogicPage ? (
             isBusinessLogicConnector(key) && (
