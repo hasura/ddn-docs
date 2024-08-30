@@ -32,6 +32,12 @@ export const DatabaseContentLoader = () => {
       } else {
         setConnectorPreference(savedPreference);
       }
+
+      if (!dbParam && savedPreference && dataSources[savedPreference]) {
+        history.replace({
+          search: `db=${savedPreference}`,
+        });
+      }
     }
   }, [location.search, location.pathname]);
 
