@@ -108,13 +108,21 @@ export const DatabaseContentLoader = () => {
       } else {
         setConnectorPreference(savedPreference);
       }
+
+      if (!dbParam && savedPreference && dataSources[savedPreference]) {
+        history.replace({
+          search: `db=${savedPreference}`,
+        });
+      }
     }
   }, [location.search, location.pathname]);
 
   const savePreference = (preference: string) => {
-    const connectorObject = dataSources[preference];
-
     localStorage.setItem('hasuraV3ConnectorPreference', preference);
+
+    history.push({
+      search: `db=${preference}`,
+    });
 
     history.push({
       search: `db=${preference}`,
@@ -126,7 +134,6 @@ export const DatabaseContentLoader = () => {
   const getContent = () => {
     const isBusinessLogicExcluded =
       location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
-    const isAddBusinessLogicPage = location.pathname.includes('add-business-logic');
 
     if (
       isBusinessLogicExcluded &&
