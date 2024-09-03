@@ -3,7 +3,7 @@ sidebar_position: 2
 sidebar_label: Introduction
 description:
   "Explore the Engine Plugins. Understand the architecture of engine plugins and
-  how they can be used to add new functionalities on top of the Hasura DDN"
+  how they can be used to add new functionalities on top of DDN"
 keywords:
   - hasura plugins
   - plugins
@@ -15,37 +15,38 @@ seoFrontMatterUpdated: false
 # Introduction
 
 Hasura gives you the power to add HTTP hooks to different execution steps of the
-DDN. This allows you to add new functionalities on top of the Hasura DDN by
-writing custom code that runs at different stages of the execution.
+engine. This allows you to add new functionalities on top of DDN by writing
+custom code that runs at different stages of the execution.
 
-Engine plugins are a way to extend the capabilities of the Hasura DDN by adding
-custom logic to different execution steps. Engine plugins can be used at the following
+Engine plugins are a way to extend the capabilities of DDN by adding custom
+logic to different execution steps. Engine plugins can be used at the following
 execution steps:
 
 - **Pre-Parse**: This is the first step in the execution pipeline. You can use
-  this step to add custom logic before the query is parsed. For example, you can
-  use this step to add an allowlist layer on top of your DDN to restrict access
-  to only specific queries and mutations.
+  this step to add custom logic before the query is parsed and internal
+  representation of the query is generated. For example, you can use this step
+  to add an allowlist layer on top of your DDN to restrict access to only
+  specific queries and mutations.
 - **Pre-Response (Upcoming)**: This is the last step in the execution pipeline.
   You can use this step to add custom logic after the query is executed but
   before the response is sent back to the client. For example, you can use this
   step to add some Slack notifications after a mutation is executed.
 
-Engine plugins are HTTP servers that run alongside the Hasura DDN. They can be
-written in any language that can run an HTTP server. Engine plugins are
-configured in the DDN using OpenDD metadata. The DDN sends HTTP requests to the
-engine plugin at the configured execution step. The engine plugin processes the
-request and sends a response back to the DDN. The DDN then continues with the
-execution based on the response from the engine plugin.
+Engine plugins are HTTP servers that run alongside DDN. They can be written in
+any language that can run an HTTP server. Engine plugins are configured in DDN
+using DDN metadata. Engine sends HTTP requests to the engine plugin at the
+configured execution step. The engine plugin processes the request and sends a
+response back to the engine. The engine then continues with the execution based on the
+response from the engine plugin.
 
 ## Plugin Configuration
 
-Engine plugins are configured in the DDN using OpenDD metadata. The metadata
+Engine plugins are configured in DDN using metadata. The metadata
 specifies the URL of the engine plugin and the execution step at which the
 plugin should be called. The configuration also can control the request that is
 sent to the engine plugin.
 
-Here is an example of a plugin configuration in OpenDD metadata:
+Here is an example of a plugin configuration in DDN metadata:
 
 ```yaml
 kind: LifecyclePluginHook
@@ -82,8 +83,46 @@ The `pre-parse` plugin is called before the query is parsed. This is the first
 step in the execution pipeline. You can use this step to add custom logic before
 the query is parsed.
 
+### Pre-Parse Plugin Configuration
+
+The configuration of pre-parse plugin is defined as:
+
+| Key     | Required | Schema                                                              | Description                                               |
+|---------|----------|---------------------------------------------------------------------|-----------------------------------------------------------|
+| request | true     | [PreParsePluginHookConfigRequest](#preparsepluginhookconfigrequest) | The configuration for the request to the pre-parse plugin |
+
+#### PreParsePluginHookConfigRequest
+
+You can customize the request being sent to the HTTP webhook of the pre-parse plugin.
+
+| Key        | Required | Schema                                                  | Description                                                           |
+|------------|----------|---------------------------------------------------------|-----------------------------------------------------------------------|
+| headers    | false    | [PluginHookHeadersConfig](#pluginhookheadersconfig)     | Headers configuration for the request to the pre-parse plugin         |
+| session    | false    | `{}`                                                    | Configuration for sending session information to the pre-parse plugin |
+| rawRequest | false    | [PluginHookRawRequesConfig](#pluginhookrawrequesconfig) | Configuration for sending incoming request to the pre-parse plugin    |
+
+#### PluginHookHeadersConfig
+
+You can customize the header in the request being sent to the HTTP webhook of the pre-parse plugin.
+
+| Key        | Required | Schema     | Description                                                               |
+|------------|----------|------------|---------------------------------------------------------------------------|
+| additional | false    | `Object`   | Additional headers to be added to the request to the pre-parse plugin     |
+| forward    | false    | `[String]` | Headers to be forwarded from the incoming request to the pre-parse plugin |
+
+#### PluginHookRawRequesConfig
+
+You can customize the raw request being sent to the HTTP webhook of the pre-parse plugin.
+
+| Key      | Required | Schema | Description                                                                               |
+|----------|----------|--------|-------------------------------------------------------------------------------------------|
+| query    | false    | `{}`   | Configuration for sending the query from the incoming request to the pre-parse plugin     |
+| variables| false    | `{}`   | Configuration for sending the variables from the incoming request to the pre-parse plugin |
+
+### Pre-Parse Plugin Response
+
 The `pre-parse` plugin can control the execution pipeline by returning a response
-to the DDN. The response can be one of the following:
+to DDN. The response can be one of the following:
 
 | Response Type    | HTTP Status Code | Response Body | Description                                                |
 |------------------|------------------|---------------|------------------------------------------------------------|
