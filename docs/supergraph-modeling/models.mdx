@@ -24,22 +24,24 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-A "Model" in Hasura DDN represents a collection of data objects (eg: `Users`). Models can have "operations" defined on
-them so that they can be inserted, edited, deleted or fetched (with filtering, pagination, sorting, etc.). Very loosely,
-you can think of models as the nouns, or "things" of your data domain.
+In Hasura DDN, a **model** represents a collection of data objects within a data domain. Models act as the foundational
+elements (or "nouns") that define the data structure and behavior in your API. They can be backed by various data
+sources such as database tables, custom SQL queries, materialized views, or even external REST or GraphQL APIs.
 
-Models as the link between a data connector and the API that Hasura generates. Models can be backed by various data
-sources such as a database table, an ad-hoc SQL query, a pre-materialized view, or a custom REST or GraphQL API server.
+Models bridge the gap between [data connectors](/connectors/overview.mdx) and the
+[GraphQL API](/graphql-api/overview.mdx), enabling operations like insertion, updating, deletion, and querying with
+features like filtering, pagination, and sorting.
 
-Once a model is declared it will then often be referenced by `Relationship` objects in order to compose them with each
-other or commands, and also by `Permissions` objects to control access to the data.
+## How models work
 
-<details>
-<summary>View an example of a model and an API query it enables</summary>
+You can quickly add models to your metadata [using the CLI](/cli/commands/ddn_model_add.mdx).
 
-The following is an example of a model definition for a `Users` model. This model is backed by a Postgres database:
+Once a model is declared, it becomes a central reference point within your metadata. Models are often associated with
+[`Relationship`](/supergraph-modeling/relationships.mdx) objects, allowing them to interact with other models, and with
+[`Permissions`](/supergraph-modeling/permissions.mdx) objects, which control access to the data they represent. Like all
+other metadata objects, models are defined in an HML file.
 
-```yaml
+```yaml title="The following is an example of a model definition for a Users model:"
 ---
 kind: Model
 version: v1
@@ -73,15 +75,20 @@ definition:
     orderByExpressionType: UsersOrderBy
 ```
 
-The above model definition enables the following query in the API:
+This HML contains a standard yet customizable structure, allowing you to have a working model with minimal effort while
+also providing the flexibility to fine-tune it to your specific requirements.
 
-```graphql
+The [`definition` section](#model-modelgraphqldefinition) allows you to specify the model's name, the
+[type of objects](/supergraph-modeling/types.mdx) it represents, the
+[data source](/supergraph-modeling/data-connector-links.mdx) it's connected to, and the fields that can be used for
+sorting and filtering. All of this is done automatically, but you can further customize it to suit your needs.
+
+The [`graphql` section](#model-modelgraphqldefinition) is fully customizable and allows you to define how the model
+appears in the GraphQL API.
+
+```graphql title="The earlier model definition enables the following query in the API:"
 query UsersQuery {
-  users(
-    where: { name: { _eq: "Bob" } },
-    order_by: { createdAt: Asc },
-    limit: 10
-  ) {
+  users(where: { name: { _eq: "Bob" } }, order_by: { createdAt: Asc }, limit: 10) {
     id
     name
     email
@@ -90,7 +97,9 @@ query UsersQuery {
 }
 ```
 
-</details>
+The above example works because the earlier model definition includes the necessary configuration for filtering,
+sorting, and pagination. Alternatively, if we'd set `enableAll` to `false` for the `createdAt` field in the
+[`orderableFields` section](#model-orderablefield), the `createdAt` field would not be available for sorting in the API.
 
 <details>
 <summary>Check out Global IDs for relay:</summary>
