@@ -10,6 +10,7 @@ import ClickHouseLogo from '@site/static/img/databases/logos/clickhouse-glyph.pn
 import OpenAPILogo from '@site/static/img/databases/logos/openapi.png';
 import PythonLogo from '@site/static/img/databases/logos/python.png';
 import GraphQlLogo from '@site/static/img/databases/logos/gql.png';
+import GoLogo from '@site/static/img/databases/logos/go.png';
 
 import PostgreSqlConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_postgreSQL/_01-connect-a-source.mdx';
 import MongoDBConnect from '@site/docs/getting-started/build/03-connect-to-data/_databaseDocs/_mongoDB/_01-connect-a-source.mdx';
@@ -30,9 +31,11 @@ import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDoc
 import OpenAPIDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
 import GraphQlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_graphql/_03-deploy-a-connector.mdx';
 import PythonDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_python/_03-deploy-a-connector.mdx';
+import GoDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_go/_03-deploy-a-connector.mdx';
 
 import TypeScriptBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_typescript/_06-add-business-logic.mdx';
 import PythonBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_python/_06-add-business-logic.mdx';
+import GoBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_go/_06-add-business-logic.mdx';
 
 const dataSources = {
   PostgreSQL: {
@@ -60,6 +63,11 @@ const dataSources = {
     image: PythonLogo,
     connectorType: 'businessLogic',
   },
+  Go: {
+    name: 'Go',
+    image: GoLogo,
+    connectorType: 'businessLogic',
+  },
   OpenAPI: {
     name: 'OpenAPI',
     image: OpenAPILogo,
@@ -71,6 +79,8 @@ const dataSources = {
     connectorType: 'datasource',
   },
 };
+
+const isBusinessLogicConnector = (savedPreference: string) => ['TypeScript', 'Python', 'Go'].includes(savedPreference);
 
 export const DatabaseContentLoader = () => {
   const location = useLocation();
@@ -93,18 +103,26 @@ export const DatabaseContentLoader = () => {
         localStorage.removeItem('hasuraV3ConnectorPreference');
       }
 
-      if (isBusinessLogicExcluded && (savedPreference === 'TypeScript' || savedPreference === 'Python')) {
+      if (isBusinessLogicExcluded && isBusinessLogicConnector(savedPreference)) {
         setConnectorPreference(null);
       } else {
         setConnectorPreference(savedPreference);
+      }
+
+      if (!dbParam && savedPreference && dataSources[savedPreference]) {
+        history.replace({
+          search: `db=${savedPreference}`,
+        });
       }
     }
   }, [location.search, location.pathname]);
 
   const savePreference = (preference: string) => {
-    const connectorObject = dataSources[preference];
-
     localStorage.setItem('hasuraV3ConnectorPreference', preference);
+
+    history.push({
+      search: `db=${preference}`,
+    });
 
     history.push({
       search: `db=${preference}`,
@@ -116,7 +134,6 @@ export const DatabaseContentLoader = () => {
   const getContent = () => {
     const isBusinessLogicExcluded =
       location.pathname.includes('connect-to-data') || location.pathname.includes('mutate-data');
-    const isAddBusinessLogicPage = location.pathname.includes('add-business-logic');
 
     if (
       isBusinessLogicExcluded &&
@@ -151,6 +168,8 @@ export const DatabaseContentLoader = () => {
             return <TypeScriptBusinessLogic />;
           case 'Python':
             return <PythonBusinessLogic />;
+          case 'Go':
+            return <GoBusinessLogic />;
           default:
             return <div />;
         }
@@ -181,6 +200,8 @@ export const DatabaseContentLoader = () => {
             return <TypeScriptDeploy />;
           case 'Python':
             return <PythonDeploy />;
+          case 'Go':
+            return <GoDeploy />;
           case 'OpenAPI':
             return <OpenAPIDeploy />;
           case 'GraphQL':
@@ -201,15 +222,14 @@ export const DatabaseContentLoader = () => {
     <div>
       <div className="picker-wrapper">
         <small>
-          {connectorPreference &&
-          (!isBusinessLogicExcluded || (connectorPreference !== 'TypeScript' && connectorPreference !== 'Python'))
+          {connectorPreference && (!isBusinessLogicExcluded || !isBusinessLogicConnector(connectorPreference))
             ? `You are now reading ${dataSources[connectorPreference].name}'s documentation`
             : "Select a data source's documentation"}
         </small>
         <div className="button-wrapper">
           {Object.keys(dataSources).map(key =>
             isAddBusinessLogicPage ? (
-              (key === 'TypeScript' || key === 'Python') && (
+              isBusinessLogicConnector(key) && (
                 <div
                   key={key}
                   onClick={() => savePreference(key)}
@@ -227,7 +247,7 @@ export const DatabaseContentLoader = () => {
                   )}
                 </div>
               )
-            ) : !isBusinessLogicExcluded || (key !== 'TypeScript' && key !== 'Python') ? (
+            ) : !isBusinessLogicExcluded || !isBusinessLogicConnector(key) ? (
               <div
                 key={key}
                 onClick={() => savePreference(key)}
@@ -254,7 +274,7 @@ export const DatabaseContentLoader = () => {
           </Link>
         </div>
       </div>
-      {connectorPreference && (!isBusinessLogicExcluded || connectorPreference !== 'TypeScript') ? (
+      {connectorPreference && (!isBusinessLogicExcluded || !isBusinessLogicConnector(connectorPreference)) ? (
         getContent()
       ) : (
         <div>Please select your source preference.</div>
