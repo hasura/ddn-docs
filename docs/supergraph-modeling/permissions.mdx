@@ -31,80 +31,118 @@ in your database, or to restrict access to certain operations or fields in your 
 
 The following types of permissions can be defined:
 
-| Type               | Description                                                                       |
-| ------------------ | --------------------------------------------------------------------------------- |
-| TypePermissions    | Define which fields are allowed to be accessed by a role on an output type.       |
-| ModelPermissions   | Define which objects or rows within a model are allowed to be accessed by a role. |
-| CommandPermissions | Define whether the command is executable by a role.                               |
+| Type                                      | Description                                                                       |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| [TypePermissions](#typepermissions)       | Define which fields are allowed to be accessed by a role on an output type.       |
+| [ModelPermissions](#modelpermissions)     | Define which objects or rows within a model are allowed to be accessed by a role. |
+| [CommandPermissions](#commandpermissions) | Define whether the command is executable by a role.                               |
 
-:::info VS Code extension assisted authoring
+## How TypePermissions work {#typepermissions}
 
-Permissions are written in your various HML files. If you're using a compatible editor (such as VS Code with the
-[Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura)), assisted authoring
-will help you write permissions more efficiently. It will provide you with auto-completion, syntax highlighting, and
-error checking as you write your permissions.
+### Lifecycle
 
-:::
+By default, whenever a new type is created in your supergraph, each field is only accessible to the `admin` role. You
+can think of these as permissions on columns in a database table.
 
-## Argument presets
+You can quickly generate new roles by adding a new item to the `permissions` array in the TypePermissions object. Each
+item in the array should have a `role` field and an `output` field. The `output` field should contain an `allowedFields`
+array, which lists the fields that are accessible to the role when the type is used in an output context.
 
-Argument presets can be used to enforce row-level security. They can be defined on arguments for `Types`, `Models` and
-`Commands`.
+To make a new TypePermission or role available in your supergraph, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
 
-## Argument presets
-
-### Literals
-
-For example, given a `Command` called `get_article_by_id`, with a single argument called `id`, you can prepopulate that
-argument for the `user` role.
+### Examples
 
 ```yaml
-kind: CommandPermissions
+---
+kind: TypePermissions
 version: v1
 definition:
-  commandName: get_article_by_id
+  typeName: article
   permissions:
     - role: admin
-      allowExecution: true
+      output:
+        allowedFields:
+          - article_id
+          - author_id
+          - title
     - role: user
-      allowExecution: true
-      argumentPresets:
-        - argument: id
-          value:
-            literal: 100
+      output:
+        allowedFields:
+          - article_id
+          - author_id
 ```
 
-This means that `admin` users are able to provide whatever `id` they like to `get_article_by_id`, but the argument is
-not available in the GraphQL schema for the `user` role, and instead they always receive the same article every time.
+| **Field**                                         | **Description**                                                                                   | **Reference**                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **kind**                                          | Indicates that this object is defining permissions for a specific type.                           | [TypePermissions](#typepermissions-typepermissions)           |
+| **version**                                       | Specifies the version of the type permissions structure.                                          | [TypePermissionsV1](#typepermissions-typepermissionsv1)       |
+| **definition.typeName**                           | The name of the type for which permissions are being defined.                                     | [CustomTypeName](#typepermissions-customtypename)             |
+| **definition.permissions**                        | A list of permissions specifying which fields are accessible for different roles.                 | [TypePermission](#typepermissions-typepermission)             |
+| **definition.permissions[].role**                 | The role for which permissions are being defined.                                                 | [Role](#typepermissions-role)                                 |
+| **definition.permissions[].output.allowedFields** | The fields of the type that are accessible for a role when the type is used in an output context. | [TypeOutputPermission](#typepermissions-typeoutputpermission) |
 
-### Session variables
+## How ModelPermissions work {#modelpermissions}
 
-What might be a little more helpful is a a `Command` called `get_articles_by_author_id`, with a single argument called
-`author_id`. Here you can make it so that a `user` can only fetch articles with an `author_id` that matches their
-`x-hasura-user-id` header.
+### Lifecycle
+
+By default, whenever a new model is created in your supergraph, all records are only accessible to the `admin` role. You
+can think of these as permissions on rows in a database table.
+
+You can restrict access to certain rows by adding a new item to the `permissions` array in the `ModelPermissions`
+object. Each item in the array should have a `role` field and a `select` field. The `select` field should contain a
+`filter` expression that determines which rows are accessible to the role when selecting from the model.
+
+Most commonly, you'll use session variables — passed in the header of a request — to restrict access to rows based on
+the user's identity or other criteria. You can also use argument presets to enforce row-level security. You can see an
+example of this below.
+
+To make a new ModelPermission or role available in your supergraph, after updating your metadata, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
 
 ```yaml
-kind: CommandPermissions
+---
+kind: ModelPermissions
 version: v1
 definition:
-  commandName: get_articles_by_author_id
+  modelName: Articles
   permissions:
     - role: admin
-      allowExecution: true
+      select:
+        filter: null
     - role: user
-      allowExecution: true
-      argumentPresets:
-        - argument: id
-          value:
-            sessionVariable: x-hasura-user-id
+      select:
+        filter:
+          fieldComparison:
+            field: author_id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
 ```
 
-This means `admin` users, once again, are able to provide their own `author_id`, but a `user` can only see the articles
-they have written.
+| **Field**                                  | **Description**                                                                                            | **Reference**                                              |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **kind**                                   | Indicates that this object is defining permissions for a specific model.                                   | [ModelPermissions](#modelpermissions-modelpermissions)     |
+| **version**                                | Specifies the version of the model permissions structure.                                                  | [ModelPermissionsV1](#modelpermissions-modelpermissionsv1) |
+| **definition.modelName**                   | The name of the model for which permissions are being defined.                                             | [ModelName](#modelpermissions-modelname)                   |
+| **definition.permissions**                 | A list of permissions specifying which rows or objects are accessible for different roles.                 | [ModelPermission](#modelpermissions-modelpermission)       |
+| **definition.permissions[].role**          | The role for which permissions are being defined.                                                          | [Role](#modelpermissions-role)                             |
+| **definition.permissions[].select.filter** | A filter expression that determines which rows are accessible for this role when selecting from the model. | [ModelPredicate](#modelpermissions-modelpredicate)         |
 
-### Boolean expressions
+## How CommandPermissions work {#commandpermissions}
 
-We can also use argument presets to pass actual logical expressions to our data sources to control how they do things.
+### Lifecycle
+
+By default, whenever a new command is created in your supergraph, it is only executable by the `admin` role.
+
+You can enable or restrict access to commands by adding a new item to the `permissions` array in the
+`CommandPermissions` object. Each item in the array should have a `role` field and an `allowExecution` field. The
+`allowExecution` field should be set to `true` if the command is executable by the role.
+
+Further, you can use argument presets to pass actual logical expressions to your data sources to control how they do
+things.
 
 For example, a data connector might expose a `Command` called `delete_user_by_id` with two arguments - `user_id` and
 `pre_check`. `user_id` is the primary key of the user you'd like to remove, and `pre_check` lets you provide a custom
@@ -134,6 +172,40 @@ definition:
 Now, when `admin` runs this command, once again, they can do what they want, and provide their own `pre_check` if they
 want. The `user` however, is able to pass a `user_id` argument, but the `pre_check` expression is passed to the data
 connector which will only let them delete the row if the row's `is_invincible` value is set to `false`.
+
+To make a execution of a command available to a role in your supergraph, after updating your metadata, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+```yaml
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: get_article_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: id
+          value:
+            literal: 100
+```
+
+| **Field**                                    | **Description**                                                                         | **Reference**                                                    |
+| -------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **kind**                                     | Indicates that this object is defining permissions for a specific command.              | [CommandPermissions](#commandpermissions-commandpermissions)     |
+| **version**                                  | Specifies the version of the command permissions structure.                             | [CommandPermissionsV1](#commandpermissions-commandpermissionsv1) |
+| **definition.commandName**                   | The name of the command for which permissions are being defined.                        | [CommandName](#commandpermissions-commandname)                   |
+| **definition.permissions**                   | A list of permissions specifying whether the command is executable by different roles.  | [CommandPermission](#commandpermissions-commandpermission)       |
+| **definition.permissions[].role**            | The role for which permissions are being defined.                                       | [Role](#commandpermissions-role)                                 |
+| **definition.permissions[].allowExecution**  | Indicates whether the command is executable by the role.                                | [CommandPermission](#commandpermissions-commandpermission)       |
+| **definition.permissions[].argumentPresets** | Preset values for arguments that are enforced when the command is executed by the role. | [ArgumentPreset](#commandpermissions-argumentpreset)             |
+
+---
 
 ## Metadata structure
 
