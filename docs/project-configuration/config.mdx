@@ -214,11 +214,11 @@ config files can be created and referenced in CLI commands.
 This specifies the default DDN project and supergraph file path. The default values are used by all commands that accept
 `--supergraph` flag, `--subgraph` flag and `--project` flag. The flags can be used to override the default values. `localEnvFile`
 is used by default by all local development commands (like `ddn connector introspect`) and similarly `cloudEnvFile` is used by 
-default by all cloud commands (like `ddn supergraph build create`).
+default by all cloud commands (like `ddn supergraph build create`). Scripts define all the scripts which can be run using `ddn run` command.
 
 ```yaml
 kind: Context
-version: v2
+version: v3
 definition:
   current: default
   contexts:
@@ -228,6 +228,10 @@ definition:
       subgraph: ../app/subgraph.yaml
       localEnvFile: ../.env
       cloudEnvFile: ../.env.cloud
+  scripts:
+    docker-start:
+      bash: HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --pull always -d
+      powershell: $Env:HASURA_DDN_PAT = ddn auth print-pat; docker compose --env-file .env up --build --pull always -d
 ```
 
 This file can be configured using the `ddn context` set of commands.
