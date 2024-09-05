@@ -75,10 +75,11 @@ We provide the `ndc-postgres-cli`, which is a small executable, whose builds can
 
 The intended way to commonly use this plugin is through the main `ddn` CLI.
 
-Some of the commands, such as `initialize` and `update`, do not need to be invoked directly as part of the `ddn` CLI workflow.
+Some of the commands, such as `initialize` and `update`, do not need to be invoked directly as part of the `ddn` CLI
+workflow.
 
-The commands can be invoked by changing the directory into the connector directory (e.g. `cd my_subgraph/connector/my_pg/`)
-and invoking the command using the following syntax:
+The commands can be invoked by changing the directory into the connector directory (e.g.
+`cd my_subgraph/connector/my_pg/`) and invoking the command using the following syntax:
 
 ```sh
 ddn connector plugin --connector connector.yaml -- --help
@@ -88,11 +89,27 @@ ddn connector plugin --connector connector.yaml -- --help
 
 ### The initial configuration
 
-Running `initialize` in an empty directory will produce a single file, `configuration.json`, containing
-a minimal configuration which expects to be given a connection string via the environment variable `CONNECTION_URI`.
+Running `initialize` in an empty directory will produce a single file, `configuration.json`, containing a minimal
+configuration which expects to be given a connection string via the environment variable `CONNECTION_URI`.
 
 This is the same configuration you would get if you were to add a new PostgreSQL data connector to a project with the
 `ddn` cli.
+
+SSL configuration can be provided via the following variables, which can either
+be suppied via Hasura Cloud, or as environment variable arguments to the binary
+or Docker container:
+
+- `CLIENT_CERT`: the contents of the SSL client certificate.
+- `CLIENT_KEY`: the contents of the SSL client key.
+- `ROOT_CERT`: the contents of the SSL root certificate.
+
+If your certificates are stored in files, these files can be read into
+environment variables. As an example, we could read the client certificate
+into the environment variable like so:
+
+```bash
+CLIENT_CERT="$(cat client-certficate.pem)"
+```
 
 ### Updating with introspection
 
@@ -116,8 +133,8 @@ Various fields in the `introspectionOptions` object influence the outcome of the
 The `ndc-postgres-cli` plugin can assist in upgrading any supported version of a connector configuration to the latest
 one.
 
-`upgrade --from-dir <existing configuration dir> --to-dir <new directory>` will produce an upgraded
-version of the configuration in `<existing configuration dir>` and place it in `<new directory>`.
+`upgrade --from-dir <existing configuration dir> --to-dir <new directory>` will produce an upgraded version of the
+configuration in `<existing configuration dir>` and place it in `<new directory>`.
 
 For example:
 
