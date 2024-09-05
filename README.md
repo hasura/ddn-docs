@@ -28,7 +28,7 @@ service.
 
 Check out our contribution guide on the [wiki](https://hasura.io/docs/3.0/wiki/contributing/) 🤙
 
-If you have any questions, reach out on Slack: [#team-docs](https://hasurahq.slack.com/archives/C015EA71MU0)
+If you have any questions, reach out on Slack: [#team-docs](https://hasurahq.slack.com/archives/C015EA71MU0) 📢
 
 ## Automations
 
