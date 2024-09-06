@@ -30,6 +30,7 @@ export const topLevelMetadataObjects: Record<string, string> = {
   Supergraph: 'build-configs',
   Subgraph: 'build-configs',
   Connector: 'build-configs',
+  LifecyclePluginHook: 'engine-plugins',
 };
 
 export const topLevelMetadataRefs: Record<string, string> = {};
