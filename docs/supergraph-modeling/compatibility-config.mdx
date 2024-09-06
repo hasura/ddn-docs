@@ -12,14 +12,36 @@ toc_max_heading_level: 4
 
 ## Introduction
 
-The `CompatibilityConfig` object is a metadata object that defines the compatibility configuration of the Hasura
-metadata. The `date` field in the `CompatibilityConfig` object specifies the date after which any backwards incompatible
-changes made to Hasura DDN won't impact the metadata.
+The CompatibilityConfig object is a metadata object that defines the compatibility configuration of the Hasura metadata.
 
-**The CompatibilityConfig object belongs to the supergraph** and can be defined once across your supergraph in any
-subgraph of your choice.
+## How CompatibilityConfig works
 
-By default, all projects are created with a default `CompatibilityConfig` object in the **globals** subgraph.
+### Lifecycle
+
+By default, all projects are created with a default CompatibilityConfig object in the **globals** subgraph. It can be
+defined in any subgraph of your choice, but only once across your supergraph.
+
+The `date` field in the CompatibilityConfig object specifies the date after which any backwards incompatible changes
+made to Hasura DDN won't impact the metadata.
+
+### Examples
+
+#### Bypass `relation_comparisons` NDC Capability
+
+**Date:** `2024-09-03`
+
+**Description:** Enables bypassing the `relation_comparisons` NDC capability for relationship predicates. This allows
+you to use relationships in boolean expressions even if the data connector lacks compatibility. When the capability is
+available, relationship predicates are resolved directly within the native data connector for more efficient processing.
+If not, the predicates are handled at the API layer.
+
+#### Require GraphQL Config
+
+**Date:** `2024-06-30`
+
+**Description:** Enforce the need for [GraphQL Config](supergraph-modeling/graphql-config.mdx).
+
+---
 
 ## Metadata structure
 
