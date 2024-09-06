@@ -99,17 +99,20 @@ This file is used to store environment variables. The file should be in the form
 ENV1=val1
 ENV2=val2
 ```
-When a new project directory is initialized with the DDN CLI, it creates a single .env file by default. This .env
-file will store all the environment variables required for local development.
 
-`ddn project init` command will initialize a single .env.cloud file which will be used to store all environment variables
-required by the DDN project.
+When a new project directory is initialized with the DDN CLI, it creates a single .env file by default. This .env file
+will store all the environment variables required for local development.
+
+`ddn project init` command will initialize a single .env.cloud file which will be used to store all environment
+variables required by the DDN project.
 
 It is also possible to split the .env file into different .env files required for:
+
 - Docker Compose: Docker Compose files can use .env files to specify environment variables needed for containers.
-- Subgraph files (such as `subgraph.yaml`): Each subgraph can have its own .env file which will be used to specify environment variables required for building the subgraph.
-- Connector files (such as `connector.yaml`): Each connector file can have its own .env file which will be used to specify environment variables
-  needed for building the connector.
+- Subgraph files (such as `subgraph.yaml`): Each subgraph can have its own .env file which will be used to specify
+  environment variables required for building the subgraph.
+- Connector files (such as `connector.yaml`): Each connector file can have its own .env file which will be used to
+  specify environment variables needed for building the connector.
 
 Other than this, .env files can also be passed into various DDN commands using `--env-file` flag.
 
@@ -133,8 +136,8 @@ definition:
 - `subgraphs` specifies paths to all the subgraph config files. These are then read recursively to construct the
   metadata for the supergraph.
 
-By default, the CLI generates a single supergraph file - `supergraph.yaml` but any number of supergraph config files can be created 
-and referenced in CLI commands.
+By default, the CLI generates a single supergraph file - `supergraph.yaml` but any number of supergraph config files can
+be created and referenced in CLI commands.
 
 ### subgraph.\*.yaml {#subgraph-config}
 
@@ -167,18 +170,18 @@ definition:
   specified, all the \*.hml files inside the directory and its subdirectories will be used to construct the metadata.
 - `generator.rootPath` specifies the directory into which any new files will be generated.
 - `envMapping` declares the environment variables needed by the subgraph and where to read it from. For example,
-   ```
-   POSTGRES_WRITE_URL:
-      fromEnv: APP_POSTGRES_WRITE_URL
-   ```
-   This means that some metadata in the subgraph requires an env var called `POSTGRES_WRITE_URL`. The value of this has to be read 
-   from an env var called `APP_POSTGRES_WRITE_URL` from any of the .env.* files passed as input. Only env vars declared in the `envMapping`
-   are passed into the subgraph.
-- `connectors` lists all the connectors that are to be built when this subgraph is built. It contains `path` to the connector configuration
-   and the name of the corresponding connector link.
+  ```
+  POSTGRES_WRITE_URL:
+     fromEnv: APP_POSTGRES_WRITE_URL
+  ```
+  This means that some metadata in the subgraph requires an env var called `POSTGRES_WRITE_URL`. The value of this has
+  to be read from an env var called `APP_POSTGRES_WRITE_URL` from any of the .env.\* files passed as input. Only env
+  vars declared in the `envMapping` are passed into the subgraph.
+- `connectors` lists all the connectors that are to be built when this subgraph is built. It contains `path` to the
+  connector configuration and the name of the corresponding connector link.
 
-By default, the CLI generates a single file called `subgraph.yaml` for a new subgraph but any number of subgraph config files
-can be created and referenced in CLI commands.
+By default, the CLI generates a single file called `subgraph.yaml` for a new subgraph but any number of subgraph config
+files can be created and referenced in CLI commands.
 
 ### connector.\*.yaml {#connector-config}
 
@@ -206,19 +209,31 @@ definition:
 - `envMapping` declares the environment variables needed by the connector and where to read it from. It works the same
   way as it does for subgraphs. Only env vars declared in the `envMapping` are passed into the connector.
 
-By default, the CLI generates a single `connector.yaml` file for every new connector that is added but any number of connector
-config files can be created and referenced in CLI commands.
+By default, the CLI generates a single `connector.yaml` file for every new connector that is added but any number of
+connector config files can be created and referenced in CLI commands.
 
 ### .hasura/context.yaml {#context-file}
 
-This specifies the default DDN project and supergraph file path. The default values are used by all commands that accept
-`--supergraph` flag, `--subgraph` flag and `--project` flag. The flags can be used to override the default values. `localEnvFile`
-is used by default by all local development commands (like `ddn connector introspect`) and similarly `cloudEnvFile` is used by 
-default by all cloud commands (like `ddn supergraph build create`).
+This specifies the different contexts set up for the project. Contexts allow setting default values for certain
+flags that are often needed in CLI commands. By default, a context called `default` is created and set as the
+current context.
+
+- `project` is used for all commands that need a DDN project. Used when the `--project` flag is not
+  provided.
+- `supergraph` is used for all commands that need a supergraph config file. Used when the `--supergraph` flag is not
+  provided.
+- `subgraph` is used for all commands that need a subgraph config file. Used when the `--subgraph` flag is not
+  provided.
+- `localEnvFile` is used by default by all local development commands (like `ddn supergraph build local`). Used when
+   the `--env-file` flag is not provided.
+- `cloudEnvFile` is used by default by all cloud commands (like `ddn supergraph build create`). Used when
+  the `--env-file` flag is not provided.
+
+The `scripts` section defines all the scripts which can be run using `ddn run` command.
 
 ```yaml
 kind: Context
-version: v2
+version: v3
 definition:
   current: default
   contexts:
@@ -228,6 +243,10 @@ definition:
       subgraph: ../app/subgraph.yaml
       localEnvFile: ../.env
       cloudEnvFile: ../.env.cloud
+  scripts:
+    docker-start:
+      bash: HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --pull always -d
+      powershell: $Env:HASURA_DDN_PAT = ddn auth print-pat; docker compose --env-file .env up --build --pull always -d
 ```
 
 This file can be configured using the `ddn context` set of commands.
