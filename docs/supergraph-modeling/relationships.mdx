@@ -35,7 +35,35 @@ This enables you to create complex queries, where you can fetch related data in 
 By defining a `Relationship` object, **all [models](./models.mdx) or [commands](./commands.mdx) whose output type is the
 source object type defined in the relationship will now have a connection to the target model or command.**
 
+So from this relationship definition, all models or commands in the supergraph whose output type is the `orders` object
+type will now have a connection to the `customers` model via the `customer` relationship field on the `orders` type.
+
+So, as in example 1 below, you can now fetch the customer when you query orders. Note that also, if you had, for
+instance an arbitrary command such as `getCustomerLastOrder` which also returned an order from a customer id, you can
+now also return the customer's details for that returned order in the same single query from this relationship.
+
+## How relationships work
+
+### Lifecycle
+
+You can automatically add foreign-key relationships to your metadata
+[using the CLI](/cli/commands/ddn_relationship_add.mdx).
+
+Additionally, you can manually define relationships from an object type to a model or command in your metadata using the
+VS Code extension. The extension knows about your data sources and can help you write relationships more efficiently.
+
+Simply start by typing a delimiter (`---`) at the end of a model's metadata file and start typing `Relationship`. The
+extension will provide you with auto-completion, syntax highlighting, and error checking as you write your
+relationships. At any point in the process, you can type `Ctrl + Space` to see the available options and tab through the
+fields to fill in the required information.
+
+To make a relationship available in your supergraph, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
 ```yaml
+---
 kind: Relationship
 version: v1
 definition:
@@ -53,17 +81,20 @@ definition:
       target:
         modelField:
           - fieldName: customerId
-  description: The customer details for an order
 ```
 
-So from this relationship definition, all models or commands in the supergraph whose output type is the `orders` object
-type will now have a connection to the `customers` model via the `customer` relationship field on the `orders` type.
+| **Field**                                    | **Description**                                                                                                        | **Reference**                                                    |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **kind**                                     | Indicates that this object is defining a relationship between two data types or models.                                | [Relationship](#relationship-relationship)                       |
+| **version**                                  | Specifies the version of the relationship's structure.                                                                 | [RelationshipV1](#relationship-relationshipv1)                   |
+| **definition.name**                          | The name of the relationship, representing the link between the source and target.                                     | [RelationshipName](#relationship-relationshipname)               |
+| **definition.sourceType**                    | Defines the source object type that the relationship starts from.                                                      | [CustomTypeName](#relationship-customtypename)                   |
+| **definition.target.model.name**             | The name of the target model to which the source is related.                                                           | [ModelName](#relationship-modelname)                             |
+| **definition.target.model.subgraph**         | Specifies the subgraph in which the target model resides.                                                              | [ModelRelationshipTarget](#relationship-modelrelationshiptarget) |
+| **definition.target.model.relationshipType** | Indicates the type of relationship (Object or Array), determining whether one or many related items can be fetched.    | [RelationshipType](#relationship-relationshiptype)               |
+| **definition.mapping**                       | Defines how fields from the source map to fields or arguments in the target, establishing the connection between them. | [RelationshipMapping](#relationship-relationshipmapping)         |
 
-So, as in example 1 below, you can now fetch the customer when you query orders. Note that also, if you had, for
-instance an arbitrary command such as `getCustomerLastOrder` which also returned an order from a customer id, you can
-now also return the customer's details for that returned order in the same single query from this relationship.
-
-### Example 1 - Object Type to a Model.
+#### Object Type to a Model
 
 As mentioned above, in an e-commerce context, you will likely have customers and orders, and you want to relate them so
 that when you query orders you can easily fetch the customer on that order.
@@ -139,7 +170,7 @@ type.
 
 For convenience, this relationship configuration would best be located with your `orders` object type and model.
 
-### Example 2 - Object Type to a Command
+#### Object Type to a Command
 
 Let's say you have a `user` object type in your graph, and also a command which responds with the current logged-in user
 information (say `getLoggedInUserInfo`). Now you can link these two, by defining a relationship from the `user` object
@@ -211,7 +242,7 @@ definition:
   description: The current session information for the user
 ```
 
-### Example 3 - Related Commands
+#### Command to Command
 
 Hasura DDN also allows you to link commands together from a source type to query related data.
 
@@ -276,6 +307,8 @@ error checking as you write your relationships.
 The CLI also works to automatically track your relationships for you whenever you add or update a data connector.
 
 :::
+
+---
 
 ## Metadata structure
 
