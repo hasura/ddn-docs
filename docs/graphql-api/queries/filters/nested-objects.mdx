@@ -1,5 +1,5 @@
 ---
-sidebar_label: Filter based on fields of nested objects
+sidebar_label: Filter based on nested objects fields
 sidebar_position: 7
 description:
   "Acquire proficiency use and filter query results with Hasura's nested objects fields. This guide provides explicit
@@ -18,40 +18,135 @@ seoFrontMatterUpdated: true
 
 import GraphiQLIDE from "@site/src/components/GraphiQLIDE";
 
-# Filter Based on Fields of Nested Objects
+# Filter Based on Nested Objects Fields
 
 ## Introduction
 
-You can use the fields of nested objects as well to filter your query results.
+You can filter query results by specifying conditions on nested fields within an object.
 
 For example:
 
 ```graphql {2}
 query {
-  articles(where: { author: { name: { _eq: "Sidney" } } }) {
+  articles(where: { field: { nested_field: { _eq: "FieldValue" } } }) {
     id
     title
   }
 }
 ```
 
-The behavior of the comparison operators depends on whether the nested objects are a single object related via an object
-relationship or an array of objects related via an array relationship.
+## Applicable Fields for Nested Field Comparisons
 
-Let's look at a few use cases based on the above:
+Nested field comparisons can be made in the GraphQL API if:
+- Field's type is an [Object Type](supergraph-modeling/types.mdx#objecttype-objecttype)
+- Field is a [Relationship](supergraph-modeling/relationships.mdx)
 
-## Fetch if the single nested object defined via an object relationship satisfies a condition
+## Filtering by Object Type Fields
+
+To filter results based on a field within an object type, apply a condition to the nested field.
 
 **Example:**
 
-Fetch all articles whose author's name starts with "A":
+<GraphiQLIDE
+  query={`{
+  users (
+    where: {
+      profile: {
+        age: { _gt: 30 }
+      }
+    }
+  ) {
+    id
+    name
+    profile {
+      age
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "John Doe",
+        "profile": {
+          "age": 35
+        }
+      },
+      {
+        "id": 2,
+        "name": "Jane Smith",
+        "profile": {
+          "age": 40
+        }
+      }
+    ]
+  }
+}`}
+/>
+
+In this query, `profile` is an Object type field, and we filter users based on the condition that their
+`profile.age` is greater than 30.
+
+## Filtering by Relationship Fields
+
+You can filter results based on conditions applied to the fields of the target model in a relationship.
+The relationship can be of either Object or Array type.
+
+**Example:** Filter by `Array` relationship fields.
 
 <GraphiQLIDE
   query={`{
-  articles (
+  authors (
+    where: {
+      books: {
+        title: { _eq: "GraphQL Basics" }
+      }
+    }
+  ) {
+    id
+    name
+    books {
+      title
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "authors": [
+      {
+        "id": 1,
+        "name": "Alice Johnson",
+        "books": [
+          {
+            "title": "GraphQL Basics"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Bob Lee",
+        "books": [
+          {
+            "title": "GraphQL Basics"
+          }
+        ]
+      }
+    ]
+  }
+}`}
+/>
+
+In this query, `books` is an Array relationship, and we filter authors who have written a book titled "GraphQL Basics".
+
+**Example:** Filter by `Object` relationship fields.
+
+<GraphiQLIDE
+  query={`{
+  books (
     where: {
       author: {
-        name: { _similar: "A%"}
+        name: { _eq: "Alice Johnson" }
       }
     }
   ) {
@@ -64,43 +159,36 @@ Fetch all articles whose author's name starts with "A":
 }`}
   response={`{
   "data": {
-    "articles": [
+    "books": [
       {
         "id": 1,
-        "title": "sit amet",
+        "title": "Learning GraphQL",
         "author": {
-          "name": "Anjela"
+          "name": "Alice Johnson"
         }
       },
       {
-        "id": 3,
-        "title": "amet justo morbi",
+        "id": 2,
+        "title": "Advanced GraphQL",
         "author": {
-          "name": "Anjela"
-        }
-      },
-      {
-        "id": 4,
-        "title": "vestibulum ac est",
-        "author": {
-          "name": "Amii"
-        }
-      },
-      {
-        "id": 12,
-        "title": "volutpat quam pede",
-        "author": {
-          "name": "Amii"
-        }
-      },
-      {
-        "id": 13,
-        "title": "vulputate elementum",
-        "author": {
-          "name": "April"
+          "name": "Alice Johnson"
         }
       }
     ]
   }
 }`}
 />
+
+In this query, `author` is an object relationship field, and we filter books where the `author.name` is "Alice Johnson".
+
+### Data Connector Capability
+
+For relationship filtering to be processed efficiently, the data connector must support the `relations_comparison`
+[relationships capability](https://hasura.github.io/ndc-spec/specification/capabilities.html). This allows the query engine
+to push down relationship comparisons directly to the data connector, ensuring that filtering based on relationships is handled
+at the data source level, improving performance and reducing unnecessary data transfer.
+
+However, if the `relations_comparison` capability is absent, the query engine will handle the relationship comparisons at
+its own layer. In this case, the query engine fetches the relevant mapping field values of the relationship and constructs
+the necessary comparison expressions. While this ensures that the query can still execute, it may result in less efficient
+processing, as more data needs to be transferred to the query engine for evaluation.
