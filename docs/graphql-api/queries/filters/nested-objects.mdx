@@ -1,5 +1,5 @@
 ---
-sidebar_label: Filter based on nested objects fields
+sidebar_label: Filter based on nested fields
 sidebar_position: 7
 description:
   "Acquire proficiency use and filter query results with Hasura's nested objects fields. This guide provides explicit
@@ -22,13 +22,13 @@ import GraphiQLIDE from "@site/src/components/GraphiQLIDE";
 
 ## Introduction
 
-You can filter query results by specifying conditions on nested fields within an object.
+You can filter your query results by specifying conditions of nested fields of an object.
 
 For example:
 
 ```graphql {2}
 query {
-  articles(where: { field: { nested_field: { _eq: "FieldValue" } } }) {
+  articles(where: { author: { name: { _eq: "Sam Jones" } } }) {
     id
     title
   }
@@ -38,8 +38,8 @@ query {
 ## Applicable Fields for Nested Field Comparisons
 
 Nested field comparisons can be made in the GraphQL API if:
-- Field's type is an [Object Type](supergraph-modeling/types.mdx#objecttype-objecttype)
-- Field is a [Relationship](supergraph-modeling/relationships.mdx)
+- The field's type is an [Object Type](supergraph-modeling/types.mdx#objecttype-objecttype)
+- The field is a [Relationship](supergraph-modeling/relationships.mdx)
 
 ## Filtering by Object Type Fields
 
@@ -85,74 +85,28 @@ To filter results based on a field within an object type, apply a condition to t
 }`}
 />
 
-In this query, `profile` is an Object type field, and we filter users based on the condition that their
-`profile.age` is greater than 30.
+In this query, `profile` is an [Object Type](supergraph-modeling/types.mdx#objecttype-objecttype) field, and we filter
+users based on the condition that their `profile.age` is greater than 30.
 
 ## Filtering by Relationship Fields
 
 You can filter results based on conditions applied to the fields of the target model in a relationship.
-The relationship can be of either Object or Array type.
+The relationship can be either an object or array type.
 
 **Example:** Filter by `Array` relationship fields.
 
 <GraphiQLIDE
   query={`{
-  authors (
-    where: {
-      books: {
-        title: { _eq: "GraphQL Basics" }
-      }
-    }
-  ) {
-    id
-    name
-    books {
-      title
-    }
-  }
-}`}
-  response={`{
-  "data": {
-    "authors": [
-      {
-        "id": 1,
-        "name": "Alice Johnson",
-        "books": [
-          {
-            "title": "GraphQL Basics"
-          }
-        ]
-      },
-      {
-        "id": 3,
-        "name": "Bob Lee",
-        "books": [
-          {
-            "title": "GraphQL Basics"
-          }
-        ]
-      }
-    ]
-  }
-}`}
-/>
-
-In this query, `books` is an Array relationship, and we filter authors who have written a book titled "GraphQL Basics".
-
-**Example:** Filter by `Object` relationship fields.
-
-<GraphiQLIDE
-  query={`{
   books (
     where: {
-      author: {
+      authors: {
         name: { _eq: "Alice Johnson" }
       }
     }
   ) {
     id
     title
-    author {
+    authors {
       name
     }
   }
@@ -162,16 +116,56 @@ In this query, `books` is an Array relationship, and we filter authors who have 
     "books": [
       {
         "id": 1,
-        "title": "Learning GraphQL",
-        "author": {
-          "name": "Alice Johnson"
-        }
+        "title": "GraphQL Basics",
+        "authors": [
+          {
+            "name": "Alice Johnson"
+          }
+        ]
       },
       {
-        "id": 2,
+        "id": 3,
         "title": "Advanced GraphQL",
-        "author": {
-          "name": "Alice Johnson"
+        "authors": [
+          {
+            "name": "Alice Johnson"
+          }
+        ]
+      }
+    ]
+  }
+}`}
+/>
+
+In this query, `authors` is an array relationship, and we filter books which have been written by an author named
+"Alice Johnson".
+
+**Example:** Filter by `Object` relationship fields.
+
+<GraphiQLIDE
+  query={`{
+  author (
+    where: {
+      book: {
+        title: { _eq: "GraphQL Basics" }
+      }
+    }
+  ) {
+    id
+    name
+    book {
+      title
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "author": [
+      {
+        "id": 1,
+        "name": "Alice Johnson",
+        "book": {
+          "title": "GraphQL Basics"
         }
       }
     ]
@@ -179,22 +173,24 @@ In this query, `books` is an Array relationship, and we filter authors who have 
 }`}
 />
 
-In this query, `author` is an object relationship field, and we filter books where the `author.name` is "Alice Johnson".
+In this query, `book` is an object relationship field, and we filter authors where the `book.title` is "GraphQL Basics".
 
 ### Data Connector Capability
 
 For relationship filtering to be processed efficiently, the data connector must support the `relation_comparisons`
-[relationships capability](https://hasura.github.io/ndc-spec/specification/capabilities.html). This allows the query engine
-to push down relationship comparisons directly to the data connector, ensuring that filtering based on relationships is handled
-at the data source level, improving performance and reducing unnecessary data transfer.
+[relationships capability](https://hasura.github.io/ndc-spec/specification/capabilities.html). This allows the query
+engine to push down relationship comparisons directly to the data connector, ensuring that filtering based on
+relationships is handled at the data source level, improving performance and reducing unnecessary data transfer.
 
-However, if the `relation_comparisons` capability is absent, the query engine will handle the relationship comparisons at
-its own layer. In this case, the query engine fetches the relevant mapping field values of the relationship and constructs
-the necessary comparison expressions. While this ensures that the query can still execute, it may result in less efficient
-processing, as more data needs to be transferred to the query engine for evaluation. See [Performance of Relationship Comparisons](graphql-api/queries/filters/performance-relationship-comparisons.mdx)
+However, if the `relation_comparisons` capability is absent, the query engine will handle the relationship comparisons
+at its own layer. In this case, the query engine fetches the relevant mapping field values of the relationship and
+constructs the necessary comparison expressions. While this ensures that the query can still execute, it may result
+in reduced efficiency and slower responses, as more data needs to be transferred to the query engine for evaluation.
+See [Performance of Relationship Comparisons](graphql-api/queries/filters/performance-relationship-comparisons.mdx)
 for more details.
 
 #### Compatibility Date
 
-To utilize relationship comparisons without the `relation_comparisons` capability, you must update the compatibility date.
-For detailed instructions, please refer to the [Compatibility Config](supergraph-modeling/compatibility-config.mdx#bypass-relation_comparisons-ndc-capability).
+To utilize relationship comparisons without the `relation_comparisons` capability, you must update the compatibility
+date. For detailed instructions, please refer to the
+[Compatibility Config](supergraph-modeling/compatibility-config.mdx#bypass-relation_comparisons-ndc-capability).
