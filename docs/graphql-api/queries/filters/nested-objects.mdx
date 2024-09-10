@@ -97,16 +97,63 @@ The relationship can be either an object or array type.
 
 <GraphiQLIDE
   query={`{
+  authors (
+    where: {
+      books: {
+        title: { _like: "graphql" }
+      }
+    }
+  ) {
+    id
+    name
+    books {
+      title
+    }
+  }
+}`}
+  response={`{
+  "data": {
+    "authors": [
+      {
+        "id": 1,
+        "name": "Alice Johnson",
+        "books": [
+          {
+            "title": "GraphQL Basics"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Bob Lee",
+        "books": [
+          {
+            "title": "GraphQL Advanced"
+          }
+        ]
+      }
+    ]
+  }
+}`}
+/>
+
+In this query, `books` is an Array relationship, and we filter authors who have written a book titled "GraphQL Basics".
+
+
+**Example:** Filter by `Object` relationship fields.
+
+<GraphiQLIDE
+  query={`{
   books (
     where: {
-      authors: {
+      author: {
         name: { _eq: "Alice Johnson" }
       }
     }
   ) {
     id
     title
-    authors {
+    author {
       name
     }
   }
@@ -116,56 +163,16 @@ The relationship can be either an object or array type.
     "books": [
       {
         "id": 1,
-        "title": "GraphQL Basics",
-        "authors": [
-          {
-            "name": "Alice Johnson"
-          }
-        ]
+        "title": "Learning GraphQL",
+        "author": {
+          "name": "Alice Johnson"
+        }
       },
       {
-        "id": 3,
+        "id": 2,
         "title": "Advanced GraphQL",
-        "authors": [
-          {
-            "name": "Alice Johnson"
-          }
-        ]
-      }
-    ]
-  }
-}`}
-/>
-
-In this query, `authors` is an array relationship, and we filter books which have been written by an author named
-"Alice Johnson".
-
-**Example:** Filter by `Object` relationship fields.
-
-<GraphiQLIDE
-  query={`{
-  author (
-    where: {
-      book: {
-        title: { _eq: "GraphQL Basics" }
-      }
-    }
-  ) {
-    id
-    name
-    book {
-      title
-    }
-  }
-}`}
-  response={`{
-  "data": {
-    "author": [
-      {
-        "id": 1,
-        "name": "Alice Johnson",
-        "book": {
-          "title": "GraphQL Basics"
+        "author": {
+          "name": "Alice Johnson"
         }
       }
     ]
@@ -173,7 +180,7 @@ In this query, `authors` is an array relationship, and we filter books which hav
 }`}
 />
 
-In this query, `book` is an object relationship field, and we filter authors where the `book.title` is "GraphQL Basics".
+In this query, `author` is an object relationship field, and we filter books where the `author.name` is "Alice Johnson".
 
 ### Data Connector Capability
 
