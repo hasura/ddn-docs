@@ -23,12 +23,96 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-Subgraphs allow you to manage your Hasura metadata more efficiently by allowing it to be split based on ownership.
+A [**subgraph**](/project-configuration/subgraphs.mdx) is a way of organizing your data and allows you to connect
+multiple data sources to your supergraph.
 
 A project can have multiple subgraphs and the project metadata becomes the 'union' of the metadata across all subgraphs
 of the project. Each subgraph can then be managed independently.
 
-## Initialize a new subgraph in a project directory
+## What is a subgraph?
+
+Subgraphs are used to maintain a logical separation of concerns and/or to allow different teams to work on different
+parts of the supergraph at the same time without stepping on each other's toes.
+
+Usually, a subgraph is "owned" and maintained by a team that is responsible for the data source, or more broadly:
+"data domain", that it connects to. And by convention, one data domain is allocated to one subgraph.
+
+A subgraph is analogous to a microservice owned by a particular team.
+
+Subgraphs can reference each other, allowing, for example, the creation of relationships between them.
+
+The supergraph is the composition of all subgraphs and their relationships, but it does not care how the metadata is
+structured or organized into directories. That is up to the developer. The supergraph only cares that all metadata is
+valid and can be compiled into an API build. The CLI and this documentation will suggest best practices for organizing
+your metadata, but you can organize it however you choose.
+
+Subgraphs have their own permission models and development lifecycles separate to that of the supergraph. They can be
+developed, tested, and built independently while the supergraph guarantees the integrity of subgraph composition.
+Meaning that the supergraph will only build, and generate an API if all subgraphs are in a valid state. In this Getting
+Started section we propose best-practice for organizing your subgraphs, but it can be done however you choose.
+
+A supergraph must have at least one subgraph, at least if you want it to do anything. 😉
+
+## Naming
+
+A good rule of thumb is to name your subgraphs after the a) the team responsible for it, b) the data domain it connects
+to or for smaller projects, c) the data source which will be accessed in it.
+
+Let's say we're in an organization and the data source we'll be connecting to is for customer profile data. The team
+responsible for this data and some services related to it is called the "Customer Data" team. As such, we could create a
+`customer_data_team` subgraph, reflecting the team's name, indicating that they're the ones who will be working on it.
+Or, we could choose to be more specific and name it `customer_profile` to reflect the data domain itself, if multiple
+teams are going to work on it.
+
+Another example is, if we're working with a data source for a small project which we plan on using to contain all the
+data for our whole project, and it's all in PostgreSQL, with some business logic in TypeScript, we could name it
+`postgres_data` or `app` to keep it simple. This one subgraph would contain all the data domain specific metadata for
+the whole project, at least for the time being.
+
+:::
+
+## Subgraph context
+
+Next, for convenience, we'll set the subgraph using the `context set` command in the CLI. This will simplify any
+commands we use later on and save us from having to explicitly call out to which subgraph we're applying certain
+actions.
+
+```bash title="Run the following in your project, changing the directory to match where your subgraph.yaml is located:"
+ddn context set subgraph ./my_subgraph/subgraph.yaml
+```
+
+### What did `context set subgraph` do?
+
+This command simply updates a key-value pair in a context file in a project's `.hasura` folder to set your current
+subgraph to whatever value you passed.
+
+## Subgraph prefixes
+
+To avoid collisions between GraphQL root fields and type names, you can optionally customize the prefixes for each
+subgraph. For example, if two subgraphs both have a `Users` type, you can apply different prefixes to distinguish one
+from the other. This ensures that each subgraph remains unique and prevents any naming conflicts.
+
+You can make these modifications in the `subgraph.yaml` file for a subgraph.
+
+```yaml title="Add the highlighted lines:"
+kind: Subgraph
+version: v2
+definition:
+  name: my_subgraph
+  generator:
+    rootPath: .
+    #highlight-start
+    graphqlRootFieldPrefix: my_subgraph_
+    graphqlTypeNamePrefix: My_subgraph_
+    #highlight-end
+```
+
+By default, the `subgraph.yaml` file is generated without any prefixes. You can read more about these fields
+[here](supergraph-modeling/build-configs.mdx#subgraph-subgraphgeneratorconfig).
+
+## Subgraph operations
+
+### Initialize a new subgraph in a project directory
 
 You can initialize a subgraph in your local project directory using the CLI by running:
 
@@ -36,7 +120,7 @@ You can initialize a subgraph in your local project directory using the CLI by r
 ddn subgraph init <subgraph-name> --dir <path>
 ```
 
-## Create a new subgraph on a Hasura DDN project
+### Create a new subgraph on a Hasura DDN project
 
 You can create a subgraph for a project on Hasura DDN using the CLI by running:
 
@@ -44,7 +128,7 @@ You can create a subgraph for a project on Hasura DDN using the CLI by running:
 ddn project subgraph create <subgraph-name> --project <project-name>
 ```
 
-## List all subgraphs of a Hasura DDN project
+### List all subgraphs of a Hasura DDN project
 
 You can list all the subgraphs for a project using the CLI by running:
 
@@ -52,10 +136,81 @@ You can list all the subgraphs for a project using the CLI by running:
 ddn project subgraph get --project <project-name>
 ```
 
-## Delete a subgraph from a Hasura DDN project
+### Delete a subgraph from a Hasura DDN project
 
 You can delete a subgraph for a project using the CLI by running:
 
 ```bash
 ddn project subgraph delete <subbgraph-name>  --project <project-name>
 ```
+
+
+
+
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Create a Subgraph
+
+## What's about to happen?
+
+We're going to add a subgraph to our supergraph.
+
+
+:::info By default
+
+When you initialize a new supergraph, the CLI will create a default subgraph called `app`. However, you can follow this
+guide to add subsequent subgraphs, extending your API.
+
+:::
+
+<Thumbnail src="/img/get-started/ERD/create-subgraph.png" alt="Create a subgraph" width="1000px" />
+
+## Steps
+
+:::tip Required
+
+- [The DDN CLI, VS Code extension, and Docker installed](/getting-started/build/00-prerequisites.mdx)
+- A new or existing [supergraph](/getting-started/build/01-init-supergraph.mdx)
+
+:::
+
+### Step 1. Init a subgraph
+
+```bash title="Run the following command, passing the desired name and location to store the metadata for your subgraph:"
+ddn subgraph init my_subgraph --dir ./my_subgraph --target-supergraph ./supergraph.yaml
+```
+
+The CLI will respond with a success message (and a hint to add a connector to the subgraph).
+
+We're passing a few values to the `subgraph init` command:
+
+**Subgraph name:**
+
+We're naming the subgraph `my_subgraph` in this example.
+
+**Directory: `--dir`**
+
+We're specifying the directory where the subgraph will be created. The CLI will create this directory.
+
+**Target supergraph: `--target-supergraph`**
+
+For convenience we're specifying the supergraph(s) to which this subgraph will be added. Here we're specifying both our
+local and cloud supergraphs which were created when we initialized our supergraph. The CLI will edit these supergraph
+configuration files and add details of our subgraph to both of them.
+
+#### What did `subgraph init` do?
+
+The `subgraph init` command created a new subgraph directory and a `subgraph.yaml` file in the root of the new subgraph
+directory.
+
+The CLI also edited the supergraph configuration files to include the new subgraph in your supergraph.
+
+The subgraph is where we will be organizing metadata objects which define our API and without a data connector, our
+subgraph is just a placeholder which doesn't do much, yet...
+
+:::info More about subgraphs
+
+##### Subgraph independence
+
+
