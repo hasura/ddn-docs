@@ -1,7 +1,7 @@
 ---
 sidebar_label: ddn command add
-sidebar_position: 9
-description: Add a new Command to the local metadata using the DDN CLI
+sidebar_position: 11
+description: Add new Commands to the local metadata using the DDN CLI
 keywords:
   - hasura
   - DDN
@@ -12,30 +12,40 @@ keywords:
 
 # DDN CLI: ddn command add
 
-Add a new Command to the local metadata.
+Add new Commands to the local metadata.
 
 ## Synopsis
 
-Add a new Command to the local metadata
+Add new Commands to the local metadata
 
 ```bash
-ddn command add --connector-link <connector-link-name> --name <procedure/function-name> [flags]
+ddn command add <connector-link-name> <procedure/function-name> [flags]
 ```
 
 ## Examples
 
 ```bash
-# Add a new Command "Login" from the procedure "Login" in the DataConnectorLink "actions" in "app" Subgraph config
- ddn command add --connector-link actions --name Login --subgraph ./app/subgraph.yaml
+# Add all Commands for DataConnectorLink "myfns" in the subgraph set in the context
+ ddn command add myfns "*"
+
+# Add a new Command "Login" from the procedure "Login" in the DataConnectorLink "myfns" in "app" Subgraph
+ ddn command add myfns Login --subgraph ./app/subgraph.yaml
+
+# Add all the Commands from the procedures/functions in the DataConnectorLink "myfns" in "app" Subgraph
+ ddn command add myfns "*" --subgraph ./app/subgraph.yaml
+
+# Add Commands filtered by glob pattern from the procedures/functions in the DataConnectorLink "myfns" in "app" Subgraph
+ ddn command add myfns user* --subgraph ./app/subgraph.yaml
 ```
 
 ## Options
 
 ```sass
-    --connector-link string   Name of the DataConnectorLink (required)
--h, --help                    help for add
-    --name string             Name of the procedure or function to add as a Command (required)
-    --subgraph string         Path to Subgraph config file
+    --ci                Disables the use of context
+-c, --context string    Name of the context to use. (default <current_context>)
+-h, --help              help for add
+    --pattern string    Pattern to detect targets. Can be 'glob' or 'literal'. (default "glob")
+    --subgraph string   Path to Subgraph config file
 ```
 
 ## Options inherited from parent operations

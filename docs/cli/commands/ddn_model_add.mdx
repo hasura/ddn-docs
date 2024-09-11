@@ -1,7 +1,7 @@
 ---
 sidebar_label: ddn model add
-sidebar_position: 29
-description: Add a new Model to the local metadata using the DDN CLI
+sidebar_position: 38
+description: Add new Models to the local metadata using the DDN CLI
 keywords:
   - hasura
   - DDN
@@ -12,30 +12,40 @@ keywords:
 
 # DDN CLI: ddn model add
 
-Add a new Model to the local metadata.
+Add new Models to the local metadata.
 
 ## Synopsis
 
-Add a new Model to the local metadata
+Add new Models to the local metadata
 
 ```bash
-ddn model add --connector-link <connector-link-name> --name <collection-name> [flags]
+ddn model add <connector-link-name> <collection-name> [flags]
 ```
 
 ## Examples
 
 ```bash
+# Add all Models for DataConnectorLink "mydb" in the subgraph set in the context
+ ddn model add mydb "*"
+
 # Add a new Model "Album" from the collection "Album" in the DataConnectorLink "mydb" in Subgraph "app"
- ddn model add --connector-link mydb --name Album --subgraph ./app/subgraph.yaml
+ ddn model add mydb Album --subgraph ./app/subgraph.yaml
+
+# Add all the Models from the collections in the DataConnectorLink "mydb" in Subgraph "app"
+ ddn model add mydb "*" --subgraph ./app/subgraph.yaml
+
+# Add Models filtered by glob pattern from the collections in the DataConnectorLink "mydb" in Subgraph "app"
+ ddn model add mydb user* --subgraph ./app/subgraph.yaml
 ```
 
 ## Options
 
 ```sass
-    --connector-link string   Name of the DataConnectorLink (required)
--h, --help                    help for add
-    --name string             Name of the collection to add as a Model (required)
-    --subgraph string         Path to Subgraph config file
+    --ci                Disables the use of context
+-c, --context string    Name of the context to use. (default <current_context>)
+-h, --help              help for add
+    --pattern string    Pattern to detect targets. Can be 'glob' or 'literal'. (default "glob")
+    --subgraph string   Path to Subgraph config file
 ```
 
 ## Options inherited from parent operations

@@ -29,7 +29,8 @@ Being able to define types in your data domain is beneficial because it provides
 separately from the types referenced by a data connector's source.
 
 The specification employs a concrete type system that includes both primitive and user-defined types. All subsequent
-layers, such as models, commands, and relationships are defined in terms of these types.
+layers, such as [models](/supergraph-modeling/models.mdx), [commands](/supergraph-modeling/commands.mdx), and
+[relationships](/supergraph-modeling/relationships.mdx) are defined in terms of these types.
 
 The types can be one of the following:
 
@@ -41,17 +42,7 @@ The types can be one of the following:
 
 The spec also allows you to map existing data connector scalars to types in your data domain.
 
-You can also define custom types by either aliasing existing types (such as primitives or custom), or you can define a
-type with fields. In turn, the fields themselves can be a primitive or another custom type.
-
-Type references are types of fields and arguments that refer to other primitive or custom types and which can be marked
-as nullable, required or repeated (in the case of arrays).
-
-[//]: # "TODO: Add reference to scalars 👇 when data connector are documented"
-
-Scalar type representation helps in mapping data connector scalars to any of the above types.
-
-## Primitive types and type references {#primitive-types-and-type-references}
+:::info Primitive types and type references
 
 Primitive types supported are `ID`, `Int`, `Float`, `Boolean` and `String`.
 
@@ -59,51 +50,107 @@ Type references follow [GraphQL type syntax](https://spec.graphql.org/June2018/#
 and arguments are nullable by default. To represent non-nullability, specify a `!` after the type name. Similarly, array
 fields and arguments are wrapped in `[]`.
 
+:::
+
+## How types work
+
+### Lifecycle
+
+Typically, types will be generated from the data connector schema when you
+[introspect a data connector](/cli/commands/ddn_connector_introspect.mdx). You can also define custom types to represent
+data that doesn't exist in the data connector.
+
+Further, you can define custom types by either aliasing existing types (such as primitives or custom), or you can define
+a type with fields. In turn, the fields themselves can be a primitive or another custom type.
+
+Type references are types of fields and arguments that refer to other primitive or custom types and which can be marked
+as nullable, required or repeated (in the case of arrays).
+
+To make a new types available in your supergraph, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
 ### Examples
 
-If the field is nullable, it should be defined as
+#### ScalarType
 
-```yaml
-name: category
-type: ProductCategory
+```yaml title="A sample scalar type definition:"
+kind: ScalarType
+version: v1
+definition:
+  name: Uuid
+  graphql:
+    typeName: Uuid
 ```
 
-If the field is non-nullable, it should be defined as
+| **Field**                     | **Description**                                                                 | **Reference**                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `kind`                        | Indicates that this configuration is for a custom scalar type.                  | [ScalarType](#scalartype-scalartype)                                         |
+| `version`                     | The version of the ScalarType configuration.                                    | [ScalarTypeV1](#scalartype-scalartypev1)                                     |
+| `definition.name`             | The unique name for your custom scalar type, used throughout your project.      | [CustomTypeName](#scalartype-customtypename)                                 |
+| `definition.graphql.typeName` | The name to use for this scalar type in your GraphQL schema.                    | [ScalarTypeGraphQLConfiguration](#scalartype-scalartypegraphqlconfiguration) |
+| `definition.description`      | An optional description of this scalar type that appears in the GraphQL schema. | [ScalarTypeV1](#scalartype-scalartypev1)                                     |
 
-```yaml
-name: category
-type: ProductCategory!
+#### ObjectType
+
+```yaml title="A sample object type definition:"
+kind: ObjectType
+version: v1
+definition:
+  name: CartItems
+  fields:
+    - name: cartId
+      type: Uuid!
+    - name: createdAt
+      type: Timestamptz
+    - name: id
+      type: Uuid!
+    - name: productId
+      type: Uuid!
+    - name: quantity
+      type: Int4!
+    - name: updatedAt
+      type: Timestamptz
+  graphql:
+    typeName: CartItems
+    inputTypeName: CartItemsInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: my_pg
+      dataConnectorObjectType: cart_items
+      fieldMapping:
+        cartId:
+          column:
+            name: cart_id
+        createdAt:
+          column:
+            name: created_at
+        id:
+          column:
+            name: id
+        productId:
+          column:
+            name: product_id
+        quantity:
+          column:
+            name: quantity
+        updatedAt:
+          column:
+            name: updated_at
 ```
 
-If the field is a nullable array of nullable type, it should be defined as
+| **Field**                                              | **Description**                                                                                                   | **Reference**                                                                |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `kind`                                                 | Indicates that this configuration is for a custom object type.                                                    | [ObjectType](#objecttype-objecttype)                                         |
+| `version`                                              | The version of the ObjectType configuration.                                                                      | [ObjectTypeV1](#objecttype-objecttypev1)                                     |
+| `definition.name`                                      | The unique name for your custom object type, used throughout your project.                                        | [CustomTypeName](#objecttype-customtypename)                                 |
+| `definition.fields[].name`                             | The name of a field within your object type.                                                                      | [FieldName](#objecttype-fieldname)                                           |
+| `definition.fields[].type`                             | The data type for the field, which can be a primitive, custom type, or a type reference (e.g., `Uuid!`, `Int4!`). | [TypeReference](#objecttype-typereference)                                   |
+| `definition.fields[].description`                      | An optional description of this field that appears in the GraphQL schema.                                         | [ObjectFieldDefinition](#objecttype-objectfielddefinition)                   |
+| `definition.graphql.typeName`                          | The name to use for this object type in your GraphQL schema.                                                      | [ObjectTypeGraphQLConfiguration](#objecttype-objecttypegraphqlconfiguration) |
+| `definition.graphql.inputTypeName`                     | The name to use for this object type in input operations within your GraphQL schema.                              | [ObjectTypeGraphQLConfiguration](#objecttype-objecttypegraphqlconfiguration) |
+| `definition.dataConnectorTypeMapping[]`                | The mapping of data connector object types to your object type.                                                   | [DataConnectorTypeMapping](#objecttype-dataconnectortypemapping)             |
+| `definition.dataConnectorTypeMapping[].fieldMapping[]` | The mapping of fields in your object type to columns in a data connector.                                         | [ObjectTypeFieldMappings](#objecttype-fieldmappings)                         |
 
-```yaml
-name: tags
-type: [String]
-```
-
-If the field is a nullable array of non-nullable type, it should be defined as
-
-```yaml
-name: tags
-type: [String!]
-```
-
-If the field is a non-nullable array of nullable type, it should be defined as
-
-```yaml
-name: tags
-type:
-  [String]!
-```
-
-If the field is a non-nullable array of non-nullable type, it should be defined as
-
-```yaml
-name: tags
-type:
-  [String!]!
-```
+---
 
 ## Metadata structure
 
@@ -148,7 +195,7 @@ GraphQL configuration of an Open DD scalar type
 
 #### GraphQlTypeName {#scalartype-graphqltypename}
 
-The name of the GraphQl type to use for this scalar.
+The name of a GraphQL type.
 
 **Value:** string
 
@@ -258,10 +305,10 @@ Source field directly maps to some column in the data connector.
 
 The target column in a data connector object that a source field maps to.
 
-| Key               | Value                                                 | Required | Description                   |
-| ----------------- | ----------------------------------------------------- | -------- | ----------------------------- |
-| `name`            | string                                                | true     | The name of the target column |
-| `argumentMapping` | [ArgumentMapping](#objecttype-argumentmapping) / null | false    | Arguments to the column field |
+| Key               | Value                                                          | Required | Description                   |
+| ----------------- | -------------------------------------------------------------- | -------- | ----------------------------- |
+| `name`            | [DataConnectorColumnName](#objecttype-dataconnectorcolumnname) | true     | The name of the target column |
+| `argumentMapping` | [ArgumentMapping](#objecttype-argumentmapping) / null          | false    | Arguments to the column field |
 
 #### ArgumentMapping {#objecttype-argumentmapping}
 
@@ -269,11 +316,19 @@ Mapping of a comand or model argument name to the corresponding argument name us
 this object is the argument name used in the command or model and the value is the argument name used in the data
 connector.
 
-| Key           | Value                                                              | Required | Description |
-| ------------- | ------------------------------------------------------------------ | -------- | ----------- |
-| `<customKey>` | [DataConnectorArgumentName](#objecttype-dataconnectorargumentname) | false    |             |
+| Key           | Value                                                              | Required | Description                                             |
+| ------------- | ------------------------------------------------------------------ | -------- | ------------------------------------------------------- |
+| `<customKey>` | [DataConnectorArgumentName](#objecttype-dataconnectorargumentname) | false    | The name of an argument as defined by a data connector. |
 
 #### DataConnectorArgumentName {#objecttype-dataconnectorargumentname}
+
+The name of an argument as defined by a data connector.
+
+**Value:** string
+
+#### DataConnectorColumnName {#objecttype-dataconnectorcolumnname}
+
+The name of a column in a data connector.
 
 **Value:** string
 
@@ -313,6 +368,8 @@ GraphQL configuration of an Open DD object type.
 
 #### GraphQlTypeName {#objecttype-graphqltypename}
 
+The name of a GraphQL type.
+
 **Value:** string
 
 #### ObjectFieldDefinition {#objecttype-objectfielddefinition}
@@ -336,6 +393,8 @@ The definition of a field in a user-defined object type.
 | `description`  | string / null                              | false    |             |
 
 #### ArgumentName {#objecttype-argumentname}
+
+The name of an argument.
 
 **Value:** string
 

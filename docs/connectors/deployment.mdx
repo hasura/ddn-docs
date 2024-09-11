@@ -27,31 +27,38 @@ the CLI.
 To initialize a new connector, run the following in a project directory:
 
 ```bash
-ddn connector init <connector-name> --subgraph <subgraph-name> --hub-connector <connector>  --supergraph <supergraph.cloud.yaml>
+ddn connector init <connector-name> --subgraph <subgraph.yaml> -i
 ```
 
-| Argument                  | Description                                                           |
-|---------------------------|-----------------------------------------------------------------------|
-| `<connector-name>`        | Whatever name you would like to assign to this connector.             |
-| `<subgraph-name>`         | The name of the subgraph to which the connector belongs.              |
-| `<connector>`             | The connector from the [Connector Hub](https://hasura.io/connectors). |
-| `<supergraph.cloud.yaml>` | Path to the relevant supergraph config file                           |
+| Argument           | Description                                                             |
+|--------------------|-------------------------------------------------------------------------|
+| `<connector-name>` | Whatever name you would like to assign to this connector.               |
+| `<subgraph.yaml>`  | Path to the config file of the subgraph to which the connector belongs. |
 
-You'll then need to add the connection URI for your connector's data source in the `.env` file of the connector:
+You'll then need to choose the connector type and provide and env vars required by the connector, e.g. database
+connection urls.
 
-For example:
-
-```env
-CONNECTION_URI=<CONNECTION_URI>
-```
-
-:::info Some connectors don't require any connection URIs
+:::info Some connectors don't require any env vars
 
 An example of this would be the Node.js Lambda TypeScript connector.
 
 :::
 
-### Step 2: Build and deploy the connector
+### Step 2: Introspect the connector data source
+
+If your connector has an upstream data source, e.g. a Postgres database for the hasura/postgres connector, update the
+connector configuration by introspecting the data source.
+
+```bash
+ddn connector introspect <connector-name> --subgraph <subgraph.yaml>
+```
+
+| Argument           | Description                                                             |
+|--------------------|-------------------------------------------------------------------------|
+| `<connector-name>` | Whatever name you would like to assign to this connector.               |
+| `<subgraph.yaml>`  | Path to the config file of the subgraph to which the connector belongs. |
+
+### Step 3: Build and deploy the connector
 
 You can then build and deploy your connector to Hasura DDN using the following command with the appropriate values from
 the previous step:

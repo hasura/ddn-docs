@@ -9,7 +9,7 @@ returned to the client.
 
 ## Steps
 
-## Step 1. Create or modify an existing function
+### Step 1. Create or modify an existing function
 
 :::tip Required
 
@@ -34,7 +34,7 @@ store.
 export async function postPetAddPet(
   /** Request body */
   data: Pet,
-  headers?: hasuraSdk.JSONValue
+  headers?: hasuraSdk.JSONValue,
 ): Promise<Pet> {
   // highlight-start
   // Capitalize pet's name
@@ -69,7 +69,7 @@ export async function getPetGetCapPetById(
    * ID of pet to return capitalized name
    */
   petId: number,
-  headers?: hasuraSdk.JSONValue
+  headers?: hasuraSdk.JSONValue,
 ): Promise<Pet> {
   const result = await api.pet.getPetById({
     petId: petId,
@@ -106,7 +106,7 @@ instead of rejecting the function that uses them.
 
 :::
 
-## Step 2. Track the function
+### Step 2. Track the function
 
 We'll track our function using the CLI by first updating our `DataConnectorLink` for this data connector:
 
@@ -117,15 +117,15 @@ ddn connector-link update <connector-name>
 And then bringing in the command:
 
 ```bash
-ddn command add --connector-link <connector-link-name> --name <function-name> --subgraph my_subgraph
+ddn command add <connector-name> getPetGetCapPetById
 ```
 
-## Step 3. Create a new build and test
+### Step 3. Create a new build and test
 
 Next, let's create a new build of our supergraph:
 
 ```bash
-ddn supergraph build local --output-dir ./engine
+ddn supergraph build local
 ```
 
 :::tip Start your engines!
@@ -133,7 +133,7 @@ ddn supergraph build local --output-dir ./engine
 Want to test your supergraph? Don't forget to start your GraphQL engine and connectors using the following command.
 
 ```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yaml watch
+ddn run docker-start
 ```
 
 **If you haven't [included your connector(s)](/getting-started/build/01-init-supergraph.mdx) in your
@@ -141,6 +141,10 @@ HASURA_DDN_PAT=$(ddn auth print-pat) docker compose -f docker-compose.hasura.yam
 
 :::
 
-Finally, should see your command available in the GraphiQL explorer. Head to
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
-and interact with your API using the Hasura Console.
+Then, open your development console.
+
+```bash title="Run:"
+ddn console --local
+```
+
+Finally, you should see your command available, along with its documentation, in the GraphiQL explorer as a mutation.
