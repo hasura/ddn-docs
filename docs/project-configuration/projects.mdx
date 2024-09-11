@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 sidebar_label: Projects
 description:
   "Learn how to effectively create, configure, and manage data supergraphs with Hasura DDN. Dive into project
@@ -23,29 +23,67 @@ seoFrontMatterUpdated: true
 
 ## Introduction
 
-A DDN project allows you to deploy your supergraph and relevant data connectors on Hasura DDN.
+Projects exist both in the DDN cloud and locally on your machine. A project is the collection of metadata objects
+which make up your supergraph, itself a collection of subgraphs.
 
-## Initialize a new supergraph project directory
+## Initialize a new local project directory
 
-You can initialize a new supergraph project directory using the CLI by running:
+New local projects are created with the `supergraph init` command. You can initialize a new project in a new directory
+using the CLI by running:
 
 ```bash
-ddn supergraph init <path>
+ddn supergraph init <new-directory-to-create>
 ```
 
-## Create a new project on Hasura DDN
+Specify `.` to initialize a project in the current directory. Your directory must be empty.
 
-You can create a project on Hasura DDN using the CLI by running:
+This will create:
+- General YAML configuration and .env files for the project
+- Docker compose and configuration files
+- VSCode configuration files
+- A globals supergraph with metadata objects for the supergraph as a whole
+- A placeholder app subgraph with metadata objects for your subgraph
+- An engine directory with configuration files
+- A context file to hold current working context
+
+See the [configuration](/project-configuration/config) section for more information.
+
+## Initialize a project on Hasura DDN based on the current local directory
+
+To initialize a new project on Hasura DDN with subgraphs and connectors based on the current local directory, run:
+
+```bash
+ddn project init <project-name>
+```
+
+This command will create the project on Hasura DDN with all required subgraphs and connectors based on the current local
+project directory. It will also create a new `.env.cloud` file. It will also set the DDN project name and .env.cloud
+file in the local project context.
+
+## Create a new empty project on Hasura DDN
+
+You can create an empty project on Hasura DDN, not from a local project with the `create` command.
 
 ```bash
 ddn project create
 ```
+
+This command can be run anywhere. It will only be linked to a local project by providing the project name as context
+by running the command:
+
+```bash
+ddn context set project <project-name>
+```
+
+This will add it as an entry in the `.hasura/context.yaml` file.
 
 :::info Maximum number of projects on Hasura DDN
 
 The maximum number of projects you can create on Hasura DDN is 150.
 
 :::
+
+
 
 ## Get Hasura DDN project details
 
