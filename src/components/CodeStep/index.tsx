@@ -4,6 +4,7 @@ import CodeBlock from '@theme/CodeBlock';
 import { MDXProvider } from '@mdx-js/react';
 
 interface CodeStepProps {
+  id: string;
   language: string;
   code: string;
   heading: string;
@@ -13,7 +14,7 @@ interface CodeStepProps {
 
 const CodeStep = (props: CodeStepProps) => {
   return (
-    <div className={'step_container'}>
+    <div className={'step_container'} data-attr={props.id} >
       <div className={'item'}>
         <div className={'heading'}>
           <h2 children={props.heading} />
