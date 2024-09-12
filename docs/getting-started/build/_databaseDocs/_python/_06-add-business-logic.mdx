@@ -81,31 +81,7 @@ This command created the following file structure in a `my_subgraph/connector/my
 └── requirements.txt
 ```
 
-### Step 2. Install pip package dependencies
-
-Let's install any necessary dependencies:
-
-```bash title="Change to the connector directory and install dependencies:"
-cd my_subgraph/connector/my_python && pip3 install -r requirements.txt
-```
-
-### Step 3. Run the connector
-
-Then, from the `my_python` directory run this command to load environment variables from the `.env` file, and start
-the connector:
-
-```bash
-ddn connector setenv --connector connector.yaml -- python3 functions.py serve
-```
-
-:::warning Python version
-
-The `hasura/python` connector requires [Python](https://www.python.org/downloads/) version `>=3.11`. Please make sure
-you have the correct version installed.
-
-:::
-
-### Step 4. Write business logic
+### Step 2. Write business logic
 
 The template code that ships with the Python Lambda connector provides some simple examples to help explain how it
 works. We can replace those example functions for now.
@@ -146,7 +122,7 @@ if __name__ == "__main__":
 
 As this is a Python project, you can install any dependency!
 
-### Step 5. Track the new function
+### Step 3. Track the new function
 
 To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
 related Hasura metadata:
@@ -155,7 +131,7 @@ related Hasura metadata:
 ddn connector-link update my_python
 ```
 
-### Step 6. Create a new API build and test
+### Step 4. Create a new API build and test
 
 Next, let's create a new build of our supergraph:
 
@@ -168,11 +144,11 @@ ddn supergraph build local
 Want to test your supergraph? Don't forget to start your GraphQL engine using the following command:
 
 ```bash title="Run:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+ddn run docker-start
 ```
 
-This starts our Hasura Engine and observability tools. `HASURA_DDN_PAT=$(ddn auth print-pat)` gives the Hasura Engine
-access to the DDN CLI's authentication token.
+This reads the `docker-start` script from the context config at `.hasura/context.yaml` and starts your Hasura engine,
+any connectors, and observability tools.
 
 :::
 
@@ -209,22 +185,33 @@ browsers for the best experience with the Hasura Console including for local dev
 
 :::
 
-:::note Running Python in Docker
+:::note Running Python locally
 
-As you can see, we're running Python and your functions directly on your own machine. You can also run your functions in
-a Docker container along with your other Hasura services. The `connector init` command created a `Dockerfile` and a
-`compose.yaml` file for you, so all you would need to do would be to:
+By default, Python and your functions run in a Docker container along with your other Hasura services. The
+`connector init` command created a `compose.yaml` file for you, which are used by default.
 
-- Make sure your port in your connector's `.env` and the one referenced in the
-  `my_subgraph/connector/my_python/compose.yaml` file `ports:published` field match and don't conflict with any other
-  services you may need to run.
-- Add the Python Lambda connector compose file to the main compose file in the root of the project if you want them to
-  start all together. Eg:
+However, if you prefer to run Python directly on your local machine, you can do so by following these steps:
 
-```yaml title="At the top of the root compose.yaml"
-include:
-  - path: my_subgraph/connector/my_python/compose.yaml
+1. Ensure you have [Python](https://www.python.org/downloads/) version `>=3.11` installed on your machine.
+2. Install the necessary dependencies:
+```bash title="Change to the connector directory and install dependencies:"
+cd my_subgraph/connector/my_python && pip3 install -r requirements.txt
 ```
+3. From the `my_python` directory, run this command to load environment variables from your project's `.env` file,
+start the connector, and watch for any changes:
+
+On Mac or Linux:
+```bash
+watchmedo auto-restart --patterns="*.py" --recursive -- sh -c "export \$(grep -v '^#' .env.local | xargs) && python3 functions.py serve"
+```
+
+On Windows:
+```powershell
+watchmedo auto-restart --patterns="*.py" --recursive -- powershell -Command "Get-Content .env.local | ForEach-Object { if ($_ -notmatch '^#') { $var = $_.Split('='); Set-Item \"env:$($var[0])\" $var[1] } }; python3 functions.py serve"
+```
+
+Make sure the port specified in your connector's `.env` file doesn't conflict with any other services you may be
+running.
 
 :::
 
