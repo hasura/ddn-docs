@@ -23,7 +23,7 @@ The Go Connector can be added to any project to incorporate custom business logi
 This can be used to enrich data returned to clients, or to write custom mutations in Go.
 
 Under the hood, the Go connector is a [CLI plugin](https://github.com/hasura/ndc-sdk-go/tree/main/cmd/hasura-ndc-go) to
-generate codes upon a boilerplate of [ndc-sdk-go](https://github.com/hasura/ndc-sdk-go).
+generate code upon a boilerplate of [ndc-sdk-go](https://github.com/hasura/ndc-sdk-go).
 
 :::info Prerequisites
 
@@ -57,50 +57,16 @@ version installed.
 
 :::
 
-Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
-values being passed to them. Assume that you initialized a `my_subgraph` subgraph. We'll call this `my_go` and use the
-`hasura/go` connector from the connector hub:
+Let's begin by initializing the connector on our project. In the example below, you'll see a familiar flow and use the
+`hasura/go` connector from the connector hub.
 
-```bash title="From the root of your project, run:"
-ddn connector init -i --subgraph my_subgraph/subgraph.yaml \
-  --add-to-compose-file ./compose.yaml
-
-# ? Hub Connector hasura/go
-# ? Connector Name my_go
-# ? Port 6197
+```bash title="Run the following command:"
+ddn connector init -i
 ```
 
-In this command, we're passing a few important values.
-
-**Connector name**
-
-We're naming the connector `my_go` in this example, but you can call it whatever makes sense to you.
-
-**Hub Connector: `--hub-connector`**
-
-We're specifying that this connector should be the: `hasura/go`, connector listed in the Connector Hub.
-
-**Port: `configure-port`**
-
-We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
-services which you might have running on your machine. Remember to use a different port for each connector you may have
-running.
-
-:::tip Best practices
-
-Importantly, a data connector can only connect to one data source.
-
-The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_go` directory if it doesn't exist. You can also change this
-directory by passing a `--dir` flag to the CLI.
-
-We recommend that the name of the connector and the directory in which the configuration is stored, `my_go` in this
-example, should match for convenience and clarity sake.
-
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your supergraph's `.env` file.
-
-:::
+- Select `hasura/go` from the list of connectors.
+- Name it something descriptive. For this example, we'll call it `my_go`.
+- Choose a port (press enter to accept the default recommended by the CLI).
 
 #### What did this do?
 
@@ -130,15 +96,6 @@ This command created the following file structure in a `my_subgraph/connector/my
 ├── schema.generated.json
 # highlight-end
 ```
-
-The command also adds the read and write URL for the connection to the `.env` file for us.
-
-```env title="Example .env file"
-MY_GO_MY_GO_READ_URL="http://local.hasura.dev:6197"
-MY_GO_MY_GO_WRITE_URL="http://local.hasura.dev:6197"
-```
-
-These keys are already referenced in `my_subgraph/metadata/my_go.hml`.
 
 ### Step 2. Write business logic
 
@@ -208,9 +165,8 @@ Introspect the connector to generate connector schemas and the related Hasura me
 the `functions` folder.
 
 ```bash
-ddn connector introspect my_go \
-  --subgraph ./app/subgraph.yaml \
-  --add-all-resources
+ddn connector introspect my_go
+ddn command add my_go "*"
 ```
 
 ### Step 4. Create a new API build and test
@@ -223,7 +179,7 @@ ddn supergraph build local
 
 :::tip Start your engines!
 
-Want to test your supergraph? Don't forget to start your GraphQL engine using the following command.
+Don't forget to start your GraphQL engine using the following command.
 
 ```bash title="From the root of your project, run:"
 ddn run docker-start
@@ -234,9 +190,12 @@ any connectors, and observability tools.
 
 :::
 
-You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
-to access at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000).
+You should see your command available, along with its documentation, in the GraphiQL explorer on the console which you
+should be able to access using:
+
+```bash title="Run:"
+ddn console --local
+```
 
 ```graphql title=" You can then test your new command with the following query:"
 query Hello {
