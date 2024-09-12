@@ -1,0 +1,127 @@
+---
+sidebar_position: 10
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Data Connectors
+
+You can connect any kind of external data to Hasura DDN.
+
+The connection to any cloud or local source is made via a [**data connector**](/connectors/overview.mdx), a piece of
+software independent of the Hasura Engine.
+
+A data connector is an HTTP service that exposes a set of APIs that Hasura Engine uses to communicate with the data
+source. The data connector is responsible for interpreting work to be done on behalf of the Engine, using the
+native query language of the data source.
+
+## NDC Specification and SDKs
+
+Connectors are built to conform to the [NDC Specification](http://hasura.github.io/ndc-spec/) using one of
+our available SDKs in [Rust](https://github.com/hasura/ndc-sdk-rs), [Go](https://github.com/hasura/ndc-sdk-go) or
+[TypeScript](https://github.com/hasura/ndc-sdk-typescript), to enable anyone to connect rich, highly-native data sources
+to their supergraph.
+
+The NDC Specification defines a set of APIs that a data connector must implement. These APIs, which accept and return
+JSON, are used by Hasura to communicate with the data connector. The NDC specification also defines a set of metadata
+that the data connector must provide to Hasura. This metadata is used by Hasura to introspect the data connector,
+generate the GraphQL schema, and execute operations against the data source.
+
+## Available data connectors
+
+You can use a data connector built by Hasura, one built by the community, or you can build your own. They can be
+divided into three main categories:
+
+### 1. Data Source Connectors
+
+These connectors are built to connect to a specific data source. Anything from a database to a CSV file. One of the
+main benefits of data connectors is that they can take advantage of each particular data source's native features and
+optimizations.
+
+### 2. Lambda Connectors
+
+Lambda connectors such as the [Node.js TypeScript](https://github.com/hasura/ndc-nodejs-lambda/tree/main),
+[Go](https://github.com/hasura/ndc-go-lambda),
+and [Python](https://github.com/hasura/ndc-python-lambda) connectors are built to provide a way to execute
+business logic for your API in a serverless environment and to configure and host these endpoints together with your
+Hasura DDN infrastructure.
+
+### 3. API Connectors
+
+Existing REST and GraphQL APIs can be connected to your supergraph with our [NDC REST](https://github.
+com/hasura/ndc-rest) and [NDC GraphQL](https://github.com/hasura/ndc-graphql) connectors.
+
+## Using data connectors
+
+Verified data connectors can be used directly via the [Hasura Connector Hub](https://hasura.
+io/connectors/#connectors-list) using
+the CLI. The Connector Hub is a managed list of connectors that you can use to connect to your data sources.
+
+You can [build your own data connector](/connectors/build-your-own/index.mdx), or use one of the many connectors
+available on the [Connector Hub](https://hasura.io/connectors).
+
+## Verified and non-verified connectors
+
+### Verified connectors
+
+Verified connectors are listed on the [Connector Hub](https://hasura.io/connectors). These are deployable to Hasura DDN
+using the Hasura CLI.
+
+### Non-verified connectors
+
+Non-verified connectors have not been verified by Hasura. These are only deployable on your own infrastructure.
+
+## Deploy a connector to Hasura DDN
+
+You can deploy any verified connector available on the [Connector Hub](https://hasura.io/connectors) to Hasura DDN using
+the CLI.
+
+### Step 1: Initialize a new connector
+
+To initialize a new connector, run the following in a project directory:
+
+```bash
+ddn connector init <connector-name> --subgraph <subgraph.yaml> -i
+```
+
+| Argument           | Description                                                             |
+|--------------------|-------------------------------------------------------------------------|
+| `<connector-name>` | Whatever name you would like to assign to this connector.               |
+| `<subgraph.yaml>`  | Path to the config file of the subgraph to which the connector belongs. |
+
+You'll then need to choose the connector type and provide and env vars required by the connector, e.g. database
+connection urls.
+
+:::info Some connectors don't require any env vars
+
+An example of this would be the Node.js Lambda TypeScript connector.
+
+:::
+
+### Step 2: Introspect the connector data source
+
+If your connector has an upstream data source, e.g. a Postgres database for the hasura/postgres connector, update the
+connector configuration by introspecting the data source.
+
+```bash
+ddn connector introspect <connector-name> --subgraph <subgraph.yaml>
+```
+
+| Argument           | Description                                                             |
+|--------------------|-------------------------------------------------------------------------|
+| `<connector-name>` | Whatever name you would like to assign to this connector.               |
+| `<subgraph.yaml>`  | Path to the config file of the subgraph to which the connector belongs. |
+
+### Step 3: Build and deploy the connector
+
+You can then build and deploy your connector to Hasura DDN using the following command with the appropriate values from
+the previous step:
+
+```bash
+ddn connector build create --connector <connector.yaml> --project <project-name>
+```
+
+| Argument           | Description                    |
+| ------------------ | ------------------------------ |
+| `<connector.yaml>` | Path to connector config file. |
+| `<project>`        | DDN project to deploy to       |
