@@ -37,21 +37,98 @@ wrangler generate allowlist-plugin https://github.com/hasura/plugin-allowlist
 
 This will create a new local Wranlger project using the allowlist plugin as a template in your current directory.
 
-## Step 2. Configure the plugin
+## Step 2. Install the dependencies
 
-In the new directory, update the `wrangler.toml` file with the required configurations.
+Navigate to the new directory and install the dependencies.
 
-```toml
-...
-[vars]
-OTEL_EXPORTER_OTLP_ENDPOINT = "https://gateway.otlp.hasura.io:443/v1/traces"
-OTEL_EXPORTER_PAT = "<PAT>"
+```bash
+cd allowlist-plugin
+npm install
 ```
 
-Replace `<PAT>` with the Personal Access Token (PAT) for the Hasura Cloud account. You can generate this using the
-`ddn auth print-pat` command.
+Also, start the local development server.
 
-## Step 3. Update the config
+```bash
+npm start
+```
+
+## Step 3. Add the plugin configuration
+
+We'll let the engine know about the plugin and to execute it as a pre-parse plugin by creating a new metadata file. In
+your `global` subgraph's metadata directory, create a new file named `allow-list.hml` and add the following
+configuration.
+
+```yaml
+kind: LifecyclePluginHook
+version: v1
+definition:
+  name: cloudflare allow list
+  url:
+    valueFromEnv: ALLOW_LIST_URL
+  pre: parse
+  config:
+    request:
+      headers:
+        additional:
+          hasura-m-auth:
+            valueFromEnv: M_AUTH_KEY
+      session: {}
+      rawRequest:
+        query: {}
+        variables: {}
+```
+
+:::info Using environment variables
+
+We've used `valueFromEnv` so that we can dynamically and securely add values from our environment variables. You can add
+these values to your root-level `.env` and then map them in the `globals` subgraph.yaml file. Alternatively, you can
+include raw strings here using `value` instead of `valueFromEnv` and passing the keys.
+
+:::
+
+Next, update the `subgraph.yaml` file to include the metadata file and the environment variables.
+
+```yaml
+kind: Subgraph
+version: v2
+definition:
+  name: globals
+  ...
+  includePaths:
+    ...
+    - allowlist-plugin.hml
+  envMapping:
+    ALLOW_LIST_URL:
+      fromEnv: ALLOW_LIST_URL
+    M_AUTH_KEY:
+      fromEnv: M_AUTH_KEY
+```
+
+Finally, we need to add the environment variables to the `.env` file.
+
+```bash
+ALLOW_LIST_URL="http://local.hasura.dev:8787"
+M_AUTH_KEY="your-strong-m-auth-key"
+```
+
+## Step 4. Create a new build for local development
+
+Create a new supergraph build.
+
+```bash
+ddn supergraph build local
+```
+
+Start the console for the local supergraph.
+
+```bash
+ddn console --local
+```
+
+You can now test the plugin by running queries or mutations that are not in the allowlist. The plugin will restrict
+access to only the queries or mutations you've defined.
+
+## Step 5. Update the plugin config
 
 Update the `src/config.ts` file with the queries and mutations that you want to allow, using a strong m-auth key.
 
@@ -67,58 +144,34 @@ export const Config = {
 };
 ```
 
-## Step 4. Add the hosted plugin
+:::info Hot reloading
 
-We'll let the engine know about the plugin and to execute it as a pre-parse plugin by creating a new metadata file. In
-your `global` subgraph's metadata directory, create a new file named `allow-list.hml` and add the following
-configuration.
-
-```yaml
-kind: LifecyclePluginHook
-version: v1
-definition:
-name: cloudflare allow list
-url:
-  valueFromEnv: ALLOW_LIST_URL
-pre: parse
-config:
-  request:
-    headers:
-      additional:
-      hasura-m-auth:
-        valueFromEnv: M_AUTH_KEY
-    session: {}
-    rawRequest:
-      query: {}
-      variables: {}
-```
-
-:::info Using environment variables
-
-We've used `valueFromEnv` so that we can dynamically and securely add values from our environment variables. You can add
-these values to your root-level `.env` and then map them in the `globals` subgraph.yaml file. Alternatively, you can
-include raw strings here using `value` instead of `valueFromEnv` and passing the keys.
+The local wrangler development server will automatically reload the plugin when you make changes to the code.
 
 :::
 
-## Step 5. Test the plugin locally
+## Step 6. Configure the plugin variables
 
-You can run the plugin locally and test it:
+:::info Setup tracing
 
-```bash
-npm start
-```
-
-The plugin will be available at `http://localhost:8787`.
-
-:::info Testing local development
-
-You can test the local development by adding the local development endpoint (obtained in step 5) in your
-LifeCyclePluginHook metadata file.
+To enable tracing for the plugin, you need to update the `wrangler.toml` file with the required configurations. If you
+don't want to enable tracing for the plugin, you can skip this step.
 
 :::
 
-## Step 6. Deploy the plugin
+In `allowlist-plugin` directory, update the `wrangler.toml` file with the required configurations.
+
+```toml
+...
+[vars]
+OTEL_EXPORTER_OTLP_ENDPOINT = "https://gateway.otlp.hasura.io:443/v1/traces"
+OTEL_EXPORTER_PAT = "<PAT>"
+```
+
+Replace `<PAT>` with the Personal Access Token (PAT) for the Hasura Cloud account. You can generate this using the
+`ddn auth print-pat` command.
+
+## Step 7. Deploy the plugin
 
 For your plugin to be reachable by your hosted supergraph, we'll need to deploy using Cloudflare Wrangler. The `deploy`
 command included in your plugin's `package.json` will do this automatically for you and return the hoted service's URL.
@@ -129,12 +182,20 @@ command included in your plugin's `package.json` will do this automatically for 
 npm run deploy
 ```
 
-## Step 7. Create a new build
+This will deploy the plugin to Cloudflare Workers and return the URL of the hosted service. Next, update the .env.cloud
+file with the URL.
+
+```bash
+ALLOW_LIST_URL="https://<your-deployed-plugin>.workers.dev"
+M_AUTH_KEY="your-strong-m-auth-key"
+```
+
+## Step 8. Create a new build
 
 Create a new supergraph build.
 
 ```bash
-ddn supergraph build
+ddn supergraph build create
 ```
 
 The engine will execute the plugin before each request using the queries or mutations you defined.
