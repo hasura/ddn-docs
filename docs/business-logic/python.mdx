@@ -48,48 +48,16 @@ return values.
 
 ### Step 1. Initialize the Python Lambda connector
 
-Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
-values being passed to them. We'll call this `my_python` and use the `hasura/python` connector from the connector hub:
+Let's begin by initializing the connector on our project. In the example below, you'll see a familiar flow and use the
+`hasura/python` connector from the connector hub.
 
-```bash title="From the root of your project, run:"
-ddn connector init my_python \
-  --subgraph my_subgraph/subgraph.yaml \
-  --hub-connector hasura/python \
-  --configure-port 8085
+```bash title="Run the following command:"
+ddn connector init -i
 ```
 
-In this command, we're passing a few important values.
-
-**Connector name**
-
-We're naming the connector `my_python` in this example, but you can call it whatever makes sense to you.
-
-**Connector: `--hub-connector`**
-
-We're specifying that this connector should be the: `hasura/python`, connector listed in the
-[Connector Hub](https://hasura.io/connectors/python-lambda).
-
-**Port: `configure-port`**
-
-We're specifying the port to run the connector on. This is important to avoid port collisions with other connectors or
-services which you might have running on your machine. Remember to use a different port for each connector you may have
-running.
-
-:::tip Best practices
-
-Importantly, a data connector can only connect to one data source.
-
-The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_python` directory if it doesn't exist. You can also change
-this directory by passing a `--dir` flag to the CLI.
-
-We recommend that the name of the connector and the directory in which the configuration is stored, `my_python` in this
-example, should match for convenience and clarity sake.
-
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
-
-:::
+- Select `hasura/python` from the list of connectors.
+- Name it something descriptive. For this example, we'll call it `my_python`.
+- Choose a port (press enter to accept the default recommended by the CLI).
 
 #### What did this do?
 
@@ -113,29 +81,7 @@ This command created the following file structure in a `my_subgraph/connector/my
 └── requirements.txt
 ```
 
-### Step 2. Add the DataConnectorLink
-
-As with any other connector, we'll now need to create the `DataConnectorLink` which will translate our Python functions
-into `hml` commands that can be exposed as queries and mutations via our GraphQL API. Create this using:
-
-```bash title="Run the following from the root of your project:"
-ddn connector-link add my_python \
-  --subgraph my_subgraph/subgraph.yaml \
-  --configure-host http://local.hasura.dev:8085 \
-  --target-env-file my_subgraph/.env.my_subgraph.local
-```
-
-The `--configure-host` convenience flag added the read and write URL for the connection to the `.env.my_subgraph` file
-for us.
-
-```env title="Example .env.my_subgraph file"
-MY_SUBGRAPH_MY_PYTHON_READ_URL="http://local.hasura.dev:8085"
-MY_SUBGRAPH_MY_PYTHON_WRITE_URL="http://local.hasura.dev:8085"
-```
-
-These keys are already referenced in `my_subgraph/metadata/my_python/my_python.hml`.
-
-### Step 3. Write business logic
+### Step 2. Write business logic
 
 The template code that ships with the Python Lambda connector provides some simple examples to help explain how it
 works. We can replace those example functions for now.
@@ -176,31 +122,27 @@ if __name__ == "__main__":
 
 As this is a Python project, you can install any dependency!
 
-### Step 4. Track the new function
+### Step 3. Track the new function
 
-To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
-related Hasura metadata:
+To add our function, we can use the following to generate the related metadata that will link together any functions in
+this `functions.py` file and our API.
 
 ```bash
-ddn connector-link update my_python \
-  --subgraph my_subgraph/subgraph.yaml \
-  --env-file my_subgraph/.env.my_subgraph.local \
-  --add-all-resources
+ddn connector introspect my_python
+ddn command add my_python "*"
 ```
 
-### Step 5. Create a new API build and test
+### Step 4. Create a new API build and test
 
 Next, let's create a new build of our supergraph:
 
 ```bash
-ddn supergraph build local \
-  --output-dir engine \
-  --subgraph-env-file my_subgraph:my_subgraph/.env.my_subgraph.local
+ddn supergraph build local
 ```
 
 :::tip Start your engines!
 
-Want to test your supergraph? Don't forget to start your GraphQL engine using the following command.
+Don't forget to start your GraphQL engine using the following command.
 
 ```bash title="From the root of your project, run:"
 ddn run docker-start
@@ -211,9 +153,12 @@ any connectors, and observability tools.
 
 :::
 
-You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
-to access at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000).
+You should see your command available, along with its documentation, in the GraphiQL explorer on the console which you
+should be able to access using:
+
+```bash title="Run:"
+ddn console --local
+```
 
 ```graphql title=" You can then test your new command with the following query:"
 query MyQuery {
@@ -226,6 +171,8 @@ query MyQuery {
   alt="Demo Business Logic query"
   width="1000px"
 />
+
+<br />
 
 :::tip Privacy settings in some browsers
 
