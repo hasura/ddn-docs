@@ -50,7 +50,7 @@ Then, modify the `onExecutePostLogin` function to the following:
 exports.onExecutePostLogin = async (event, api) => {
   const namespace = "claims.jwt.hasura.io";
   api.idToken.setCustomClaim(namespace, {
-    "x-hasura-default-role": "user",
+    "x-hasura-default-role": event.user.user_metadata.role,
     "x-hasura-allowed-roles": ["user", "admin"],
     "x-hasura-user-id": event.user.user_id,
   });
@@ -65,7 +65,8 @@ Click `Deploy`.
 :::tip Custom claims
 
 You can create any custom keys you wish and reference them in your permissions using session variables. Above,
-`x-hasura-user-id` is simply an example. Any claim prefixed with `x-hasura-` is accessible to the Hasura DDN Engine. For more information on which values are required, check the
+`x-hasura-user-id` is simply an example. Any claim prefixed with `x-hasura-` is accessible to the Hasura DDN Engine. For
+more information on which values are required, check the
 [authorization docs](/auth/authentication/jwt/setup.mdx#step-2-create-the-claims).
 
 :::
