@@ -51,13 +51,17 @@ following code to modify the Cognito JWT and inject the custom Hasura namespace 
 
 ```javascript
 export const handler = async (event) => {
+  // Here, you'll need to fetch the user's role from Hasura DDN using an admin-level authenticated request
+  // Learn more here: https://hasura.io/docs/3.0/auth/authentication/jwt/special-roles
+  // Below, we're hard-coding the value for now
+  const user_role = "user"; // the role returned from your request ☝️
   event.response = {
     claimsOverrideDetails: {
       claimsToAddOrOverride: {
         "claims.jwt.hasura.io": JSON.stringify({
           "x-hasura-user-id": event.request.userAttributes.sub,
-          "x-hasura-default-role": "user",
-          "x-hasura-allowed-roles": ["user", "admin"],
+          "x-hasura-default-role": user_role,
+          "x-hasura-allowed-roles": ["user"],
         }),
       },
     },
@@ -75,7 +79,8 @@ Click `Deploy`.
 :::tip Custom claims
 
 You can create any custom keys you wish and reference them in your permissions using session variables. Above,
-`x-hasura-user-id` is simply an example. For more information on which values are required, check the
+`x-hasura-user-id` is simply an example. Any claim prefixed with `x-hasura-` is accessible to the Hasura DDN Engine. For
+more information on which values are required, check the
 [authorization docs](/auth/authentication/jwt/setup.mdx#step-2-create-the-claims).
 
 :::
