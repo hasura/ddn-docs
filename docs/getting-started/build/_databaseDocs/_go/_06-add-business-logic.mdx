@@ -4,8 +4,8 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 With Hasura, you can integrate — and even host — business logic directly with Hasura DDN and your API.
 
-You can handle custom business logic using the Go connector. Using this connector, you can transform or enrich data
-before it reaches your consumers, or perform any other app business logic you may need.
+You can handle custom business logic using the Go connector. Using this connector, you can transform or
+enrich data before it reaches your consumers, or perform any other app business logic you may need.
 
 You can then integrate these functions as individual [**commands**](/supergraph-modeling/commands.mdx) in your metadata
 and resulting API. This process simplifies client applications and speeds up your backend development.
@@ -26,39 +26,22 @@ and resulting API. This process simplifies client applications and speeds up you
 In this guide we will:
 
 - Initialize the `hasura/go` data connector
-- Add a new `DataConnectorLink`
-- Update the `DataConnectorLink` to track the function script as a command in our metadata
+- Generate the metadata to track the function script as a command in our metadata
 - Create a new API build and test it
 
 ### Step 1. Initialize the Go connector
 
-Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
-values being passed to them. We'll call this `my_go` and use the `hasura/go` connector from the connector hub:
+Let's begin by initializing the connector on our project. In the example below, you'll see a familiar flow and use the
+`hasura/go` connector from the connector hub.
 
 ```bash title="Run the following command:"
-ddn connector init -i --subgraph my_subgraph/subgraph.yaml \
-  --add-to-compose-file ./compose.yaml
+ddn connector init -i
 ```
 
 - Select `hasura/go` from the list of connectors.
 - Name it something descriptive. For this example, we'll call it `my_go`.
 - Choose a port (press enter to accept the default recommended by the CLI).
 
-:::tip Best practices
-
-Importantly, a data connector can only connect to one data source.
-
-The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
-this example the CLI will create a `my_subgraph/connector/my_go` directory if it doesn't exist. You can also change this
-directory by passing a `--dir` flag to the CLI.
-
-We recommend that the name of the connector and the directory in which the configuration is stored, `my_go` in this
-example, should match for convenience and clarity sake.
-
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your `.env` file.
-
-:::
 
 #### What did this do?
 
@@ -153,14 +136,35 @@ See more details in the documentation of
 
 ### Step 3. Track the new function
 
-Introspect the connector to generate connector schemas and the related Hasura metadata whenever there are new changes in
-the `functions` folder.
+To add our function, we can use the following to generate the related metadata that will link together any functions in
+this `functions.ts` file and our API.
 
 ```bash
-ddn connector introspect my_go \
-  --subgraph ./app/subgraph.yaml \
-  --add-all-resources
+ddn connector introspect my_go
 ```
+
+Then, we can generate an `hml` file for the function using the following command.
+
+```bash title="Track the function:"
+ddn command add my_go formatTimezoneDate
+```
+
+:::info Have a lot of functions?
+
+If you have a lot of functions and want to add them all en masse, you can use the CLI to generate metadata for each.
+
+```bash title="Run the following:"
+ddn command add my_go "*"
+```
+
+:::
+
+#### What did this do?
+
+The command introspected your `functions.ts` file and found any functions present along with their argument and return
+types.
+
+The CLI then used this to create Hasura metadata for each function which can then be exposed in your API.
 
 ### Step 4. Create a new API build and test
 
@@ -184,13 +188,10 @@ any connectors, and observability tools.
 :::
 
 You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
-to access at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000).
-
-If you want a quick way of opening the console, you can run the following command:
+to access using the CLI.
 
 ```bash title="Run:"
-ddn console -l
+ddn console --local
 ```
 
 ```graphql title=" You can then test your new command with the following query:"
