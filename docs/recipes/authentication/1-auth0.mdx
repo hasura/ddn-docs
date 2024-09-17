@@ -49,9 +49,13 @@ Then, modify the `onExecutePostLogin` function to the following:
 ```typescript
 exports.onExecutePostLogin = async (event, api) => {
   const namespace = "claims.jwt.hasura.io";
+  // Here, you'll need to fetch the user's role from Hasura DDN using an admin-level authenticated request
+  // Learn more here: https://hasura.io/docs/3.0/auth/authentication/jwt/special-roles
+  // Below, we're hard-coding the value for now
+  const user_role = "user"; // the role returned from your request ☝️
   api.idToken.setCustomClaim(namespace, {
-    "x-hasura-default-role": event.user.user_metadata.role,
-    "x-hasura-allowed-roles": ["user", "admin"],
+    "x-hasura-default-role": user_role,
+    "x-hasura-allowed-roles": ["user"],
     "x-hasura-user-id": event.user.user_id,
   });
 };
