@@ -53,14 +53,14 @@ definition:
   pre: parse
   config:
     request:
-    headers:
-      additional:
-        hasura-m-auth:
-          value: "your-strong-m-auth-key"
-    session: {}
-    rawRequest:
-      query: {}
-      variables: {}
+      headers:
+        additional:
+          hasura-m-auth:
+            value: "your-strong-m-auth-key"
+      session: {}
+      rawRequest:
+        query: {}
+        variables: {}
 ```
 
 In this example, the plugin is configured to run at the `pre-parse` execution step. The plugin is called
@@ -114,6 +114,13 @@ following:
 | `User Error`     | `400`            | Error object  | Stop the execution and return the error to the client.      |
 | `Internal Error` | `500`            | Error object  | Stop the execution and return internal error to the client. |
 
+:::warning Response Validation
+
+The response from the plugin is not validated by DDN. It is the responsibility of the plugin to return a valid response
+based on the plugin's logic.
+
+:::
+
 ### Multiple Pre-Parse Plugins
 
 Multiple pre-parse plugins can be configured in DDN metadata. The plugins are executed in the order they are defined in
@@ -122,12 +129,12 @@ the metadata.
 Please note that if a plugin returns a `Response`, `User Error` or `Internal Error` response, the execution stops and
 the response is sent to the client. The subsequent plugins are not executed.
 
-Let's take an example where the engine is confiured with multiple pre-parse plugins: `Pre-parse hook 1`, `Pre-parse hook
-2`, `Pre-parse hook 3` ...
+Let's take an example where the engine is confiured with two pre-parse plugins: `Pre-parse hook 1` and `Pre-parse hook
+2`.
 
 <Thumbnail src="/img/plugins/multiple-pre-parse-plugins.jpg" alt="Multiple pre-parse plugins" width="750px" />
 
-In this example, the engine is configured with three pre-parse plugins. The engine sends the request to `Pre-parse hook
+In this example, the engine is configured with two pre-parse plugins. The engine sends the request to `Pre-parse hook
 1`, which processes the request and sends a response. Now, depending on the response, the engine either continues with
 the execution or stops and sends the response to the client.
 
@@ -136,7 +143,7 @@ the execution or stops and sends the response to the client.
 If `Pre-parse hook 1` returns a `Continue` response (HTTP status code is 204), the engine sends the request to
 `Pre-parse hook 2`. The engine continues this process until all the pre-parse plugins are executed.
 
-:::tip `Continue` response body
+:::tip Continue response body
 
 The `Continue` response body is ignored by DDN. The plugin can return an empty response body.
 
@@ -147,13 +154,6 @@ The `Continue` response body is ignored by DDN. The plugin can return an empty r
 If `Pre-parse hook 1` returns a `Response` response (HTTP status code is 200) or a `User Error` response (HTTP status
 code is 400) or an `Internal Error` response (HTTP status code is 500), the engine stops the execution and sends
 the response to the client. The subsequent plugins are not executed.
-
-:::tip Response Validation
-
-The response from the plugin is not validated by DDN. It is the responsibility of the plugin to return a valid response
-based on the plugin's logic.
-
-:::
 
 <Thumbnail src="/img/plugins/multiple-pre-parse-plugins-p1-response.jpg" alt="Multiple pre-parse plugins with 1st plugin
 response being sent to the client" width="750px" />
