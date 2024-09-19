@@ -2,13 +2,13 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## What's about to happen?
 
-With Hasura, you can integrate — and even host — this business logic directly with Hasura DDN and your API.
+With Hasura, you can integrate — and even host — business logic directly with Hasura DDN and your API.
 
-You can handle custom business logic using the Node.js Lambda data connector. Using this connector, you can transform or
+You can handle custom business logic using the Node.js Lambda connector. Using this connector, you can transform or
 enrich data before it reaches your consumers, or perform any other app business logic you may need.
 
 You can then integrate these functions as individual [**commands**](/supergraph-modeling/commands.mdx) in your metadata
-and resulting API. This process enables you to simplify client applications and speed up your backend development.
+and resulting API. This process simplifies client applications and speeds up your backend development.
 
 <Thumbnail src="/img/get-started/ERD/add-bizlogic.png" alt="Add business logic to your API" width="1000px" />
 
@@ -27,8 +27,7 @@ In this guide we will:
 
 - Initialize the `hasura/nodejs` data connector
 - Use Node.js and npm to create a simple script
-- Add a new `DataConnectorLink`
-- Update the `DataConnectorLink` to track the function script as a command in our metadata
+- Generate the metadata to track the function script as a command in our metadata
 - Create a new API build and test it
 
 ### Step 1. Initialize the Node.js Lambda connector
@@ -48,8 +47,12 @@ ddn connector init -i
 
 Importantly, a data connector can only connect to one data source.
 
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in the key-value pair for your `.env` file.
+The project will be kept organized with each data connector's configuration located in a relevant subgraph directory. In
+this example the CLI will create a `my_subgraph/connector/my_ts` directory if it doesn't exist. You can also change
+this directory by passing a `--dir` flag to the CLI.
+
+We recommend that the name of the connector and the directory in which the configuration is stored, `my_ts` in this
+example, should match for convenience and clarity sake.
 
 :::
 
@@ -61,6 +64,7 @@ file being your connector's entrypoint:
 ```bash
 .
 ├── .ddnignore
+├── .gitignore
 ├── .hasura-connector
 │  ├── ...
 ├── compose.yaml
@@ -136,7 +140,7 @@ ddn command add my_ts formatTimezoneDate
 If you have a lot of functions and want to add them all en masse, you can use the CLI to generate metadata for each.
 
 ```bash title="Run the following:"
-ddn connector-link add-resources my_ts
+ddn command add my_ts "*"
 ```
 
 :::
@@ -158,7 +162,7 @@ ddn supergraph build local
 
 :::tip Start your engines!
 
-Want to test your supergraph? Don't forget to start your GraphQL engine using the following command.
+Want to test your supergraph? Don't forget to start your GraphQL engine using the following command:
 
 ```bash title="Run:"
 ddn run docker-start
@@ -187,6 +191,8 @@ query MyQuery {
   alt="Demo Business Logic query"
   width="1000px"
 />
+
+<br />
 
 :::tip Privacy settings in some browsers
 
