@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-sidebar_label: Configuration
+sidebar_label: Directory structure
 description:
   "Learn about the configuration process for Hasura's Data Delivery Network. Discover detailed instructions on utilizing
   Hasura CLI for efficient project management, configuring build profiles and subgraphs."
@@ -18,11 +18,11 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-# Configuration
+# Project directory structure
 
 ## Introduction
 
-Hasura v3 introduces a new configuration for local projects.
+Hasura DDN projects are configured via metadata and config files which are managed in a project directory.
 
 ## Sample project directory structure
 
@@ -30,54 +30,57 @@ The following is a sample directory structure of a local project:
 
 ```bash
 .
-├── .devcontainer
-│   └── devcontainer.json
-├── .env
-├── .gitattributes
-├── .gitignore
-├── .hasura
-│   └── context.yaml
-├── .vscode
-│   ├── extensions.json
-│   ├── launch.json
-│   └── tasks.json
-├── app
-│   ├── metadata
-│   └── subgraph.yaml
+├── hasura.yaml
+├── supergraph.yaml
 ├── compose.yaml
+├── .env
+├── .env.cloud
+├── otel-collector-config.yaml
 ├── engine
 │   ├── .env.engine
 │   └── build
 │       ├── auth_config.json
 │       ├── metadata.json
 │       └── open_dd.json
-├── globals
-│   ├── auth-config.hml
-│   ├── compatibility-config.hml
-│   ├── graphql-config.hml
+├── .hasura
+│   └── context.yaml
+├── app
+│   ├── metadata
 │   └── subgraph.yaml
-├── hasura.yaml
-├── otel-collector-config.yaml
-└── supergraph.yaml
+├── globals
+│   ├── subgraph.yaml
+│   └── metadata
+│     ├── auth-config.hml
+│     ├── compatibility-config.hml
+│     └── graphql-config.hml
+├── .devcontainer
+│   └── devcontainer.json
+├── .gitattributes
+├── .gitignore
+└── .vscode
+    ├── extensions.json
+    ├── launch.json
+    └── tasks.json
 ```
 
 ## Types of files
 
-The new configuration relies on the following types of files:
+The configuration relies on the following types of files:
 
-| File type                                 | Description                                                                                |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`hasura.yaml`](#hasurayaml)              | The file that denotes the root of a Hasura project.                                        |
-| [`.env.*`](#envfiles)                     | Files that store environment variables.                                                    |
-| [`supergraph.*.yaml`](#supergraph-config) | Files that describe how to build the supergraph.                                           |
-| [`subgraph.*.yaml`](#subgraph-config)     | Files that describe how to build a subgraph.                                               |
-| [`connector.*.yaml`](#connector-config)   | Files that describe how to build a data connector.                                         |
-| `*.hml`                                   | Hasura metadata files for a project.                                                       |
-| [`.hasura/context.yaml`](#context-file)   | File that stores certain default values of a project.                                      |
-| `compose.yaml`                            | Docker Compose files for local development.                                                |
-| [`engine`](#engine)                       | Files mounted to the engine container for local development.                               |
-| [`globals`](#globals)                     | Directory containing files for the **globals** subgraph.                                   |
-| `otel-collector-config.yaml`              | Configuration for OpenTelemetry Collector used for seeing traces during local development. |
+| File type                                    | Description                                                           |
+|----------------------------------------------|-----------------------------------------------------------------------|
+| [`hasura.yaml`](#hasurayaml)                 | The file that denotes the root of a Hasura project.                   |
+| [`.env.*`](#envfiles)                        | Files that store environment variables.                               |
+| [`supergraph.*.yaml`](#supergraph-config)    | Config files that describe how to build the supergraph.               |
+| [`subgraph.*.yaml`](#subgraph-config)        | Config files that describe how to build a subgraph.                   |
+| [`connector.*.yaml`](#connector-config)      | Config files that describe how to build a data connector.             |
+| `*.hml`                                      | Files containing Hasura metadata objects of a subgraph.               |
+| [`.hasura/context.yaml`](#context-file)      | Config file that stores project context configuration.                |
+| [`compose.yaml`](#compose-files)             | Docker Compose files for local development.                           |
+| [`engine`](#engine)                          | Directory containing files required for running the engine container. |
+| [`globals`](#globals)                        | Directory containing files for the **globals** subgraph.              |
+| [`app`](#app)                                | Directory containing files for the **app** subgraph.                  |
+| [`otel-collector-config.yaml`](#otel-config) | File containing config for the OpenTelemetry Collector.               |
 
 ### hasura.yaml {#hasurayaml}
 
@@ -100,19 +103,21 @@ ENV1=val1
 ENV2=val2
 ```
 
-When a new project directory is initialized with the DDN CLI, it creates a single .env file by default. This .env file
-will store all the environment variables required for local development.
+When a new project directory is initialized with the DDN CLI, it creates a single `.env` file by default. This
+file will store all the environment variables required for local development.
 
-`ddn project init` command will initialize a single .env.cloud file which will be used to store all environment
+`ddn project init` command will initialize a single `.env.cloud` file which will be used to store all environment
 variables required by the DDN project.
 
-It is also possible to split the .env file into different .env files required for:
+All .env files in the project root directory are ignored by default by the `.gitignore` file generated by the CLI.
+
+It is also possible to split the single .env file into different .env files required for:
 
 - Docker Compose: Docker Compose files can use .env files to specify environment variables needed for containers.
-- Subgraph files (such as `subgraph.yaml`): Each subgraph can have its own .env file which will be used to specify
-  environment variables required for building the subgraph.
-- Connector files (such as `connector.yaml`): Each connector file can have its own .env file which will be used to
-  specify environment variables needed for building the connector.
+- Subgraph config files (such as `subgraph.yaml`): Each subgraph config can have its own .env file which will be used
+  to specify environment variables required for building the subgraph.
+- Connector config files (such as `connector.yaml`): Each connector config can have its own .env file which will be used
+  to specify environment variables needed for building the connector.
 
 Other than this, .env files can also be passed into various DDN commands using `--env-file` flag.
 
@@ -142,7 +147,7 @@ be created and referenced in CLI commands.
 ### subgraph.\*.yaml {#subgraph-config}
 
 These config files tell Hasura DDN how to construct your subgraph. It will contain information such as which metadata
-resources to use for the build.
+resources to use for the build. It also defines how metadata is generated for the subgraph by the CLI.
 
 For example:
 
@@ -176,7 +181,7 @@ definition:
   ```
   This means that some metadata in the subgraph requires an env var called `POSTGRES_WRITE_URL`. The value of this has
   to be read from an env var called `APP_POSTGRES_WRITE_URL` from any of the .env.\* files passed as input. Only env
-  vars declared in the `envMapping` are passed into the subgraph.
+  vars declared in the `envMapping` are passed into the subgraph metadata.
 - `connectors` lists all the connectors that are to be built when this subgraph is built. It contains `path` to the
   connector configuration and the name of the corresponding connector link.
 
@@ -229,7 +234,7 @@ current context.
 - `cloudEnvFile` is used by default by all cloud commands (like `ddn supergraph build create`). Used when
   the `--env-file` flag is not provided.
 
-The `scripts` section defines all the scripts which can be run using `ddn run` command.
+The `scripts` section defines custom scripts which can be executed using the `ddn run` CLI command.
 
 ```yaml
 kind: Context
@@ -249,12 +254,12 @@ definition:
       powershell: $Env:HASURA_DDN_PAT = ddn auth print-pat; docker compose --env-file .env up --build --pull always -d
 ```
 
-This file can be configured using the `ddn context` set of commands.
+Values in the context can be configured using the `ddn context` set of CLI commands.
 
 ### Engine {#engine}
 
-The `engine` directory contains the files required for Hasura v3 engine container. This directory has the following
-structure:
+The `engine` directory contains the files mounted to the Hasura v3 engine container during local development. This
+directory has the following structure:
 
 ```bash
 .
@@ -281,12 +286,53 @@ For example:
 
 ```bash
 .
-├── auth-config.hml
-├── compatibility-config.hml
-├── graphql-config.hml
+├── subgraph.yaml
+└── metadata
+    ├── auth-config.hml
+    ├── compatibility-config.hml
+    └── graphql-config.hml
 ```
 
 - `auth-config.hml` contain the `AuthConfig` object which define the authentication configuration for the supergraph.
 - `compatibility-config.hml` file contains the compatibility date configuration for the supergraph.
 - `graphql-config.hml` file contains the GraphQL configuration for the supergraph, which allows you to customize the
   available query and mutation capabilities along with the schema.
+- `subgraph.yaml` contains the config that describes how to build the globals subgraph.
+
+### App {#app}
+
+The `app` directory contains the metadata and connector related files for the **app** subgraph which is generated by
+default.
+
+For example:
+
+```bash
+.
+├── metadata
+├── connector
+└── subgraph.yaml
+```
+
+- `metadata` directory contains the hml files containing metadata objects of the subgraph.
+- `connector` directory contains the connector related files of the subgraph.
+- `subgraph.yaml` contains the config that describes how to build and generate metadata for
+  the subgraph.
+
+### Docker Compose files {#compose-files}
+
+Docker Compose files are generated to run your engine and connectors locally for development.
+
+When a new project directory is initialized with the DDN CLI, it creates a `compose.yaml` file by default to run the
+Hasura engine locally. This Compose file contains an `engine` service to run the engine along with an
+`otel-collector` service used to collect traces from the engine.
+
+Every time a connector is initialized in a project, a `compose.yaml` files is generated for it to run the
+connector locally. By default, this `compose-yaml` is also added to the engine Compose file via the `include` directive
+to allow running the engine and connector together by just using the engine Compose file.
+
+### otel-collector-config.yaml {#otel-config}
+
+The `otel-collector-config.yaml` file contains the configuration for OpenTelemetry Collector used for seeing traces
+during local development.
+
+It is used by the `otel-collector` service defined in the engine Compose file.
