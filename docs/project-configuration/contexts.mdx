@@ -1,0 +1,119 @@
+---
+sidebar_position: 9
+sidebar_label: Contexts
+description:
+  "Learn about managing contexts for the DDN CLI"
+keywords:
+  - hasura ddn
+  - hasura cli
+  - local dev
+  - custom scripts
+seoFrontMatterUpdated: true
+---
+
+# Contexts
+
+## Introduction
+
+The DDN CLI lets you set values for commonly used flags in the project context to avoid having to repeat them with
+every command.
+
+The project context config is stored in the `.hasura/context.yaml` file in the project directory.
+
+[//]: # (## Context hierarchy)
+
+[//]: # ()
+[//]: # (The following hierarchy is followed to determine the value of particular key:)
+
+[//]: # ()
+[//]: # (Flag > Context > Config file)
+
+[//]: # ()
+[//]: # (i.e. the value passed via CLI command flag takes precedence over the value set in the context which takes precedence)
+
+[//]: # (over the value set in a config file)
+
+## Supported keys
+
+The following are the keys supported to be set in the context along with the flags they correspond to:
+
+| Context Key    | Definition                                                                   | CLI flag(s)                       |
+|----------------|------------------------------------------------------------------------------|-----------------------------------|
+| `project`      | the DDN project to use for the operation                                     | `--project`                       |
+| `supergraph`   | the supergraph config file to use for the operation                          | `--supergraph`                    |
+| `subgraph`     | the subgraph config file to use for the operation                            | `--subgraph`                      |
+| `localEnvFile` | the env file to use for local operations. e.g. `ddn supergraph build local`  | `--env-file`, `--target-env-file` |
+| `cloudEnvFile` | the env file to use for cloud operations. e.g. `ddn supergraph build create` | `--env-file`, `--target-env-file` |
+
+## Manage values in the context
+
+### Set a value in the context
+
+To set a value to the context, run:
+
+```bash
+ddn context set <key> <value>
+```
+
+### Get a value from the context
+
+To get a value from the context, run:
+
+```bash
+ddn context get <key>
+```
+
+### Remove a value from the context
+
+To remove a value from the context, run:
+
+```bash
+ddn context unset <key>
+```
+
+
+### Get all values set in the context
+
+To get the name and contents of the current context, run:
+
+```bash
+ddn context get-current-context
+```
+
+## Multiple contexts
+
+You can create multiple contexts with different values to easily switch between different deployment scenarios.
+
+For example,
+```bash
+# will use project name and env file from "staging" context, e.g. .env.stg
+ddn supergraph build create --context staging
+# will use project name and env file from "prod" context, e.g. .env.prod
+ddn supergraph build create --context prod
+```
+
+### Create a new context
+
+To create a new context, run:
+
+```bash
+ddn context create-context <context-name>
+```
+
+### Switch to another context
+
+To switch the current context, run:
+
+```bash
+ddn context set-current-context <context-name>
+```
+
+### Override current context
+
+You can also override the context used for a particular command using the `--context` flag.
+
+For example:
+
+```bash
+ddn supergraph build create --context <context-name>
+```
