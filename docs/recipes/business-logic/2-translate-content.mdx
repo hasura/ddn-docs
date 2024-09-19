@@ -1,12 +1,13 @@
 ---
-sidebar_position: 2
-sidebar_label: Format datetime objects
-description: "Learn how to easily format datetime objects and send back human-readable formatted data."
+sidebar_position: 3
+sidebar_label: Translate content
+description: "Learn how to easily translate content and return multiple languages to your clients."
 keywords:
   - hasura
   - hasura ddn
   - custom business logic
   - recipe
+  - translation
   - guide
 seoFrontMatterUpdated: false
 ---
@@ -14,13 +15,13 @@ seoFrontMatterUpdated: false
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-# Format Datetime Objects
+# Translate Content
 
 ## Introduction
 
-In this recipe, you'll learn how to convert an existing datetime object from your supergraph into a human-readable
-format. This approach is perfect when you want to streamline your frontend by formatting data at the API level, allowing
-the UI to easily render the formatted result with minimal effort.
+In this recipe, you'll learn how to translate existing content from your supergraph into another language. This is great
+for taking care of translations on the API-end to reach users worldwide. Your supergraph's consumers can choose which
+language(s) they want to return, all without worrying about various language configurations on the client-side.
 
 :::info Prerequisites
 
@@ -28,11 +29,9 @@ Before continuing, ensure you have:
 
 - A local Hasura DDN project.
 - A [lambda connector](/business-logic/overview.mdx) added to your project.
-- A type in your supergraph that is a valid datetime object.
+- A [Google Cloud Translation](https://cloud.google.com/translate) API key.
 
-**NB: The type will vary with your database-of-choice, but anything that is
-[ISO-8601-compliant](https://www.iso.org/iso-8601-date-and-time-format.html) will generally work for what's listed
-below. You can adapt this recipe to fit your individual needs.**
+**NB: This API key is _free_ for the first 500,000 characters each month.**
 
 :::
 
@@ -43,82 +42,72 @@ below. You can adapt this recipe to fit your individual needs.**
 <Tabs className="language-tabs">
   <TabItem value="ts" label="TypeScript">
 
+    ```sh title="In your connector's directory, install the Google Cloud Translate package:"
+    npm install @google-cloud/translate
+    ```
+
     ```typescript title="In your functions.ts file, add the following:"
+    import { v2 } from "@google-cloud/translate";
+
+    // This can also be stored as an environment variable
+    // in the connector's .env file.
+    const CLOUD_TRANSLATION_API_KEY = "your_cloud_translation_api_key";
+
     /**
     * @readonly
     */
-    export function formattedDate(dateString: string): string {
-      const date = new Date(dateString);
-      return date.toLocaleString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
+    export async function translateText(targetLanguage: string, content: string): Promise<string> {
+      const translate = new v2.Translate({ key: CLOUD_TRANSLATION_API_KEY });
+      try {
+        const [translation] = await translate.translate(content, targetLanguage);
+        return translation;
+      } catch (error) {
+        console.error("Error translating text:", error);
+        throw new Error("Translation failed");
+      }
     }
     ```
 
   </TabItem>
   <TabItem value="python" label="Python">
+   
+    ```plaintext title="In your connector's directory, add the Google API Python Client package to your requirements.txt:"
+    google-api-python-client==v2.146.0
+    ```
 
     ```python title="In your functions.py file, add the following:"
     from hasura_ndc import start
     from hasura_ndc.function_connector import FunctionConnector
-    from datetime import datetime
+    from googleapiclient.discovery import build
+
+    # This can also be stored as an environment variable
+    # in the connector's .env file.
+    API_KEY = "your_cloud_translation_api_key"
 
     connector = FunctionConnector()
 
     @connector.register_query
-    async def formatted_date(dateString: str) -> str:
-        date = datetime.fromisoformat(date_string)
-        return date.strftime("%B %d, %Y %I:%M %p")
+    def translate_text(target_language: str, content: str) -> str:
+        service = build("translate", "v2", developerKey=API_KEY)
+
+        try:
+            # Make the translation request
+            response = service.translations().list(
+                target=target_language,
+                q=[content]
+            ).execute()
+
+            # Return the translated text
+            return response['translations'][0]['translatedText']
+        except Exception as error:
+            print(f"Error translating text: {error}")
+            raise RuntimeError("Translation failed")
 
     if __name__ == "__main__":
-      start(connector)
+        start(connector)
     ```
 
   </TabItem>
-  <TabItem value="go" label="Go">
-
-    ```go title="In a Go file inside your functions directory, add the following:"
-    package functions
-
-    import (
-      "context"
-      "fmt"
-      "time"
-
-      "hasura-ndc.dev/ndc-go/types"
-    )
-
-    // DatetimeArguments defines the input arguments for the function
-    type DatetimeArguments struct {
-      DateString string `json:"date_string"`
-    }
-
-    // DatetimeResult defines the output result for the function
-    type DatetimeResult struct {
-      FormattedDate string `json:"formatted_date"`
-    }
-
-    // FunctionFormattedDate formats a datetime string
-    func FunctionFormattedDate(ctx context.Context, state *types.State, arguments *DatetimeArguments) (*DatetimeResult, error) {
-      date, err := time.Parse(time.RFC3339, arguments.DateString)
-      if err != nil {
-        return nil, fmt.Errorf("failed to parse date: %v", err)
-      }
-
-      formattedDate := date.Format("January 02, 2006 03:04 PM")
-      return &DatetimeResult{
-        FormattedDate: formattedDate,
-      }, nil
-    }
-
-    ```
-
-</TabItem>
 </Tabs>
 
 ### Step 2. Track your function
@@ -133,8 +122,8 @@ ddn connector introspect <connector_name>
 Then, you can generate an `hml` file for the function using the following command:
 
 ```bash
-# formatted_date if using Python
-ddn command add <connector_name> formattedDate
+# translate_text if using Python
+ddn command add <connector_name> translateText
 ```
 
 ### Step 3. Create a relationship (optional)
@@ -145,23 +134,23 @@ using the value of the field from the related model!
 
 Create a relationship in the corresponding model's HML file.
 
-```yaml title="For example, if we have an Orders model:"
+```yaml title="For example, if we have a Reviews model:"
 ---
 kind: Relationship
 version: v1
 definition:
-  name: formattedDate
-  sourceType: Orders
+  name: translatedReview
+  sourceType: Reviews
   target:
     command:
-      name: FormattedDate
+      name: TranslateText
   mapping:
     - source:
         fieldPath:
-          - fieldName: createdAt
+          - fieldName: text
       target:
         argument:
-          argumentName: dateString
+          argumentName: content
 ```
 
 ### Step 4. Test your function
@@ -176,19 +165,19 @@ In your project's explorer, you should see the new function exposed as a type an
 this:
 
 ```graphql
-query SimpleFormattedDateQuery {
-  formattedDate(dateString: "2023-09-19T10:15:30+02:00")
+query SimpleTranslationQuery {
+  translateText(content: "Hello, world!", targetLanguage: "es")
 }
 ```
 
 If you created a relationship, you can make a query like this, too:
 
 ```graphql
-query NestedFormattedDateQuery {
-  modelWithADatetimeObject {
+query NestedTranslationQuery {
+  modelWithAString {
     fieldAlreadyPresentOnModel
     anotherFieldAlreadyPresentOnModel
-    formattedDate
+    translatedReview(targetLanguage: "es")
   }
 }
 ```
