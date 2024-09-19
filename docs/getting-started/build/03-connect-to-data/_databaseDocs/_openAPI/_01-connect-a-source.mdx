@@ -24,6 +24,8 @@ additional business logic.
 
 :::
 
+To initialize the OpenAPI connector, run the following command in your terminal:
+
 ```bash title="Run the following command:"
 ddn connector init -i
 ```
@@ -43,9 +45,6 @@ this directory by passing a `--dir` flag to the CLI.
 
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_openapi` in this
 example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
-
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in the key-value pair for your `.env` file.
 
 :::
 
@@ -131,7 +130,7 @@ These environment variables are already referenced in the scaffolded out
 This will introspect your OpenAPI document and files required to run the Typescript project.
 
 ```bash
-ddn connector introspect my_openapi --add-all-resources
+ddn connector introspect my_openapi
 ```
 
 ## What did `connector introspect` do?
@@ -163,7 +162,19 @@ regenerate the files again. They will only be overwritten if the `NDC_OAS_FILE_O
 
 :::
 
-## Step 4. Create a new build and restart the services
+## Step 4. Track your functions
+
+Functions generated from the OpenAPI spec are represented as [Commands](/supergraph-modeling/commands.mdx) in your API.
+The next command we'll run will take each generated function and create an `hml` file for it. These files will
+then be used by the Hasura engine to generate your API.
+
+```bash title="Run the following to create your commands:"
+ddn command add my_openapi "*"
+```
+
+If you look in the `metadata` directory for your subgraph, you'll see named files for each function.
+
+## Step 5. Create a new build and restart the services
 
 To reflect the changes in your API, create a new build.
 
@@ -177,14 +188,10 @@ And, if your services are not already running, start them.
 ddn run docker-start
 ```
 
-You should see your models available in your API at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
-🎉
+You should see your commands available in your API by opening your console using:
 
-If you want a quick way of opening the console, you can run the following command:
-
-```bash title="Run:"
-ddn console -l
+```bash title="Run the following:"
+ddn console --local
 ```
 
 ## Next steps
