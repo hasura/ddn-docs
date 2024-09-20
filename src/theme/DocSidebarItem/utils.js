@@ -26,6 +26,7 @@ import Help from '@site/static/icons/features/hasura_policies.svg';
 import Billing from '@site/static/icons/features/credit-card-check.svg';
 import Deployment from '@site/static/icons/features/deployment.svg';
 import Upgrade from '@site/static/icons/cloud-lightning.svg';
+import Recipe from '@site/static/icons/beaker.svg';
 
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
@@ -61,7 +62,7 @@ export function addIconsToLabel(label, className) {
       icons = <Connectors />;
       break;
     case 'plugins-icon':
-      icons = <Plugins/>;
+      icons = <Plugins />;
       break;
     case 'data-domain-modeling-icon':
       icons = <DataDomainModeling />;
@@ -116,6 +117,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'upgrade':
       icons = <Upgrade />;
+      break;
+    case 'recipes':
+      icons = <Recipe />;
       break;
   }
 
