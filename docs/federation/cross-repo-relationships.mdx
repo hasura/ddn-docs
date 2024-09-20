@@ -1,0 +1,106 @@
+---
+sidebar_label: Cross-repo Relationships
+sidebar_position: 4
+description: "Learn how to create relationships across subgraphs in different repositories in Hasura DDN."
+keywords:
+  - relationships
+  - cross-repo relationships
+  - subgraphs
+  - supergraph
+  - hasura ddn
+  - graphql api
+  - data connectors
+  - permissions
+  - federation
+  - multi-repo federation
+  - single-repo federation
+  - schema stitching
+  - modular development
+  - git workflows
+seoFrontMatterUpdated: true
+---
+
+# Cross-repo Relationships
+
+## Connecting across subgraphs with relationships
+
+When you have multiple subgraphs, either in a single-repo or multi-repo setup, you can link [types together using
+relationships](/supergraph-modeling/relationships.mdx). This is done by creating a `Relationship` object in the
+metadata which defines how fields from one type map to a `model` or `command`.
+
+### Single-repo relationships
+
+In a single-repo setup, relationships are straightforward to manage. As all the subgraphs are in the same
+repository, the Hasura VS Code extension can be used to assist with authoring relationships, providing auto-complete and
+validation.
+
+### Cross-repo Relationships
+
+:::info Advanced plan
+
+You will need a project on the [DDN Advanced plan](https://hasura.io/pricing) to use multi-repo federation and
+cross-repo relationships.
+
+:::
+
+In a multi-repo setup subgraphs which contain objects you want to relate can be in different repositories. In these
+cases the Hasura VS Code extension cannot validate the entirety of the `Relationship` object. You will need to
+manually author cross-repo relationships and ensure that the field mappings are correct.
+
+You can still easily use the Hasura DDN console to test relationships across subgraphs. Once you have
+created a build, you can use the console to explore the supergraph and test the relationships. This will help you to
+ensure that the relationships are working as expected before you deploy the supergraph to production.
+
+### Relationship Example
+
+For more information on how to create `Relationships` check out
+[this page](/supergraph-modeling/relationships.mdx). Let's say you have a supergraph with two subgraphs in different
+repositories: `users` and `products`.
+
+The `users` subgraph has a `User` type with a field called `favorite_product_id`. The `products` subgraph
+has a `Product` type with a field called `id`.
+
+To create a relationship between these two types in different repositories, you would create a `Relationship` object in
+the `users` subgraph metadata as normal.
+
+[//]: # (warning from LSP??)
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: favorite_product
+  sourceType: User
+  target:
+    model:
+      name: Product
+      subgraph: products
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: favorite_product_id
+      target:
+        modelField:
+          - fieldName: id
+```
+
+This `Relationship` object defines a relationship called `favorite_product` from the `User` type to the `Product`
+type. The `mapping` field specifies how the `favorite_product_id` field in the `User` type maps to the `id` field
+in the `Product` type.
+
+With this relationship defined, you can now query the `favorite_product` field on the `User` type to retrieve the
+related `Product`.
+
+```graphql
+query {
+  users {
+    id
+    name
+    favorite_product {
+      id
+      name
+    }
+  }
+}
+```
