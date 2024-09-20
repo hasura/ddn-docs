@@ -27,14 +27,13 @@ In this guide we will:
 
 - Initialize the `hasura/python` data connector
 - Use Python and pip to create a simple script
-- Add a new `DataConnectorLink`
-- Update the `DataConnectorLink` to track the function script as a command in our metadata
+- Generate the metadata to track the function script as a command in our metadata
 - Create a new API build and test it
 
 ### Step 1. Initialize the Python Lambda connector
 
-Let's begin by initializing the connector on our project. In the example below, you'll see some familiar flags with new
-values being passed to them. We'll call this `my_python` and use the `hasura/python` connector from the connector hub:
+Let's begin by initializing the connector on our project. In the example below, you'll see a familiar flow and use the
+`hasura/python` connector from the connector hub.
 
 ```bash title="Run the following command:"
 ddn connector init -i
@@ -55,9 +54,6 @@ this directory by passing a `--dir` flag to the CLI.
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_python` in this
 example, should match for convenience and clarity sake.
 
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
-
 :::
 
 #### What did this do?
@@ -68,8 +64,6 @@ This command created the following file structure in a `my_subgraph/connector/my
 ```bash
 .
 ├── .ddnignore
-├── .env.cloud
-├── .env.local
 ├── .gitignore
 ├── .hasura-connector
 │  ├── ...
@@ -99,7 +93,7 @@ from datetime import datetime # Don't forget to import datetime at the top of th
 connector = FunctionConnector()
 
 @connector.register_query
-async def format_timezone_data(date_string: str) -> str:
+async def format_timezone_date(date_string: str) -> str:
     date = datetime.fromisoformat(date_string)
 
     day = date.day
@@ -124,12 +118,35 @@ As this is a Python project, you can install any dependency!
 
 ### Step 3. Track the new function
 
-To add our function, similar to how we added our individual tables earlier, we can use the following to generate the
-related Hasura metadata:
+To add our function, we can use the following to generate the related metadata that will link together any functions in
+this `functions.py` file and our API.
 
 ```bash
-ddn connector-link update my_python
+ddn connector introspect my_python
 ```
+
+Then, we can generate an `hml` file for the function using the following command.
+
+```bash title="Track the function:"
+ddn command add my_python format_timezone_date
+```
+
+:::info Have a lot of functions?
+
+If you have a lot of functions and want to add them all en masse, you can use the CLI to generate metadata for each.
+
+```bash title="Run the following:"
+ddn command add my_python "*"
+```
+
+:::
+
+#### What did this do?
+
+The command introspected your `functions.py` file and found any functions present along with their argument and return
+types.
+
+The CLI then used this to create Hasura metadata for each function which can then be exposed in your API.
 
 ### Step 4. Create a new API build and test
 
@@ -153,18 +170,15 @@ any connectors, and observability tools.
 :::
 
 You should see your command available, along with its documentation, in the GraphiQL explorer which you should be able
-to access at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000).
-
-If you want a quick way of opening the console, you can run the following command:
+to access using the CLI.
 
 ```bash title="Run:"
-ddn console -l
+ddn console --local
 ```
 
 ```graphql title=" You can then test your new command with the following query:"
 query MyQuery {
-  formatTimezoneDate(dateString: "2024-03-14T08:00:00Z")
+  formatTimezoneDate(dateString: "2024-03-14")
 }
 ```
 
@@ -173,6 +187,8 @@ query MyQuery {
   alt="Demo Business Logic query"
   width="1000px"
 />
+
+<br />
 
 :::tip Privacy settings in some browsers
 
