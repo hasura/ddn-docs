@@ -25,7 +25,7 @@ const main = async (title: string, url: string): Promise<string> => {
     const ticket = await createLinearTicket({ prTitle: title, prUrl: url });
     const issue = await ticket.issue;
     if (issue) {
-      await addLinkAsAttachmentToTicket(url, issue?.id);
+      await addLinkAsAttachmentToTicket(url, issue.id);
     }
     await assignGitHubReviewer(url);
     const commentResponse = await addGitHubCommentToPr(url);
