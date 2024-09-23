@@ -78,7 +78,7 @@ ddn project subgraph create <subgraph-name>
 
 #### Step 2. Invite collaborators
 
-[Follow the steps ](/getting-started/collaborate/invite.mdx#invite-collaborators) to invite subgraph collaborators. Take
+[Follow the steps](/getting-started/collaborate/invite.mdx#invite-collaborators) to invite subgraph collaborators. Take
 care to select the appropriate role — either **Admin** or **Developer** — for each subgraph team member.
 
 ### Steps for subgraph collaborators
@@ -92,7 +92,7 @@ existing supergraph.
 
 To get started with local development on your subgraph, create a new local project.
 
-```bash title="Run the following in a new directory for your project:"
+```bash
 ddn supergraph init .
 ```
 
@@ -100,14 +100,12 @@ With Hasura DDN, we understand that each team may have their own unique workflow
 create a new repository for their new project; there is no need for all subgraphs to live in the same repository as the
 existing supergraph.
 
-In the next step, we'll map this local project to the existing cloud project.
-
 #### Step 3. Set the project context
 
 Using the CLI, set the project's context by passing its name to the following command.
 
-```bash title="Pass the cloud project's name of the existing supergraph:"
-ddn context set project <project-name>
+```bash
+ddn project init --with-project <project-name>
 ```
 
 #### Step 4. Create a new subgraph
@@ -116,86 +114,55 @@ You'll need to create a subgraph in your local metadata that matches the name of
 project by your supergraph admin. This ensures proper mapping between the metadata you generate and what is eventually
 served by your cloud project.
 
-```bash title="Create a subgraph matching the name of the subgraph provisioned for you by the supergraph admin and add it to your supergraph's configuration file:"
-ddn subgraph init <subgraph-name> --dir <subgraph-name> --target-supergraph ./supergraph.yaml
+```bash
+ddn supergraph init . --create-subgraph <subgraph-name>
 ```
+
+Customize the scaffolded subgraph name as needed.
+
+It's recommended to set up subgraph GraphQL prefixes at this point.
 
 #### Step 5. Add a data connector and track your models
 
 You can add a new [native data connector](/connectors/overview.mdx) to your subgraph using the CLI. Data connectors are
 what allow you to integrate various data sources to your API.
 
-In the following sequence, we'll do a few things:
-
-- Initialize a new data connector, which will allow you to connect a data source to your API.
-- Introspect the source and create a configuration that your connector understands and can use to generate Hasura
-  metadata.
-- Track all the entities in your data source as either [models](/supergraph-modeling/models.mdx) or
-  [commands](/supergraph-modeling/commands.mdx), which will then be available via your API.
-
-```bash title="Run this command and follow the prompts for your connector:"
-ddn connector init -i
+```bash
+ddn connector init my_connector -i
+ddn connector introspect my_connector
+ddn model add '*'
+ddn command add '*'
+ddn relationship add '*'
 ```
 
-```bash title="Then, introspect your data source to generate configuration files:"
-ddn connector introspect <connector-name-from-previous-step>
-```
+#### Step 6. Build and run locally
 
-```bash title="Finally, track all your resources:"
-ddn connector-link add-resources "*"
-```
-
-:::info Run your supergraph locally
-
-At this point, you can run the following command — with any adjustments made to the `--env-file` path — to start your
-supergraph and data connector:
+Build your supergraph locally and run it using Docker Compose:
 
 ```bash
-ddn run docker-start
+ddn supergraph build local
+Run with docker compose
 ```
 
-**Note: You'll only see your subgraph available locally. This is because your local supergraph only contains _your_
-subgraph. You are free to iterate on it and make changes without causing disruption to other subgraphs or downstream
-consumers. To test your subgraph within the project's supergraph, follow the next steps.**
+#### Step 7. Deploy the connector
 
-:::
-
-#### Step 6. Deploy the connector
-
-You'll need to [deploy the connector](/getting-started/deployment/deploy-a-connector/) so its available in your cloud
+You'll need to [deploy the connector](/getting-started/deployment/deploy-a-connector/) so it's available in your cloud
 project.
 
-#### Step 7. Validate your metadata
+#### Step 8. Create a supergraph build
 
-Next, you can validate your metadata by creating a build using the latest applied supergraph metadata.
+Create a new supergraph build:
 
-```bash title="Create a new subgraph build:"
-ddn subgraph build create
+```bash
+ddn supergraph build create
 ```
-
-#### Step 8. Test your subgraph changes
-
-And then test your changes by creating a new supergraph build with your latest subgraph build.
-
-```bash title="Create a supergraph build using your subgraph build:"
-ddn supergraph build create --subgraph-version <subgraph-name:build-id> --base-supergraph-version <applied-supergraph-build-id>
-```
-
-Please note the `Build Version` from the output of this command. We will need it in the next step.
 
 #### Step 9. Deploy your subgraph changes
 
-When you're satisfied with the state of your supergraph after testing the subgraph changes, create a new supergraph
-build.
-
-```bash title="Using the build ID returned from the previous step:"
-ddn supergraph build apply <build-id>
-```
-
-:::info To apply a build
+When you're satisfied with the state of your supergraph after testing the subgraph changes, apply the supergraph build:
 
 ```bash
-$ ddn subgraph build apply <Build Version>
+ddn subgraph build apply <build-id>
 ```
 
-Only subgraph admins or supergraph admins can apply a subgraph build.
+:::info To apply a build Only subgraph admins or supergraph admins can apply a subgraph build. :::
