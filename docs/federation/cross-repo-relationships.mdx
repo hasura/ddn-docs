@@ -58,14 +58,15 @@ For more information on how to create `Relationships` check out [this page](/sup
 
 Let's say you have a supergraph with two subgraphs, each managed in different repositories: `users` and `products`.
 
-The `users` subgraph in repo 'A' has a `User` type with a field called `favorite_product_id`.
+The `users` subgraph in repo 'A' has a `User` type with a field called `user_favorite_product_id`.
 
 The `products` subgraph in repo 'B' has a `Product` type with a field called `id`.
 
 To create a relationship between these two types in different repositories, you would create a `Relationship` object in
 the `users` subgraph metadata as normal.
 
-[//]: # (warning from LSP??)
+The LSP is able to understand that the `Product` type is in a different subgraph to which it does not have access and
+will not give a warning on the foreign type.
 
 ```yaml
 kind: Relationship
@@ -81,14 +82,14 @@ definition:
   mapping:
     - source:
         fieldPath:
-          - fieldName: favorite_product_id
+          - fieldName: user_favorite_product_id
       target:
         modelField:
           - fieldName: id
 ```
 
 This `Relationship` object defines a relationship called `favorite_product` from the `User` type to the `Product`
-type. The `mapping` field specifies how the `favorite_product_id` field in the `User` type maps to the `id` field
+type. The `mapping` field specifies how the `user_favorite_product_id` field in the `User` type maps to the `id` field
 in the `Product` type.
 
 With this relationship defined, you can now query the `favorite_product` field on the `User` type to retrieve the
