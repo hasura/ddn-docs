@@ -90,10 +90,11 @@ existing supergraph.
 
 #### Step 2. Create a new local project
 
-To get started with local development on your subgraph, create a new local project.
+To get started with local development on your subgraph, create a new local project and specify the name of the subgraph
+which was created by the supergraph admin for you.
 
-```bash
-ddn supergraph init .
+```bash title="Run the following in a new directory for your project:"
+ddn supergraph init . --create-subgraph  <subgraph-name>
 ```
 
 With Hasura DDN, we understand that each team may have their own unique workflows and design patterns, so each team can
@@ -108,18 +109,6 @@ Using the CLI, set the project's context by passing its name to the following co
 ddn project init --with-project <project-name>
 ```
 
-#### Step 4. Create a new subgraph
-
-You'll need to create a subgraph in your local metadata that matches the name of the subgraph created in the cloud
-project by your supergraph admin. This ensures proper mapping between the metadata you generate and what is eventually
-served by your cloud project.
-
-```bash
-ddn supergraph init . --create-subgraph <subgraph-name>
-```
-
-Customize the scaffolded subgraph name as needed.
-
 It's recommended to set up subgraph GraphQL prefixes at this point.
 
 #### Step 5. Add a data connector and track your models
@@ -127,9 +116,23 @@ It's recommended to set up subgraph GraphQL prefixes at this point.
 You can add a new [native data connector](/connectors/overview.mdx) to your subgraph using the CLI. Data connectors are
 what allow you to integrate various data sources to your API.
 
-```bash
+In the following sequence, we'll do a few things:
+
+- Initialize a new data connector, which will allow you to connect a data source to your API.
+- Introspect the source and create a configuration that your connector understands and can use to generate Hasura
+  metadata.
+- Track all the entities in your data source as either [models](/supergraph-modeling/models.mdx) or
+  [commands](/supergraph-modeling/commands.mdx), which will then be available via your API.
+
+```bash title="Run this command and follow the prompts for your connector:"
 ddn connector init my_connector -i
+```
+
+```bash title="Then, introspect your data source to generate configuration files:"
 ddn connector introspect my_connector
+```
+
+```bash title="Finally, track all your resources:"
 ddn model add '*'
 ddn command add '*'
 ddn relationship add '*'
@@ -141,7 +144,12 @@ Build your supergraph locally and run it using Docker Compose:
 
 ```bash
 ddn supergraph build local
-Run with docker compose
+```
+
+Run with docker compose:
+
+```
+ddn run docker-start
 ```
 
 #### Step 7. Deploy the connector
