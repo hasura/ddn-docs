@@ -1,0 +1,97 @@
+---
+sidebar_position: 10
+sidebar_label: Metadata generation
+description:
+  "Learn about customizing metadata generated using the DDN CLI"
+keywords:
+  - hasura ddn
+  - hasura cli
+  - local dev
+  - metadata generation
+seoFrontMatterUpdated: true
+---
+
+# Metadata generation
+
+## Introduction
+
+The DDN CLI can auto-generate metadata for your supergraph based on the schema of the data sources added to the
+supergraph.
+
+## Generating metadata
+
+The following commands can be used to generate and update metadata for your data source.
+
+- Introspect the data source and update the connector schema:
+  ```bash
+  ddn connector introspect <connector-name>
+  ```
+
+- Add models, commands and relationships from the connector schema:
+  ```bash
+  ddn model add <connector-name> "*"
+  ddn command add <connector-name> "*"
+  ddn relationship add <connector-name> "*"
+  ```
+
+## Subgraph generator config
+
+The configuration for generating metadata for a subgraph is defined in the `generator` field of the subgraph config file
+of the subgraph.
+
+For example,
+
+```yaml title="app/subgraph.yaml"
+kind: Subgraph
+version: v2
+definition:
+  name: app
+  #highlight-start
+  generator:
+    rootPath: .
+    graphqlRootFieldPrefix: app_
+    graphqlTypeNamePrefix: App_
+    namingConvention: graphql
+  #highlight-end
+  includePaths:
+    - metadata
+  envMapping:
+    ...
+```
+
+### rootPath
+
+Defines the directory in which new metadata files are generated. Metadata is generated in the `/metadata` directory in
+the defined root path. It is defined relative to the subgraph config file.
+
+**Default value**: `.` \
+i.e. metadata is generated in `<subgraph-name>/metadata` directory
+
+### graphqlRootFieldPrefix
+
+Defines the prefix to add to all GraphQL root fields generated for models and commands in the subgraph.
+
+**Default value**: `""` \
+i.e. no prefix added by default
+
+### graphqlTypeNamePrefix
+
+Defines the prefix to add to all GraphQL types generated for models and commands in the subgraph.
+
+**Default value**: `""` \
+i.e. no prefix added by default
+
+### namingConvention
+
+Defines the naming convention used while generating GraphQL types and root fields generated for models and commands in
+the subgraph.
+
+**Default value**: `graphql`
+
+The following are the supported values:
+
+| Convention | Description                                                                                                                        |
+|------------|------------------------------------------------------------------------------------------------------------------------------------|
+| `graphql`  | Convert the identifier from the data source to the GraphQL naming convention. i.e. PascalCase for types, camelCase for root fields |
+| `none`     | Use the identifier from the data source as is.                                                                                     |
+
