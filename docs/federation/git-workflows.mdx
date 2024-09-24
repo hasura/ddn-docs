@@ -2,8 +2,8 @@
 sidebar_label: Git Workflows
 sidebar_position: 3
 description:
-  "Learn how to manage your Git workflows for both single-repo and multi-repo federation in Hasura DDN.
-  This guide will walk you through setting up version control, collaborating with your team, and deploying your supergraph."
+  "Learn how to manage your Git workflows for both single-repo and multi-repo federation in Hasura DDN. This guide will
+  walk you through setting up version control, collaborating with your team, and deploying your supergraph."
 keywords:
   - git workflows
   - version control
@@ -27,15 +27,15 @@ impact on how you work with your team and how you manage your Hasura DDN project
 
 ## Single Repo vs. Multi-repo Federation
 
-Many smaller projects will only need one repository. Often they will need only one subgraph which connects to one
-data source, but of course can have more of both. In the case of a single subgraph setup it would typically be named
+Many smaller projects will only need one repository. Often they will need only one subgraph which connects to one data
+source, but of course can have more of both. In the case of a single subgraph setup it would typically be named
 something like `app`, `default`, `main` or the name of the data source it connects to.
 
 However, teams working on larger projects may want a [SDLC](https://en.wikipedia.org/wiki/Software_development_process)
 and CI/CD which is independent of other teams. This is where multi-repo federation shines. Subgraphs in multi-repo
-federation can connect to different data sources, with each subgraph managed in its own repository
-for added governance, control and clean separation from other teams work. Subgraphs would also typically be named after
-the data domain they encapsulate, such as `users`, `orders`, `products`, etc.
+federation can connect to different data sources, with each subgraph managed in its own repository for added governance,
+control and clean separation from other teams work. Subgraphs would also typically be named after the data domain they
+encapsulate, such as `users`, `orders`, `products`, etc.
 
 ## Single Repo Federation
 
@@ -60,24 +60,24 @@ the data domain they encapsulate, such as `users`, `orders`, `products`, etc.
 5. [Create a subgraph build](/cli/commands/ddn_subgraph_build_create.mdx) on Hasura DDN.
 6. Test with the build URL.
 7. Apply the subgraph to the supergraph (if your permissions allow). Otherwise, request the admin or owner to apply the
-subgraph.
+   subgraph.
 
-[//]: # (TODO ** apply the whole supergraph? ** CI/CD?)
+[//]: # "TODO ** apply the whole supergraph? ** CI/CD?"
 
 ## Multi-repo Federation (Independent Subgraph Development)
 
 :::info Advanced plan
 
-You will need a project on the [DDN Advanced plan](https://hasura.io/pricing) to use multi-repo federation, also
-known as independent subgraph development.
+You will need a project on the [DDN Advanced plan](https://hasura.io/pricing) to use multi-repo federation, also known
+as independent subgraph development.
 
 :::
 
 ### Creating a new multi-repo setup
 
 The setup here is for a main supergraph repository to be created with the `globals` subgraph and any other subgraph
-which other teams will work on. Once on DDN, collaborators are added on the subgraph level giving them permissions
-to only work on their subgraph.
+which other teams will work on. Once on DDN, collaborators are added on the subgraph level giving them permissions to
+only work on their subgraph.
 
 :::info Globals Subgraph Objects
 
@@ -90,31 +90,32 @@ globals subgraph itself.
 1. As a supergraph admin, create a supergraph normally, as per the
    [getting started guide](/getting-started/build/index.mdx).
 2. Create any other subgraphs which other teams will work on as placeholders so that they can be invited to them.
-3. Push the supergraph to a new Git repository. Do not add collaborators to this repo, they will be added to their
-   own subgraph repositories.
+3. Push the supergraph to a new Git repository. Do not add collaborators to this repo, they will be added to their own
+   subgraph repositories.
 4. Deploy the supergraph to Hasura DDN as per the [deployment guide](/getting-started/deployment/index.mdx).
 5. Invite subgraph collaborators to the Hasura DDN project with
    [Subgraph Admin or Subgraph Developer permissions](/getting-started/collaborate/invite/).
 
 ### Joining an existing multi-repo setup
 
-In this workflow the collaborator manages a separate supergraph containing just their subgraph and changes
-the supergraph context to reference the collaborative project on DDN. The supergraph is fully functional and enables
-local development but only contains their subgraph. They can they create subgraph builds on the collaborative DDN project
-and if permissions allow, apply the subgraph to the collaborative supergraph.
+In this workflow the collaborator manages a separate supergraph containing just their subgraph and changes the
+supergraph context to reference the collaborative project on DDN. The supergraph is fully functional and enables local
+development but only contains their subgraph. They can they create subgraph builds on the collaborative DDN project and
+if permissions allow, apply the subgraph to the collaborative supergraph.
 
 1. [Accept the invitation](/getting-started/collaborate/invite/) to the Hasura DDN supergraph project.
 2. Create a new Git repository for a new project. Or join an existing Git repository.
-3. Initialize a new supergraph project with a subgraph locally. Make sure the subgraph is named the same as the
-   subgraph you were invited to work on.
-4. [Set the supergraph context](/project-configuration/config.mdx#context-file) to the existing Hasura DDN
-   project.
-5. Run your supergraph locally and develop and test.
-6. [Create a subgraph build](/cli/commands/ddn_subgraph_build_create.mdx) on the existing Hasura DDN
-   supergraph project.
-7. Test with the build URL on Hasura DDN.
-8. Apply the subgraph to the supergraph if permissions allow. Otherwise, request the owner or admin to apply the
-subgraph.
+3. Initialize a new supergraph project with a subgraph locally. Make sure the subgraph is named the same as the subgraph
+   you were invited to work on. You can do this with: `ddn supergraph init . --create-subgraph <subgraph-name>`
+4. It's recommended to setup [subgraph prefixes](/federation/subgraph-prefixes.mdx) at this stage.
+5. [Set the supergraph context](/project-configuration/config.mdx#context-file) to the existing Hasura DDN project.
+6. Run your supergraph locally and develop and test.
+7. Initialize a new supergraph project on DDN with the context of the existing project. You can do this with:
+   `ddn project init --with-project <project-name>`
+8. [Create a subgraph build](/cli/commands/ddn_subgraph_build_create.mdx) on the existing Hasura DDN supergraph project.
+9. Test with the build URL on Hasura DDN.
+10. Apply the subgraph to the supergraph if permissions allow. Otherwise, request the owner or admin to apply the
+    subgraph.
 
 :::tip Existing code repositories for new projects.
 
