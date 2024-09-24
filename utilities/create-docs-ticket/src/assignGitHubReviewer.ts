@@ -1,8 +1,15 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
 
-const assignReviewer = async prUrl => {
+dotenv.config();
+
+interface Reviewer {
+  github_username: string;
+  name: string;
+}
+
+export const assignGitHubReviewer = async (prUrl: string): Promise<Response> => {
   const prNumber = prUrl.split('/').pop();
-  const reviewer = JSON.parse(process.env.REVIEWER);
+  const reviewer: Reviewer = JSON.parse(process.env.REVIEWER!);
   const apiUrl = `https://api.github.com/repos/${process.env.REPO_OWNER}/${process.env.REPO_NAME}/pulls/${prNumber}/requested_reviewers`;
   const assignResponse = await fetch(apiUrl, {
     method: 'POST',
@@ -23,5 +30,3 @@ const assignReviewer = async prUrl => {
 
   return assignResponse;
 };
-
-module.exports = assignReviewer;
