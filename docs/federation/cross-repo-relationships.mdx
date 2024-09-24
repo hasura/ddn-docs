@@ -24,17 +24,17 @@ seoFrontMatterUpdated: true
 
 ## Connecting across subgraphs with relationships
 
-When you have multiple subgraphs, either in a single-repo or multi-repo setup, you can link [types together using
-relationships](/supergraph-modeling/relationships.mdx). This is done by creating a `Relationship` object in metadata
-which defines how fields from one type map to a `model` or `command`.
+When you have multiple subgraphs, either in a single-repo or multi-repo setup, you can link
+[types together using relationships](/supergraph-modeling/relationships.mdx). This is done by creating a `Relationship`
+object in metadata which defines how fields from one type map to a `model` or `command`.
 
 ### Single-repo relationships
 
 In a single-repo setup, relationships are straightforward to manage. All subgraphs are in the same repository and the
-Hasura VS Code extension can be used to assist with authoring relationships, providing auto-complete and
-validation.
+[Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can be used to assist
+with authoring relationships, providing auto-complete and validation.
 
-### Cross-repo Relationships
+### Cross-repo relationships
 
 :::info Advanced plan
 
@@ -43,18 +43,15 @@ cross-repo relationships.
 
 :::
 
-In a multi-repo setup, subgraphs which contain objects you want to relate can be in subgraphs managed in different
-repositories which you don't have access. In these cases the Hasura VS Code extension cannot validate the entirety
-of the `Relationship` object and you will manually author cross-repo relationships and ensure that the field
-mappings are correct.
+In a multi-repo setup, subgraphs that contain objects you want to relate can reside in different repositories, some of
+which you may not have access to. In these cases the Hasura VS Code extension cannot validate the entirety of the
+`Relationship` object and you will manually author cross-repo relationships and ensure that the field mappings are
+correct.
 
-You can still easily use the Hasura DDN console to explore the supergraph test relationships across subgraphs once
-you have created a build. This will help you to ensure that the relationships are working as expected before you
-deploy the supergraph to production.
+You can still easily use the Hasura DDN console to explore the supergraph and test relationships across subgraphs once
+you have created a build.
 
-### Relationship Example
-
-For more information on how to create `Relationships` check out [this page](/supergraph-modeling/relationships.mdx).
+### Example
 
 Let's say you have a supergraph with two subgraphs, each managed in different repositories: `users` and `products`.
 
@@ -88,9 +85,19 @@ definition:
           - fieldName: id
 ```
 
-This `Relationship` object defines a relationship called `favorite_product` from the `User` type to the `Product`
-type. The `mapping` field specifies how the `user_favorite_product_id` field in the `User` type maps to the `id` field
-in the `Product` type.
+This `Relationship` object defines a relationship called `favorite_product` from the `User` type to the `Product` type.
+The `mapping` field specifies how the `user_favorite_product_id` field in the `User` type maps to the `id` field in the
+`Product` type.
+
+After defining the cross-repo relationship, it's important to note that you won't be able to test this locally. To see
+the relationship in action, you'll need to follow these steps:
+
+1. Create a new subgraph build on DDN using the `ddn subgraph build create` command.
+2. You can then use the Hasura DDN console to explore and test the relationship across subgraphs.
+3. If you have admin permissions, you can apply the subgraph to the supergraph with the `ddn subgraph apply` command.
+
+Remember, cross-repo relationships only come into effect when the subgraphs are combined in the DDN environment. Local
+development and testing are limited to the scope of your current repository.
 
 With this relationship defined, you can now query the `favorite_product` field on the `User` type to retrieve the
 related `Product`.
@@ -107,3 +114,5 @@ query {
   }
 }
 ```
+
+For more information on how to create `Relationships` check out [this page](/supergraph-modeling/relationships.mdx).
