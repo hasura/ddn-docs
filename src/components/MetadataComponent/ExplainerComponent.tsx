@@ -36,7 +36,7 @@ export const ExplainerComponent: React.FC<ExplainerComponentProps> = ({ explaine
           // We can use this to reference the current conatiner in which we want to observer the h3s
           root: modelsRef.current,
           // This controls when we want to fire the state change
-          rootMargin: '0px 0px -50% 0px',
+          rootMargin: '0px 0px -75% 0px',
           // And, finally, we let it know how much of the h3 element needs to be visible
           threshold: 0,
         }

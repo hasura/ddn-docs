@@ -9,7 +9,7 @@ interface ExampleComponentProps {
 
 export const ExampleComponent: React.FC<ExampleComponentProps> = ({ example, linesToHighlight }) => {
   return (
-    <CodeBlock className={`language-yaml main-block example-container`} metastring={`{${linesToHighlight.join(',')}}`}>
+    <CodeBlock className={`language-yaml example-container`} metastring={`{${linesToHighlight.join(',')}}`}>
       {example}
     </CodeBlock>
   );
