@@ -1,4 +1,4 @@
-export const example = `---
+export const modelExample = `---
 kind: Model
 version: v1
 definition:

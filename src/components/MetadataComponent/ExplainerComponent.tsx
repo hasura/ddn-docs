@@ -8,47 +8,91 @@ interface ExplainerComponentProps {
 
 export const ExplainerComponent: React.FC<ExplainerComponentProps> = ({ explainerText, updateHighlightedLines }) => {
   const modelsRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const mutationObserverRef = useRef<MutationObserver | null>(null);
 
   useEffect(() => {
     if (modelsRef.current) {
-      const h3Elements = modelsRef.current.querySelectorAll('h3');
+      const node = modelsRef.current;
 
-      const observer = new IntersectionObserver(
-        entries => {
-          const sortedEntries = entries
-            .filter(entry => entry.isIntersecting)
-            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      const setupIntersectionObserver = () => {
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+        }
 
-          // Find the top-most h3 element whose top is at the top of the container
-          if (sortedEntries.length > 0) {
-            const topVisible = sortedEntries[0].target as HTMLElement;
-            const anchorTag = topVisible.querySelector('a');
-            if (anchorTag) {
-              const match = anchorTag.href.match(/#lines(\d+)/);
-              if (match) {
-                const lineNumber = parseInt(match[1], 10);
-                updateHighlightedLines([lineNumber]); // Highlight the top-most h3 element
+        const h3Elements = node.querySelectorAll('h3');
+        if (h3Elements.length === 0) {
+          // Having to do this because we're loading the content dynamically
+          // and, at first, there's no h3s
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          entries => {
+            const sortedEntries = entries
+              .filter(entry => entry.isIntersecting)
+              .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+            if (sortedEntries.length > 0) {
+              const topVisible = sortedEntries[0].target as HTMLElement;
+              const anchorTag = topVisible.querySelector('a');
+              if (anchorTag) {
+                const match = anchorTag.href.match(/#lines(\d+)/);
+                if (match) {
+                  const lineNumber = parseInt(match[1], 10);
+                  updateHighlightedLines([lineNumber]);
+                }
               }
             }
+          },
+          {
+            root: node,
+            rootMargin: '0px 0px -75% 0px',
+            threshold: 0,
           }
-        },
-        {
-          // We can use this to reference the current conatiner in which we want to observer the h3s
-          root: modelsRef.current,
-          // This controls when we want to fire the state change
-          rootMargin: '0px 0px -75% 0px',
-          // And, finally, we let it know how much of the h3 element needs to be visible
-          threshold: 0,
-        }
-      );
+        );
 
-      h3Elements.forEach(h3 => observer.observe(h3));
+        h3Elements.forEach(h3 => observer.observe(h3));
+
+        observerRef.current = observer;
+      };
+
+      // MutationObserver to watch for DOM changes
+      const mutationObserver = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            // Any new h3s?
+            const h3Elements = node.querySelectorAll('h3');
+            if (h3Elements.length > 0) {
+              setupIntersectionObserver();
+              // Once they're in, we can disconnect this
+              if (mutationObserverRef.current) {
+                mutationObserverRef.current.disconnect();
+                mutationObserverRef.current = null;
+              }
+              break;
+            }
+          }
+        }
+      });
+
+      mutationObserver.observe(node, { childList: true, subtree: true });
+      mutationObserverRef.current = mutationObserver;
+
+      setupIntersectionObserver();
 
       return () => {
-        h3Elements.forEach(h3 => observer.unobserve(h3));
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+          observerRef.current = null;
+        }
+        if (mutationObserverRef.current) {
+          mutationObserverRef.current.disconnect();
+          mutationObserverRef.current = null;
+        }
       };
     }
-  }, [updateHighlightedLines]);
+  }, [updateHighlightedLines, explainerText]);
 
   return (
     <div className="explainer-container" ref={modelsRef}>

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import clsx from 'clsx';
-import {useWindowSize} from '@docusaurus/theme-common';
-import {useDoc} from '@docusaurus/theme-common/internal';
+import { useWindowSize } from '@docusaurus/theme-common';
+import { useDoc } from '@docusaurus/theme-common/internal';
 import DocItemPaginator from '@theme/DocItem/Paginator';
 import DocVersionBanner from '@theme/DocVersionBanner';
 import DocVersionBadge from '@theme/DocVersionBadge';
@@ -11,7 +11,8 @@ import DocItemTOCDesktop from '@theme/DocItem/TOC/Desktop';
 import DocItemContent from '@theme/DocItem/Content';
 import DocBreadcrumbs from '@theme/DocBreadcrumbs';
 import Unlisted from '@theme/Unlisted';
-import type {Props} from '@theme/DocItem/Layout';
+
+import type { Props } from '@theme/DocItem/Layout';
 
 import styles from './styles.module.css';
 
@@ -19,34 +20,70 @@ import styles from './styles.module.css';
  * Decide if the toc should be rendered, on mobile or desktop viewports
  */
 function useDocTOC() {
-  const {frontMatter, toc} = useDoc();
+  const { frontMatter, toc } = useDoc();
   const windowSize = useWindowSize();
 
   const hidden = frontMatter.hide_table_of_contents;
   const canRender = !hidden && toc.length > 0;
+  const isTocHiddenOnInitialLoad = frontMatter.hide_toc_on_initial_load;
 
   const mobile = canRender ? <DocItemTOCMobile /> : undefined;
 
-  const desktop =
-    canRender && (windowSize === 'desktop' || windowSize === 'ssr') ? (
-      <DocItemTOCDesktop />
-    ) : undefined;
+  const desktop = canRender && (windowSize === 'desktop' || windowSize === 'ssr') ? <DocItemTOCDesktop /> : undefined;
 
   return {
     hidden,
     mobile,
     desktop,
+    isTocHiddenOnInitialLoad,
   };
 }
 
-export default function DocItemLayout({children}: Props): JSX.Element {
+export default function DocItemLayout({ children }: Props): JSX.Element {
   const docTOC = useDocTOC();
   const {
-    metadata: {unlisted},
+    metadata: { unlisted },
   } = useDoc();
+
+  const [maxWidth, setMaxWidth] = useState('unset');
+  const tocElementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tocElement = tocElementRef.current;
+
+    const metadataElement = document.querySelector('.metadata-container');
+
+    if (metadataElement && tocElement) {
+      const observer = new IntersectionObserver(
+        entries => {
+          const [entry] = entries;
+
+          if (entry.isIntersecting) {
+            setMaxWidth('unset');
+            tocElement.style.display = 'none';
+          } else {
+            console.log('Narrow');
+            setMaxWidth('75%');
+            tocElement.style.display = 'block';
+          }
+        },
+        {
+          root: null,
+          threshold: 0,
+        }
+      );
+
+      observer.observe(metadataElement);
+
+      return () => {
+        if (metadataElement) observer.unobserve(metadataElement);
+      };
+    }
+  }, []);
+
   return (
     <div className="row">
-      <div className={clsx('col', !docTOC.hidden && styles.docItemCol)}>
+      <div className={clsx('col', !docTOC.hidden && styles.docItemCol)} style={{ maxWidth }}>
         {unlisted && <Unlisted />}
         <DocVersionBanner />
         <div className={styles.docItemContainer}>
@@ -60,7 +97,11 @@ export default function DocItemLayout({children}: Props): JSX.Element {
           <DocItemPaginator />
         </div>
       </div>
-      {docTOC.desktop && <div className="col col--3">{docTOC.desktop}</div>}
+      {docTOC.desktop && (
+        <div ref={tocElementRef} className="col col--3">
+          {docTOC.desktop}
+        </div>
+      )}
     </div>
   );
 }
