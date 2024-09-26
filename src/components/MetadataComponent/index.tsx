@@ -6,10 +6,10 @@ import { getContent } from './contentLoader';
 
 export const MetadataComponent: React.FC = () => {
   // We can always start with the line after the delimiter
-  const [linesToHighlight, setLinesToHighlight] = useState<number[]>([2]);
+  const [linesToHighlight, setLinesToHighlight] = useState<[number, number] | null>(null);
 
-  const updateHighlightedLines = useCallback((lines: number[]) => {
-    setLinesToHighlight(lines);
+  const updateHighlightedLines = useCallback((range: [number, number]) => {
+    setLinesToHighlight(range);
   }, []);
 
   const { description, example } = getContent();

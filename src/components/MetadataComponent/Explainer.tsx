@@ -3,7 +3,7 @@ import './styles.css';
 
 interface ExplainerComponentProps {
   explainerText: ReactNode;
-  updateHighlightedLines: (lines: number[]) => void;
+  updateHighlightedLines: (lines: [number, number]) => void;
 }
 
 export const Explainer: React.FC<ExplainerComponentProps> = ({ explainerText, updateHighlightedLines }) => {
@@ -37,10 +37,11 @@ export const Explainer: React.FC<ExplainerComponentProps> = ({ explainerText, up
               const topVisible = sortedEntries[0].target as HTMLElement;
               const anchorTag = topVisible.querySelector('a');
               if (anchorTag) {
-                const match = anchorTag.href.match(/#lines(\d+)/);
+                const match = anchorTag.href.match(/#lines(\d+)(?:-(\d+))?/);
                 if (match) {
-                  const lineNumber = parseInt(match[1], 10);
-                  updateHighlightedLines([lineNumber]);
+                  const startLine = parseInt(match[1], 10);
+                  const endLine = match[2] ? parseInt(match[2], 10) : startLine;
+                  updateHighlightedLines([startLine, endLine]);
                 }
               }
             }
