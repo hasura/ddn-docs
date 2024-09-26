@@ -7,7 +7,7 @@ interface ExampleComponentProps {
   linesToHighlight: number[];
 }
 
-export const ExampleComponent: React.FC<ExampleComponentProps> = ({ example, linesToHighlight }) => {
+export const Example: React.FC<ExampleComponentProps> = ({ example, linesToHighlight }) => {
   return (
     <CodeBlock className={`language-yaml example-container`} metastring={`{${linesToHighlight.join(',')}}`}>
       {example}

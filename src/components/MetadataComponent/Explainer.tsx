@@ -6,7 +6,7 @@ interface ExplainerComponentProps {
   updateHighlightedLines: (lines: number[]) => void;
 }
 
-export const ExplainerComponent: React.FC<ExplainerComponentProps> = ({ explainerText, updateHighlightedLines }) => {
+export const Explainer: React.FC<ExplainerComponentProps> = ({ explainerText, updateHighlightedLines }) => {
   const modelsRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const mutationObserverRef = useRef<MutationObserver | null>(null);

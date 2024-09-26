@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import './styles.css';
-import { ExampleComponent } from './ExampleComponent';
-import { ExplainerComponent } from './ExplainerComponent';
+import { Example } from './Example';
+import { Explainer } from './Explainer';
 import { getContent } from './contentLoader';
 
-export const MetadataComponent: React.FC<MetadataComponentProps> = ({ isTocHiddenOnInitialLoad }) => {
+export const MetadataComponent: React.FC = () => {
+  // We can always start with the line after the delimiter
   const [linesToHighlight, setLinesToHighlight] = useState<number[]>([2]);
 
   const updateHighlightedLines = useCallback((lines: number[]) => {
@@ -15,8 +16,8 @@ export const MetadataComponent: React.FC<MetadataComponentProps> = ({ isTocHidde
 
   return (
     <div className="metadata-container">
-      <ExplainerComponent explainerText={description} updateHighlightedLines={updateHighlightedLines} />
-      <ExampleComponent example={example} linesToHighlight={linesToHighlight} />
+      <Explainer explainerText={description} updateHighlightedLines={updateHighlightedLines} />
+      <Example example={example} linesToHighlight={linesToHighlight} />
     </div>
   );
 };
