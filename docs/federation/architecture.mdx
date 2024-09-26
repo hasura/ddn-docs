@@ -36,9 +36,10 @@ while maintaining strong governance over the development process.
 ## Benefits
 
 - **Modular Development:** Subgraphs promote modular development by allowing teams to independently develop, test, and
-  deploy their code without impacting the functionality of other subgraphs. This modular approach simplifies code
-  management and reduces the risk of breaking changes. Subgraphs can be tested in context of the full supergraph to
-  ensure that they work as expected when combined.
+  deploy their code without impacting the functionality of other subgraphs. This can also be done in independent
+  repositories for each subgraph, in a "multi-repo" setup. This modular approach simplifies code management and reduces
+  the risk of breaking changes. Subgraphs can be tested in context of the full supergraph to ensure that they work as
+  expected when combined.
 - **Independent Deployment:** Subgraphs can also be deployed individually, ensuring that updates to one subgraph do not
   require downtime for the entire supergraph. This flexibility allows for continuous integration and delivery (CI/CD)
   practices that accelerate feature releases.
@@ -70,23 +71,29 @@ When running the `ddn supergraph init` command, a `globals` subgraph is created 
 subgraph is intended to hold global configuration objects for the supergraph, such as API configuration and auth
 settings.
 
-These configuration objects are `AuthConfig`, `CompatibilityConfig` and `GraphqlConfig` as well as the `Subgraph` object
-which defines the globals subgraph itself.
+These configuration objects are `AuthConfig`, `CompatibilityConfig` and `GraphqlConfig` as well as the `subgraph.yaml`
+configuration file which defines the globals subgraph itself.
 
 These objects are located by default in the `globals` subgraph, but can be moved to any other subgraph if needed.
 
 ## Subgraph-level authorization
 
-Authorization is managed at the subgraph level in Hasura DDN. This means that the permissions for a given subgraph are
-defined within the context of that subgraph, and do not affect other subgraphs.
+Authentication is managed at the supergraph level in Hasura DDN as defined by the `AuthConfig` object and cannot be
+customized at the subgraph level.
 
-Authorization rules in one subgraph can also defined to reference data in a foreign subgraph even if that subgraph is in another repository.
+Authorization however, is managed at the subgraph level in Hasura DDN. This means that the permissions for models and
+commands are defined within the context of those objects in their respective subgraphs, and do not affect other
+subgraphs.
+
+Authorization rules in one subgraph can also defined to reference data in a foreign subgraph even if that subgraph is in
+another repository.
 
 ## Data connectors
 
-[Data Connectors](/connectors/overview.mdx) connect subgraphs to data sources. They act as the bridges that translate
-GraphQL queries into the native language of the data source. Each independent subgraph can have one or more data
-connectors.
+[Data Connectors](/connectors/overview.mdx) connect subgraphs to data sources. They can communicate to data sources in
+their native language, and are data source specific so we can leverage all the data source specific functionality.
+
+Each independent subgraph can have one or more data connectors.
 
 Data connectors are [available for a variety of data sources](https://hasura.io/connectors), including databases,
 business logic functions, REST APIs, and GraphQL APIs. You can also create custom data connectors to integrate with
