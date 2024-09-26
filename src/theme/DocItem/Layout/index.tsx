@@ -97,7 +97,7 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
           <DocItemPaginator />
         </div>
       </div>
-      {docTOC.desktop && (
+      {docTOC.desktop && !docTOC.isTocHiddenOnInitialLoad && (
         <div ref={tocElementRef} className="col col--3">
           {docTOC.desktop}
         </div>
