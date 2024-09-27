@@ -59,13 +59,8 @@ Before continuing, ensure you have:
     */
     export async function translateText(targetLanguage: string, content: string): Promise<string> {
       const translate = new v2.Translate({ key: CLOUD_TRANSLATION_API_KEY });
-      try {
-        const [translation] = await translate.translate(content, targetLanguage);
-        return translation;
-      } catch (error) {
-        console.error("Error translating text:", error);
-        throw new Error("Translation failed");
-      }
+      const [translation] = await translate.translate(content, targetLanguage);
+      return translation;
     }
     ```
 
@@ -91,18 +86,14 @@ Before continuing, ensure you have:
     def translate_text(target_language: str, content: str) -> str:
         service = build("translate", "v2", developerKey=API_KEY)
 
-        try:
-            # Make the translation request
-            response = service.translations().list(
-                target=target_language,
-                q=[content]
-            ).execute()
+        # Make the translation request
+        response = service.translations().list(
+            target=target_language,
+            q=[content]
+        ).execute()
 
-            # Return the translated text
-            return response['translations'][0]['translatedText']
-        except Exception as error:
-            print(f"Error translating text: {error}")
-            raise RuntimeError("Translation failed")
+        # Return the translated text
+        return response['translations'][0]['translatedText']
 
     if __name__ == "__main__":
         start(connector)
@@ -123,8 +114,7 @@ ddn connector introspect <connector_name>
 Then, you can generate an `hml` file for the function using the following command:
 
 ```bash
-# translate_text if using Python
-ddn command add <connector_name> translateText
+ddn command add <connector_name> "*"
 ```
 
 ### Step 3. Create a relationship (optional)
