@@ -1,0 +1,87 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# DDN Metadata Components
+
+For any pages in `supergraph-modeling`, you can utilize the `<MetadataComponent />` to present a side-by-side
+explanation and code snippet for a metadata object.
+
+## Usage
+
+### Create files
+
+If a directory doesn't yet exist in `src/components/MetadataComponent/metadataDocs` for the metadata object, create it.
+
+Then, add two files:
+
+- `description.mdx`
+- `example.ts`
+
+### Add the example object
+
+The example object should be an exported string that includes a delimiter:
+
+```typescript
+export const modelExample = `---
+kind: Model
+version: v1
+definition:
+  name: Users
+  objectType: Users
+  source:
+    dataConnectorName: my_pg
+    collection: users
+  filterExpressionType: UsersBoolExp
+  orderableFields:
+    - fieldName: id
+      orderByDirections:
+        enableAll: true
+    - fieldName: name
+      orderByDirections:
+        enableAll: true
+    - fieldName: email
+      orderByDirections:
+        enableAll: true
+    - fieldName: createdAt
+      orderByDirections:
+        enableAll: true
+  graphql:
+    selectMany:
+      queryRootField: users
+    selectUniques:
+      - queryRootField: usersById
+        uniqueIdentifier:
+          - id
+    orderByExpressionType: UsersOrderBy`;
+```
+
+### Add content to the markdown description
+
+The file's largest heading-level should be an h3 `###` and should include explicit anchor tags that call out which lines
+to highlight. As an example:
+
+```markdown
+### kind {#lines2}
+
+Content...
+
+### version {#lines3}
+
+Content...
+```
+
+These anchor tags will be used to determine which lines to highlight as a user scrolls through the explanation text.
+
+### Add the component to a file
+
+Inside of a `supergrah-modeling` page, import the component and invoke it under the `How <object> works section`:
+
+```mdx
+import { MetadataComponent } from '@site/src/components/MetadataComponent';
+
+# Models
+
+## How models work
+
+<MetadataComponent />
+```
