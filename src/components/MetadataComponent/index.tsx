@@ -27,7 +27,6 @@ export const MetadataComponent: React.FC = () => {
           setHeight(exampleContainer.clientHeight);
 
           explainerContainer.setAttribute('style', `height: ${height}px`);
-          console.log(`Page: ${location.pathname} | ${height}`);
         }
       };
 
