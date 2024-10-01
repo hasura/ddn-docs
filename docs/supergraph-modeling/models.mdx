@@ -20,6 +20,8 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
+import { MetadataComponent } from "@site/src/components/MetadataComponent";
+
 # Models
 
 ## Introduction
@@ -33,6 +35,8 @@ Models bridge the gap between [data connectors](/connectors/overview.mdx) and th
 features like filtering, pagination, and sorting.
 
 ## How models work
+
+<MetadataComponent />
 
 ### Lifecycle
 
@@ -52,71 +56,6 @@ in turn, your DataConnectorLink objects. This ensures that your API remains in s
 
 To make a new model available in your supergraph, you'll need to
 [create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
-
-### Examples
-
-```yaml title="The following is an example of a model definition for a Users model:"
----
-kind: Model
-version: v1
-definition:
-  name: Users
-  objectType: Users
-  source:
-    dataConnectorName: my_pg
-    collection: users
-  filterExpressionType: UsersBoolExp
-  orderableFields:
-    - fieldName: id
-      orderByDirections:
-        enableAll: true
-    - fieldName: name
-      orderByDirections:
-        enableAll: true
-    - fieldName: email
-      orderByDirections:
-        enableAll: true
-    - fieldName: createdAt
-      orderByDirections:
-        enableAll: true
-  graphql:
-    selectMany:
-      queryRootField: users
-    selectUniques:
-      - queryRootField: usersById
-        uniqueIdentifier:
-          - id
-    orderByExpressionType: UsersOrderBy
-```
-
-| **Field**                                        | **Description**                                                                                                                                                                                | **Reference**                                                         |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| **kind**                                         | Specifies the type of object being defined. In this case, it’s a model.                                                                                                                        | [Model](#model-model)                                                 |
-| **version**                                      | Indicates the version of the model's structure.                                                                                                                                                | [ModelV1](#model-modelv1)                                             |
-| **definition.name**                              | The name of the model, representing the collection of data objects within this model.                                                                                                          | [ModelName](#model-modelname)                                         |
-| **definition.objectType**                        | Defines the type of objects contained within this model.                                                                                                                                       | [CustomTypeName](#model-customtypename)                               |
-| **definition.source.dataConnectorName**          | The name of the data connector that backs this model, linking it to the actual data source.                                                                                                    | [DataConnectorName](#model-dataconnectorname)                         |
-| **definition.source.collection**                 | The specific collection within the data connector that this model maps to.                                                                                                                     | [CollectionName](#model-collectionname)                               |
-| **definition.filterExpressionType**              | Specifies the type used for filtering the model's data within GraphQL queries.                                                                                                                 | [CustomTypeName](#model-customtypename)                               |
-| **definition.orderableFields**                   | A list of fields (in this example: `id`, `name`, `email`, `createdAt`) that can be used to sort the data in this model.                                                                        | [OrderableField](#model-orderablefield)                               |
-| **definition.graphql.selectMany.queryRootField** | The root field in the GraphQL API for querying multiple objects from this model. Removing this will disable the ability to query and return an array of this model.                            | [SelectManyGraphQlDefinition](#model-selectmanygraphqldefinition)     |
-| **definition.graphql.selectUniques**             | Defines unique query root fields (e.g., usersById) and identifiers used to retrieve unique objects in GraphQL. Removing this will disable the abilty to query a single instance of this model. | [SelectUniqueGraphQlDefinition](#model-selectuniquegraphqldefinition) |
-| **definition.graphql.orderByExpressionType**     | The type name used for specifying how to order the data when querying this model in GraphQL.                                                                                                   | [GraphQlTypeName](#model-graphqltypename)                             |
-
-```graphql title="The earlier model definition enables the following query in the API:"
-query UsersQuery {
-  users(where: { name: { _eq: "Bob" } }, order_by: { createdAt: Asc }, limit: 10) {
-    id
-    name
-    email
-    createdAt
-  }
-}
-```
-
-The above example works because the earlier model definition includes the necessary configuration for filtering,
-sorting, and pagination. Alternatively, if we'd set `enableAll` to `false` for the `createdAt` field in the
-[`orderableFields` section](#model-orderablefield), the `createdAt` field would not be available for sorting in the API.
 
 <details>
 <summary>Check out Global IDs for relay:</summary>
