@@ -2,7 +2,6 @@ import { readFileSync, writeFileSync } from 'fs';
 import { JSONSchema7Definition } from '../entities/types';
 import { getSchemaMarkdown } from './walker';
 import { parentSchema } from '../entities/objects';
-import { removeDuplicateH3H4Sections } from './dedupe';
 import jsYaml from 'js-yaml';
 
 /**
@@ -11,6 +10,16 @@ import jsYaml from 'js-yaml';
  */
 export function removeNewLineCharacter(text: string) {
   return text.replace(/\n/g, ' ');
+}
+
+/**
+ * To make the metadata structure flow a bit easier, we'll avoid the "duplication" of a metadata object followed by
+ * `V1`. As an example, there is a `Command` object and a `CommandV1` object that acts as the definition of that object;
+ * as all metadata objects need `kind` and `version` fields, this allows us to front-load the object's definition and skip
+ * the "redundancy" of these two fields while also not duplicating content (description of the object).
+ */
+export function isV1Content(metadataObject: JSONSchema7Definition): boolean {
+  return !!metadataObject.title?.includes('V1');
 }
 
 /**
@@ -24,9 +33,6 @@ export function updatePageMarkdown(filePath: string, newMetadataMarkdown: string
 
     const parts = existingContents.split('## Metadata structure');
     let newContents = parts[0] + '## Metadata structure\n\n' + newMetadataMarkdown;
-
-    // Hacky way of dealing with our duplications
-    newContents = removeDuplicateH3H4Sections(newContents);
 
     writeFileSync(filePath, newContents, 'utf-8');
 
@@ -198,6 +204,7 @@ export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Def
     if (currentObject !== undefined) {
       // We found the right schema 🎉
       refObject = currentObject;
+      console.log(refObject);
       break;
     }
   }
