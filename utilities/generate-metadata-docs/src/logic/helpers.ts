@@ -204,7 +204,6 @@ export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Def
     if (currentObject !== undefined) {
       // We found the right schema 🎉
       refObject = currentObject;
-      console.log(refObject);
       break;
     }
   }
