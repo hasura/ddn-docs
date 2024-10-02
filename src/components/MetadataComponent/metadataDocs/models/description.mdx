@@ -1,74 +1,115 @@
-### kind {#L2}
+### Set the kind of object to be defined {#L2}
 
-The `kind` field specifies the type of object being defined. In this case, the object is a model. A model represents a
-logical grouping of data, typically corresponding to a table or collection in a database, that can be used for querying
-and other operations within the system. Defining the correct kind ensures the object is treated appropriately throughout
-the GraphQL and backend architecture.
+Set the `kind` key to specify the type of metadata object you're creating. In this case, set it to `Model` to indicate
+that this is a data model definition. [Learn more](#model-model).
 
-### version {#L3}
+### Set the version of the metadata {#L3}
 
-The `version` field indicates which version of the model structure is being used. This ensures that the model’s
-structure follows a specific schema or format, which can evolve over time. For instance, versioning allows backward
-compatibility and smooth transitions when new features or changes are introduced. Here, we are using version `v1` of the
-model's structure.
+Ensure the `version` is set to a valid option. Most metadata objects are `v1`, but several have `v2`. This helps to
+ensure compatibility and future-proofs your metadata against any breaking changes. [Learn more](#model-model).
 
-### definition.name {#L5}
+### Define the model's structure and behavior {#L4-42}
 
-The `definition.name` field specifies the name of the model, representing the collection of data objects within it. This
-is a unique identifier for the model and is typically used in the backend or GraphQL API to refer to the underlying
-data. This name must be meaningful and aligned with the domain or the data it represents, as it is used in both queries
-and mutations.
+In the `definition` key, you'll define the structure of your data model. A data model represents a collection of objects
+of a particular type and supports one or more CRUD operations. You will also specify key details such as its `name`,
+`objectType`, and configurations like filtering and sorting when it's exposed via your supergraph's GraphQL API.
+[Learn more](#model-modelv1).
 
-### definition.objectType {#L6}
+### Name your model {#L5}
 
-The `definition.objectType` field defines the type of objects contained within this model. In this example, it refers to
-the model being used in the GraphQL API and backend system. This field helps enforce consistency in how data is
-accessed, manipulated, and returned. The `objectType` is typically a custom name that reflects the logical structure of
-the data.
+Set the `name` of your model, which is how the data model will be referenced in the supergraph. This should reflect the
+type of data the model represents, such as `Users`, `Articles`, etc. [Learn more](#model-modelname).
 
-### definition.source.dataConnectorName {#L8}
+### Specify the object type {#L6}
 
-The `definition.source.dataConnectorName` field identifies the data connector responsible for linking the model to the
-actual data source, such as a PostgreSQL database or a MongoDB collection. This ensures that the model is tied to the
-correct data backend, facilitating access to the underlying data through the appropriate protocols.
+The `objectType` is the specific type of objects that make up the model. This represents the definition of what each
+object in the collection should conform to, like `User` or `Article`. You can learn more about creating
+[types here](#model-customtypename).
 
-### definition.source.collection {#L9}
+### Indicate the globalIdSource {#L7}
 
-The `definition.source.collection` field specifies the exact collection or table in the data source that this model maps
-to. In systems like MongoDB, this could be a collection of documents, while in relational databases like PostgreSQL,
-this would correspond to a table. The collection defines the actual storage and retrieval mechanism for the data
-objects.
+Setting this value to `true` will allow you to fetch any object directly using its Global ID. This enhances API
+flexibility by allowing clients to fetch objects across the schema with a single query, regardless of the object type.
+[Learn more](/graphql-api/global-ids/).
 
-### definition.filterExpressionType {#L10}
+### Define any arguments {#L8}
 
-The `definition.filterExpressionType` field specifies the type used for filtering the model’s data in GraphQL queries.
-This allows clients to apply filters to data retrieval, such as querying users by a specific property like `email` or
-`createdAt`. The expression type defines the rules and structure that the filter must follow to ensure valid queries.
+If you have any arguments you'd like to pass, you can add them to this array, which ensures a simplified request
+structure when no additional filtering or customization is necessary. [Learn more](#model-argumentdefinition).
 
-### definition.orderableFields {#L11-23}
+### Connect to your data source {#L9-11}
 
-The `definition.orderableFields` field lists the fields that can be used to sort the data in the model. For example,
-fields like `id`, `name`, `email`, and `createdAt` are orderable, meaning the API allows the client to specify how
-results should be ordered when querying the data, such as sorting by `createdAt` in ascending or descending order. This
-is essential for efficient querying and pagination in large datasets.
+In the `source` section, configure how the model connects to your data source. Set the `dataConnectorName` to identify
+the data connector that interfaces with the data source, and `collection` to specify which collection or table in that
+data source the model maps to. [Learn more](#model-modelsource).
 
-### definition.graphql.selectMany.queryRootField {#L12}
+### Map arguments for the data source {#L12}
 
-The `definition.graphql.selectMany.queryRootField` field specifies the root field in the GraphQL API for querying
-multiple objects of this model. It defines how to retrieve a collection of objects rather than a single one. If removed,
-the ability to query and return an array of this model would be disabled, limiting the user to only single-instance
-queries. This is crucial for retrieving large datasets or lists of users, for example.
+Use the `argumentMapping` key to map model arguments to data connector arguments, ensuring correct communication between
+the model and the underlying data source. This allows flexibility in passing arguments through queries.
+[Learn more](#model-argumentmapping).
 
-### definition.graphql.selectUniques {#L13}
+### Apply a filter to your model {#L13}
 
-The `definition.graphql.selectUniques` field defines unique query root fields used to retrieve a single unique object in
-GraphQL. These fields, such as `usersById`, help query individual objects based on unique identifiers like `id`.
-Removing this field would disable the ability to query specific instances, which is critical for scenarios where a
-single data object, such as a user profile, must be retrieved directly.
+Use the `filterExpressionType` to define the boolean expression type for filtering objects in this model. This is
+crucial for performing conditional queries on the data. This will reference a
+[`BooleanExpressionType` object](#model-customtypename) which defines specific operators to allow filtering when
+querying this type.
 
-### definition.graphql.orderByExpressionType {#L14}
+### Enable aggregate queries on your model {#L14}
 
-The `definition.graphql.orderByExpressionType` field defines the type used for specifying how to order data when
-querying this model in GraphQL. This type controls the sorting mechanism, allowing the client to request data in a
-specific order, such as by `name` or `createdAt`. Proper ordering is essential for effective data presentation and
-interaction in most applications.
+You can execute aggregate queries on your model, which will enable you to summarize and calculate properties of your
+data, by referencing an [`AggregateExpression` object](/supergraph-modeling/aggregate-expressions/). This is useful when
+you wan to return a total count, sum, average, etc.
+
+### Enable orderable fields {#L15-22}
+
+Define the fields that can be used to order the objects in this model by setting the `orderableFields`. Each field is
+configured with an associated set of ordering directions (`Asc`, `Desc`, `EnableAll`) and maps to the various columns or
+fields in your data source's collection. [Learn more](#model-orderablefield).
+
+### Add fields to be sorted {#L16-18}
+
+Specify the individual fields in `orderableFields` that will allow sorting of model objects in queries. Each field can
+have different sorting behaviors enabled, but commonly `enableAll: true` allows sorting in both ascending and descending
+orders. [Learn more](#model-orderablefield).
+
+### Configure GraphQL queries {#L23-41}
+
+Determine how objects can be queried. You can define root fields for both unique and many results. If this section is
+omitted, the model won’t be exposed in the GraphQL API. [Learn more](#model-modelgraphqldefinition).
+
+### Configure GraphQL queries for multiple entries {#L24-28}
+
+In the `graphql.selectMany` section, define how multiple objects can be queried. The `queryRootField` is the field used
+in the GraphQL schema to fetch all objects from the model that match the query parameters. You can also deprecate this
+field and alert collaborators with a message. [Learn more](#model-selectmanygraphqldefinition).
+
+### Configure GraphQL queries for unique entries {#L29-35}
+
+In the `graphql.selectUniques` section, define how unique objects are queried. The `queryRootField` is exposed in the
+GraphQL schema and allows you to select a unique object using its identifier. You can specify one or more fields in the
+`uniqueIdentifier` array, providing flexibility in how unique objects are identified and queried. Like returning
+multiple entries, you can deprecate this field as well. [Learn more](#model-selectuniquegraphqldefinition).
+
+### Set order by behavior for GraphQL queries {#L36}
+
+Configure the `orderByExpressionType` to define how objects from this model can be ordered in GraphQL queries. This
+ensures consistent behavior for sorting results by fields. [Learn more](#model-modelgraphqldefinition).
+
+### Set aggregates {#L37-39}
+
+In the `aggregateDefinition` section, configure whether aggregate functions like `count`, `sum`, `avg`, and others
+should be exposed for your model. [Learn more](#model-modelaggregategraphqldefinition).
+
+### Configure Apollo Federation {#L40-41}
+
+Use the `apolloFederation` section to determine if this model should be included in Apollo Federation. If
+`entitySource: true`, the model will act as a source for fetching federated entities in the supergraph.
+[Learn more](#model-modelapollofederationconfiguration) below and see our section on
+[Apollo Federation](/graphql-api/apollo-federation/).
+
+### Provide a description for your model {#L42}
+
+The `description` field allows you to add a description for the model. This description will appear in the GraphQL
+schema and provides context about the model's purpose and structure. [Learn more](#model-modelv1).
