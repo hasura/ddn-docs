@@ -14,6 +14,7 @@ import GraphQLAPI from '@site/static/icons/graphql-logo.svg';
 import ProjectConfiguration from '@site/static/icons/dataflow-01.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
+import Federation from '@site/static/icons/data_federation.svg';
 import Enterprise from '@site/static/icons/features/enterprise.svg';
 import Glossary from '@site/static/icons/box.svg';
 import Quickstart from '@site/static/icons/speedometer-04.svg';
@@ -80,6 +81,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'observability-icon':
       icons = <Observability />;
+      break;
+    case 'federation-icon':
+      icons = <Federation />;
       break;
     case 'enterprise-icon':
       icons = <Enterprise />;
