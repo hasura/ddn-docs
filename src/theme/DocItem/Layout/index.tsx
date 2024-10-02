@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import { useWindowSize } from '@docusaurus/theme-common';
 import { useDoc } from '@docusaurus/theme-common/internal';
@@ -16,6 +16,10 @@ import type { Props } from '@theme/DocItem/Layout';
 
 import styles from './styles.module.css';
 
+interface ExtendedFrontMatter {
+  hide_toc_on_initial_load?: boolean;
+}
+
 /**
  * Decide if the toc should be rendered, on mobile or desktop viewports
  */
@@ -25,7 +29,6 @@ function useDocTOC() {
 
   const hidden = frontMatter.hide_table_of_contents;
   const canRender = !hidden && toc.length > 0;
-  const isTocHiddenOnInitialLoad = frontMatter.hide_toc_on_initial_load;
 
   const mobile = canRender ? <DocItemTOCMobile /> : undefined;
 
@@ -35,7 +38,6 @@ function useDocTOC() {
     hidden,
     mobile,
     desktop,
-    isTocHiddenOnInitialLoad,
   };
 }
 
@@ -43,27 +45,33 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
   const docTOC = useDocTOC();
   const {
     metadata: { unlisted },
+    frontMatter,
   } = useDoc();
 
-  const [maxWidth, setMaxWidth] = useState('unset');
+  const extendedFrontMatter = frontMatter as ExtendedFrontMatter;
+
+  const hideTOC = extendedFrontMatter.hide_toc_on_initial_load;
   const tocElementRef = useRef<HTMLDivElement>(null);
+  const contentElementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Using refs here to avoid relying on class selectors where possible
     const tocElement = tocElementRef.current;
+    const contentElement = contentElementRef.current;
 
+    // Reminding myself: this works by determining if the class of .metadata-container is in the DOM
     const metadataElement = document.querySelector('.metadata-container');
-
+    // Then, if it is, we check to see if the ToC element is there, too and create an observer
     if (metadataElement && tocElement) {
       const observer = new IntersectionObserver(
         entries => {
           const [entry] = entries;
 
           if (entry.isIntersecting) {
-            setMaxWidth('unset');
+            contentElement.style.maxWidth = 'unset';
             tocElement.style.display = 'none';
           } else {
-            console.log('Narrow');
-            setMaxWidth('75%');
+            contentElement.style.maxWidth = '75%';
             tocElement.style.display = 'block';
           }
         },
@@ -78,12 +86,19 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
       return () => {
         if (metadataElement) observer.unobserve(metadataElement);
       };
+    } else {
+      if (contentElement) {
+        contentElement.style.maxWidth = '75%';
+      }
+      if (tocElement) {
+        tocElement.style.display = 'block';
+      }
     }
   }, []);
 
   return (
     <div className="row">
-      <div className={clsx('col', !docTOC.hidden && styles.docItemCol)} style={{ maxWidth }}>
+      <div ref={contentElementRef} className={clsx('col', !docTOC.hidden && styles.docItemCol)}>
         {unlisted && <Unlisted />}
         <DocVersionBanner />
         <div className={styles.docItemContainer}>
@@ -98,7 +113,7 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
         </div>
       </div>
       {docTOC.desktop && (
-        <div ref={tocElementRef} className={`col col--3 ${docTOC.isTocHiddenOnInitialLoad ? 'hidden' : ''}`}>
+        <div ref={tocElementRef} className={clsx('col col--3', hideTOC && 'hidden')}>
           {docTOC.desktop}
         </div>
       )}

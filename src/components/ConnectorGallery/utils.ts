@@ -44,9 +44,7 @@ export async function fetchConnectors() {
 
   // Deal with the exclusion list
   const connectors: Connector[] = result.data.connector_overview;
-  console.log(connectors);
   const filtered = filterExcludedConnectors(connectors);
-  console.log(filtered);
 
   return filtered;
 }
