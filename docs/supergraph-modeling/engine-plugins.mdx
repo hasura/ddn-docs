@@ -66,17 +66,18 @@ definition:
 
 ## Metadata structure
 
+
 ### LifecyclePluginHook {#lifecyclepluginhook-lifecyclepluginhook}
 
 Definition of a lifecycle plugin hook.
 
-| Key          | Value                                                                           | Required | Description |
-| ------------ | ------------------------------------------------------------------------------- | -------- | ----------- |
-| `kind`       | `LifecyclePluginHook`                                                           | true     |             |
-| `version`    | `v1`                                                                            | true     |             |
-| `definition` | [LifecyclePluginHookPreParse](#lifecyclepluginhook-lifecyclepluginhookpreparse) | true     |             |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `LifecyclePluginHook` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [LifecyclePluginHookPreParse](#lifecyclepluginhook-lifecyclepluginhookpreparse) | true | Definition of a lifecycle plugin hook - version 1. |
 
-**Example:**
+ **Example:**
 
 ```yaml
 kind: LifecyclePluginHook
@@ -84,7 +85,8 @@ version: v1
 definition:
   pre: parse
   name: test
-  url: http://localhost:8080
+  url:
+    value: http://localhost:8080
   config:
     request:
       headers:
@@ -97,69 +99,91 @@ definition:
         variables: {}
 ```
 
+
 #### LifecyclePluginHookPreParse {#lifecyclepluginhook-lifecyclepluginhookpreparse}
 
 Definition of a lifecycle plugin hook for the pre-parse stage.
 
-| Key      | Value                                                                       | Required | Description                                  |
-| -------- | --------------------------------------------------------------------------- | -------- | -------------------------------------------- |
-| `pre`    | `parse`                                                                     | true     |                                              |
-| `name`   | string                                                                      | true     | The name of the lifecycle plugin hook.       |
-| `url`    | string                                                                      | true     | The URL to access the lifecycle plugin hook. |
-| `config` | [LifecyclePluginHookConfig](#lifecyclepluginhook-lifecyclepluginhookconfig) | true     | Configuration for the lifecycle plugin hook. |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `pre` | `parse` | true |  |
+| `name` | string | true | The name of the lifecycle plugin hook. |
+| `url` | [EnvironmentValue](#lifecyclepluginhook-environmentvalue) | true | The URL to access the lifecycle plugin hook. |
+| `config` | [LifecyclePluginHookConfig](#lifecyclepluginhook-lifecyclepluginhookconfig) | true | Configuration for the lifecycle plugin hook. |
+
+
 
 #### LifecyclePluginHookConfig {#lifecyclepluginhook-lifecyclepluginhookconfig}
 
 Configuration for a lifecycle plugin hook.
 
-| Key       | Value                                                                                     | Required | Description                                                 |
-| --------- | ----------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------- |
-| `request` | [LifecyclePluginHookConfigRequest](#lifecyclepluginhook-lifecyclepluginhookconfigrequest) | true     | Configuration for the request to the lifecycle plugin hook. |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `request` | [LifecyclePluginHookConfigRequest](#lifecyclepluginhook-lifecyclepluginhookconfigrequest) | true | Configuration for the request to the lifecycle plugin hook. |
+
+
 
 #### LifecyclePluginHookConfigRequest {#lifecyclepluginhook-lifecyclepluginhookconfigrequest}
 
 Configuration for a lifecycle plugin hook request.
 
-| Key          | Value                                                                                            | Required | Description                                                           |
-| ------------ | ------------------------------------------------------------------------------------------------ | -------- | --------------------------------------------------------------------- |
-| `headers`    | [LifecyclePluginHookHeadersConfig](#lifecyclepluginhook-lifecyclepluginhookheadersconfig) / null | false    | Configuration for the headers.                                        |
-| `session`    | `{}` / null                                                                                      | false    | Configuration for the session (includes roles and session variables). |
-| `rawRequest` | [RawRequestConfig](#lifecyclepluginhook-rawrequestconfig)                                        | true     | Configuration for the raw request.                                    |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `headers` | [LifecyclePluginHookHeadersConfig](#lifecyclepluginhook-lifecyclepluginhookheadersconfig) / null | false | Configuration for the headers. |
+| `session` | [LeafConfig](#lifecyclepluginhook-leafconfig) / null | false | Configuration for the session (includes roles and session variables). |
+| `rawRequest` | [RawRequestConfig](#lifecyclepluginhook-rawrequestconfig) | true | Configuration for the raw request. |
+
+
 
 #### RawRequestConfig {#lifecyclepluginhook-rawrequestconfig}
 
 Configuration for the raw request.
 
-| Key         | Value       | Required | Description                      |
-| ----------- | ----------- | -------- | -------------------------------- |
-| `query`     | `{}` / null | false    | Configuration for the query.     |
-| `variables` | `{}` / null | false    | Configuration for the variables. |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `query` | [LeafConfig](#lifecyclepluginhook-leafconfig) / null | false | Configuration for the query. |
+| `variables` | [LeafConfig](#lifecyclepluginhook-leafconfig) / null | false | Configuration for the variables. |
+
+
+
+#### LeafConfig {#lifecyclepluginhook-leafconfig}
+
+Leaf Configuration.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+
+
 
 #### LifecyclePluginHookHeadersConfig {#lifecyclepluginhook-lifecyclepluginhookheadersconfig}
 
 Configuration for a lifecycle plugin hook headers.
 
-| Key          | Value                                                  | Required | Description                                        |
-| ------------ | ------------------------------------------------------ | -------- | -------------------------------------------------- |
-| `additional` | [HttpHeaders](#lifecyclepluginhook-httpheaders) / null | false    | Additional headers to be sent with the request.    |
-| `forward`    | [string]                                               | false    | Headers to be forwarded from the incoming request. |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `additional` | [HttpHeaders](#lifecyclepluginhook-httpheaders) / null | false | Additional headers to be sent with the request. |
+| `forward` | [string] | false | Headers to be forwarded from the incoming request. |
+
+
 
 #### HttpHeaders {#lifecyclepluginhook-httpheaders}
 
-Key value map of HTTP headers to be sent with an HTTP request. The key is the header name and the value is a potential
-reference to an environment variable.
+Key value map of HTTP headers to be sent with an HTTP request. The key is the header name and the value is a potential reference to an environment variable.
 
-| Key           | Value                                                     | Required | Description |
-| ------------- | --------------------------------------------------------- | -------- | ----------- |
-| `<customKey>` | [EnvironmentValue](#lifecyclepluginhook-environmentvalue) | false    |             |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | [EnvironmentValue](#lifecyclepluginhook-environmentvalue) | false |  |
+
+
 
 #### EnvironmentValue {#lifecyclepluginhook-environmentvalue}
 
 Either a literal string or a reference to a Hasura secret
 
+
 **Must have exactly one of the following fields:**
 
-| Key            | Value  | Required | Description |
-| -------------- | ------ | -------- | ----------- |
-| `value`        | string | false    |             |
-| `valueFromEnv` | string | false    |             |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `value` | string | false |  |
+| `valueFromEnv` | string | false |  |
