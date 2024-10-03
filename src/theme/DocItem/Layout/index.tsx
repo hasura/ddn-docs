@@ -12,6 +12,7 @@ import DocItemTOCDesktop from '@theme/DocItem/TOC/Desktop';
 import DocItemContent from '@theme/DocItem/Content';
 import DocBreadcrumbs from '@theme/DocBreadcrumbs';
 import Unlisted from '@theme/Unlisted';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 import type { Props } from '@theme/DocItem/Layout';
 
@@ -55,6 +56,7 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
   const hideTOC = extendedFrontMatter.hide_toc_on_initial_load;
   const tocElementRef = useRef<HTMLDivElement>(null);
   const contentElementRef = useRef<HTMLDivElement>(null);
+  const baseUrl = useBaseUrl('/index/');
 
   useEffect(() => {
     // Using refs here to avoid relying on class selectors where possible
@@ -91,7 +93,7 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
     } else {
       if (contentElement) {
         const isOverview = location.pathname.includes('overview');
-        const isLanding = location.pathname === '/docs/3.0/index/';
+        const isLanding = location.pathname === baseUrl;
         const isGuide = extendedFrontMatter.is_guide;
 
         if (isOverview || isGuide || isLanding) {
