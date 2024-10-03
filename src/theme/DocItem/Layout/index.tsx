@@ -91,9 +91,10 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
     } else {
       if (contentElement) {
         const isOverview = location.pathname.includes('overview');
+        const isLanding = location.pathname === '/docs/3.0/index/';
         const isGuide = extendedFrontMatter.is_guide;
 
-        if (isOverview || isGuide) {
+        if (isOverview || isGuide || isLanding) {
           contentElement.style.maxWidth = '100%';
         } else {
           contentElement.style.maxWidth = '75%';
