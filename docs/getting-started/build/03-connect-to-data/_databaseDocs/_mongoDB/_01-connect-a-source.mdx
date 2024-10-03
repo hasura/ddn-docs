@@ -18,7 +18,18 @@ then use to create metadata which can then define your API.
 
 :::
 
-To initialize the MongoDB connector, run the following in your terminal:
+:::tip Need a connection string?
+
+Feel free to use this read-only MongoDB connection string for testing purposes:
+
+```text
+mongodb+srv://read_only_user:readonlyuser@v3-docs-sample-app.vh2tp.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=v3-docs-sample-app
+```
+
+:::
+
+To initialize the MongoDB connector, with the appropriate subgraph set in context, run the following command in your
+terminal:
 
 ```bash title="Run the following command:"
 ddn connector init -i
@@ -40,9 +51,6 @@ this directory by passing a `--dir` flag to the CLI.
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_mongo` in this
 example, should match for convenience and clarity sake.
 
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in the key-value pair for your `.env` file.
-
 :::
 
 ### What did `connector init` do?
@@ -56,23 +64,11 @@ In the `my_subgraph/connector/my_mongo` directory which we specified in the comm
 
 In the `my_subgraph/metadata` directory, the CLI created:
 
-- A `my_mongo.hml` file which contains the [`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx)
-  metadata object which describes how the supergraph can interact with the connector.
+- A `my_mongo.hml` file which contains the [`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx) metadata
+  object which describes how the supergraph can interact with the connector.
 
 Right now, the CLI has only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the MongoDB database or the data it contains. That's coming up in the next steps.
-
-:::tip Need a connection string?
-
-Feel free to use this read-only MongoDB connection string for testing purposes:
-
-```text
-mongodb+srv://read_only_user:readonlyuser@v3-docs-sample-app.vh2tp.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=v3-docs-sample-app
-```
-
-:::
-
-Remember to use quotes as the string will likely have some characters which will break the `.env` file if not enclosed.
 
 You can use a local MongoDB database, or a cloud-hosted one like MongoDB Atlas. Check out
 [this page](https://www.mongodb.com/docs/manual/installation/) for a list of options for running a MongoDB database if
@@ -148,12 +144,13 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 ## Step 3. Track your collections
 
-Collections from MongoDB are represented as [Models](/supergraph-modeling/models.mdx) and
-[Commands](/supergraph-modeling/commands.mdx) in your API. The next command we'll run will take each collection in your
-database and create an `hml` file for it. These files will then be used by the Hasura engine to generate your API.
+Collections from MongoDB are represented as [Models](/supergraph-modeling/models.mdx) in your API. The next commands
+we'll run will take each collection in your database and create an `hml` file for it. These files will then be used by
+the Hasura engine to generate your API.
 
-```bash title="Run the following to create your models and commands:"
-ddn connector-link add-resources my_mongo
+```bash title="Run the following to create your models and relationships:"
+ddn model add my_mongo "*"
+ddn relationship add my_mongo "*"
 ```
 
 If you look in the `metadata` directory for your subgraph, you'll see named files for each resource. These will also
@@ -173,7 +170,11 @@ And, if your services are not already running, start them.
 ddn run docker-start
 ```
 
-You should see your models available in your API by opening your console using `ddn console --local` 🎉
+You should see your models available in your API by opening your console using:
+
+```bash title="Run the following:"
+ddn console --local
+```
 
 ## Next steps
 
