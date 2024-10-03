@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import { useWindowSize } from '@docusaurus/theme-common';
 import { useDoc } from '@docusaurus/theme-common/internal';
+import { useLocation } from '@docusaurus/router';
 import DocItemPaginator from '@theme/DocItem/Paginator';
 import DocVersionBanner from '@theme/DocVersionBanner';
 import DocVersionBadge from '@theme/DocVersionBadge';
@@ -18,6 +19,7 @@ import styles from './styles.module.css';
 
 interface ExtendedFrontMatter {
   hide_toc_on_initial_load?: boolean;
+  is_guide?: boolean;
 }
 
 /**
@@ -47,7 +49,7 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
     metadata: { unlisted },
     frontMatter,
   } = useDoc();
-
+  const location = useLocation();
   const extendedFrontMatter = frontMatter as ExtendedFrontMatter;
 
   const hideTOC = extendedFrontMatter.hide_toc_on_initial_load;
@@ -88,8 +90,16 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
       };
     } else {
       if (contentElement) {
-        contentElement.style.maxWidth = '75%';
+        const isOverview = location.pathname.includes('overview');
+        const isGuide = extendedFrontMatter.is_guide;
+
+        if (isOverview || isGuide) {
+          contentElement.style.maxWidth = '100%';
+        } else {
+          contentElement.style.maxWidth = '75%';
+        }
       }
+
       if (tocElement) {
         tocElement.style.display = 'block';
       }
