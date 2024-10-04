@@ -48,7 +48,7 @@
                   "description": "Definition of the authentication configuration used by the API server.",
                   "oneOf": [
                     {
-                      "title": "AuthConfig1",
+                      "title": "AuthConfigV1",
                       "description": "Definition of the authentication configuration v1, used by the API server.",
                       "type": "object",
                       "required": ["definition", "kind", "version"],
@@ -595,7 +595,7 @@
                       "additionalProperties": false
                     },
                     {
-                      "title": "AuthConfig2",
+                      "title": "AuthConfigV2",
                       "description": "Definition of the authentication configuration v2, used by the API server.",
                       "type": "object",
                       "required": ["definition", "kind", "version"],
@@ -785,13 +785,7 @@
                                           "$schema": "http://json-schema.org/draft-07/schema#",
                                           "title": "Schema Response",
                                           "type": "object",
-                                          "required": [
-                                            "collections",
-                                            "functions",
-                                            "object_types",
-                                            "procedures",
-                                            "scalar_types"
-                                          ],
+                                          "required": ["collections", "functions", "object_types", "procedures", "scalar_types"],
                                           "properties": {
                                             "scalar_types": {
                                               "description": "A list of scalar types which will be used as the types of collection columns",
@@ -1310,13 +1304,7 @@
                                             "CollectionInfo": {
                                               "title": "Collection Info",
                                               "type": "object",
-                                              "required": [
-                                                "arguments",
-                                                "foreign_keys",
-                                                "name",
-                                                "type",
-                                                "uniqueness_constraints"
-                                              ],
+                                              "required": ["arguments", "foreign_keys", "name", "type", "uniqueness_constraints"],
                                               "properties": {
                                                 "name": {
                                                   "description": "The name of the collection\n\nNote: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database.",
@@ -2625,13 +2613,7 @@
                           "title": "ObjectBooleanExpressionTypeV1",
                           "description": "Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of `BooleanExpressionType`.",
                           "type": "object",
-                          "required": [
-                            "comparableFields",
-                            "dataConnectorName",
-                            "dataConnectorObjectType",
-                            "name",
-                            "objectType"
-                          ],
+                          "required": ["comparableFields", "dataConnectorName", "dataConnectorObjectType", "name", "objectType"],
                           "properties": {
                             "name": {
                               "description": "The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.",
@@ -2974,11 +2956,7 @@
                                                 "title": "DataConnectorOperatorMapping",
                                                 "description": "Mapping between OpenDD operator names and the names used in the data connector schema",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "operatorMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "operatorMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "Name of the data connector this mapping applies to",
@@ -3395,11 +3373,7 @@
                                                 "title": "DataConnectorAggregationFunctionMapping",
                                                 "description": "Definition of how to map an aggregate expression's aggregation functions to data connector aggregation functions.",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "functionMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "functionMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "The data connector being mapped to",
@@ -3635,11 +3609,16 @@
                           "required": ["name", "objectType", "orderableFields"],
                           "properties": {
                             "name": {
-                              "$id": "https://hasura.io/jsonschemas/metadata/ModelName",
-                              "title": "ModelName",
                               "description": "The name of the data model.",
-                              "type": "string",
-                              "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/ModelName",
+                                  "title": "ModelName",
+                                  "description": "The name of data model.",
+                                  "type": "string",
+                                  "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
+                                }
+                              ]
                             },
                             "objectType": {
                               "description": "The type of the objects of which this model is a collection.",
@@ -3699,12 +3678,11 @@
                                   "required": ["collection", "dataConnectorName"],
                                   "properties": {
                                     "dataConnectorName": {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/DataConnectorName",
+                                      "title": "DataConnectorName",
                                       "description": "The name of the data connector backing this model.",
-                                      "allOf": [
-                                        {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/name/allOf/0"
-                                        }
-                                      ]
+                                      "type": "string",
+                                      "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
                                     },
                                     "collection": {
                                       "description": "The collection in the data connector that backs this model.",
@@ -4285,7 +4263,7 @@
                       "version": "v1",
                       "definition": {
                         "name": "Articles",
-                        "source": "author",
+                        "sourceType": "author",
                         "target": {
                           "model": {
                             "name": "Articles",
@@ -4387,7 +4365,7 @@
                                               "description": "The name of the data model.",
                                               "allOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/0/properties/definition/properties/modelName/allOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
                                                 }
                                               ]
                                             },
@@ -4935,11 +4913,7 @@
                               "description": "The name of the model for which permissions are being defined.",
                               "allOf": [
                                 {
-                                  "$id": "https://hasura.io/jsonschemas/metadata/ModelName",
-                                  "title": "ModelName",
-                                  "description": "The name of data model.",
-                                  "type": "string",
-                                  "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
                                 }
                               ]
                             },
@@ -5417,7 +5391,7 @@
                           "description": "Definition of a lifecycle plugin hook - version 1.",
                           "oneOf": [
                             {
-                              "title": "LifecyclePluginHookPreParse",
+                              "title": "LifecyclePreParsePluginHook",
                               "description": "Definition of a lifecycle plugin hook for the pre-parse stage.",
                               "type": "object",
                               "required": ["config", "name", "pre", "url"],
@@ -5466,8 +5440,8 @@
                                   "description": "Configuration for the lifecycle plugin hook.",
                                   "allOf": [
                                     {
-                                      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePluginHookConfig",
-                                      "title": "LifecyclePluginHookConfig",
+                                      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreParsePluginHookConfig",
+                                      "title": "LifecyclePreParsePluginHookConfig",
                                       "description": "Configuration for a lifecycle plugin hook.",
                                       "type": "object",
                                       "required": ["request"],
@@ -5476,8 +5450,8 @@
                                           "description": "Configuration for the request to the lifecycle plugin hook.",
                                           "allOf": [
                                             {
-                                              "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePluginHookConfigRequest",
-                                              "title": "LifecyclePluginHookConfigRequest",
+                                              "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreParsePluginHookConfigRequest",
+                                              "title": "LifecyclePreParsePluginHookConfigRequest",
                                               "description": "Configuration for a lifecycle plugin hook request.",
                                               "type": "object",
                                               "required": ["rawRequest"],
@@ -5566,6 +5540,102 @@
                                                         }
                                                       },
                                                       "additionalProperties": false
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            {
+                              "title": "LifecyclePreResponsePluginHook",
+                              "description": "Definition of a lifecycle plugin hook for the pre-response stage.",
+                              "type": "object",
+                              "required": ["config", "name", "pre", "url"],
+                              "properties": {
+                                "pre": {
+                                  "type": "string",
+                                  "enum": ["response"]
+                                },
+                                "name": {
+                                  "description": "The name of the lifecycle plugin hook.",
+                                  "type": "string"
+                                },
+                                "url": {
+                                  "description": "The URL to access the lifecycle plugin hook.",
+                                  "allOf": [
+                                    {
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                    }
+                                  ]
+                                },
+                                "config": {
+                                  "description": "Configuration for the lifecycle plugin hook.",
+                                  "allOf": [
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreResponsePluginHookConfig",
+                                      "title": "LifecyclePreResponsePluginHookConfig",
+                                      "description": "Configuration for a lifecycle plugin hook.",
+                                      "type": "object",
+                                      "required": ["request"],
+                                      "properties": {
+                                        "request": {
+                                          "description": "Configuration for the request to the lifecycle plugin hook.",
+                                          "allOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreResponsePluginHookConfigRequest",
+                                              "title": "LifecyclePreResponsePluginHookConfigRequest",
+                                              "description": "Configuration for a lifecycle plugin hook request.",
+                                              "type": "object",
+                                              "required": ["rawRequest"],
+                                              "properties": {
+                                                "headers": {
+                                                  "description": "Configuration for the headers.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/headers/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "session": {
+                                                  "description": "Configuration for the session (includes roles and session variables).",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "rawRequest": {
+                                                  "description": "Configuration for the raw request.",
+                                                  "allOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/rawRequest/allOf/0"
+                                                    }
+                                                  ]
+                                                },
+                                                "rawResponse": {
+                                                  "description": "Configuration for the response.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
                                                     }
                                                   ]
                                                 }
