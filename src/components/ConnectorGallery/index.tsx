@@ -9,7 +9,6 @@ export default function Gallery() {
     const fetchData = async () => {
       try {
         const data = await fetchConnectors();
-        console.log(data);
         data.map((connector: Connector) => {
           // This deals with any "special children" by generating an internal link
           switch (true) {
