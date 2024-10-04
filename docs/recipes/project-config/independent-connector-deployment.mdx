@@ -44,12 +44,29 @@ DataConnectorLink object is kept in sync with the connector.
 
 ### Step 1. Build the connector
 
-Build and deploy your connector and note the URL of the deployed connector, say `<deployed-connector-url>`.
+Build and deploy your connector and note the:
+- Read url, say `<deployed-connector-read-url>`
+- Write url, say `<deployed-connector-write-url>`
+- Authorization header, say `Bearer <deployed-connector-token>`
 
-### Step 2. Update connector URLs in the data connector link
+For example, to build the connector on DDN:
 
-Update the environment variables that correspond to the connector read and write URLs in the data connector link with
- `<deployed-connector-url>`:
+```bash title="Build connector on DDN using config at <subgraph-name>/connector/<connector-name>/connector.yaml"
+ddn connector build create --connector <subgraph-name>/connector/<connector-name>/connector.yaml \
+  --project just-piranha-2515 \
+  --env-file .env.cloud
+```
+
+:::info
+
+The `--project` and `--env-file` flags can be skipped if the keys `project` and `cloudEnvFile` are set in the context.
+
+:::
+
+### Step 2. Update connector URLs and Auth header in the data connector link
+
+Update the environment variables that correspond to the connector read, write URLs and the Authorization header in the
+data connector link:
 
 ```yaml title="For example: <subgraph-name>/metadata/<connector-link-name>.hml"
 kind: DataConnectorLink
@@ -63,8 +80,12 @@ definition:
         valueFromEnv: <CONNECTOR>_READ_URL
       write:
         valueFromEnv: <CONNECTOR>_WRITE_URL
+  headers:
+    Authorization:
+      valueFromEnv: <CONNECTOR>_AUTHORIZATION_HEADER
   #highlight-end
-  headers: ...
+  schema:
+    ...
 ```
 
 Update the environment variables in the corresponding env file:
@@ -72,8 +93,9 @@ Update the environment variables in the corresponding env file:
 ```env title="For example: .env.cloud"
 ...
 #highlight-start
-<CONNECTOR>_READ_URL=<deployed-connector-url>
-<CONNECTOR>_WRITE_URL=<deployed-connector-url>
+<CONNECTOR>_READ_URL="<deployed-connector-read-url>"
+<CONNECTOR>_WRITE_URL="<deployed-connector-write-url>"
+<CONNECTOR>_AUTHORIZATION_HEADER="Bearer <deployed-connector-token>"
 #highlight-end
 ...
 ```
