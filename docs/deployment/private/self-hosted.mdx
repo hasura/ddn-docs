@@ -19,33 +19,56 @@ Hasura DDN is also available to self-host if you need to have complete control o
 There are two models of deployment with Self-Hosted DDN. 
 
 1. Hasura manages the data plane on the customer's cloud account.
+
+   The [data plane](/deployment/architecture.mdx#data-plane) will run on a Kubernetes cluster of your choice and Hasura
+   manages the uptime, upgrades, etc. Hasura Control Plane will need to be given sufficient privileges to install, configure
+   and manage the workloads and associated infrastructure components.
+   The experience is exactly like using Hasura Hosted DDN, but running on your infrastructure.
+   All API traffic stays within your network and does not leave the boundaries of your system.
+
 2. Customer manages the data plane on thier cloud account themselves.
 
-The [data plane](/deployment/architecture.mdx#data-plane) will run on a Kubernetes cluster of your choice and you
-control the uptime, upgrades, etc. All API traffic stays within your network and does not leave the boundaries of your
-system.
+   The [data plane](/deployment/architecture.mdx#data-plane) can be installed on a Kubernetes cluster of your choice and you
+   control the uptime, upgrades, etc. All API traffic stays within your network and does not leave the boundaries of your
+   system.
 
-:::info A Kubernetes cluster is required
+In both cases, the [control plane](/deployment/architecture.mdx#control-plane) is always hosted by Hasura.
 
-A Kubernetes cluster is required to run the data plane and it is a sufficiently complex system that requires advanced
-knowledge of Kubernetes operations.
-
-:::
 
 <Thumbnail src="/img/deployment/private_ddn_customer_hosted.png" alt="Private DDN Architecture Customer Hosted" />
+
+## Data Flow and Security
+
+All critical data operations occur exclusively within the Customer Infrastructure. 
+When an API User sends a GraphQL query, it's received by Hasura in the Data Plane.
+Hasura then directly accesses the necessary data sources within the Customer Infrastructure 
+to fulfill the request. This direct access ensures that sensitive data never leaves the 
+customer's controlled environment, maintaining data residency and security.
+
+While the Control Plane, situated in the Hasura Infrastructure, does communicate with the
+Data Plane, this communication is strictly limited to configuration and management purposes.
+Importantly, this communication does not involve customer data or API responses, further
+enhancing data security.
+
+The distinction between Control Plane and Data Plane creates well-defined security boundaries.
+By keeping the Data Plane and all data sources within the customer's security perimeter,
+the architecture ensures that sensitive information remains under the customer's control at all times.
 
 ## Interactions with the control plane
 
 In Self-Hosted Hasura DDN, the data plane running on the your infrastructure communicates with the control plane only in
-very specific scenarios. **Your data never leaves the data plane**.
+very specific scenarios.
 
-1. The data plane accesses a metadata storage bucket to retrieve build artifacts.
-2. The data plane accesses the control plane APIs to retrieve information about builds, applied builds for the purposes
-   of routing.
-3. The data plane sends observability data to the control plane so you can visualize it on the console.
-4. The control plane interacts with the Kubernetes cluster to manage data plane workloads.
+1. The data plane accesses a metadata storage bucket to retrieve build artifacts,
+   these artifacts are required to process API requests.
+2. The data plane accesses the control plane APIs to retrieve information about builds,
+   applied builds for the purposes of routing.
+3. (Optional) The data plane sends observability data to the control plane so you can visualize it on the console,
+   it does not contain any API response data or variables.
+4. The control plane interacts with the Kubernetes cluster to manage data plane workloads (only in Hasura Managed Data Plane).
 
 <Thumbnail src="/img/deployment/cp_dp_interactions.png" alt="Control Plane - Data Plane interactions" />
+
 
 ## Get started
 
