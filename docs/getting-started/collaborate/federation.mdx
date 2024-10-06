@@ -64,63 +64,48 @@ subgraphs too.
 This process can be easily repeated for any additional teams, allowing each team to contribute their models and features
 while maintaining a cohesive project structure with a distributed workflow.
 
-## Workflow
+## As a supergraph admin, onboard collaborators to a new subgraph
 
-### Steps for supergraph admin
+### Step 1. Create a new subgraph
 
-#### Step 1. Create a new subgraph
-
-Using the CLI, create a new subgraph on your DDN project.
+Using the CLI, as a supergraph admin, create a new subgraph on your DDN project.
 
 ```bash title="In a project directory, run the following:"
 ddn project subgraph create <subgraph-name>
 ```
 
-#### Step 2. Invite collaborators
+### Step 2. Invite collaborators
 
 [Follow the steps ](/getting-started/collaborate/invite.mdx#invite-collaborators) to invite subgraph collaborators. Take
 care to select the appropriate role — either **Admin** or **Developer** — for each subgraph team member.
 
-### Steps for subgraph collaborators
+## As a subgraph developer, collaborate on the new subgraph
 
-#### Step 1. Accept the invite
+### Step 1. Accept the invite
 
 [Reference these docs](/getting-started/collaborate/invite.mdx#accept-invite) to accept an invitation and explore the
 existing supergraph.
 
-#### Step 2. Create a new local project
+### Step 2. Create a new local project, supergraph and subgraph
 
-To get started with local development on your subgraph, create a new local project.
+To get started with local development on your new subgraph, initialize a new local supergraph.
 
 ```bash title="Run the following in a new directory for your project:"
-ddn supergraph init .
+ddn supergraph init . --create-subgraph <subgraph-name>
 ```
 
-With Hasura DDN, we understand that each team may have their own unique workflows and design patterns, so each team can
-create a new repository for their new project; there is no need for all subgraphs to live in the same repository as the
-existing supergraph.
+By providing the `--create-subgraph` flag, you'll also create a new subgraph in your local project and set it in
+context. Importantly, use the same name as the subgraph you were invited to collaborate on. At this point the local
+project does not know about the project on Hasura DDN.
 
-In the next step, we'll map this local project to the existing cloud project.
+:::info Subgraph prefixing
 
-#### Step 3. Set the project context
+It's a good idea at this stage to determine whether you will need a prefix for your subgraph. This is useful if there is
+the possibility of name clashes between subgraphs. [Read more here](/project-configuration/subgraphs.mdx).
 
-Using the CLI, set the project's context by passing its name to the following command.
+:::
 
-```bash title="Pass the cloud project's name of the existing supergraph:"
-ddn context set project <project-name>
-```
-
-#### Step 4. Create a new subgraph
-
-You'll need to create a subgraph in your local metadata that matches the name of the subgraph created in the cloud
-project by your supergraph admin. This ensures proper mapping between the metadata you generate and what is eventually
-served by your cloud project.
-
-```bash title="Create a subgraph matching the name of the subgraph provisioned for you by the supergraph admin and add it to your supergraph's configuration file:"
-ddn subgraph init <subgraph-name> --dir <subgraph-name> --target-supergraph ./supergraph.yaml
-```
-
-#### Step 5. Add a data connector and track your models
+### Step 3. Add a data connector, track your resources, make changes to your metadata
 
 You can add a new [native data connector](/connectors/overview.mdx) to your subgraph using the CLI. Data connectors are
 what allow you to integrate various data sources to your API.
@@ -128,74 +113,111 @@ what allow you to integrate various data sources to your API.
 In the following sequence, we'll do a few things:
 
 - Initialize a new data connector, which will allow you to connect a data source to your API.
-- Introspect the source and create a configuration that your connector understands and can use to generate Hasura
+- Introspect the source to create a configuration that your connector understands and can use to generate Hasura
   metadata.
 - Track all the entities in your data source as either [models](/supergraph-modeling/models.mdx) or
-  [commands](/supergraph-modeling/commands.mdx), which will then be available via your API.
+  [commands](/supergraph-modeling/commands.mdx) or [relationships](/supergraph-modeling/relationships.mdx) which will
+  then be available via your API.
 
 ```bash title="Run this command and follow the prompts for your connector:"
 ddn connector init -i
 ```
 
 ```bash title="Then, introspect your data source to generate configuration files:"
-ddn connector introspect <connector-name-from-previous-step>
+ddn connector introspect <connector-name-from-init-step>
 ```
 
 ```bash title="Finally, track all your resources:"
-ddn connector-link add-resources "*"
+ddn connector-link add-resources <connector-name-from-init-step>
 ```
 
 :::info Run your supergraph locally
 
-At this point, you can run the following command — with any adjustments made to the `--env-file` path — to start your
-supergraph and data connector:
+At this point, you can run the following commands to build, run and iterate on your supergraph locally.
 
 ```bash
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+ddn supergraph build local
 ```
 
-**Note: You'll only see your subgraph available locally. This is because your local supergraph only contains _your_
-subgraph. You are free to iterate on it and make changes without causing disruption to other subgraphs or downstream
-consumers. To test your subgraph within the project's supergraph, follow the next steps.**
+```bash
+ddn run docker-start
+```
+
+**Note: You'll only see your subgraph locally. This is by design as your local supergraph only contains _your_ subgraph.
+You are free to iterate on it and make changes without causing disruption to other subgraphs or downstream consumers. To
+test your subgraph within the project's supergraph, follow the next steps.**
 
 :::
 
-#### Step 6. Deploy the connector
+### Step 4. Map your local project to the project on Hasura DDN
 
-You'll need to [deploy the connector](/getting-started/deployment/deploy-a-connector/) so its available in your cloud
-project.
+Run the following command to specify that you're initializing with an existing project on Hasura DDN. This will set the
+project context for you locally.
 
-#### Step 7. Validate your metadata
+```bash
+ddn project init --with-project <project-name>
+```
 
-Next, you can validate your metadata by creating a build using the latest applied supergraph metadata.
+### Step 5. Create a subgraph build on Hasura DDN
+
+Next, you can create a build of your subgraph in the project on Hasura DDN.
 
 ```bash title="Create a new subgraph build:"
 ddn subgraph build create
 ```
 
-#### Step 8. Test your subgraph changes
+This will also create a build of your data connectors on Hasura DDN. Subgraph builds do not have an API and you cannot
+query them in isolation.
 
-And then test your changes by creating a new supergraph build with your latest subgraph build.
+### Step 6. Create a supergraph build on Hasura DDN
+
+You can test your changes by creating a new supergraph build with your latest subgraph build.
 
 ```bash title="Create a supergraph build using your subgraph build:"
-ddn supergraph build create --subgraph-version <subgraph-name:build-id> --base-supergraph-version <applied-supergraph-build-id>
+ddn supergraph build create --subgraph-version <subgraph-name:build-version> --base-supergraph-version <supergraph-build-id>
 ```
 
-Please note the `Build Version` from the output of this command. We will need it in the next step.
+Please note the `Build Version` from the output of this command. We will need it in the next step. You can now query and
+test your changes in the context of the whole supergraph on Hasura DDN.
 
-#### Step 9. Deploy your subgraph changes
+### Step 7. Deploy your subgraph changes
 
-When you're satisfied with the state of your supergraph after testing the subgraph changes, create a new supergraph
-build.
+:::warning Permissions required to apply a build
 
-```bash title="Using the build ID returned from the previous step:"
-ddn supergraph build apply <build-id>
-```
+Only subgraph admins or supergraph admins can apply a subgraph build. If you are not a supergraph admin, you can ask one
+to apply the build for you.
 
-:::info To apply a build
+:::
+
+When you're satisfied with the state of your subgraph after testing, you can apply the build to make it the available
+subgraph build at the default project endpoint.
 
 ```bash
-$ ddn subgraph build apply <Build Version>
+$ ddn subgraph build apply <subgraph-build-version>
 ```
 
-Only subgraph admins or supergraph admins can apply a subgraph build.
+Or, to apply the whole supergraph build which you made in the previous step:
+
+```bash title="Using the build version returned from the previous step:"
+ddn supergraph build apply <supergraph-build-version>
+```
+
+### Step 8. Version control
+
+It's a good idea to create a new git repository for this supergraph containing the new isolated subgraph.
+
+You can then also add new collaborators to the repository who are also invited to collaborate on the subgraph.
+
+## What did this do?
+
+- A supergraph admin has created a new subgraph and invited a new team to collaborate on it.
+- The new team has onboarded by initializing a new local supergraph project with the same new subgraph name, added a
+  data connector and made changes locally.
+- The new team mapped the existing DDN supergraph project to their local supergraph project.
+- The new team created a new build of their subgraph with data connector on Hasura DDN.
+- The new team created a new supergraph build using the new subgraph build on Hasura DDN.
+- The new team tested their changes in the context of the whole supergraph on Hasura DDN.
+- The new team or supergraph admin applied their subgraph changes to make it available via the API.
+
+The new team has now been onboarded to your project in their own subgraph, forming a distinct governance and ownership
+boundary between the supergraph and its subgraphs.

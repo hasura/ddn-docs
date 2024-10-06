@@ -8,12 +8,13 @@ import Basics from '@site/static/icons/book-open-01.svg';
 import GettingStarted from '@site/static/icons/home-smile.svg';
 import Auth from '@site/static/icons/shield-tick.svg';
 import Connectors from '@site/static/icons/event-triggers.svg';
+import Plugins from '@site/static/icons/remote-schema.svg';
 import DataDomainModeling from '@site/static/icons/database-01.svg';
 import GraphQLAPI from '@site/static/icons/graphql-logo.svg';
-import CiCd from '@site/static/icons/upload-cloud-02.svg';
 import ProjectConfiguration from '@site/static/icons/dataflow-01.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
+import Federation from '@site/static/icons/data_federation.svg';
 import Enterprise from '@site/static/icons/features/enterprise.svg';
 import Glossary from '@site/static/icons/box.svg';
 import Quickstart from '@site/static/icons/speedometer-04.svg';
@@ -24,6 +25,8 @@ import Actions from '@site/static/icons/features/actions.svg';
 import Help from '@site/static/icons/features/hasura_policies.svg';
 import Billing from '@site/static/icons/features/credit-card-check.svg';
 import Deployment from '@site/static/icons/features/deployment.svg';
+import Upgrade from '@site/static/icons/cloud-lightning.svg';
+import Recipe from '@site/static/icons/beaker.svg';
 
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
@@ -58,6 +61,9 @@ export function addIconsToLabel(label, className) {
     case 'connectors-icon':
       icons = <Connectors />;
       break;
+    case 'plugins-icon':
+      icons = <Plugins />;
+      break;
     case 'data-domain-modeling-icon':
       icons = <DataDomainModeling />;
       break;
@@ -75,6 +81,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'observability-icon':
       icons = <Observability />;
+      break;
+    case 'federation-icon':
+      icons = <Federation />;
       break;
     case 'enterprise-icon':
       icons = <Enterprise />;
@@ -105,6 +114,12 @@ export function addIconsToLabel(label, className) {
       break;
     case 'deployment':
       icons = <Deployment />;
+      break;
+    case 'upgrade':
+      icons = <Upgrade />;
+      break;
+    case 'recipes':
+      icons = <Recipe />;
       break;
   }
 

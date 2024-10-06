@@ -12,22 +12,72 @@ toc_max_heading_level: 4
 
 ## Introduction
 
-The `CompatibilityConfig` object is a metadata object that defines the compatibility configuration of the Hasura
-metadata. The `date` field in the `CompatibilityConfig` object specifies the date after which any backwards incompatible
-changes made to Hasura DDN won't impact the metadata.
+The CompatibilityConfig object is a metadata object that defines the compatibility configuration of the Hasura metadata.
 
-**The CompatibilityConfig object belongs to the supergraph** and can be defined once across your supergraph in any
-subgraph of your choice.
+## How CompatibilityConfig works
 
-By default, all projects are created with a default `CompatibilityConfig` object in the **globals** subgraph.
+### Lifecycle
+
+By default, all projects are created with a default CompatibilityConfig object in the **globals** subgraph. It can be
+defined in any subgraph of your choice, but only once across your supergraph.
+
+The `date` field in the CompatibilityConfig object specifies the date after which any backwards incompatible changes
+made to Hasura DDN won't impact the metadata.
+
+### Examples
+
+#### Propagate boolean expression deprecation status
+
+**Date:** `2024-09-26`
+
+**Description:** Enables propagating `deprecated` status for relationship
+fields to boolean expressions that use them. The default GraphQL introspection
+behavior is to hide such fields from the schema, so this behavior is opt-in
+to avoid breakage.
+
+#### Disallow scalar types names conflicting with inbuilt types
+
+**Date:** `2024-09-26`
+
+**Description:** When enabled, defining a `ScalarType` metadata type that
+conflicts with any of the built-in type names (`ID`, `Int`, `String`,
+`Boolean`, `Float`) now raises an error that halts the build.
+
+#### Require nested array filtering capability
+
+**Date:** `2024-09-18`
+
+**Description:** When enabled, defining a nested array field against a model
+whose underlying data connector does not have the
+`query.exists.nested_collections` capability defined will raise an error that
+halts the build.
+
+#### Bypass `relation_comparisons` NDC Capability
+
+**Date:** `2024-09-03`
+
+**Description:** Enables bypassing the `relation_comparisons` NDC capability for relationship predicates. This allows
+you to use relationships in boolean expressions even if the data connector lacks compatibility. When the capability is
+available, relationship predicates are resolved directly within the native data connector for more efficient processing.
+If not, the predicates are handled at the API layer.
+
+#### Require GraphQL Config
+
+**Date:** `2024-06-30`
+
+**Description:** Enforce the need for [GraphQL Config](supergraph-modeling/graphql-config.mdx).
+
+
+---
 
 ## Metadata structure
+
 
 ### v2_CompatibilityConfig {#v2_compatibilityconfig-v2_compatibilityconfig}
 
 The compatibility configuration of the Hasura metadata.
 
-| Key    | Value                 | Required | Description                                                                                      |
-| ------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `kind` | `CompatibilityConfig` | true     |                                                                                                  |
-| `date` | string                | true     | Any backwards incompatible changes made to Hasura DDN after this date won't impact the metadata. |
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `CompatibilityConfig` | true |  |
+| `date` | string | true | Any backwards incompatible changes made to Hasura DDN after this date won't impact the metadata. |

@@ -32,6 +32,7 @@ export default function CopyButton({ code, className }: Props): JSX.Element {
   return (
     <button
       type="button"
+      data-attr={code}
       aria-label={
         isCopied
           ? translate({
