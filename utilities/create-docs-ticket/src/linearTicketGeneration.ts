@@ -1,18 +1,14 @@
 import dotenv from 'dotenv';
+import { Reviewer } from './types';
 import { linearClient } from './linearClient';
-import { AttachmentPayload, IssuePayload } from '@linear/sdk';
+import { AttachmentPayload } from '@linear/sdk';
 
 dotenv.config();
 
 interface PRInfo {
   prTitle: string;
   prUrl: string;
-}
-
-interface Reviewer {
-  linear_id: string;
-  github_username: string;
-  name: string;
+  assignedReviewer: Reviewer;
 }
 
 const getCurrentCycle = async (): Promise<string> => {
@@ -26,14 +22,13 @@ const getCurrentCycle = async (): Promise<string> => {
   }
 };
 
-export const createLinearTicket = async ({ prTitle, prUrl }: PRInfo) => {
-  const reviewer: Reviewer = JSON.parse(process.env.REVIEWER!);
+export const createLinearTicket = async ({ prTitle, prUrl, assignedReviewer }: PRInfo) => {
   return await linearClient.createIssue({
     teamId: process.env.LINEAR_TEAM_ID!,
     title: `DDN PR Review: ${prTitle}`,
     description: `Link to PR: ${prUrl}`,
     stateId: process.env.LINEAR_TODO_COLUMN_ID!,
-    assigneeId: reviewer.linear_id,
+    assigneeId: assignedReviewer.linear_id,
     cycleId: await getCurrentCycle(),
   });
 };
