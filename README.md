@@ -176,4 +176,4 @@ You can quickly see what's come through (open and closed) for Beta using
 [this filter](https://github.com/hasura/ddn-docs/issues?q=label%3Ahold-for-beta).
 
 You can use the link above to check the build status. Then, monitor deployments to our clusters
-[here](https://console.cloud.google.com/kubernetes/deployment/us-west2/prod-website-cloud-us-we2-gke-01/hasura/ddn-docs-hasura/overview?project=websitecloud-352908).
+[here](https://console.cloud.google.com/kubernetes/deployment/us-west2/prod-website-cloud-us-we2-gke-01/hasura/v3-docs-hasura/overview?project=websitecloud-352908).
