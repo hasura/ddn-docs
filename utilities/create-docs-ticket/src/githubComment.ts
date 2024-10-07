@@ -12,7 +12,7 @@ interface Reviewer {
 }
 
 const generateGhComment = (author: string, reviewer: Reviewer): string => {
-  return `@${author} Thanks for your PR! I've assigned @${reviewer.name} to review it.`;
+  return `@${author} Thanks for your PR! I've assigned @${reviewer.github_username} to review it.`;
 };
 
 const getPrAuthor = async (prUrl: string): Promise<string | null> => {
