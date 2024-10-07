@@ -107,7 +107,7 @@ The following options are available:
 | TypeScript | `TypeScript` |
 
 You can learn more about the `<DatabaseContentLoader />` component which renders these docs
-[here](https://github.com/hasura/v3-docs/blob/main/src/components/databaseDocs/index.tsx).
+[here](https://github.com/hasura/ddn-docs/blob/main/src/components/databaseDocs/index.tsx).
 
 ## Deployments
 
@@ -120,20 +120,20 @@ Assuming you have the correct permissions, you can monitor builds on GCP
 ### Staging
 
 Upon a successful merge to `main`, a merge is automatically triggered by
-[this GitHub Action](https://github.com/hasura/v3-docs/actions/workflows/merge-main-to-staging.yml) to `release-stage`.
+[this GitHub Action](https://github.com/hasura/ddn-docs/actions/workflows/merge-main-to-staging.yml) to `release-stage`.
 GCP listens for pushes to this branch and, when one comes through, it builds and deploys the site to
 [https://stage.hasura.io/docs/3.0](https://stage.hasura.io/docs/3.0).
 
 ### Production
 
 We still have final control over when we deploy to production. To do so, we can use
-[this GitHub Action](https://github.com/hasura/v3-docs/actions/workflows/merge-staging-to-prod.yml) to trigger a merge
+[this GitHub Action](https://github.com/hasura/ddn-docs/actions/workflows/merge-staging-to-prod.yml) to trigger a merge
 to `release-prod`. GCP listens for pushes to this branch and, when one comes through, it builds and deploys the site to
 [https://hasura.io/docs/3.0](https://hasura.io/docs/3.0).
 
 To use this Action:
 
-1. Head to [this Action](https://github.com/hasura/v3-docs/actions/workflows/merge-staging-to-prod.yml)
+1. Head to [this Action](https://github.com/hasura/ddn-docs/actions/workflows/merge-staging-to-prod.yml)
 2. Click `Run workflow`
 3. Choose `release-stage`
 4. Click `Run workflow`
@@ -173,7 +173,7 @@ git push release-prod
 This will trigger a build and deployment to production.
 
 You can quickly see what's come through (open and closed) for Beta using
-[this filter](https://github.com/hasura/v3-docs/issues?q=label%3Ahold-for-beta).
+[this filter](https://github.com/hasura/ddn-docs/issues?q=label%3Ahold-for-beta).
 
 You can use the link above to check the build status. Then, monitor deployments to our clusters
 [here](https://console.cloud.google.com/kubernetes/deployment/us-west2/prod-website-cloud-us-we2-gke-01/hasura/v3-docs-hasura/overview?project=websitecloud-352908).
