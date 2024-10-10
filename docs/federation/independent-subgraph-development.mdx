@@ -20,6 +20,8 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
+import Thumbnail from "@site/src/components/Thumbnail";
+
 # Independent Subgraph Development
 
 Teams working on larger projects may want a software development lifecycle (SDLC) and CI/CD which is independent of
@@ -28,40 +30,41 @@ other teams. This is where independent subgraph, multi-repo federation shines on
 
 Subgraphs in this multi-repo federation are managed in their **own repository** for added governance, control and clean
 separation from other teams work. Users and teams can be added to individual subgraphs on Hasura DDN as
-[admins or developers](/getting-started/collaborate/invite.mdx), allowing them to work independently on their
-subgraph and data connectors without affecting other subgraphs. Subgraphs would also typically be named for and
-given responsibility over the data domain they encapsulate, such as `users`, `orders`, `products`, etc.
+[admins or developers](/getting-started/collaborate/invite.mdx), allowing them to work independently on their subgraph
+and data connectors without affecting other subgraphs. Subgraphs would also typically be named for and given
+responsibility over the data domain they encapsulate, such as `users`, `orders`, `products`, etc.
 
 :::warning DDN Advanced plan required
 
-You will need a project on the [DDN Advanced plan](https://hasura.io/pricing) to use independent subgraph development with a multi-repo setup.
+You will need a project on the [DDN Advanced plan](https://hasura.io/pricing) to use independent subgraph development
+with a multi-repo setup.
 
 :::
 
-## Concepts to keep in mind
+:::tip Concepts to keep in mind
 
-- A supergraph build is a combination of subgraph builds.
-- A supergraph build has an API and can be queried.
-- A subgraph build has no API and cannot be queried in isolation.
-- Building a subgraph will also build its associated data connectors.
 - Supergraph and subgraph builds are immutable and have a unique id.
 - Subgraph builds are added to the DDN project with the same name as defined in the subgraph's `subgraph.yaml` file.
 - A subgraph must already exist in the DDN project in order to invite a collaborator to it.
-- A supergraph must already be applied before a subgraph build can be made with it.
+- A supergraph build can be made by composing subgraphs and a base supergraph version. If no base supergraph version is
+  provided, the applied supergraph version will be used.
 - A local independent subgraph development project must still have a supergraph with global objects defined (as in the
-  default `globals` subgraph). Its project context will reference the DDN project used for collaboration.
+  default `globals` subgraph). Only supergraphs have APIs.
+- A local independent subgraph development project context will reference the DDN project used for collaboration.
 - Each subgraph is namespaced and internal metadata objects cannot conflict with other subgraphs. However, the GraphQL
   API is where the subgraphs meet and conflicts can occur with root field and type names. Prefixing subgraphs will
   remedy this automatically or it can be managed manually.
-
+:::
 
 ## Creating a new project with independent subgraph development
+
+<Thumbnail src="/img/federation/independent-subgraph-development.png" alt="Independent Subgraph Development" />
 
 ### Creating the initial project
 
 The setup here is for a main supergraph repository to be created with the `globals` subgraph and placeholders for any
-other subgraph which other teams will work on. Once on DDN, collaborators are added on the subgraph level giving
-them permissions to only work on their subgraph.
+other subgraph which other teams will work on. Once on DDN, collaborators are added on the subgraph level giving them
+permissions to only work on their subgraph.
 
 :::info Globals Subgraph Objects
 
@@ -86,13 +89,13 @@ globals subgraph itself.
 Now, collaborators manage a separate local supergraph repo for development containing just their subgraph and changes
 the supergraph context to reference the collaborative project on DDN.
 
-The supergraph enables local development but only contains their subgraph. They can then create subgraph builds on
-the collaborative DDN project and, if permissions allow, apply the subgraph to the collaborative supergraph.
+The supergraph enables local development but only contains their subgraph. They can then create subgraph builds on the
+collaborative DDN project and, if permissions allow, apply the subgraph to the collaborative supergraph.
 
 1. [Accept the invitation](/getting-started/collaborate/invite.mdx) to the Hasura DDN supergraph project.
 2. Create a new Git repository for a new supergraph.
-3. Initialize a new supergraph with a subgraph locally. Make sure the subgraph is named the same as the subgraph
-   you were invited to work on. You can do this with: `ddn supergraph init . --create-subgraph <subgraph-name>`
+3. Initialize a new supergraph with a subgraph locally. Make sure the subgraph is named the same as the subgraph you
+   were invited to work on. You can do this with: `ddn supergraph init . --create-subgraph <subgraph-name>`
 4. It's recommended to setup [subgraph prefixes](/federation/subgraph-prefixing.mdx) at this stage.
 5. Run your supergraph locally and develop and test.
 6. Map your local project to the existing project on DDN. You can do this with:
@@ -123,12 +126,13 @@ single DDN project with independent subgraph development, you can do so by follo
 3. On DDN, invite the subgraph project collaborators with
    [subgraph permissions](/getting-started/collaborate/invite.mdx).
 4. Once the subgraph collaborators have accepted the invitation, they can
-   [set the project context](/project-configuration/contexts/) to the main project with `ddn context set project <main-project-name>`.
+   [set the project context](/project-configuration/contexts/) to the main project with
+   `ddn context set project <main-project-name>`.
 5. Subgraph collaborators may also at this stage set [subgraph prefixes](/federation/subgraph-prefixing.mdx) to prevent
    conflicts with the main project if needed.
 6. The subgraph collaborators can then create a subgraph build on the main project with
    [`ddn subgraph build create`](/cli/commands/ddn_subgraph_build_create.mdx).
-6. The main project owner or admin can then apply the subgraph build to the main project with
+7. The main project owner or admin can then apply the subgraph build to the main project with
    [`ddn subgraph build apply <subgraph-build-version>`](/cli/commands/ddn_subgraph_build_apply.mdx).
 
 ## Learn more
