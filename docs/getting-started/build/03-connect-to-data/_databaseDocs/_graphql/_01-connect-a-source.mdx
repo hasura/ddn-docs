@@ -115,6 +115,76 @@ Under the `execution` section, add the URL for your GraphQL endpoint.
 }
 ```
 
+### Step 2.3 Configure Request Headers
+
+If your endpoint requires [authorization or another header](/connectors/external-apis/graphql/#connectionconfiguration), then create that variable and reference it as a header.
+If your endpoint requires no extra headers, then skip this step.
+
+Create a .env file with your new variable, e.g:
+```bash title="Inside of .env"
+APP_X_HASURA_ADMIN_SECRET=your_secret_key_without_quotations
+```
+
+Map it in your subgraph.yaml:
+```yaml title="Inside of my_subgraph/subgraph.yaml"
+...
+envMapping:
+  //highlight-start
+  APP_X_HASURA_ADMIN_SECRET:
+        fromEnv: APP_X_HASURA_ADMIN_SECRET
+  //highlight-end
+```
+
+Reference it in your connector's compose.yaml:
+```yaml title="Inside of my_subgraph/my_connector/compose.yaml"
+...
+environment:
+  //highlight-start
+  X_HASURA_ADMIN_SECRET: $APP_X_HASURA_ADMIN_SECRET
+  //highlight-end
+```
+
+And also in your connector's connector.yaml:
+```yaml title="Inside of my_subgraph/my_connector/connector.yaml
+...
+envMapping:
+  //highlight-start
+  X_HASURA_ADMIN_SECRET:
+        fromEnv: APP_X_HASURA_ADMIN_SECRET
+  //highlight-end
+```
+
+And finally in your connector's configuration.json:
+```json title="Inside of my_subgraph/my_connector/configuration.json"
+{
+  "$schema": "configuration.schema.json",
+  "introspection": {
+    "endpoint": {
+      "valueFromEnv": "GRAPHQL_ENDPOINT"
+    },
+    //highlight-start
+    "headers": {
+      "X-Hasura-Admin-Secret": {
+        "valueFromEnv": "X_HASURA_ADMIN_SECRET"
+      }
+    }
+    //highlight-end
+  },
+  "execution": {
+    "endpoint": {
+      "valueFromEnv": "GRAPHQL_ENDPOINT"
+    },
+    //highlight-start
+    "headers": {
+      "X-Hasura-Admin-Secret": {
+        "valueFromEnv": "X_HASURA_ADMIN_SECRET"
+      }
+    }
+    //highlight-end
+  }
+}
+```
+
 ## Step 3. Introspect your GraphQL API
 
 This will start the connector using the `compose.yaml` in its directory, and then introspect your GraphQL API and fetch
