@@ -20,7 +20,7 @@ in Hasura DDN depending on how these comparisons are processed.
 
 This page explains the performance implications of relationship comparisons, detailing both optimized query
 execution through data connectors and the fallback mechanisms at the query engine level when certain capabilities
-are unavailable.
+are unavailable or when handling remote relationships.
 
 ## How Relationship Comparisons Work
 
@@ -50,16 +50,17 @@ data source level. This capability is known as `relation_comparisons` (For more 
 connector supports this feature, the query engine pushes down the comparison logic to the underlying data connector
 to handle the filtering at the data source layer.
 
-## Handling Missing Data Connector Capability
+## Missing Data Connector Capability Or Remote Relationships
 
-When the data connector lacks support for the `relation_comparisons` capability, relationship comparisons cannot be
-pushed down to the data connector for processing. Instead, the query engine must handle the comparison internally.
+When a data connector lacks support for the `relation_comparisons` capability or when handling predicates from a
+remote relationship, the query engine cannot push relationship comparisons down to the data connector for processing.
+Instead, these comparisons are handled internally by the query engine.
 
 ### How It Works
 
-Without `relation_comparisons`, the query engine performs the following steps:
+The query engine performs the following steps:
 
-1. **Fetch Related Data**: The query engine retrieves required fields from the related model.
+1. **Fetch Related Data**: The query engine retrieves required fields from the related/remote model.
 2. **Construct Comparison Expressions**: Using the fetched data, the engine constructs the necessary comparison
    expressions to filter the results.
 3. **Fetch Data**: The engine applies these expressions while fetching data from the primary model.
