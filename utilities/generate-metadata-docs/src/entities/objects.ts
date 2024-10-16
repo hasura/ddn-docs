@@ -8,7 +8,11 @@ import { JSONSchema7Definition } from './types';
  * search for a metadata object and any nested structures it uses.
  */
 
-export const parentSchema: JSONSchema7Definition = JSON.parse(readFileSync('./schema.json', 'utf8'));
+const schemaFiles = ['./hasura_yaml_schema_resolved.json', './hml_schema_resolved.json', './yaml_schema_resolved.json'];
+
+export const parentSchema: JSONSchema7Definition[] = schemaFiles.map(filePath => {
+  return JSON.parse(readFileSync(filePath, 'utf8'));
+});
 
 export const topLevelMetadataObjects: Record<string, string> = {
   v2_CompatibilityConfig: 'compatibility-config',
@@ -30,6 +34,7 @@ export const topLevelMetadataObjects: Record<string, string> = {
   Supergraph: 'build-configs',
   Subgraph: 'build-configs',
   Connector: 'build-configs',
+  LifecyclePluginHook: 'engine-plugins',
 };
 
 export const topLevelMetadataRefs: Record<string, string> = {};

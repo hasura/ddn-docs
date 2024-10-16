@@ -8,7 +8,7 @@ Hasura CLI will then use to create metadata which can then define your API.
 
 <Thumbnail src="/img/get-started/ERD/connect-data.png" alt="Connect a data source" width="1000px" />
 
-## Step 1. Init the PostgreSQL connector
+## Step 1. Initialize the PostgreSQL connector
 
 :::tip Required
 
@@ -18,7 +18,8 @@ Hasura CLI will then use to create metadata which can then define your API.
 
 :::
 
-To initialize the PostgreSQL connector, run the following in your terminal.
+To initialize the PostgreSQL connector, with the appropriate subgraph set in context, run the following command in your
+terminal.
 
 ```bash title="Run the following command:"
 ddn connector init -i
@@ -39,9 +40,6 @@ this example the CLI will create a `my_subgraph/connector/my_pg` directory if it
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_pg` in this
 example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
 
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in the key-value pair for your `.env` file.
-
 :::
 
 ### What did `connector init` do?
@@ -58,8 +56,8 @@ In the `my_subgraph/connector/my_pg` directory which we specified in the command
 
 In the `my_subgraph/metadata` directory, the CLI created:
 
-- A `my_pg.hml` file which contains the [`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx)
-  metadata object which describes how the supergraph can interact with the connector.
+- A `my_pg.hml` file which contains the [`DataConnectorLink`](/supergraph-modeling/data-connector-links.mdx) metadata
+  object which describes how the supergraph can interact with the connector.
 
 Right now, the CLI only scaffolded out configuration files for the data connector. Our connector still knows nothing
 about the PostgreSQL database or the data it contains. That's coming up in the next steps.
@@ -87,8 +85,8 @@ APP_MY_PG_WRITE_URL="http://local.hasura.dev:8082"
 You can use a local PostgreSQL database or a cloud-hosted option. Hasura DDN will not modify your database in any way,
 so you can use an existing database without any worries.
 
-**Don't have a database at hand?** Check [this guide](/connectors/postgresql/local-postgres.mdx) to set up a
-local Postgres database using Docker.
+**Don't have a database at hand?** Check [this guide](/connectors/postgresql/local-postgres.mdx) to set up a local
+Postgres database using Docker.
 
 :::tip Docker networking Inside a Docker container
 
@@ -103,10 +101,10 @@ containers, such as the GraphQL Engine and data connectors, to communicate with 
 **Local PostgreSQL**
 
 If you're using a local PostgreSQL database — such as through [Docker](https://hub.docker.com/_/postgres) — you can
-connect to it directly from the data connector running locally. However, if you deploy your connector to Hasura DDN,
-the cloud-hosted version of your data connector won't be able to find your local database. You'll need to use a tool
-like [ngrok](https://ngrok.com/) to provide a tunnel to access your database from the cloud. This will expose the port,
-most likely `5432`, on which the database is running and allow Hasura DDN to connect to it.
+connect to it directly from the data connector running locally. However, if you deploy your connector to Hasura DDN, the
+cloud-hosted version of your data connector won't be able to find your local database. You'll need to use a tool like
+[ngrok](https://ngrok.com/) to provide a tunnel to access your database from the cloud. This will expose the port, most
+likely `5432`, on which the database is running and allow Hasura DDN to connect to it.
 
 **Cloud-hosted PostgreSQL**
 
@@ -147,12 +145,13 @@ your project.
 
 ## Step 4. Track your tables
 
-Tables from PostgreSQL are represented as [models](/supergraph-modeling/models.mdx) and
-[commands](/supergraph-modeling/commands.mdx) in your API. The next command we'll run will take each table or view in
-your database and create an `hml` file for it. These files will then be used by the Hasura engine to generate your API.
+Tables from PostgreSQL are represented as [models](/supergraph-modeling/models.mdx) in your API. The next commands we'll
+run will take each table or view in your database and create an `hml` file for it. These files will then be used by the
+Hasura engine to generate your API.
 
-```bash title="Run the following to create your models and commands:"
-ddn connector-link add-resources my_pg
+```bash title="Run the following to create your models and relationships:"
+ddn model add my_pg "*"
+ddn relationship add my_pg "*"
 ```
 
 If you look in the `metadata` directory for your subgraph, you'll see named files for each resource. These will also
@@ -169,10 +168,14 @@ ddn supergraph build local
 And, if your services are not already running, start them.
 
 ```bash title="Run the following:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+ddn run docker-start
 ```
 
-You should see your models available in your API by opening your console using `ddn console --local` 🎉
+You should see your models available in your API by opening your console using:
+
+```bash title="Run the following:"
+ddn console --local
+```
 
 ## Next steps
 

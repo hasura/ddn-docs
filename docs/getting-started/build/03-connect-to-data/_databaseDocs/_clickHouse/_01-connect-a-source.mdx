@@ -8,7 +8,7 @@ Hasura CLI will then use to create metadata which can then define your API.
 
 <Thumbnail src="/img/get-started/ERD/connect-data.png" alt="Connect a data source" width="1000px" />
 
-## Step 1. Init the ClickHouse connector
+## Step 1. Initialize the ClickHouse connector
 
 :::tip Required
 
@@ -18,7 +18,8 @@ Hasura CLI will then use to create metadata which can then define your API.
 
 :::
 
-To initialize the ClickHouse connector, run the following command in your terminal.
+To initialize the ClickHouse connector, with the appropriate subgraph set in context, run the following command in your
+terminal:
 
 ```bash title="Run the following command:"
 ddn connector init -i
@@ -40,12 +41,9 @@ change this directory by passing a `--dir` flag to the CLI.
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_clickhouse` in
 this example, should match for convenience and clarity sake.
 
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in the key-value pair for your `.env` file.
-
 :::
 
-### What did this do?
+### What did `connector init` do?
 
 In the `my_subgraph/connector/my_clickhouse` directory, the CLI created:
 
@@ -99,8 +97,8 @@ data connector specific configuration file, and generate the necessary Hasura me
 creating files for each table in our database. These tables will be tracked as
 [Models](/supergraph-modeling/models.mdx).
 
-```bash title="Run the following command, updating the referenced paths to match your directory structure:"
-ddn connector introspect my_clickhouse --add-all-resources
+```bash title="Run the following command:"
+ddn connector introspect my_clickhouse
 ```
 
 ## What did `connector introspect` do?
@@ -122,6 +120,20 @@ your project.
 
 :::
 
+## Step 3. Track your tables
+
+Tables from ClickHouse are represented as [models](/supergraph-modeling/models.mdx) in your API. The next commands we'll
+run will take each table in your database and create an `hml` file for it. These files will then be used by the Hasura
+engine to generate your API.
+
+```bash title="Run the following to create your models and relationships:"
+ddn model add my_clickhouse "*"
+ddn relationship add my_clickhouse "*"
+```
+
+If you look in the `metadata` directory for your subgraph, you'll see named files for each resource. These will also
+contain relationships based on foreign keys, allowing you to make nested queries in your GraphQL API.
+
 ## Step 4. Create a new build and restart the services
 
 To reflect the changes in your API, create a new build.
@@ -133,17 +145,13 @@ ddn supergraph build local
 And, if your services are not already running, start them.
 
 ```bash title="Run the following:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+ddn run docker-start
 ```
 
-You should see your models available in your API at
-[`https://console.hasura.io/local/graphql?url=http://localhost:3000`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
-🎉
+You should see your models available in your API by opening your console using:
 
-If you want a quick way of opening the console, you can run the following command:
-
-```bash title="Run:"
-ddn console -l
+```bash title="Run the following:"
+ddn console --local
 ```
 
 ## Next steps

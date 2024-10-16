@@ -15,7 +15,7 @@ const config: Config = {
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: process.env.CF_PAGES === '1' ? '/' : '/docs/3.0',
-
+  trailingSlash: true,
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'hasura', // Usually your GitHub org/user name.
@@ -62,7 +62,7 @@ const config: Config = {
       {
         docs: {
           routeBasePath: '/',
-          // editUrl: ({ docPath }) => `https://github.com/hasura/graphql-engine/edit/master/docs/docs/${docPath}`,
+          editUrl: ({ docPath }) => `https://github.com/hasura/ddn-docs/edit/main/docs/${docPath}`,
           breadcrumbs: true,
           // showLastUpdateAuthor: true,
           // showLastUpdateTime: true,
@@ -75,11 +75,6 @@ const config: Config = {
           },
           sidebarCollapsible: true,
           sidebarPath: './sidebars.ts',
-
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          // editUrl:
-          //   'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         blog: false,
         googleTagManager: {

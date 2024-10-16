@@ -20,7 +20,7 @@ export default function Gallery() {
               connector.link = `/connectors/clickhouse`;
               break;
             case connector.name.includes('node'):
-              connector.link = `/connectors/typescript`;
+              connector.link = `/business-logic/typescript`;
               break;
             default:
           }

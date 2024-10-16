@@ -4,7 +4,7 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 You can easily and quickly connect any GraphQL API to your supergraph.
 
-To do this, we use the Hasura [GraphQL Native Data Connector](https://github.com/hasura/ndc-graphql) to facilitate the
+To do this, we use the Hasura [GraphQL Native Data Connector](/connectors/external-apis/graphql.mdx) to facilitate the
 connection.
 
 <Thumbnail src="/img/get-started/ERD/connect-data.png" alt="Connect a data source" width="1000px" />
@@ -19,7 +19,7 @@ connection.
 
 :::
 
-To initialize the GraphQL connector, run the following in your terminal:
+To initialize the GraphQL connector, with the appropriate subgraph set in context, run the following in your terminal:
 
 ```bash title="Run the following command:"
 ddn connector init -i
@@ -40,9 +40,6 @@ this directory by passing a `--dir` flag to the CLI.
 We recommend that the name of the connector and the directory in which the configuration is stored, `my_graphql` in this
 example, should match for convenience and clarity sake for this tutorial, but it can be anything you want.
 
-In subsequent steps, when running your connector locally, it's critical to ensure the port value matches the connection
-string you provide in your subgraph's `.env.my_subgraph` file.
-
 :::
 
 ### What did `connector init` do?
@@ -51,7 +48,7 @@ In the `my_subgraph/connector/my_graphql` directory which we specified in the co
 
 - A `connector.yaml` file which contains the local configuration for the connector.
 - A `.hasura-connector` folder which contains the connector definition used to build and run it.
-- A `compose.yaml` a file to run the MongoDB data connector locally in Docker.
+- A `compose.yaml` a file to run the GraphQL data connector locally in Docker.
 - A placeholder `.ddnignore` file to prevent unnecessary files from being included in the build.
 - A `configuration.json` that we'll update with values like our connection string(s) and any relevant headers.
 - A `configuration.schema.json` that the connector will use generate your API.
@@ -97,7 +94,7 @@ credentials.
 your application.
 
 There are some other considerations for connecting to a v2 instance. For more details, please visit
-[the connector's repository](https://github.com/hasura/ndc-graphql).
+[the connector's docs](/connectors/external-apis/graphql.mdx).
 
 :::
 
@@ -114,6 +111,76 @@ Under the `execution` section, add the URL for your GraphQL endpoint.
       "value": "https://my-graphql-endpoint/graphql"
       //highlight-end
     }
+  }
+}
+```
+
+### Step 2.3 Configure Request Headers
+
+If your endpoint requires [authorization or another header](/connectors/external-apis/graphql/#connectionconfiguration), then create that variable and reference it as a header.
+If your endpoint requires no extra headers, then skip this step.
+
+Create a .env file with your new variable, e.g:
+```bash title="Inside of .env"
+APP_X_HASURA_ADMIN_SECRET=your_secret_key_without_quotations
+```
+
+Map it in your subgraph.yaml:
+```yaml title="Inside of my_subgraph/subgraph.yaml"
+...
+envMapping:
+  //highlight-start
+  APP_X_HASURA_ADMIN_SECRET:
+        fromEnv: APP_X_HASURA_ADMIN_SECRET
+  //highlight-end
+```
+
+Reference it in your connector's compose.yaml:
+```yaml title="Inside of my_subgraph/my_connector/compose.yaml"
+...
+environment:
+  //highlight-start
+  X_HASURA_ADMIN_SECRET: $APP_X_HASURA_ADMIN_SECRET
+  //highlight-end
+```
+
+And also in your connector's connector.yaml:
+```yaml title="Inside of my_subgraph/my_connector/connector.yaml
+...
+envMapping:
+  //highlight-start
+  X_HASURA_ADMIN_SECRET:
+        fromEnv: APP_X_HASURA_ADMIN_SECRET
+  //highlight-end
+```
+
+And finally in your connector's configuration.json:
+```json title="Inside of my_subgraph/my_connector/configuration.json"
+{
+  "$schema": "configuration.schema.json",
+  "introspection": {
+    "endpoint": {
+      "valueFromEnv": "GRAPHQL_ENDPOINT"
+    },
+    //highlight-start
+    "headers": {
+      "X-Hasura-Admin-Secret": {
+        "valueFromEnv": "X_HASURA_ADMIN_SECRET"
+      }
+    }
+    //highlight-end
+  },
+  "execution": {
+    "endpoint": {
+      "valueFromEnv": "GRAPHQL_ENDPOINT"
+    },
+    //highlight-start
+    "headers": {
+      "X-Hasura-Admin-Secret": {
+        "valueFromEnv": "X_HASURA_ADMIN_SECRET"
+      }
+    }
+    //highlight-end
   }
 }
 ```
@@ -149,15 +216,17 @@ Yes! Connectors ship with OTEL-enabled tracing available, out of the box 🎉
 
 ## Step 4. Track your types
 
-Types exposed by your GraphQL API are represented as [Models](/supergraph-modeling/models.mdx) and
-[Commands](/supergraph-modeling/commands.mdx) in your API. The next command we'll run will take each type in your
-GraphQL schema and create an `hml` file for it. These files will then be used by the Hasura engine to generate your API.
+Types exposed by your GraphQL API are represented as [Commands](/supergraph-modeling/commands.mdx) in your API. The next
+command we'll run will take each type in your GraphQL schema and create an `hml` file for it. These files will then be
+used by the Hasura engine to generate your API.
 
-```bash title="Run the following to create your models and commands:"
-ddn connector-link add-resources my_graphql
+```bash title="Run the following to create your commands:"
+ddn command add my_graphql "*"
 ```
 
-## Step 4. Create a new build and restart the services
+If you look in the `metadata` directory for your subgraph, you'll see named files for each function.
+
+## Step 5. Create a new build and restart the services
 
 To reflect the changes in your API, create a new build.
 
@@ -168,10 +237,14 @@ ddn supergraph build local
 And, if your services are not already running, start them.
 
 ```bash title="Run the following:"
-HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --watch
+ddn run docker-start
 ```
 
-You should see your models available in your API by opening your console using `ddn console --local` 🎉
+You should see your commands available in your API by opening your console using:
+
+```bash title="Run the following:"
+ddn console --local
+```
 
 ## Next steps
 
