@@ -10,7 +10,7 @@ const Index: React.FC = () => {
       <p>
         {/*You can download the CLI binary below. The latest version of the CLI is <kbd>{version}</kbd>. Please follow the*/}
         {/*instructions for your system.*/}
-        You can download the CLI binary below. Please follow the instructions for your system.
+        Download the CLI binary below. Please follow the instructions for your system.
       </p>
     </div>
   );
