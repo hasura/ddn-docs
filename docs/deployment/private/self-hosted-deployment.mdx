@@ -1,0 +1,256 @@
+---
+sidebar_position: 4
+sidebar_label: Self-Hosted (Customer Managed) Data Plane Installation Guide
+description: "Learn how to install a Self-Hosted (Customer Managed) Data Plane."
+keywords:
+  - hasura ddn
+  - enterprise ddn
+  - private ddn
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Self hosted (Customer Managed) Data Plane Installation Guide
+
+## Prerequisites
+
+Before continuing, ensure you go through the following checklist and confirm that you meet all the requirements
+
+- [Docker v2.27.1](/getting-started/build/prerequisites/#step-3-install-docker-compose-v2271-or-greater) (Or greater)
+- [DDN CLI](/getting-started/build/prerequisites#step-1-install-and-authorize-the-hasura-cli) (Latest)
+- [Helm3](https://helm.sh/docs/intro/install/) (Prefer latest)
+- [Hasura VS Extension](/getting-started/build/prerequisites#install-lsp) (Recommended, but not required)
+- Access to a Kubernetes cluster
+- Ability to build and push images that can then be pulled down from the Kubernetes cluster
+- A user account on the Hasura DDN Control Plane
+- A data plane entry created by the Hasura team.  This will be referenced as `<ddn-id>`
+- A data plane id & key created by the Hasura team.  These will be referenced as `<data-plane-id>` and `<data-plane-key>`
+
+## Step 1. Local machine development
+
+```bash title="Login with the DDN CLI."
+ddn auth login
+```
+
+```bash title="Create a local directory where your supergraph will be created.  Afterwards, cd into it."
+mkdir hasura_project && cd hasura_project
+```
+
+```bash title="Initialize supergraph."
+ddn supergraph init .
+```
+
+```bash title="Add a connector.  Here, we are using the -i flag for interactive mode."
+ddn connector init -i
+```
+
+```bash title="Introspect the data source.  Substitute <connector-name> with name you chose for your connector above."
+ddn connector introspect <connector-name>
+```
+
+```bash title="Add models, commands and relationships based on the output from previous command.  Substitute <connector-name> with name you chose for your connector above."
+ddn model add <connector-name> "*"
+ddn command add <connector-name> "*"
+ddn relationship add <connector-name> "*"
+```
+
+```bash title="Build the supergraph locally."
+ddn supergraph build local
+```
+
+```bash title="Run docker.  Ensure all containers start up successfully."
+ddn run docker-start
+```
+
+```bash title="Verify via local console."
+ddn console --local
+```
+
+At this point, you have connected and introspected a data source and built your supergraph locally.  Verify that everything is working as expected before moving on to the next section.
+
+### Step 2. Create a cloud project and create a build
+
+Ensure that you are running the commands here from the root of your supergraph.
+
+```bash title="Create cloud project."
+ddn project init --data-plane-id <ddn-id>
+```
+
+This command will create a cloud project and will report back as to what the name of your cloud project is.  We will reference this name going forward as `<ddn-project-name>`.
+
+Next, you will need to access the `.env.cloud` file which gets generated at the root of your supergraph.
+
+For each READ_URL & WRITE_URL, you will need to make the necessary adjustments to ensure that your v3-engine (Which will be running in your Kubernetes cluster) is properly configured to reach each one of your connectors.  The current values that these environment variables point to are for local connectivity.
+
+:::info The URL of these environment variables is structured as such
+
+
+**https://`<connector-helm-release-name>`-`<connector-helm-chart-name>`.`<namespace>`:8080**
+
+`<connector-helm-release-name>`: Helm release name that you will be using later on during your connector deployments
+
+`<connector-helm-chart-name>`: Helm chart name of your connector
+
+`<namespace>`: Namespace where your connector will be deployed to
+:::
+
+After making the necessary changes to your `.env.cloud` file, run the below command.  This will create a cloud build and will also generate the necessary artifacts which will later on be consumed by your v3-engine. 
+
+```bash title="Create a build for your cloud project."
+ddn supergraph build create --self-hosted-data-plane --output-dir build-data --project <ddn-project-name> --out json
+```
+
+At this point, take note of the `<build_version>` and `<observability_hostname>` which will be outputted here.  You will need these later.
+
+### Step 3. Build image for v3-engine
+
+Ensure that you are running the commands from the root of your supergraph.
+
+```bash title="Create a Dockerfile for v3-engine."
+cat <<EOF >> Dockerfile
+FROM ghcr.io/hasura/v3-engine
+COPY ./build-data /md/
+EOF
+```
+
+```bash title="Build the image via docker build.  Tag this image with your own registry and a custom tag of your choosing."
+docker build -t <your_registry>/v3-engine:<your_tag> .
+```
+
+```bash title="Push the image to your registry."
+docker push <your_registry>/v3-engine:<your_tag>
+```
+
+### Step 4. Build image for each connector
+
+```bash title="Build image via docker compose.  Find the <service-name> from app/connector/<connector>/compose.yaml"
+docker compose build <service-name>
+```
+
+```bash title="Re-tag the image"
+docker tag <root-folder-name>-app_<connector> <your_registry>/<connector>:<your_tag>
+```
+
+```bash title="Push the image to your registry."
+docker push <your_registry>/<connector>:<your_tag>
+```
+
+### Step 5. Create ingresses on your Kubernetes cluster
+
+:::warning
+
+Everytime you create a new build via `ddn supergraph build create` command, you will need to create an ingress on your Kubernetes cluster
+
+:::
+
+If you're using <b>nginx-ingress</b> and <b>cert-manager</b>, you can deploy using the below manifest.  Ensure that you modify this accordingly
+
+:::info
+
+
+`<build_version>`: This was part of the output when you ran `ddn supergraph build create` command.
+
+`<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<build_version>`.`<your_fqdn>`**.
+
+`<namespace>`: Namespace where your v3-engine was deployed to.
+
+`<v3-engine-helm-release-name>`: Helm release name for your v3-engine.
+:::
+
+```bash
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+  labels:
+    app: v3-engine-<build_version>
+  name: v3-engine-<build_version>
+  namespace: <namespace>
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: <domain>
+    http:
+      paths:
+      - backend:
+          service:
+            name: <v3-engine-helm-release-name>-v3-engine
+            port:
+              number: 3000
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - <domain>
+    secretName: <domain>-tls-certs
+```
+
+Next, you will be running the command below in order to record the ingress URL within Hasura's Control Plane.
+
+```bash title="Record the ingress URL (Make sure to prepend with protocol) for your build version within Hasura's control plane."
+ddn supergraph build set-self-hosted-engine-url <ingress-url> --build-version <build_version> --project <ddn-project-name>
+```
+
+In the following step, you will create an ingress which will serve as your project's main URL.
+
+**NOTE:** We are once again using an example of an ingress object which will work provided you have <b>nginx</b> and <b>cert-manager</b> installed on your cluster.
+
+:::info
+
+
+`<namespace>`: Namespace where your v3-engine was deployed to.
+
+`<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
+
+`<v3-engine-helm-release-name>`: Helm release name for your v3-engine.
+:::
+
+```bash
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+  labels:
+    app: v3-engine
+  name: v3-engine
+  namespace: <namespace>
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: <domain>
+    http:
+      paths:
+      - backend:
+          service:
+            name: <v3-engine-helm-release-name>-v3-engine
+            port:
+              number: 3000
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - <domain>
+    secretName: <domain>-tls-certs
+```
+
+```bash title="Record the ingress URL (Make sure you prepend with protocol) for your main project URL within Hasura's control plane."
+ddn project set-self-hosted-engine-url <ingress-url>
+```
+
+## Step 6. Deploy via Helm
+
+:::info Hasura DDN Helm Repo
+
+Our DDN Helm Repo is found [here](https://github.com/hasura/ddn-helm-charts/tree/main).  Ensure that you run through the `Get Started` section there first before you attempt to install any Helm charts.
+:::
+
+- Install the v3-engine Helm chart on your Kubernetes cluster.
+- For each connector, install via the appropriate Helm chart.  Contact the Hasura team if you don't see a Helm chart available for your connector.
+
+## Step 7. View API via console
+
+Access [Hasura console](https://console.hasura.io) and locate your cloud project.  Access your project and verify your deployment.
