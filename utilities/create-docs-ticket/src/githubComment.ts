@@ -1,18 +1,10 @@
 import dotenv from 'dotenv';
+import { Reviewer } from './types';
 
 dotenv.config();
 
-interface Reviewer {
-  github_username: string;
-  name: string;
-}
-
-interface Reviewer {
-  name: string;
-}
-
 const generateGhComment = (author: string, reviewer: Reviewer): string => {
-  return `@${author} Thanks for your PR! I've assigned @${reviewer.name} to review it.`;
+  return `@${author} Thanks for your PR! I've assigned @${reviewer.github_username} to review it.`;
 };
 
 const getPrAuthor = async (prUrl: string): Promise<string | null> => {
@@ -29,10 +21,9 @@ const getPrAuthor = async (prUrl: string): Promise<string | null> => {
   return pr.user?.login || null;
 };
 
-export const addGitHubCommentToPr = async (prUrl: string): Promise<string> => {
+export const addGitHubCommentToPr = async (prUrl: string, assignedReviewer: Reviewer): Promise<string> => {
   const prNumber = prUrl.split('/').pop();
   const apiUrl = `https://api.github.com/repos/${process.env.REPO_OWNER}/${process.env.REPO_NAME}/issues/${prNumber}/comments`;
-  const reviewer: Reviewer = JSON.parse(process.env.REVIEWER!);
   const author = await getPrAuthor(prUrl);
   if (!author) {
     console.error('Error getting author, skipping comment');
@@ -45,7 +36,7 @@ export const addGitHubCommentToPr = async (prUrl: string): Promise<string> => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      body: `${generateGhComment(author, reviewer)}`,
+      body: `${generateGhComment(author, assignedReviewer)}`,
     }),
   });
   const comment = await addComment.json();

@@ -1,3 +1,5 @@
+import { Reviewer } from './types';
+import { selectReviewer } from './selectReviewer';
 import { createLinearTicket, addLinkAsAttachmentToTicket } from './linearTicketGeneration';
 import { assignGitHubReviewer } from './assignGitHubReviewer';
 import { addGitHubCommentToPr } from './githubComment';
@@ -5,7 +7,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const requiredEnvVars = ['LINEAR_TEAM_ID', 'REVIEWER', 'REPO_OWNER', 'REPO_NAME', 'DOCS_GITHUB_TOKEN'];
+const requiredEnvVars = ['LINEAR_TEAM_ID', 'SEAN_INFO', 'ROB_INFO', 'REPO_OWNER', 'REPO_NAME', 'DOCS_GITHUB_TOKEN'];
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
     throw new Error(`Missing required environment variable: ${envVar}`);
@@ -22,13 +24,15 @@ if (!title || !url) {
 
 const main = async (title: string, url: string): Promise<string> => {
   try {
-    const ticket = await createLinearTicket({ prTitle: title, prUrl: url });
+    const reviewerList: Reviewer[] = [JSON.parse(process.env.SEAN_INFO!), JSON.parse(process.env.ROB_INFO!)];
+    const reviewer = selectReviewer(reviewerList);
+    const ticket = await createLinearTicket({ prTitle: title, prUrl: url, assignedReviewer: reviewer });
     const issue = await ticket.issue;
     if (issue) {
       await addLinkAsAttachmentToTicket(url, issue.id);
     }
-    await assignGitHubReviewer(url);
-    const commentResponse = await addGitHubCommentToPr(url);
+    await assignGitHubReviewer(url, reviewer);
+    const commentResponse = await addGitHubCommentToPr(url, reviewer);
     return commentResponse;
   } catch (error) {
     console.error('An error occurred:', error);
