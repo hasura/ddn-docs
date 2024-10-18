@@ -12,6 +12,11 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 # Self hosted (Customer Managed) Data Plane Installation Guide
 
+:::info
+
+Documentation here targets customers who want to self host and self manage their clusters as well as their workloads.  Here, you will find a full set of instructions, which takes you from local development all the way to having your workloads running under your Kubernetes hosted data plane.
+:::
+
 ## Prerequisites
 
 Before continuing, ensure you go through the following checklist and confirm that you meet all the requirements
@@ -82,16 +87,18 @@ Next, you will need to access the `.env.cloud` file which gets generated at the 
 
 For each READ_URL & WRITE_URL, you will need to make the necessary adjustments to ensure that your v3-engine (Which will be running in your Kubernetes cluster) is properly configured to reach each one of your connectors.  The current values that these environment variables point to are for local connectivity.
 
-:::info The URL of these environment variables is structured as such
+The URLs of these environment variables needs to be structured as shown below.
+
+:::info
 
 
-**https://`<connector-helm-release-name>`-`<connector-helm-chart-name>`.`<namespace>`:8080**
+URL: **http://`<connector-helm-release-name>`-`<connector-helm-chart-name>`.`<namespace>`:8080**
 
-`<connector-helm-release-name>`: Helm release name that you will be using later on during your connector deployments
+- `<connector-helm-release-name>`: Helm release name that you will be using later on during your connector deployments.
 
-`<connector-helm-chart-name>`: Helm chart name of your connector
+- `<connector-helm-chart-name>`: Helm chart name of your connector.
 
-`<namespace>`: Namespace where your connector will be deployed to
+- `<namespace>`: Namespace where your connector will be deployed to.
 :::
 
 After making the necessary changes to your `.env.cloud` file, run the below command.  This will create a cloud build and will also generate the necessary artifacts which will later on be consumed by your v3-engine. 
@@ -116,7 +123,6 @@ EOF
 :::warning Building images with proper OS/Arch
 
 Ensure that you are building the image with the correct OS/arch which would enable the image to run properly under your Kubernetes cluster
-
 :::
 
 ```bash title="Build the image via docker build.  Tag this image with your own registry and a custom tag of your choosing."
@@ -132,7 +138,6 @@ docker push <your_registry>/v3-engine:<your_tag>
 :::warning Building images with proper OS/Arch
 
 Ensure that you are building the image with the correct OS/arch which would enable the image to run properly under your Kubernetes cluster
-
 :::
 
 ```bash title="Build image via docker compose.  Find the <service-name> from app/connector/<connector>/compose.yaml"
@@ -149,10 +154,9 @@ docker push <your_registry>/<connector>:<your_tag>
 
 ## Step 5. Create ingresses on your Kubernetes cluster
 
-:::warning
+:::note
 
 Everytime you create a new build via `ddn supergraph build create` command, you will need to create an ingress on your Kubernetes cluster
-
 :::
 
 If you're using <b>nginx-ingress</b> and <b>cert-manager</b>, you can deploy using the below manifest.  Ensure that you modify this accordingly
@@ -160,13 +164,13 @@ If you're using <b>nginx-ingress</b> and <b>cert-manager</b>, you can deploy usi
 :::info
 
 
-`<build_version>`: This was part of the output when you ran `ddn supergraph build create` command.
+- `<build_version>`: This was part of the output when you ran `ddn supergraph build create` command.
 
-`<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<build_version>`.`<your_fqdn>`**.
+- `<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<build_version>`.`<your_fqdn>`**.
 
-`<namespace>`: Namespace where your v3-engine was deployed to.
+- `<namespace>`: Namespace where your v3-engine will be deployed to.
 
-`<v3-engine-helm-release-name>`: Helm release name for your v3-engine.
+- `<v3-engine-helm-release-name>`: Helm release name for your v3-engine.
 :::
 
 ```bash
@@ -212,11 +216,11 @@ In the following step, you will create an ingress which will serve as your proje
 :::info
 
 
-`<namespace>`: Namespace where your v3-engine was deployed to.
+- `<namespace>`: Namespace where your v3-engine will be deployed to.
 
-`<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
+- `<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
 
-`<v3-engine-helm-release-name>`: Helm release name for your v3-engine.
+- `<v3-engine-helm-release-name>`: Helm release name for your v3-engine.
 :::
 
 ```bash
