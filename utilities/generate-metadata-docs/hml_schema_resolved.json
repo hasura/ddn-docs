@@ -48,7 +48,7 @@
                   "description": "Definition of the authentication configuration used by the API server.",
                   "oneOf": [
                     {
-                      "title": "AuthConfig1",
+                      "title": "AuthConfigV1",
                       "description": "Definition of the authentication configuration v1, used by the API server.",
                       "type": "object",
                       "required": ["definition", "kind", "version"],
@@ -595,7 +595,7 @@
                       "additionalProperties": false
                     },
                     {
-                      "title": "AuthConfig2",
+                      "title": "AuthConfigV2",
                       "description": "Definition of the authentication configuration v2, used by the API server.",
                       "type": "object",
                       "required": ["definition", "kind", "version"],
@@ -785,13 +785,7 @@
                                           "$schema": "http://json-schema.org/draft-07/schema#",
                                           "title": "Schema Response",
                                           "type": "object",
-                                          "required": [
-                                            "collections",
-                                            "functions",
-                                            "object_types",
-                                            "procedures",
-                                            "scalar_types"
-                                          ],
+                                          "required": ["collections", "functions", "object_types", "procedures", "scalar_types"],
                                           "properties": {
                                             "scalar_types": {
                                               "description": "A list of scalar types which will be used as the types of collection columns",
@@ -1310,13 +1304,7 @@
                                             "CollectionInfo": {
                                               "title": "Collection Info",
                                               "type": "object",
-                                              "required": [
-                                                "arguments",
-                                                "foreign_keys",
-                                                "name",
-                                                "type",
-                                                "uniqueness_constraints"
-                                              ],
+                                              "required": ["arguments", "foreign_keys", "name", "type", "uniqueness_constraints"],
                                               "properties": {
                                                 "name": {
                                                   "description": "The name of the collection\n\nNote: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database.",
@@ -2109,6 +2097,31 @@
                               },
                               "additionalProperties": false
                             },
+                            "subscription": {
+                              "anyOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/SubscriptionGraphqlConfig",
+                                  "title": "SubscriptionGraphqlConfig",
+                                  "description": "Configuration for the GraphQL schema of Hasura features for subscriptions.",
+                                  "type": "object",
+                                  "required": ["rootOperationTypeName"],
+                                  "properties": {
+                                    "rootOperationTypeName": {
+                                      "description": "The name of the root operation type name for subscriptions. Usually `subscription`.",
+                                      "allOf": [
+                                        {
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
                             "apolloFederation": {
                               "anyOf": [
                                 {
@@ -2625,13 +2638,7 @@
                           "title": "ObjectBooleanExpressionTypeV1",
                           "description": "Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of `BooleanExpressionType`.",
                           "type": "object",
-                          "required": [
-                            "comparableFields",
-                            "dataConnectorName",
-                            "dataConnectorObjectType",
-                            "name",
-                            "objectType"
-                          ],
+                          "required": ["comparableFields", "dataConnectorName", "dataConnectorObjectType", "name", "objectType"],
                           "properties": {
                             "name": {
                               "description": "The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.",
@@ -2867,10 +2874,20 @@
                                                 "required": ["booleanExpressionType", "fieldName"],
                                                 "properties": {
                                                   "fieldName": {
-                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                    "description": "The name of the field that can be compared.",
+                                                    "allOf": [
+                                                      {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                      }
+                                                    ]
                                                   },
                                                   "booleanExpressionType": {
-                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                    "description": "The boolean expression type that can be used for comparison against the type of the field.",
+                                                    "allOf": [
+                                                      {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                      }
+                                                    ]
                                                   }
                                                 },
                                                 "additionalProperties": false
@@ -2974,11 +2991,7 @@
                                                 "title": "DataConnectorOperatorMapping",
                                                 "description": "Mapping between OpenDD operator names and the names used in the data connector schema",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "operatorMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "operatorMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "Name of the data connector this mapping applies to",
@@ -3395,11 +3408,7 @@
                                                 "title": "DataConnectorAggregationFunctionMapping",
                                                 "description": "Definition of how to map an aggregate expression's aggregation functions to data connector aggregation functions.",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "functionMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "functionMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "The data connector being mapped to",
@@ -3880,6 +3889,54 @@
                                                 "type": "null"
                                               }
                                             ]
+                                          },
+                                          "subscription": {
+                                            "description": "Enable subscription on this select unique root field.",
+                                            "anyOf": [
+                                              {
+                                                "$id": "https://hasura.io/jsonschemas/metadata/SubscriptionGraphQlDefinition",
+                                                "title": "SubscriptionGraphQlDefinition",
+                                                "description": "The definition of the GraphQL API for enabling subscription on query root fields.",
+                                                "type": "object",
+                                                "required": ["rootField"],
+                                                "properties": {
+                                                  "rootField": {
+                                                    "description": "The name of the subscription root field.",
+                                                    "allOf": [
+                                                      {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                      }
+                                                    ]
+                                                  },
+                                                  "description": {
+                                                    "description": "The description of the subscription graphql definition. Gets added to the description of the subscription root field in the graphql schema.",
+                                                    "type": ["string", "null"]
+                                                  },
+                                                  "deprecated": {
+                                                    "description": "Whether this subscription root field is deprecated. If set, the deprecation status is added to the subscription root field's graphql schema.",
+                                                    "anyOf": [
+                                                      {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                                      },
+                                                      {
+                                                        "type": "null"
+                                                      }
+                                                    ]
+                                                  },
+                                                  "pollingIntervalMs": {
+                                                    "description": "Polling interval in milliseconds for the subscription.",
+                                                    "default": 1000,
+                                                    "type": "integer",
+                                                    "format": "uint64",
+                                                    "minimum": 0
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "null"
+                                              }
+                                            ]
                                           }
                                         },
                                         "additionalProperties": false
@@ -3912,6 +3969,17 @@
                                               "anyOf": [
                                                 {
                                                   "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "subscription": {
+                                              "description": "Enable subscription on this select many root field.",
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectUniques/items/properties/subscription/anyOf/0"
                                                 },
                                                 {
                                                   "type": "null"
@@ -4008,6 +4076,17 @@
                                               "anyOf": [
                                                 {
                                                   "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "subscription": {
+                                              "description": "Enable subscription on this aggregate root field.",
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectUniques/items/properties/subscription/anyOf/0"
                                                 },
                                                 {
                                                   "type": "null"
@@ -4908,6 +4987,40 @@
                           }
                         ]
                       }
+                    },
+                    {
+                      "kind": "ModelPermissions",
+                      "version": "v1",
+                      "definition": {
+                        "modelName": "Articles",
+                        "permissions": [
+                          {
+                            "role": "admin",
+                            "select": {
+                              "filter": null
+                            }
+                          },
+                          {
+                            "role": "user",
+                            "select": {
+                              "filter": {
+                                "relationship": {
+                                  "name": "author",
+                                  "predicate": {
+                                    "fieldComparison": {
+                                      "field": "id",
+                                      "operator": "_eq",
+                                      "value": {
+                                        "sessionVariable": "x-hasura-user-id"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
                     }
                   ],
                   "oneOf": [
@@ -5009,6 +5122,53 @@
                                                           "operator": "_eq",
                                                           "value": {
                                                             "sessionVariable": "x-hasura-user-id"
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "relationship": {
+                                                          "name": "author",
+                                                          "predicate": {
+                                                            "fieldComparison": {
+                                                              "field": "id",
+                                                              "operator": "_eq",
+                                                              "value": {
+                                                                "sessionVariable": "x-hasura-user-id"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "and": [
+                                                          {
+                                                            "fieldComparison": {
+                                                              "field": "author_id",
+                                                              "operator": "_eq",
+                                                              "value": {
+                                                                "sessionVariable": "x-hasura-user-id"
+                                                              }
+                                                            }
+                                                          },
+                                                          {
+                                                            "fieldComparison": {
+                                                              "field": "title",
+                                                              "operator": "_eq",
+                                                              "value": {
+                                                                "literal": "Hello World"
+                                                              }
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      {
+                                                        "not": {
+                                                          "fieldComparison": {
+                                                            "field": "author_id",
+                                                            "operator": "_eq",
+                                                            "value": {
+                                                              "sessionVariable": "x-hasura-user-id"
+                                                            }
                                                           }
                                                         }
                                                       }
@@ -5173,6 +5333,11 @@
                                             "items": {
                                               "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/argumentPresets/items"
                                             }
+                                          },
+                                          "allowSubscriptions": {
+                                            "description": "Whether the role is allowed to subscribe to the root fields of this model.",
+                                            "default": false,
+                                            "type": "boolean"
                                           }
                                         },
                                         "additionalProperties": false
