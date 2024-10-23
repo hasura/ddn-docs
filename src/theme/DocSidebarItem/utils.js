@@ -49,6 +49,9 @@ export function addIconsToLabel(label, className) {
     case 'introduction-icon':
       icons = <Introduction />;
       break;
+    case 'cloud-icon':
+      icons = cloudIcon;
+      break;
     case 'basics-icon':
       icons = <Basics />;
       break;
