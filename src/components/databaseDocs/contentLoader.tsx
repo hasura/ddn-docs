@@ -12,14 +12,14 @@ import ClickHouseMutate from '@site/docs/getting-started/build/_databaseDocs/_cl
 import OpenAPIMutate from '@site/docs/getting-started/build/_databaseDocs/_openAPI/_08-mutate-data.mdx';
 import GraphQlMutate from '@site/docs/getting-started/build/_databaseDocs/_graphql/_08-mutate-data.mdx';
 
-import PostgreSqlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_postgreSQL/_03-deploy-a-connector.mdx';
-import MongoDBDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_mongoDB/_03-deploy-a-connector.mdx';
-import TypeScriptDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_typeScript/_03-deploy-a-connector.mdx';
-import ClickHouseDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_clickHouse/_03-deploy-a-connector.mdx';
-import OpenAPIDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
-import GraphQlDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_graphql/_03-deploy-a-connector.mdx';
-import PythonDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_python/_03-deploy-a-connector.mdx';
-import GoDeploy from '@site/docs/getting-started/deployment/_databaseDocs/_go/_03-deploy-a-connector.mdx';
+import PostgreSqlDeploy from '@site/docs/deployment/deployment/_databaseDocs/_postgreSQL/_03-deploy-a-connector.mdx';
+import MongoDBDeploy from '@site/docs/deployment/deployment/_databaseDocs/_mongoDB/_03-deploy-a-connector.mdx';
+import TypeScriptDeploy from '@site/docs/deployment/deployment/_databaseDocs/_typeScript/_03-deploy-a-connector.mdx';
+import ClickHouseDeploy from '@site/docs/deployment/deployment/_databaseDocs/_clickHouse/_03-deploy-a-connector.mdx';
+import OpenAPIDeploy from '@site/docs/deployment/deployment/_databaseDocs/_openAPI/_03-deploy-a-connector.mdx';
+import GraphQlDeploy from '@site/docs/deployment/deployment/_databaseDocs/_graphql/_03-deploy-a-connector.mdx';
+import PythonDeploy from '@site/docs/deployment/deployment/_databaseDocs/_python/_03-deploy-a-connector.mdx';
+import GoDeploy from '@site/docs/deployment/deployment/_databaseDocs/_go/_03-deploy-a-connector.mdx';
 
 import TypeScriptBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_typescript/_06-add-business-logic.mdx';
 import PythonBusinessLogic from '@site/docs/getting-started/build/_databaseDocs/_python/_06-add-business-logic.mdx';
