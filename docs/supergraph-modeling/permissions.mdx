@@ -356,7 +356,7 @@ Definition of permissions for an OpenDD model.
 | `version` | `v1` | true |  |
 | `definition` | [ModelPermissionsV1](#modelpermissions-modelpermissionsv1) | true | Definition of permissions for an OpenDD model. |
 
- **Example:**
+ **Examples:**
 
 ```yaml
 kind: ModelPermissions
@@ -375,6 +375,30 @@ definition:
             operator: _eq
             value:
               sessionVariable: x-hasura-user-id
+```
+
+
+
+```yaml
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Articles
+  permissions:
+    - role: admin
+      select:
+        filter: null
+    - role: user
+      select:
+        filter:
+          relationship:
+            name: author
+            predicate:
+              fieldComparison:
+                field: id
+                operator: _eq
+                value:
+                  sessionVariable: x-hasura-user-id
 ```
 
 
@@ -424,6 +448,7 @@ Defines the permissions for selecting a model for a role.
 |-----|-----|-----|-----|
 | `filter` | null / [ModelPredicate](#modelpermissions-modelpredicate) | true | Filter expression when selecting rows for this model. Null filter implies all rows are selectable. |
 | `argumentPresets` | [[ArgumentPreset](#modelpermissions-argumentpreset)] | false | Preset values for arguments for this role |
+| `allowSubscriptions` | boolean | false | Whether the role is allowed to subscribe to the root fields of this model. |
 
 
 
@@ -477,9 +502,8 @@ A predicate that can be used to restrict the objects returned when querying a mo
 | `or` | [[ModelPredicate](#modelpermissions-modelpredicate)] | false |  |
 | `not` | [ModelPredicate](#modelpermissions-modelpredicate) | false |  |
 
- **Example:**
+ **Examples:**
 
-1. Using field comparison
 ```yaml
 fieldComparison:
   field: author_id
@@ -488,7 +512,8 @@ fieldComparison:
     sessionVariable: x-hasura-user-id
 ```
 
-2. Using relationship comparison
+
+
 ```yaml
 relationship:
   name: author
@@ -498,6 +523,33 @@ relationship:
       operator: _eq
       value:
         sessionVariable: x-hasura-user-id
+```
+
+
+
+```yaml
+and:
+  - fieldComparison:
+      field: author_id
+      operator: _eq
+      value:
+        sessionVariable: x-hasura-user-id
+  - fieldComparison:
+      field: title
+      operator: _eq
+      value:
+        literal: Hello World
+```
+
+
+
+```yaml
+not:
+  fieldComparison:
+    field: author_id
+    operator: _eq
+    value:
+      sessionVariable: x-hasura-user-id
 ```
 
 
@@ -686,9 +738,8 @@ A predicate that can be used to restrict the objects returned when querying a mo
 | `or` | [[ModelPredicate](#commandpermissions-modelpredicate)] | false |  |
 | `not` | [ModelPredicate](#commandpermissions-modelpredicate) | false |  |
 
- **Example:**
+ **Examples:**
 
-1. Using field comparison
 ```yaml
 fieldComparison:
   field: author_id
@@ -697,7 +748,8 @@ fieldComparison:
     sessionVariable: x-hasura-user-id
 ```
 
-2. Using relationship comparison
+
+
 ```yaml
 relationship:
   name: author
@@ -707,6 +759,33 @@ relationship:
       operator: _eq
       value:
         sessionVariable: x-hasura-user-id
+```
+
+
+
+```yaml
+and:
+  - fieldComparison:
+      field: author_id
+      operator: _eq
+      value:
+        sessionVariable: x-hasura-user-id
+  - fieldComparison:
+      field: title
+      operator: _eq
+      value:
+        literal: Hello World
+```
+
+
+
+```yaml
+not:
+  fieldComparison:
+    field: author_id
+    operator: _eq
+    value:
+      sessionVariable: x-hasura-user-id
 ```
 
 
