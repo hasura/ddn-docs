@@ -1,0 +1,260 @@
+---
+sidebar_position: 2
+sidebar_label: Quickstart
+description: "Get started with..."
+keywords:
+  - hasura
+  - hasura ddn
+  - promptql
+  - ai
+  - llm
+  - openai
+  - anthropic
+  - ollama
+seoFrontMatterUpdated: false
+---
+
+import InstallTheCli from "@site/docs/_install-the-cli.mdx";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Quickstart
+
+## Introduction
+
+This guide will help you get started with PromptQL on Hasura DDN, allowing you to integrate AI-driven queries into your
+supergraph.
+
+You'll set up your environment, connect a PostgreSQL data source, and enable PromptQL to unlock powerful natural
+language queries.
+
+## Prerequisites
+
+1. **Install the DDN CLI**
+
+   <InstallTheCli />
+
+2. **Install [Docker](https://docs.docker.com/engine/install/)** (needed for local development)
+
+   The Docker based workflow helps you iterate and develop locally without deploying any changes to Hasura DDN, making
+   the development experience faster and your feedback loops shorter. **You'll need Docker Compose `v2.27.1` or later.**
+
+3. **Validate the installation**
+
+   You can verify that the DDN CLI is installed correctly by running:
+
+   ```sh
+   ddn doctor
+   ```
+
+4. **An Anthropic key**
+
+If you don't already have an Anthropic key, grab one [here](https://docs.anthropic.com/en/api/getting-started).
+
+## Step 1. Set up Hasura DDN
+
+### Step 1.1 — Authenticate your CLI
+
+```sh title="Use the following command to launch a browser window:"
+ddn auth login
+```
+
+### Step 1.2 — Initialize a new supergraph in a new directory
+
+```sh title="This will create a new project in an empty directory:"
+ddn supergraph init mysupergraph
+cd mysupergraph
+```
+
+### Step 1.3 — Connect to your PostgreSQL database
+
+```sh title="We'll initialize a new PostgreSQL connector:"
+ddn connector init my_pg -i
+```
+
+From the dropdown, start typing `postgres` and hit `ENTER`. Hit `ENTER` again to accept the recommended port.
+
+If you don't have a PostgreSQL database, you can use this connection string:
+
+```plaintext
+postgresql://readonlyuser:yMXM2mt*vG,Rdn4+@34.71.138.6:5432/postgres
+```
+
+Set your environment variables:
+
+| Variable         | Value                                                 | Required |
+| ---------------- | ----------------------------------------------------- | -------- |
+| `CONNECTION_URI` | `postgresql://username:password@hostname:port/dbname` | Yes      |
+| `CLIENT_CERT`    | Path to the client certificate file.                  | No       |
+| `CLIENT_KEY`     | Path to the client key file.                          | No       |
+| `ROOT_CERT`      | Path to the root certificate file.                    | No       |
+
+\* Non-required environment variables can be skipped by pressing `ENTER`.
+
+:::info Connecting a local database?
+
+Hasura DDN uses a unique domain to resolve local services. In the connection string above, you can replace `hostname`
+with `local.hasura.dev` if you're connecting to a local database.
+
+Additionally, if you're planning on deploying this project to Hasura DDN (our cloud-hosted service), you'll need to use
+a tunnel like [ngrok](https://ngrok.com) to expose your source to the outside internet.
+
+:::
+
+### Step 1.4 — Introspect your PostgreSQL database
+
+```sh title="Introspecting will create a set of configuration files so DDN knows about your source's structure:"
+ddn connector introspect my_pg
+```
+
+### Step 1.5 — Add your resources
+
+```sh title="We'll add our tables and their relationships automatically to our API:"
+ddn model add my_pg "*" && ddn relationship add my_pg "*"
+```
+
+:::info Want to expose mutations?
+
+If you'd like to be able to perform writes on your data — yes, even with PromptQL! — you'll need to also add commands:
+
+```sh
+ddn command add my_pg "*"
+```
+
+:::
+
+### Step 1.6 — Create and run a local build or deploy to Hasura DDN
+
+<Tabs>
+<TabItem value="cloud" label="Cloud-hosted project">
+  
+```sh title="Use the CLI to provision a new project on Hasura DDN:"
+ddn project init
+```
+
+```sh title="Finally, create a new build and deploy your supergraph:"
+ddn supergraph build create
+```
+
+```sh title="You now navigate to the Hasura console to test your API:"
+ddn console
+```
+
+</TabItem>
+<TabItem value="local" label="Locally-running project">
+
+```sh title="Create a local build and then run it via the CLI:"
+ddn supergraph build local && ddn run docker-start
+```
+
+```sh title="You now navigate to the Hasura console to test your API:"
+ddn console --local
+```
+
+</TabItem>
+</Tabs>
+
+Try executing a query on your data to ensure you get a response back before moving on.
+
+## Step 2. Enable PromptQL on your project
+
+### Step 2.1 — Switch on PromptQL
+
+If not already open, bring up the project's console by running `ddn console` from the project directory. Don't forget to
+pass the `--local` flag if it's running on your machine.
+
+Then, go to `Settings` in the bottom-left corner of the sidebar and select `PromptQL` from the project settings.
+
+**TODO: Add screenshot**
+
+Flip the toggle on `PromptQL` and then click `Confirm`:
+
+**TODO: Add screenshot**
+
+### Step 2.2 — Enable the playground
+
+<Tabs>
+<TabItem value="cloud" label="Cloud-hosted project">
+
+**Step 2.2.1**
+
+Enable the PromptQL playground in the PromptQL settings:
+
+**TODO: Add screenshot**
+
+**Step 2.2.2**
+
+Add your Anthropic key:
+
+**TODO: Add screenshot**
+
+**Step 2.2.3**
+
+Click the PromptQL playground button in the sidenav!
+
+**TODO: Add screenshot**
+
+</TabItem>
+<TabItem value="local" label="Locally-running project">
+
+**Step 2.2.1**
+
+Generate a PromptQL API key and give it a name:
+
+**TODO: Add screenshot**
+
+Then, save the API key somewhere secure; once you close the modal, you won't be able to access it again.
+
+**Step 2.2.2**
+
+Next, clone the
+[playground's `compose.yaml`](https://raw.githubusercontent.com/hasura/promptql/refs/heads/main/playground/production.compose.yaml)
+to your machine:
+
+```sh
+curl -o production.compose.yaml https://raw.githubusercontent.com/hasura/promptql/refs/heads/main/playground/production.compose.yaml
+```
+
+**Step 2.2.3**
+
+Finally, start the playground's local server with your Anthropic and PromptQL keys:
+
+```sh
+ANTHROPIC_API_KEY=sk-ant… PROMPTQL_SECRET_KEY=6dce… docker compose up -f production.compose.yaml
+```
+
+:::info Troubleshooting
+
+Commonly, folks will forget to set their `HASURA_DDN_PAT` in their CLI or may have their local Hasura DDN instance
+running on a different port than `3000`. To fix these issues:
+
+```sh title="Set your PAT:"
+HASURA_DDN_PAT=$(ddn auth print-pat)
+```
+
+```sh title="Set your HASURA_DDN_URL to the correct port"
+HASURA_DDN_URL=localhost:<port>/v1/sql
+```
+
+:::
+
+Now, you can navigate to the [chat interface](https:console.hasura.io/local/chat) and click the `Settings` icon in the
+top-left; enter your playground's URL which, if you haven't made any modifications, should be `http://localhost:5000`:
+
+**TODO: Add screenshot**
+
+</TabItem>
+</Tabs>
+
+## Step 3. Start acting on your data!
+
+**TODO: Let's give them some ideas...!**
+
+## Next steps
+
+Check out our [examples](/promptql/examples.mdx) for other ideas of how to use PromptQL with your data.
+
+If you need help with Hasura DDN or PromptQL, check out our [Discord](https://bit.ly/3YhGP8d) and post in the channel
+`#hasura-api-world-hackaton`. Additionally, feel free to reach out to PromptQL's PM,
+[Anushrut](mailto:anushrut.gupta@hasura.io).
