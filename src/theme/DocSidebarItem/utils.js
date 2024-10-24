@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import CloudDark from '@site/static/icons/cloud-light.svg';
-import CloudLight from '@site/static/icons/cloud-dark.svg';
-
+import Cloud from '@site/static/icons/features/cloud.svg';
 import Introduction from '@site/static/icons/award-02.svg';
 import Basics from '@site/static/icons/book-open-01.svg';
 import GettingStarted from '@site/static/icons/home-smile.svg';
@@ -41,8 +39,6 @@ export function addIconsToLabel(label, className) {
 
   const isDarkMode = definedColorMode === 'dark';
 
-  const cloudIcon = isDarkMode ? <CloudDark /> : <CloudLight />;
-
   // Conditional rendering for sidebar icons
   let icons;
   switch (className) {
@@ -50,7 +46,7 @@ export function addIconsToLabel(label, className) {
       icons = <Introduction />;
       break;
     case 'cloud-icon':
-      icons = cloudIcon;
+      icons = <Cloud />;
       break;
     case 'basics-icon':
       icons = <Basics />;
