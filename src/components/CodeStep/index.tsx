@@ -6,7 +6,7 @@ import { MDXProvider } from '@mdx-js/react';
 interface CodeStepProps {
   id: string;
   language: string;
-  code: string;
+  code: string | string[];
   heading: string;
   children?: ReactNode;
   output?: string;
@@ -14,23 +14,40 @@ interface CodeStepProps {
 
 const CodeStep = (props: CodeStepProps) => {
   return (
-    <div className={'step_container'} data-attr={props.id} >
-      <div className={'item'}>
-        <div className={'heading'}>
-          <h2 children={props.heading} />
-        </div>
-        <div className={'description'}>
-          <MDXProvider children={props.children} />
-        </div>
+    <div className={'step_container'} data-attr={props.id}>
+      <div className={'heading'}>
+        <h2>{props.heading}</h2>
       </div>
-      <div className={'item'}>
-        <CodeBlock className={`language-${props.language} main-block`}>{props.code}</CodeBlock>
-        {props.output && (
-          <details>
-            <summary>Output</summary>
-            <CodeBlock className={`language-plaintext`}>{props.output}</CodeBlock>
-          </details>
-        )}
+      <div className={'content'}>
+        <div className={'description'}>
+          <MDXProvider>{props.children}</MDXProvider>
+        </div>
+        <div className={'code'}>
+          {Array.isArray(props.code) ? (
+            props.code.map((codeSnippet, index) => (
+              <CodeBlock
+                key={index}
+                className={`language-${props.language} main-block`}
+              >
+                {codeSnippet}
+              </CodeBlock>
+            ))
+          ) : (
+            <CodeBlock
+              className={`language-${props.language} main-block`}
+            >
+              {props.code}
+            </CodeBlock>
+          )}
+          {props.output && (
+            <details>
+              <summary>Output</summary>
+              <CodeBlock className={`language-plaintext`}>
+                {props.output}
+              </CodeBlock>
+            </details>
+          )}
+        </div>
       </div>
     </div>
   );
