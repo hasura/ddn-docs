@@ -9,7 +9,7 @@ import GettingStarted from '@site/static/icons/home-smile.svg';
 import Auth from '@site/static/icons/shield-tick.svg';
 import Connectors from '@site/static/icons/event-triggers.svg';
 import Plugins from '@site/static/icons/remote-schema.svg';
-import DataDomainModeling from '@site/static/icons/database-01.svg';
+import DataModeling from '@site/static/icons/features/data-modeling.svg';
 import GraphQLAPI from '@site/static/icons/graphql-logo.svg';
 import ProjectConfiguration from '@site/static/icons/dataflow-01.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
@@ -67,8 +67,8 @@ export function addIconsToLabel(label, className) {
     case 'plugins-icon':
       icons = <Plugins />;
       break;
-    case 'data-domain-modeling-icon':
-      icons = <DataDomainModeling />;
+    case 'data-modeling':
+      icons = <DataModeling />;
       break;
     case 'graphQL-api-icon':
       icons = <GraphQLAPI />;
