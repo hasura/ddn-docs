@@ -24,6 +24,7 @@ import Community from '@site/static/icons/announcement-02.svg';
 import Actions from '@site/static/icons/features/actions.svg';
 import Help from '@site/static/icons/features/hasura_policies.svg';
 import Billing from '@site/static/icons/features/credit-card-check.svg';
+import PromptQL from '@site/static/icons/features/prompt-ql.svg';
 import Deployment from '@site/static/icons/features/deployment.svg';
 import Upgrade from '@site/static/icons/cloud-lightning.svg';
 import Recipe from '@site/static/icons/beaker.svg';
@@ -66,6 +67,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'data-domain-modeling-icon':
       icons = <DataDomainModeling />;
+      break;
+    case 'prompt-ql-icon':
+      icons = <PromptQL />;
       break;
     case 'graphQL-api-icon':
       icons = <GraphQLAPI />;
