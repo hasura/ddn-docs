@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import Cloud from '@site/static/icons/features/cloud.svg';
 import Introduction from '@site/static/icons/award-02.svg';
 import Basics from '@site/static/icons/book-open-01.svg';
 import GettingStarted from '@site/static/icons/home-smile.svg';
@@ -12,6 +11,7 @@ import GraphQLAPI from '@site/static/icons/graphql-logo.svg';
 import ProjectConfiguration from '@site/static/icons/dataflow-01.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
+import Collaboration from '@site/static/icons/features/collaborators.svg';
 import Federation from '@site/static/icons/data_federation.svg';
 import Enterprise from '@site/static/icons/features/enterprise.svg';
 import Glossary from '@site/static/icons/box.svg';
@@ -45,9 +45,6 @@ export function addIconsToLabel(label, className) {
     case 'introduction-icon':
       icons = <Introduction />;
       break;
-    case 'cloud-icon':
-      icons = <Cloud />;
-      break;
     case 'basics-icon':
       icons = <Basics />;
       break;
@@ -80,6 +77,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'observability-icon':
       icons = <Observability />;
+      break;
+    case 'collaboration-icon':
+      icons = <Collaboration />;
       break;
     case 'federation-icon':
       icons = <Federation />;
