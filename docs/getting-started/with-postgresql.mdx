@@ -19,7 +19,8 @@ import Prereqs from "@site/docs/_prereqs.mdx";
 ## Guide
 
 In this guide, you'll learn how to get started with Hasura DDN and a PostgreSQL database. You'll set up a new Hasura DDN
-project, connect it to a new PostgreSQL database, and run your first query.
+project, connect it to a PostgreSQL database, and run your first query. This guide assumes you're starting from scratch,
+but you can easily follow the steps if you already have data seeded; Hasura will never modify your source schema.
 
 ### Step 1. Create a table in your PostgreSQL database
 
@@ -37,6 +38,14 @@ INSERT INTO users (name, age) VALUES ('Bob', 30);
 INSERT INTO users (name, age) VALUES ('Charlie', 35);
 ```
 
+:::tip Connect to cloud local data sources
+
+Hasura DDN can connect to hosted or local data sources. If you have a cloud-hosted PostgreSQL provider, you can connect
+to your database and seed the table with the above data. Alternatively, you can
+[run PostgreSQL locally using Docker](https://hub.docker.com/_/postgres).
+
+:::
+
 ### Step 2. Authenticate your CLI
 
 ```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
@@ -45,7 +54,7 @@ ddn auth login
 
 ### Step 3. Scaffold out a new local project
 
-```sh title="Next, you'll create a new Hasura DDN project. Run the following command:"
+```sh title="Next, you'll create a new local project. Run the following command:"
 ddn supergraph init my-project && cd my-project
 ```
 
@@ -59,17 +68,18 @@ From the dropdown, start typing `PostgreSQL` and hit enter.
 
 Set your environment variables:
 
-| Variable         | Value                                                 | Required |
-| ---------------- | ----------------------------------------------------- | -------- |
-| `CONNECTION_URI` | `postgresql://username:password@hostname:port/dbname` | Yes      |
-| `CLIENT_CERT`    | Path to the client certificate file.                  | No       |
-| `CLIENT_KEY`     | Path to the client key file.                          | No       |
-| `ROOT_CERT`      | Path to the root certificate file.                    | No       |
+| Variable         | Value                                                                                                      | Required |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- | -------- |
+| `CONNECTION_URI` | The connection string to your source in this format: `postgresql://username:password@hostname:port/dbname` | Yes      |
+| `CLIENT_CERT`    | Path to the client certificate file.                                                                       | No       |
+| `CLIENT_KEY`     | Path to the client key file.                                                                               | No       |
+| `ROOT_CERT`      | Path to the root certificate file.                                                                         | No       |
 
 :::info Connecting a local database?
 
-Hasura DDN uses a unique domain to resolve local services. In the connection string above, you can replace `hostname`
-with `local.hasura.dev` if you're connecting to a local database.
+Hasura DDN uses a unique domain to resolve local services when using Docker. In the connection string above, you can
+replace `hostname` with `local.hasura.dev` if you're connecting to a local database running inside of a Docker
+container.
 
 :::
 
@@ -81,7 +91,7 @@ ddn connector introspect my_pg
 
 ### Step 6. Add your model
 
-```sh title="Now, you'll track the tables in your PostgreSQL database:"
+```sh title="Now, you'll track the tables as models in your PostgreSQL database:"
 ddn models add my_pg users
 ```
 
@@ -123,7 +133,7 @@ query {
 }
 ```
 
-```json title=You'll get a response like this:
+```json title="You'll get a response like this:"
 {
   "data": {
     "users": [
@@ -150,6 +160,8 @@ query {
 ## Next steps
 
 Congratulations! You've successfully set up a Hasura DDN project and connected it to a PostgreSQL database. Next, you
-can explore more advanced features like relationships, permissions, and more.
+can explore more advanced features like [relationships](/supergraph-modeling/relationships.mdx),
+[permissions](/supergraph-modeling/permissions.mdx), and more.
 
-Take a look at our PostgreSQL docs to learn more about how to use Hasura DDN with PostgreSQL.
+Take a look at our [PostgreSQL docs](/connectors/postgresql/index.mdx) to learn more about how to use Hasura DDN with
+PostgreSQL.
