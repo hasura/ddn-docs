@@ -66,7 +66,41 @@ ddn model add <connector_name> users
 ```
 
   </TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+**Via a new collection or view**
+
+```js title="Create a new table or view in your MongoDB database, and populate it with data:"
+db.createCollection("users");
+db.users.insertMany([
+  { name: "Alice" },
+  { name: "Bob" },
+  { name: "Eve" },
+]);
+```
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+**Via an existing collection or view**
+
+If you already have a collection with data present, you can add it by introspecting your data source and referencing it
+by name.
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+  </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
 </Tabs>
 
@@ -108,7 +142,56 @@ ddn model update <connector_name> "*"
 ```
 
   </TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+Within your connector's directory, you can add a new JSON configuration file to define a native query.
+
+```sh title="Create a new directory to store your native queries:"
+mkdir -p <my_subgraph>/connector/<connector_name>/native_queries/
+```
+
+```json title="Create a new file in your connector's directory:"
+-- native_queries/user_by_name_between.json
+{
+  "name": "userByName",
+  "representation": "collection",
+  "description": "Look up a user by a regular expression match on name",
+
+  "inputCollection": "users",
+
+  "arguments": {
+    "name": { "type": { "scalar": "string" } },
+    "lower_bound": { "type": { "scalar": "string" } },
+    "upper_bound": { "type": { "scalar": "string" } }
+  },
+
+  "resultDocumentType": "UserByName",
+  "objectTypes": {
+    "UserByName": {
+      "fields": {
+        "_id": { "type": { "scalar": "objectId" } },
+        "name": { "type": { "scalar": "string" } }
+      }
+    }
+  },
+
+  "pipeline": [{  
+    "$match": {
+      "$and": [
+        { "name": { "$regex": "{{ name }}" } },
+        { "name": { "$gt": "{{ lower_bound }}" } },
+        { "name": { "$lt": "{{ upper_bound }}" } }
+      ]
+    }
+  }]
+}
+```
+
+```sh title="Then, update your models:"
+ddn model update <connector_name> "*"
+```
+
+  </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
 </Tabs>
 
@@ -143,7 +226,17 @@ ddn model update <connector_name> users
 ```
 
   </TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+```bash title="Update your DataConnectorLink:"
+ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
+```
+
+```bash title="Then, update your model:"
+ddn model update <connector_name> users
+```
+
+  </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
 </Tabs>
 
@@ -157,7 +250,11 @@ If you no longer need a model, you can delete it.
   TODO: The CLI team is in the process of implementing this feature. Stay tuned!
 
   </TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+  TODO: The CLI team is in the process of implementing this feature. Stay tuned!
+
+  </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
 </Tabs>
 
