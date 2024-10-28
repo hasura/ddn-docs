@@ -1,0 +1,438 @@
+---
+sidebar_label: Walkthrough
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# PromptQL Full Walkthrough
+
+Hasura DDN brings together all your data sources, logic and 3rd party APIs into a single GraphQL API and PromptQL is a 
+feature of Hasura DDN that allows you to interact with that API using natural language.
+
+This walkthrough will guide you through the process of:
+- Setting up a Hasura DDN project
+- Adding a PostgreSQL data source
+- Adding natural language capabilities using Hasura PromptQL
+- Enriching your semantic layer with descriptions for better natural language capabilities
+
+<Prereqs />
+
+**Get an LLM API key ready**
+
+Anthropic
+- [Anthropic API Key Docs](https://docs.anthropic.com/en/api/getting-started)
+- [Anthropic API Keys Console](https://console.anthropic.com/settings/keys)
+
+OpenAI
+- [OpenAI API Key Docs](https://platform.openai.com/docs/api-reference/introduction)
+- [OpenAI Platform Organization Project API Keys](https://platform.openai.com/settings/organization/general)
+
+
+## Set up Hasura DDN
+
+### 1. Log in via the CLI
+
+```bash
+ddn auth login  
+```
+
+### 2. Initialize a new supergraph  
+
+```bash
+ddn supergraph init mysupergraph --with-promptql # TODO: flag does not exist yet!
+cd mysupergraph
+```
+
+
+   
+### 3. Connect to data
+
+Let's connect to a postgres database.
+
+```bash
+ddn connector init mypostgres -i
+```
+
+- Select **hasura/postgres**  
+- Skip port, `CONNECTION_URI`, `CLIENT_CERT`, `CLIENT_KEY`, `ROOT_CERT`, etc. Press “return”. 
+- This will start a local PostgreSQL server since you did not pass a connection string. 
+
+#### Populate the database
+
+Populate the database with the SQL scripts in the following ZIP file. Click to download.
+
+<a target="_blank" href={ require("/downloads/prompt-ql/postgres.zip").default } download>Download SQL Scripts</a>
+
+
+You will find the following three SQL scripts:
+
+- `01_ecommerce_schema.sql`
+- `02_ecommerce_data.sql`
+- `03_ecommerce_add_comments.sql`
+
+Let's execute the first two scripts. These will create the schema and populate the data. The final script we will use 
+later.
+
+You can execute these scripts using the following commands:
+
+```bash
+cat 01_ecommerce_schema.sql > docker compose exec postgres psql -U username dbname
+cat 02_ecommerce_data.sql > docker compose exec postgres psql -U username dbname
+```
+
+### 4. Introspect your data source
+
+Introspect your data source to create a set of configuration files describing your data source in a format which the 
+connector specifies.
+
+```bash
+ddn connector introspect mypostgres
+```
+
+### 5. Add your resources
+
+Add your resources to create metadata for models, commands, and relationships in your supergraph.
+
+```bash
+ddn model add mypostgres '*'
+ddn command add mypostgres '*'
+ddn relationship add mypostgres '*'
+```
+
+### 6. Build your supergraph for the local engine
+
+```bash
+ddn supergraph build local
+```
+
+### 7. Create a Hasura DDN project to get PromptQL running, even if you are on local dev
+
+```bash
+ddn project init
+```
+
+### 8. Start your supergraph locally and pass your Anthropic API Key
+
+```bash
+ANTHROPIC_API_KEY=... ddn run docker-start
+```
+
+:::info Port 3000 availability
+
+Make sure port 3000 is free. You can change your port in `compose.yaml` file.
+
+:::
+
+### 9. Head to your local DDN console
+
+```bash
+ddn console --local
+```
+
+## Try PromptQL!
+
+### 1. Go to PromptQL in Console
+{/* TODO: Replace with more accurate screenshot */}
+
+Click on PromptQL in the left sidebar
+
+<Thumbnail src="/img/prompt-ql/console-promptql-empty-screen.png" alt="Get Started" />
+
+### 2. Enter your Playground URL
+
+Click on the Settings icon on the top-left corner and enter your Playground URL 
+(http://localhost:5000 if you didn't make any changes)  
+
+{/* TODO: screenshot */}
+
+### 3. Ask a question
+
+Let's start by asking a question! Try:  
+
+```text
+What are some electric things that I can buy which are under 500 bucks?
+```
+
+Notice that it tries to find products with “Electric” as their category. But since there is no such category, it tried 
+to broaden its search by looking for multiple similar substrings (“electric”, “electronic”, “electrical”, etc.) in 
+product names, categories and description. This is the power of agentic data access and how it is an improvement 
+beyond “text-to-sql”. 
+
+Let's see how we can make this even better!
+
+## Enrich your semantic layer with descriptions
+
+### 1. Execute the third SQL script to add comments to your PostgreSQL database
+
+Run the third SQL script `03_add_comments.sql` to add comments to your PostgreSQL database:
+
+```bash
+cat 03_add_comments.sql | docker compose exec postgres psql -U username dbname
+```
+
+### 2. Introspect your database to add comments as descriptions in your supergraph
+
+```bash
+ddn connector introspect mypostgres
+```
+
+### 3. Update your metadata
+
+```bash
+ddn model update '*'
+```
+
+### 4. Build your supergraph for the local engine
+
+```bash
+ddn supergraph build local
+```
+
+### 5. Restart your supergraph locally and pass your Anthropic API Key
+
+```bash
+ANTHROPIC_API_KEY=sk-ant... ddn run docker-start
+```
+
+### 6. Go back to the PromptQL Playground and try the query again
+
+Visit [https://console.hasura.io/local/chat](https://console.hasura.io/local/chat).
+
+### 7. Ask the question again in a new chat
+
+```text
+What are some electric things that I can buy which are under 500 bucks?
+```
+
+Notice this time it is able to use the correct category on the first try.
+
+### 8. Try another question
+
+```text
+Which products are above $300 and their reviews mention they are not performing well?
+```
+
+Observe the generated query plan. The query goes through each review comment and asks another LLM to classify if 
+poor performance is mentioned or implied. This gives us highly accurate results. However, this can also be done using 
+semantic search if we want to reduce the number of queries to the LLM. Let's add this capability for our unstructured 
+data!
+
+## Add semantic search for unstructured data
+
+We will use OpenAI to create embeddings for our unstructured data.
+
+### 1. Initialize a new connector
+
+```bash
+ddn connector init mypython -i
+```
+
+- Select Hub Connector **hasura/nodejs**
+- Select a port
+
+### 2. Add environment variables to your supergraph’s files
+
+- In `mysupergraph/.env`, add:
+
+```yaml
+APP_TYPESCRIPT_OPENAI_API_KEY="sk-proj..."
+```
+
+- In `mysupergraph/app/connector/mypython/compose.yaml` under `services: app_mypython: environment:`, add:
+
+```yaml
+PG_CONNECTION_URI: $APP_MYPOSTGRES_CONNECTION_URI
+OPENAI_API_KEY: $APP_MYPYTHON_OPENAI_API_KEY
+```
+
+- In `mysupergraph/app/connector/mypython/connector.yaml` under `definition: envMapping:`, add:
+
+```yaml
+PG_CONNECTION_URI:
+fromEnv: APP_MYPOSTGRES_CONNECTION_URI
+OPENAI_API_KEY:
+fromEnv: APP_MYPYTHON_OPENAI_API_KEY
+```
+
+### 3. Write custom functions
+
+In `mysupergraph/app/connector/mypython/functions.py`, replace the boilerplate code with your custom functions to 
+vectorize product reviews and perform semantic search.
+
+<details>
+<summary>Click to expand Python code</summary>
+
+```python
+from hasura_ndc import start
+from hasura_ndc.function_connector import FunctionConnector
+from pydantic import BaseModel
+from typing import List, Optional
+import os
+import aiohttp
+import asyncpg
+import asyncio
+
+connector = FunctionConnector()
+
+class ReviewRow(BaseModel):
+    reviewId: int
+
+@connector.register_query
+async def semanticSearchReviews(text: str, limit: Optional[int] = None, offset: Optional[int] = None) -> List[ReviewRow]:
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    pg_connection_uri = os.environ.get("PG_CONNECTION_URI")
+
+    try:
+        # Generate embedding for the search text
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {openai_api_key}",
+        }
+        payload = {
+            "input": text,
+            "model": "text-embedding-3-large",
+        }
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post("https://api.openai.com/v1/embeddings", headers=headers, json=payload) as response:
+                embeddingData = await response.json()
+
+        embedding = embeddingData['data'][0]['embedding']
+        formattedEmbedding = '[' + ','.join(map(str, embedding)) + ']'
+
+        # Connect to the database
+        conn = await asyncpg.connect(pg_connection_uri)
+
+        # Base query to find reviews with similar embeddings
+        searchQuery = """
+            SELECT 
+                review_id,
+                1 - (embedding <=> $1::vector) as similarity
+            FROM Reviews
+            WHERE embedding IS NOT NULL
+            ORDER BY embedding <=> $1::vector
+        """
+
+        if limit is not None:
+            searchQuery += f" LIMIT {limit}"
+            if offset is not None:
+                searchQuery += f" OFFSET {offset}"
+        else:
+            searchQuery += " LIMIT 20"
+
+        queryParams = [formattedEmbedding]
+
+        results = await conn.fetch(searchQuery, *queryParams)
+
+        # Map the results to the expected ReviewRow interface
+        reviewRows = [ReviewRow(reviewId=row['review_id']) for row in results]
+
+        await conn.close()
+
+        return reviewRows
+    except Exception as e:
+        print(f"Error performing semantic search: {e}")
+        return []
+
+@connector.register_mutation
+async def vectorize() -> str:
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    pg_connection_uri = os.environ.get("PG_CONNECTION_URI")
+
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {openai_api_key}",
+        }
+
+        conn = await asyncpg.connect(pg_connection_uri)
+
+        # Get all reviews that don't have embeddings yet
+        getReviewsQuery = """
+            SELECT review_id, comment
+            FROM Reviews
+            WHERE embedding IS NULL AND comment IS NOT NULL
+        """
+        reviews = await conn.fetch(getReviewsQuery)
+
+        # Process reviews in batches to avoid rate limits
+        batchSize = 100
+        for i in range(0, len(reviews), batchSize):
+            batch = reviews[i:i+batchSize]
+
+            async def get_embedding_for_review(review):
+                payload = {
+                    "input": review['comment'],
+                    "model": "text-embedding-ada-002",
+                }
+                async with aiohttp.ClientSession() as session:
+                    async with session.post("https://api.openai.com/v1/embeddings", headers=headers, json=payload) as response:
+                        embeddingData = await response.json()
+                embedding = embeddingData['data'][0]['embedding']
+                return {
+                    'review_id': review['review_id'],
+                    'embedding': embedding
+                }
+
+            tasks = [get_embedding_for_review(review) for review in batch]
+            embeddings = await asyncio.gather(*tasks)
+
+            # Update reviews with their embeddings
+            updateQuery = """
+                UPDATE Reviews
+                SET embedding = $1::vector
+                WHERE review_id = $2
+            """
+            for item in embeddings:
+                formattedEmbedding = '[' + ','.join(map(str, item['embedding'])) + ']'
+                await conn.execute(updateQuery, formattedEmbedding, item['review_id'])
+
+            # Log progress
+            print(f"Processed {min(i + batchSize, len(reviews))} out of {len(reviews)} reviews")
+
+        await conn.close()
+
+        return "SUCCESS"
+    except Exception as e:
+        print(f"Error vectorizing reviews: {e}")
+        raise e
+
+if __name__ == "__main__":
+    start(connector)
+```
+
+</details>
+
+### 4. Add required libraries
+
+In `mysupergraph/app/connector/mypython/requirements.txt`, add:
+
+```
+aiohttp==3.10.10
+asyncpg==0.30.0
+```
+
+### 5. Introspect your connector
+
+Make sure Docker is running, then execute:
+
+```bash
+ddn connector introspect mypython
+```
+
+### 6. Add your resources
+
+Create metadata for the commands in your supergraph:
+
+```bash
+ddn command add mypython '*'
+```
+
+### 7. Build your supergraph
+
+Create your supergraph build locally:
+
+```bash
+ddn supergraph build local
+```
