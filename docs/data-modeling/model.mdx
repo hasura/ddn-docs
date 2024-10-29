@@ -43,6 +43,12 @@ CREATE TABLE public.users (
   id serial PRIMARY KEY,
   name text NOT NULL
 );
+
+INSERT INTO public.users (name)
+VALUES
+  ('Alice Johnson'),
+  ('Bob Smith'),
+  ('Charlie Davis');
 ```
 
 ```bash title="Use the DDN CLI to introspect your PostgreSQL instance:"
@@ -72,11 +78,7 @@ ddn model add <connector_name> users
 
 ```js title="Create a new table or view in your MongoDB database, and populate it with data:"
 db.createCollection("users");
-db.users.insertMany([
-  { name: "Alice" },
-  { name: "Bob" },
-  { name: "Eve" },
-]);
+db.users.insertMany([{ name: "Alice" }, { name: "Bob" }, { name: "Eve" }]);
 ```
 
 ```bash title="Use the DDN CLI to introspect your MongoDB instance:"
@@ -103,6 +105,48 @@ ddn model add <connector_name> users
   </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
 </Tabs>
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your table:"
+query {
+  users {
+    id
+    name
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "Alice Johnson"
+      },
+      {
+        "id": 2,
+        "screamedName": "Bob Smith"
+      },
+      {
+        "id": 3,
+        "screamedName": "Charlie Davis"
+      }
+    ]
+  }
+}
+```
 
 ### Extending a model
 
@@ -176,15 +220,17 @@ mkdir -p <my_subgraph>/connector/<connector_name>/native_queries/
     }
   },
 
-  "pipeline": [{  
-    "$match": {
-      "$and": [
-        { "name": { "$regex": "{{ name }}" } },
-        { "name": { "$gt": "{{ lower_bound }}" } },
-        { "name": { "$lt": "{{ upper_bound }}" } }
-      ]
+  "pipeline": [
+    {
+      "$match": {
+        "$and": [
+          { "name": { "$regex": "{{ name }}" } },
+          { "name": { "$gt": "{{ lower_bound }}" } },
+          { "name": { "$lt": "{{ upper_bound }}" } }
+        ]
+      }
     }
-  }]
+  ]
 }
 ```
 
@@ -198,15 +244,178 @@ ddn model update <connector_name> "*"
 
 #### Via a lambda connector
 
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL">
+[Lambda connectors](/business-logic/overview.mdx) allow you to expose custom business logic via your API. You can also
+create [relationships](/data-modeling/relationship.mdx) between an existing model and this business logic to expand the
+data a model can return.
 
-TODO: Fill in the details for extending a model via a lambda connector.
+We support lambda connectors for [TypeScript](/business-logic/typescript.mdx), [Python](/business-logic/python.mdx), and
+[Go](/business-logic/go.mdx).
+
+<Tabs groupId="source-preference">
+  <TabItem value="ts" label="TypeScript">
+
+    ```sh title="Initalize a new connector and select hasura/nodejs from the list:"
+    ddn connector init my_ts -i
+    ```
+
+    ```ts title="Replace the functions.ts contents with the following:"
+    /**
+    * @readonly
+    */
+    export function nameToUpperCase(name: string): string {
+      return name.toUpperCase();
+    }
+    ```
+
+    ```bash title="Introspect the connector:"
+    ddn connector introspect my_ts
+    ```
+
+    ```bash title="Track the function:"
+    ddn command add my_ts nameToUpperCase
+    ```
 
   </TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
+  <TabItem value="python" label="Python">
+
+    ```sh title="Initalize a new connector and select hasura/python from the list:"
+    ddn connector init my_python i
+    ```
+
+    ```python title="Replace the functions.py contents with the following:"
+    from hasura_ndc import start
+    from hasura_ndc.function_connector import FunctionConnector
+
+    connector = FunctionConnector()
+
+    @connector.register_query
+    def name_to_upper_case(name: str) -> str:
+      return name.upper()
+
+    if __name__ == "__main__":
+      start(connector)
+    ```
+
+    ```bash title="Introspect the connector:"
+    ddn connector introspect my_python
+    ```
+
+    ```bash title="Track the function:"
+    ddn command add my_python nameToUpperCase
+    ```
+
+  </TabItem>
+  <TabItem value="go" label="Go">
+
+    ```sh title="Initalize a new connector and select hasura/go from the list:"
+    ddn connector init my_go i
+    ```
+
+    ```go title="Rename hello.go to nameToUpperCase.go:"
+    package functions
+
+    import (
+        "context"
+        "fmt"
+        "hasura-ndc.dev/ndc-go/types"
+    )
+
+    // NameArguments defines the input arguments for the function
+    type NameArguments struct {
+        Name string `json:"name"` // required argument
+    }
+
+    // NameResult defines the output result for the function
+    type NameResult string
+
+    // FunctionNameToUpperCase converts a name string to uppercase
+    func FunctionNameToUpperCase(ctx context.Context, state *types.State, arguments *NameArguments) (*NameResult, error) {
+        if arguments.Name == "" {
+            return nil, fmt.Errorf("name cannot be empty")
+        }
+
+        upperCaseName := NameResult(arguments.Name.ToUpper())
+        return &upperCaseName, nil
+    }
+    ```
+
+    ```bash title="Introspect the connector:"
+    ddn connector introspect my_go
+    ```
+
+    ```bash title="Track the function:"
+    ddn command add my_go nameToUpperCase
+    ```
+
+  </TabItem>
 </Tabs>
+
+```yml title="You can now create a relationship between this function and the model we created earlier:"
+# e.g., inside users.hml
+kind: Relationship
+version: v1
+definition:
+  name: screamedName
+  sourceType: user
+  target:
+    command:
+      name: nameToUpperCase
+      subgraph: app
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: name
+      target:
+        argument:
+          argumentName: name
+  description: The user's name returned in all caps.
+```
+
+```bash title="Track your new relationship:"
+ddn relationship add <connector_name> screamedName
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your expanded table with the transformed name:"
+query {
+  users {
+    id
+    screamedName
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "ALICE JOHNSON"
+      },
+      {
+        "id": 2,
+        "screamedName": "BOB SMITH"
+      },
+      {
+        "id": 3,
+        "screamedName": "CHARLIE DAVIS"
+      }
+    ]
+  }
+}
+```
 
 ### Updating a model
 
@@ -215,9 +424,6 @@ Your underlying data source may change over time. You can update your model to r
 You'll need to update the mapping of your model to the data source by updating the
 [DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) object.
 
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL">
-
 ```bash title="Update your DataConnectorLink:"
 ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
 ```
@@ -225,21 +431,6 @@ ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
 ```bash title="Then, update your model:"
 ddn model update <connector_name> users
 ```
-
-  </TabItem>
-  <TabItem value="MongoDB" label="MongoDB">
-
-```bash title="Update your DataConnectorLink:"
-ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
-```
-
-```bash title="Then, update your model:"
-ddn model update <connector_name> users
-```
-
-  </TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
-</Tabs>
 
 ### Deleting a model
 
@@ -253,7 +444,7 @@ If you no longer need a model, you can delete it.
   </TabItem>
   <TabItem value="MongoDB" label="MongoDB">
 
-  TODO: The CLI team is in the process of implementing this feature. Stay tuned!
+TODO: The CLI team is in the process of implementing this feature. Stay tuned!
 
   </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
