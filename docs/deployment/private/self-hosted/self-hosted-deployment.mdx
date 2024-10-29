@@ -1,6 +1,6 @@
 ---
-sidebar_position: 5
-sidebar_label: Self-Hosted (Customer Managed) Data Plane Installation Guide
+sidebar_position: 1
+sidebar_label: Data Plane Installation
 description: "Learn how to install a Self-Hosted (Customer Managed) Data Plane."
 keywords:
   - hasura ddn
@@ -10,26 +10,37 @@ keywords:
 
 import Thumbnail from "@site/src/components/Thumbnail";
 
-# Self hosted (Customer Managed) Data Plane Installation Guide
+# Self-Hosted (Customer Managed) Data Plane Installation Guide
 
 :::info
 
 Documentation here targets customers who want to self host and self manage their clusters as well as their workloads.  Here, you will find a full set of instructions, which takes you from local development all the way to having your workloads running under your Kubernetes hosted data plane.
 :::
 
-## Prerequisites
+## Prerequisites {#prerequisites}
 
 Before continuing, ensure you go through the following checklist and confirm that you meet all the requirements
 
 - [DDN CLI](/getting-started/quickstart.mdx) (Latest)
 - [Docker v2.27.1](/getting-started/quickstart.mdx) (Or greater)
-  - You can also run `ddn doctor` to confirm that you meet the minimum requirements.
+  - You can also run `ddn doctor` to confirm that you meet the minimum requirements
 - [Helm3](https://helm.sh/docs/intro/install/) (Prefer latest)
 - [Hasura VS Code Extension](/getting-started/quickstart.mdx) (Recommended, but not required)
 - Access to a Kubernetes cluster
+  - See Kubernetes version requirement [below](#kubernetes-version)
 - Ability to build and push images that can then be pulled down from the Kubernetes cluster
 - A user account on the Hasura DDN Control Plane
-- A Data Plane id & key created by the Hasura team.  These will be referenced as `<data-plane-id>` and `<data-plane-key>`
+- A Data Plane id, key & customer identifier created by the Hasura team.  These will be referenced as `<data-plane-id>`, `<data-plane-key>` & `<customer-identifier>`
+
+### Kubernetes version requirement {#kubernetes-version}
+
+These instructions were tested under the following:
+- Amazon Elastic Kubernetes Service (EKS)
+- Azure Kubernetes Service (AKS)
+- Google Kubernetes Engine (GKE)
+- Non-Cloud Kubernetes
+
+Version requirement: `1.28+`
 
 ## Step 1. Local development {#local-development}
 
@@ -104,7 +115,7 @@ docker tag <root-folder-name>-app_<connector> <your_registry>/<connector>:<your_
 docker push <your_registry>/<connector>:<your_tag>
 ```
 
-## Step 3. Deploy connector(s) with Helm {#deploy-connectors}
+## Step 3. Deploy connector(s) {#deploy-connectors}
 
 :::info Hasura DDN Helm Repo
 
@@ -118,6 +129,8 @@ Execute `helm search repo hasura-ddn` in order to find the appropriate Helm char
 A typical connector Helm install command would look like this:
 
 :::info
+
+- `<namespace>`: Namespace to deploy connector to.
 
 - `<connector-helm-release-name>`: Helm release name for your connector.
 
@@ -141,6 +154,7 @@ A common connector ENV variable that always needs to be passed through is `conne
 
 ```bash title="Connector Helm install."
 helm upgrade --install <connector-helm-release-name> \
+  --set namespace="<namespace>" \
   --set image.repository="<container_repository_path>" \
   --set image.tag="<your_tag>" \
   --set dataPlane.id="<data-plane-id>" \
@@ -214,13 +228,15 @@ docker build -t <your_registry>/v3-engine:<your_tag> .
 docker push <your_registry>/v3-engine:<your_tag>
 ```
 
-## Step 8. Deploy v3-engine with Helm (For build) {#deploy-engine}
+## Step 8. Deploy v3-engine (Build specific) {#deploy-engine}
 
 See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree/main/charts/v3-engine) section for full documentation.  A typical v3-engine Helm installation would look like this:
 
 :::info
 
-- `<v3-engine-helm-release-name>`: Helm release name for v3-engine.
+- `<namespace>`: Namespace to deploy v3-engine to.
+
+- `<v3-engine-helm-release-name>`: Helm release name for v3-engine.  A suggested name is: `v3-engine-<build_version>`.
 
 - `<container_repository_path>`: Container repository path (includes the image name) which you chose in [Step #7](#build-engine).
 
@@ -235,6 +251,7 @@ See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree
 
 ```bash title="v3-engine helm install."
 helm upgrade --install <v3-engine-helm-release-name> \
+  --set namespace="<namespace>" \
   --set image.repository="<container_repository_path>" \
   --set image.tag="<your_tag>" \
   --set observability.hostName="<observability_hostname>" \
@@ -243,7 +260,7 @@ helm upgrade --install <v3-engine-helm-release-name> \
   hasura-ddn/v3-engine
 ```
 
-## Step 9. Create ingress (For build) {#create-build-ingress}
+## Step 9. Create ingress (Build specific) {#create-build-ingress}
 
 :::note
 
@@ -305,7 +322,7 @@ Next, you will be running the command below in order to record the ingress URL w
 ddn supergraph build set-self-hosted-engine-url <ingress-url> --build-version <build_version> --project <ddn-project-name>
 ```
 
-## Step 10.  Deploy v3-engine with Helm (For Project API) {#deploy-engine-project-api}
+## Step 10.  Deploy v3-engine (Project API specific) {#deploy-engine-project-api}
 
 :::note Why am I deploying v3-engine again via Helm?
 
@@ -322,7 +339,7 @@ See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree
 
 - `<your_tag>`: Image tag which is tied to the specific build.
 
-- `<project_api_observability_hostname>`: Observability hostname.  This will be the hostname for your Project API (Note that you will be creating the ingress for this hostname in the next step).
+- `<project_api_observability_hostname>`: Observability hostname for Project API.  This value is constructed as follows: `<ddn-project-name>.<customer-identifier>.observability`.
 
 - `<data-plane-id>`: Data Plane id, provided by the Hasura team.
 
@@ -339,7 +356,7 @@ helm upgrade --install <v3-engine-project-api-helm-release-name> \
   hasura-ddn/v3-engine
 ```
 
-## Step 11.  Create ingress (For Project API) {#create-project-ingress}
+## Step 11.  Create ingress (Project API specific) {#create-project-ingress}
 
 :::tip _This step needs to be executed just one time_
 
@@ -353,9 +370,7 @@ Below you will be creating an ingress for the Project API.
 
 - `<namespace>`: Namespace where your v3-engine was deployed to.
 
-- `<domain>`: Domain which will be used for accessing this ingress.
-              This matches the `<project_api_observability_hostname>` that was specified in [Step 10](#deploy-engine-project-api).
-              This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
+- `<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
 
 - `<v3-engine-project-api-helm-release-name>`: Helm release name for your v3-engine.  This matches the `<v3-engine-project-api-helm-release-name>` that was specified in [Step 10](#deploy-engine-project-api).
 :::
@@ -410,17 +425,17 @@ Everytime you need to apply a specific build to your Project API, execute this s
 
 Repeat the Helm installation instructions in [Step 10](#deploy-engine-project-api).  Ensure that you are passing along the appropriate image tag for your v3-engine image (ie. The image tag which is associated with the specific build).
 
-After you go through the Helm installation, you need to go ahead and mark the build as applied.
+After you go through the Helm installation, you need to go ahead and mark the build as applied.  Proceed with the final step below.
 
 :::info
 
-- `<build_version>`: This was part of the output when you ran `ddn supergraph build create` command in [Step #6](#create-cloud-build).  You can also view the `<build_version>` history in the project's console view.
+- `<build_version>`: Grab the appropriate build version by accessing your project and navigating to the `Builds` section.
 :::
 
 ```bash title="Mark build as applied."
 ddn supergraph build apply <build_version>
 ```
 
-## Step 13. View API via console {#view-api}
+## Step 13. View Project API via console {#view-api}
 
 Access [Hasura console](https://console.hasura.io) and locate your cloud project.  Access your project and verify your deployment.
