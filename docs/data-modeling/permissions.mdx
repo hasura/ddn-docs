@@ -35,41 +35,87 @@ your liking!
 
 To implement row-level security, you can create a permission for a model.
 
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL"></TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
-</Tabs>
+```yaml title=""
+---
+# e.g., users.hml
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Users
+  permissions:
+    # admin is present by default
+    - role: admin
+      select:
+        filter: null
+    #highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+    #highlight-end
+```
+
+The highlighted role above will filter responses from the `Users` field in your API to only those whose `id` matches the
+`x-hasura-user-id` passed in the header of the request.
 
 #### Creating a TypePermission
 
 To restrict which fields can be queried, you can create a permission for a type.
 
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL"></TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
-</Tabs>
+```yaml title="Below, a user can only see their own name:"
+# e.g., users.hml
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: user
+  permissions:
+    # admin is present by default
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - name
+    #highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - name
+    #highlight-end
+```
 
 #### Creating a CommandPermission
 
-To restrict which operations can be performed, you can create a permission for a command.
+To determine which operations can be performed by which roles, you can create a permission for a command.
 
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL"></TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
-</Tabs>
+```yaml title="In this example, we'll make it so a user can update their own record:"
+# e.g., UpdateUsersById.hml
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: UpdateUsersById
+  permissions:
+    - role: admin
+      allowExecution: true
+      #highlight-start
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: keyId
+          value:
+            sessionVariable: "x-hasura-user-id"
+      #highlight-end
+```
 
 ### Deleting permissions
 
-If you no longer need a permission, you can delete it.
-
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL"></TabItem>
-  <TabItem value="MongoDB" label="MongoDB"></TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse"></TabItem>
-</Tabs>
+If you no longer need a permission, you can remove the role from the relevant permissions array in any permission
+object.
 
 ## Reference
 
