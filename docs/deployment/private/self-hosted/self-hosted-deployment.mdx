@@ -326,20 +326,22 @@ ddn supergraph build set-self-hosted-engine-url <ingress-url> --build-version <b
 
 :::note Why am I deploying v3-engine again via Helm?
 
-In this step, you will be deploying v3-engine that will be tied to your Project API.  This is needed so that we have a clear seperation between build specific workload deployments and the Project API workload deployment.
+In this step, you will be deploying v3-engine using a unique Helm release name.  You will re-use this release name whenever you need to apply a specific build to the Project API.  This is done in order to maintain the immutable build and Project API seperation of DDN.
 :::
 
 See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree/main/charts/v3-engine) section for full documentation.
 
 :::info
 
-- `<v3-engine-project-api-helm-release-name>`: Helm release name for v3-engine Project API.  This should be a unique release name which is specific to your Project API deployment.
+- `<namespace>`: Namespace to deploy v3-engine to.
+
+- `<v3-engine-project-api-helm-release-name>`: Helm release name for v3-engine Project API.  This should be a unique release name which is specific to your Project API deployment.  **You will use this same name everytime you need to apply a build to the project API**.
 
 - `<container_repository_path>`: Container repository path which is tied to the specific build (includes the image name).
 
 - `<your_tag>`: Image tag which is tied to the specific build.
 
-- `<project_api_observability_hostname>`: Observability hostname for Project API.  This value is constructed as follows: `<ddn-project-name>.<customer-identifier>.observability`.
+- `<project_api_observability_hostname>`: Observability hostname for Project API.  This value is constructed as follows: `<ddn-project-name>.<customer-identifier>.observability`
 
 - `<data-plane-id>`: Data Plane id, provided by the Hasura team.
 
@@ -348,6 +350,7 @@ See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree
 
 ```bash title="v3-engine helm install."
 helm upgrade --install <v3-engine-project-api-helm-release-name> \
+  --set namespace="<namespace>" \
   --set image.repository="<container_repository_path>" \
   --set image.tag="<your_tag>" \
   --set observability.hostName="<project_api_observability_hostname>" \
@@ -370,7 +373,7 @@ Below you will be creating an ingress for the Project API.
 
 - `<namespace>`: Namespace where your v3-engine was deployed to.
 
-- `<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
+- `<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`** or **https://`<ddn-project-name>`.`<your_fqdn>`** (If you want to name it after the project name).
 
 - `<v3-engine-project-api-helm-release-name>`: Helm release name for your v3-engine.  This matches the `<v3-engine-project-api-helm-release-name>` that was specified in [Step 10](#deploy-engine-project-api).
 :::
@@ -423,13 +426,13 @@ ddn project set-self-hosted-engine-url <ingress-url>
 Everytime you need to apply a specific build to your Project API, execute this step.
 :::
 
-Repeat the Helm installation instructions in [Step 10](#deploy-engine-project-api).  Ensure that you are passing along the appropriate image tag for your v3-engine image (ie. The image tag which is associated with the specific build).
+Repeat the `helm upgrade` instructions in [Step 10](#deploy-engine-project-api), using the unique Helm release name which you chose for your Project API.  **Ensure that you are passing along the appropriate image tag for your v3-engine (ie. The image tag which is associated with the specific build that you want to apply).**
 
 After you go through the Helm installation, you need to go ahead and mark the build as applied.  Proceed with the final step below.
 
 :::info
 
-- `<build_version>`: Grab the appropriate build version by accessing your project and navigating to the `Builds` section.
+- `<build_version>`: This is the build version which you just ran the `helm upgrade` for.
 :::
 
 ```bash title="Mark build as applied."
