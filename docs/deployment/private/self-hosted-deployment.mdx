@@ -305,7 +305,41 @@ Next, you will be running the command below in order to record the ingress URL w
 ddn supergraph build set-self-hosted-engine-url <ingress-url> --build-version <build_version> --project <ddn-project-name>
 ```
 
-## Step 10.  Create project API specific ingress {#create-project-ingress}
+## Step 10.  Deploy v3-engine with Helm (For project API) {#deploy-engine-project-api}
+
+:::note Why am I deploying v3-engine again via Helm?
+
+In this step, you will be deploying v3-engine that will be tied to your Project API.  This is needed so that we have a clear seperation between build specific workload deployments and the project API workload deployment.
+:::
+
+See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree/main/charts/v3-engine) section for full documentation.
+
+:::info
+
+- `<v3-engine-project-api-helm-release-name>`: Helm release name for v3-engine project API.  This should be a unique release name which is specific to your project API deployment.
+
+- `<container_repository_path>`: Container repository path which is tied to the specific build (includes the image name).
+
+- `<your_tag>`: Image tag which is tied to the specific build.
+
+- `<project_api_observability_hostname>`: Observability hostname.  This will be the hostname for your project API (Note that you will be creating the ingress for this hostname in the next step).
+
+- `<data-plane-id>`: Data Plane id, provided by the Hasura team.
+
+- `<data-plane-key>`: Data Plane key, provided by the Hasura team.
+:::
+
+```bash title="v3-engine helm install."
+helm upgrade --install <v3-engine-project-api-helm-release-name> \
+  --set image.repository="<container_repository_path>" \
+  --set image.tag="<your_tag>" \
+  --set observability.hostName="<project_api_observability_hostname>" \
+  --set dataPlane.id="<data-plane-id>" \
+  --set dataPlane.key="<data-plane-key>" \
+  hasura-ddn/v3-engine
+```
+
+## Step 11.  Create project API specific ingress {#create-project-ingress}
 
 :::tip _This step needs to be executed just one time_
 
@@ -319,9 +353,11 @@ Below you will be creating an ingress for the project API.
 
 - `<namespace>`: Namespace where your v3-engine was deployed to.
 
-- `<domain>`: Domain which will be used for accessing this ingress.  This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
+- `<domain>`: Domain which will be used for accessing this ingress.
+              This matches the `<project_api_observability_hostname>` that was specified in [Step 10](#deploy-engine-project-api).
+              This could be constructed in the following format: **https://`<prod-api>`.`<your_fqdn>`**.
 
-- `<v3-engine-helm-release-name>`: Helm release name for your v3-engine.  Choose an appropriate v3-engine Helm release name that you want to be applied to the project's API.
+- `<v3-engine-project-api-helm-release-name>`: Helm release name for your v3-engine.  This matches the `<v3-engine-project-api-helm-release-name>` that was specified in [Step 10](#deploy-engine-project-api).
 :::
 
 ```bash
@@ -343,7 +379,7 @@ spec:
       paths:
       - backend:
           service:
-            name: <v3-engine-helm-release-name>-v3-engine
+            name: <v3-engine-project-api-helm-release-name>-v3-engine
             port:
               number: 3000
         path: /
@@ -365,28 +401,16 @@ After you create the ingress above, you will be running the command below in ord
 ddn project set-self-hosted-engine-url <ingress-url>
 ```
 
-## Step 11. Apply a build to project API {#apply-build}
+## Step 12. Apply a build to project API {#apply-build}
 
 :::tip
 
 Everytime you need to apply a specific build to your project API, execute this step.
 :::
 
-In the previous step, you had created an ingress that is project API specific.  Here, you need to modify this ingress before we apply the build to the project API.  We will go ahead and do this via `kubectl patch`.
+Repeat the Helm installation instructions in [Step 10](#deploy-engine-project-api).  Ensure that you are passing along the appropriate image tag for your v3-engine image (ie. The image tag which is associated with the specific build which you want to apply).
 
-:::info
-
-- `<namespace>`: Namespace where your v3-engine was deployed to.
-
-- `<v3-engine-helm-release-name>`: Helm release name for your v3-engine.  Choose an appropriate v3-engine Helm release name that you want to be applied to the project's API.
-:::
-
-```bash title="kubectl patch project API ingress."
-kubectl patch ingress/v3-engine -n <namespace> --type=json \
-  -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value": "<v3-engine-helm-release-name>-v3-engine"}]'
-```
-
-Next, you need to go ahead and mark the build as applied.
+After you go through the Helm installation, you need to go ahead and mark the build as applied.
 
 :::info
 
@@ -397,6 +421,6 @@ Next, you need to go ahead and mark the build as applied.
 ddn supergraph build apply <build_version>
 ```
 
-## Step 12. View API via console {#view-api}
+## Step 13. View API via console {#view-api}
 
 Access [Hasura console](https://console.hasura.io) and locate your cloud project.  Access your project and verify your deployment.
