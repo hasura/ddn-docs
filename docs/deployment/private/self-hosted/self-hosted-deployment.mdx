@@ -93,9 +93,9 @@ At this point, you have connected and introspected a data source and built your 
 
 ## Step 2. Build connector(s) {#build-connectors}
 
-:::warning Building images with proper OS/Arch
+:::warning Building images with proper target platform
 
-Ensure that you are building the image with the correct OS/arch which would enable the image to run properly under your Kubernetes cluster
+Ensure that you are building the image with the proper target platform.  If you need to build an image for a different target platform, specify it via `export DOCKER_DEFAULT_PLATFORM=<target_platform>` prior to running the commands below.
 :::
 
 :::note
@@ -130,9 +130,9 @@ A typical connector Helm install command would look like this:
 
 :::info
 
-- `<namespace>`: Namespace to deploy connector to.
-
 - `<connector-helm-release-name>`: Helm release name for your connector.
+
+- `<namespace>`: Namespace to deploy connector to.
 
 - `<container_repository_path>`: Container repository path (include the image name) which you chose in [Step #2](#build-connectors).
 
@@ -173,7 +173,6 @@ ddn project init --data-plane-id <data-plane-id>
 
 This command will create a cloud project and will report back as to what the name of your cloud project is.  We will reference this name going forward as `<ddn-project-name>`.
 
-
 ## Step 5. Update .env.cloud with connector URLs {#update-env-cloud}
 
 Next, you will need to access the `.env.cloud` file which was generated at the root of your supergraph.
@@ -206,9 +205,9 @@ At this point, take note of the `<build_version>` and `<observability_hostname>`
 
 ## Step 7. Build v3-engine {#build-engine}
 
-:::warning Building images with proper OS/Arch
+:::warning Building images with proper target platform
 
-Ensure that you are building the image with the correct OS/arch which would enable the image to run properly under your Kubernetes cluster
+Ensure that you are building the image with the proper target platform.  If you need to build an image for a different target platform, specify it via `export DOCKER_DEFAULT_PLATFORM=<target_platform>` prior to running the commands below.
 :::
 
 Ensure that you are running the commands from the root of your supergraph.
@@ -228,15 +227,20 @@ docker build -t <your_registry>/v3-engine:<your_tag> .
 docker push <your_registry>/v3-engine:<your_tag>
 ```
 
-## Step 8. Deploy v3-engine (Build specific) {#deploy-engine}
+## Step 8. Deploy v3-engine {#deploy-engine}
+
+:::note
+
+Everytime you create a new cloud build, execute the steps below.
+:::
 
 See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree/main/charts/v3-engine) section for full documentation.  A typical v3-engine Helm installation would look like this:
 
 :::info
 
-- `<namespace>`: Namespace to deploy v3-engine to.
-
 - `<v3-engine-helm-release-name>`: Helm release name for v3-engine.  A suggested name is: `v3-engine-<build_version>`.
+
+- `<namespace>`: Namespace to deploy v3-engine to.
 
 - `<container_repository_path>`: Container repository path (includes the image name) which you chose in [Step #7](#build-engine).
 
@@ -260,11 +264,11 @@ helm upgrade --install <v3-engine-helm-release-name> \
   hasura-ddn/v3-engine
 ```
 
-## Step 9. Create ingress (Build specific) {#create-build-ingress}
+## Step 9. Create ingress {#create-build-ingress}
 
 :::note
 
-Everytime you create a new build via `ddn supergraph build create` command, execute the steps below.
+Everytime you create a new cloud build, execute the steps below.
 :::
 
 If you're using <b>nginx-ingress</b> and <b>cert-manager</b>, you can deploy using the below manifest.  Ensure that you modify this accordingly
@@ -333,9 +337,9 @@ See the DDN Helm Repo [v3-engine](https://github.com/hasura/ddn-helm-charts/tree
 
 :::info
 
-- `<namespace>`: Namespace to deploy v3-engine to.
-
 - `<v3-engine-project-api-helm-release-name>`: Helm release name for v3-engine Project API.  This should be a unique release name which is specific to your Project API deployment.  **You will use this same name everytime you need to apply a build to the project API**.
+
+- `<namespace>`: Namespace to deploy v3-engine to.
 
 - `<container_repository_path>`: Container repository path which is tied to the specific build (includes the image name).
 
