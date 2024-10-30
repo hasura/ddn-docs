@@ -16,8 +16,8 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## Introduction
 
-This guide will take you through setting up a local Postgres connector and a local Postgres database along with [Adminer](https://www.adminer.org/), a
-free database manager tool, using the DDN CLI and Docker Compose.
+This guide will take you through setting up a local Postgres connector and a local Postgres database along with
+[Adminer](https://www.adminer.org/), a free database manager tool, using the DDN CLI and Docker Compose.
 
 You can use any database management tool you prefer, we're using Adminer here. Some free and paid alternatives are:
 [pgAdmin](https://www.pgadmin.org/), [dBeaver](https://dbeaver.io/),
@@ -26,20 +26,25 @@ You can use any database management tool you prefer, we're using Adminer here. S
 
 ## Step 1: Setup the Postgres data connector
 
-Follow the [getting started guide](/getting-started/quickstart.mdx) and during the `ddn connector init -i` step,
-choose `hasura/postgres` connector and select all the default options. You'll see the following output:
+Follow the [quickstart](/getting-started/quickstart.mdx) and, during the `ddn connector init -i` step, choose the
+`hasura/postgres` connector. Select all the default options.
 
-<Thumbnail src="/img/connectors/postgresql/postgres_quickstart_output.png" alt="add billing info" />
+```plaintext title="You'll see the following output:"
+HINT To access the local Postgres database:
+- Run: docker compose -f app/connector/mypostgres/compose.postgres-adminer.yaml up -d
+- Open Adminer in your browser at http://localhost:9822 and create tables
+- To connect to the database using other clients use postgresql://user:password@local.hasura.dev:8105/dev
+```
 
-This will initialize a connector directory for you that contains a 'compose.postgres-adminer.yaml' file that is configured
-to run Postgres and Adminer locally.
+This will initialize a connector directory for you that contains a `compose.postgres-adminer.yaml` file that is
+configured to run Postgres and Adminer locally.
 
-The output of the `ddn connector init -i` command shows you the docker compose command that can be used to run
-the database and adminer, the URL at which the Postgres database will be available and the URL at which will be able to
+The output of the `ddn connector init -i` command shows you the docker compose command that can be used to run the
+database and adminer, the URL at which the Postgres database will be available and the URL at which will be able to
 access Adminer.
 
-If you already have a Postgres connector and just want to setup the local database, you can use the following docker compose
-template which is what the DDN CLI also initializes.
+If you already have a Postgres connector and just want to set up the local database, you can use the following docker
+compose template which is what the DDN CLI also initializes:
 
 ```yaml title="compose.postgres-adminer.yaml"
 configs:
@@ -91,8 +96,8 @@ volumes:
 
 ## Step 2: Start Postgres database and Adminer
 
-To get Postgres and Adminer up and running, use the docker compose command shown
-in the output of `ddn connector init -i` which would be something like below:
+To get Postgres and Adminer up and running, use the docker compose command shown in the output of
+`ddn connector init -i` which would be something like below:
 
 ```bash
 docker compose -f app/connector/mypostgres/compose.postgres-adminer.yaml up -d
@@ -104,8 +109,7 @@ If you are creating your own docker compose, then change the path to the compose
 
 To access Adminer, head to the Adminer URL shown in the output of `ddn connector init -i`.
 
-If you are creating your own docker compose, head to the localhost endpoint opened by your Adminer
-container.
+If you are creating your own docker compose, head to the `localhost` endpoint opened by your Adminer container.
 
 You should see the Adminer console as follows:
 
@@ -117,13 +121,12 @@ You can now create tables, add data, etc. on the Postgres database and iterate o
 
 ### Iterate on your database schema or connect the database to your supergraph
 
-Now that you have a running Postgres database with the tables you created, you can iterate on it using the steps
-in the [getting started guide](/getting-started/quickstart.mdx).
+Now that you have a running Postgres database with the tables you created, you can iterate on it using the steps in the
+[quickstart](/getting-started/quickstart.mdx).
 
 If you created your own docker compose, you can connect the Postgres database to your supergraph using the
 [Postgres data connector](connectors/postgresql/index.mdx) by following the steps in
-[this guide](/getting-started/quickstart.mdx) and providing the database
-connection string as the following:
+[this guide](/getting-started/quickstart.mdx) and providing the database connection string as the following:
 
 ```bash title="Connection string to connect to local supergraph"
 postgresql://user:password@local.hasura.dev:5432/dev
