@@ -157,11 +157,6 @@ const config: Config = {
           label: 'Hasura.io',
           position: 'right',
         },
-        {
-          to: 'https://hasura.io/learn/',
-          label: 'Tutorials',
-          position: 'right',
-        },
         // {
         //   to: 'https://cloud.hasura.io/login',
         //   label: 'Log In',

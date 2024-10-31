@@ -83,7 +83,8 @@ export function AiChatBot({ style }) {
 
   const sanitizeInput = (input: string): string => {
     const sanitized = DOMPurify.sanitize(input.trim());
-    return sanitized.replace(/&/g, '&amp;')
+    return sanitized
+      .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
@@ -229,7 +230,7 @@ export function AiChatBot({ style }) {
             a: {
               props: {
                 target: '_blank',
-                rel: 'noopener noreferrer'
+                rel: 'noopener noreferrer',
               },
             },
           },
@@ -246,22 +247,16 @@ export function AiChatBot({ style }) {
     window.location.href.endsWith('/overview/');
 
   return (
-    <div className={'chat-popup'}>
-      <div className={isOnOverviewOrIndex ? 'chat-popup-index-and-overviews' : 'chat-popup-other-pages'}>
-        {isOpen ? (
-          <></>
-        ) : (
-          <button className="open-chat-button" onClick={() => setIsOpen(!isOpen)}>
-            {SparklesIcon} Hasura Docs AI Chat
-          </button>
-        )}
-        {isOpen && (
-          <div className={isOnOverviewOrIndex ? '' : 'absolute -bottom-11 w-full min-w-[500px] right-[10px]'}>
-            {isOpen && (
-              <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
-                {CloseIcon} Close Chat
-              </button>
-            )}
+    <div className="chat-popup">
+      <button className="open-chat-button" onClick={() => setIsOpen(true)}>
+        {SparklesIcon} Docs Assistant
+      </button>
+      {isOpen && (
+        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
+          <div onClick={e => e.stopPropagation()}>
+            <button className="close-chat-button" onClick={() => setIsOpen(false)}>
+              {CloseIcon} Close Chat
+            </button>
             <div className="chat-window">
               <div className="info-bar">
                 <div className={'bot-name-pic-container'}>
@@ -284,16 +279,12 @@ export function AiChatBot({ style }) {
                   <div key={index}>
                     {msg.userMessage && (
                       <div className="user-message-container">
-                        <div className="formatted-text message user-message">
-                          {renderMessage(msg.userMessage)}
-                        </div>
+                        <div className="formatted-text message user-message">{renderMessage(msg.userMessage)}</div>
                       </div>
                     )}
                     {msg.botResponse && (
                       <div className="bot-message-container">
-                        <div className="formatted-text message bot-message">
-                          {renderMessage(msg.botResponse)}
-                        </div>
+                        <div className="formatted-text message bot-message">{renderMessage(msg.botResponse)}</div>
                       </div>
                     )}
                   </div>
@@ -338,8 +329,8 @@ export function AiChatBot({ style }) {
               </form>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
