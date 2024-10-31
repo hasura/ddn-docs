@@ -204,10 +204,10 @@ mkdir -p <my_subgraph>/connector/<connector_name>/native_operations/queries/
 ```sql title="Create a new file in your connector's directory:"
 -- native_operations/queries/user_by_name_between.sql
 SELECT *
-FROM "Users"
-WHERE "Name" LIKE '%' || {{name}} || '%'
-  AND "Name" > {{lower_bound}}
-  AND "Name" < {{upper_bound}}
+FROM users
+WHERE name LIKE '%' || {{name}} || '%'
+  AND name > {{lower_bound}}
+  AND name < {{upper_bound}}
 ```
 
 ```sh title="Then, use the PostgreSQL connector's plugin to add the native query to your connector's configuration:"
@@ -297,12 +297,15 @@ FROM "default"."users"
 WHERE "users"."name" = {name: String}
 ```
 
+Note this uses the [ClickHouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
+
+
 ```json title="Update your the queries section in your configuration.json file:"
 // configuration.json
 {
   "tables": {},
   "queries": {
-    "Name": {
+    "UserByName": {
       "exposed_as": "collection",
       "file": "queries/UserByName.sql",
       "return_type": {
@@ -317,12 +320,12 @@ WHERE "users"."name" = {name: String}
 }
 ```
 
-```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
 ddn connector introspect <connector_name>
 ```
 
 ```sh title="Then, update your models:"
-ddn model update <connector_name> "*"
+ddn model add <connector_name> UserByName
 ```
   </TabItem>
 </Tabs>
