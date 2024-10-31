@@ -111,7 +111,7 @@ ddn model add <connector_name> users
 CREATE TABLE users (
     id UInt32,
     name String
-) 
+)
 ENGINE = MergeTree()
 ORDER BY id;
 
@@ -297,8 +297,8 @@ FROM "default"."users"
 WHERE "users"."name" = {name: String}
 ```
 
-Note this uses the [ClickHouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
-
+Note this uses the
+[ClickHouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
 
 ```json title="Update your the queries section in your configuration.json file:"
 // configuration.json
@@ -327,6 +327,7 @@ ddn connector introspect <connector_name>
 ```sh title="Then, update your models:"
 ddn model add <connector_name> UserByName
 ```
+
   </TabItem>
 </Tabs>
 
@@ -367,7 +368,7 @@ We support lambda connectors for [TypeScript](/business-logic/typescript.mdx), [
   <TabItem value="python" label="Python">
 
     ```sh title="Initalize a new connector and select hasura/python from the list:"
-    ddn connector init my_python i
+    ddn connector init my_python -i
     ```
 
     ```python title="Replace the functions.py contents with the following:"
@@ -389,28 +390,29 @@ We support lambda connectors for [TypeScript](/business-logic/typescript.mdx), [
     ```
 
     ```bash title="Track the function:"
-    ddn command add my_python nameToUpperCase
+    ddn command add my_python name_to_upper_case
     ```
 
   </TabItem>
   <TabItem value="go" label="Go">
 
     ```sh title="Initalize a new connector and select hasura/go from the list:"
-    ddn connector init my_go i
+    ddn connector init my_go -i
     ```
 
     ```go title="Rename hello.go to nameToUpperCase.go:"
     package functions
 
     import (
-        "context"
-        "fmt"
-        "hasura-ndc.dev/ndc-go/types"
+      "context"
+      "fmt"
+      "hasura-ndc.dev/ndc-go/types"
+      "strings"
     )
 
     // NameArguments defines the input arguments for the function
     type NameArguments struct {
-        Name string `json:"name"` // required argument
+      Name string `json:"name"` // required argument
     }
 
     // NameResult defines the output result for the function
@@ -418,12 +420,12 @@ We support lambda connectors for [TypeScript](/business-logic/typescript.mdx), [
 
     // FunctionNameToUpperCase converts a name string to uppercase
     func FunctionNameToUpperCase(ctx context.Context, state *types.State, arguments *NameArguments) (*NameResult, error) {
-        if arguments.Name == "" {
-            return nil, fmt.Errorf("name cannot be empty")
-        }
+      if arguments.Name == "" {
+        return nil, fmt.Errorf("name cannot be empty")
+      }
 
-        upperCaseName := NameResult(arguments.Name.ToUpper())
-        return &upperCaseName, nil
+      upperCaseName := NameResult(strings.ToUpper(arguments.Name))
+      return &upperCaseName, nil
     }
     ```
 
@@ -439,15 +441,16 @@ We support lambda connectors for [TypeScript](/business-logic/typescript.mdx), [
 </Tabs>
 
 ```yml title="You can now create a relationship between this function and the model we created earlier:"
+---
 # e.g., inside users.hml
 kind: Relationship
 version: v1
 definition:
   name: screamedName
-  sourceType: user
+  sourceType: Users
   target:
     command:
-      name: nameToUpperCase
+      name: NameToUpperCase
       subgraph: app
   mapping:
     - source:
@@ -457,10 +460,6 @@ definition:
         argument:
           argumentName: name
   description: The user's name returned in all caps.
-```
-
-```bash title="Track your new relationship:"
-ddn relationship add <connector_name> screamedName
 ```
 
 ```bash title="Create a new build:"
