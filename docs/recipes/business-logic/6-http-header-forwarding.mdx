@@ -55,7 +55,21 @@ parameter, like so:
 
   </TabItem>
   <TabItem value="go" label="Go">
-    Support coming soon!
+    ```go title="An example hello function in your functions.go, updated with a headers parameter"
+    type HelloArguments struct {
+      Headers map[string]string `json:"headers,omitempty"`
+      Name    string            `json:"name"`
+    }
+
+    func FunctionHello(ctx context.Context, state *types.State, arguments *HelloArguments) (string, error) {
+      log.Printf("request headers: %v", arguments.Headers)
+      name := arguments.Name
+      if name == "" {
+        name = "world"
+      }
+      return "hello " + name, nil
+    }
+    ```
   </TabItem>
   <TabItem value="python" label="Python">
     Support coming soon!
@@ -169,7 +183,12 @@ want to return from your function:
     ```
   </TabItem>
     <TabItem value="go" label="Go">
-    Support coming soon!
+    ```go title="In your functions.go, add the following"
+    type HeadersResponse[T any] struct {
+      Headers  map[string]string `json:"headers"`
+      Response T                 `json:"response"`
+    }
+    ```
   </TabItem>
   <TabItem value="python" label="Python">
     Support coming soon!
@@ -196,7 +215,25 @@ return that, as well as our response string, inside our new `HeadersResponse` ob
     ```
   </TabItem>
     <TabItem value="go" label="Go">
-    Support coming soon!
+    ```go title="An example hello function in your functions.go, updated to return a HeadersResponse type"
+    func FunctionHello(ctx context.Context, state *State, arguments *HelloArguments) (HeadersResponse[string], error) {
+      headersMap := arguments.Headers
+      if headersMap == nil {
+        headersMap = map[string]string{}
+      }
+      headersMap["X-Test-ResponseHeader"] = "I set this in the code"
+
+      name := arguments.Name
+      if name == "" {
+        name = "world"
+      }
+
+      return HeadersResponse[string]{
+        Headers:  headersMap,
+        Response: "hello " + name,
+      }, nil
+    }
+    ```
   </TabItem>
   <TabItem value="python" label="Python">
     Support coming soon!
