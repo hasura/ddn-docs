@@ -38,7 +38,7 @@ export function AiChatBot({ style }) {
     siteConfig: { customFields },
   } = useDocusaurusContext();
   // Manage the open state of the popup
-  const [isOpen, setIsOpen] = useState<boolean>(true);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   // Manage the bot responding state
   const [isResponding, setIsResponding] = useState<boolean>(false);
   // Manage the text input
@@ -273,33 +273,27 @@ export function AiChatBot({ style }) {
     window.location.href.endsWith('/overview/');
 
   return (
-    <div className={'chat-popup'}>
-      <div className={isOnOverviewOrIndex ? 'chat-popup-index-and-overviews' : 'chat-popup-other-pages'}>
-        {isOpen ? (
-          <></>
-        ) : (
-          <button className="open-chat-button" onClick={() => setIsOpen(!isOpen)}>
-            {SparklesIcon} Hasura Docs AI Chat
-          </button>
-        )}
-        {isOpen && (
-          <div className={isOnOverviewOrIndex ? '' : 'absolute -bottom-11 w-full min-w-[500px] right-[10px]'}>
-            {isOpen && (
-              <button className="close-chat-button" onClick={() => setIsOpen(!isOpen)}>
-                {CloseIcon} Close Chat
-              </button>
-            )}
+    <div className="chat-popup">
+      <button className="open-chat-button" onClick={() => setIsOpen(true)}>
+        {SparklesIcon} Docs Assistant
+      </button>
+      {isOpen && (
+        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
+          <div onClick={e => e.stopPropagation()}>
+            <button className="close-chat-button" onClick={() => setIsOpen(false)}>
+              {CloseIcon} Close Chat
+            </button>
             <div className="chat-window">
               <div className="info-bar">
                 <div className={'bot-name-pic-container'}>
                   <div className="bot-name">DocsBot</div>
-                  <img src={profilePic} height={30} width={30} className="bot-pic" />
+                  <img src={profilePic} height={30} width={30} className="bot-pic"/>
                 </div>
                 <button
                   className="clear-button"
                   onClick={() => {
                     setMessages(initialMessages);
-                    setCurrentMessage({ userMessage: '', botResponse: '', id: '' });
+                    setCurrentMessage({userMessage: '', botResponse: '', id: ''});
                     setMessageThreadId(uuidv4());
                   }}
                 >
@@ -354,7 +348,7 @@ export function AiChatBot({ style }) {
                             });
                           }}
                         >
-                          <ThumbsDown className={'mb-4'} />
+                          <ThumbsDown className={'mb-4'}/>
                         </button>
                       </div>
                       <div>
@@ -364,7 +358,7 @@ export function AiChatBot({ style }) {
                               rows={4}
                               className={'w-full bg-none text-gray-700 placeholder-gray-500'}
                               onChange={e =>
-                                setBadResponse(prevState => ({ ...prevState, responseText: e.target.value }))
+                                setBadResponse(prevState => ({...prevState, responseText: e.target.value}))
                               }
                               placeholder={'Sorry about that. Please tell us how we can improve.'}
                             ></textarea>
@@ -402,8 +396,8 @@ export function AiChatBot({ style }) {
               </form>
             </div>
           </div>
-        )}
-      </div>
-    </div>
-  );
-}
+        </div>
+      )}
+        </div>
+        );
+      }
