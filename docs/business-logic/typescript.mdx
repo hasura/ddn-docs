@@ -113,7 +113,7 @@ You can add another function simply by exporting a valid TypeScript function.
 To add our function, we can use the following to generate the related metadata that will link together any functions in
 this `functions.ts` file and our API.
 
-```bash title="Track the function:"
+```bash title="Introspect the connector:"
 ddn connector introspect my_ts
 ```
 
@@ -255,7 +255,8 @@ running.
 
 ## Add a procedure
 
-Inside the same `functions.ts` file, let's add a custom mutation in the form of a **procedure**.
+Inside the same `functions.ts` file, let's add a custom mutation in the form of a **procedure**. A procedure is simply a
+TypeScript function that is exported from `functions.ts` that does _not_ have the `@readonly` JSDoc annotation.
 
 For example, let's say you want to add a custom mutation to create a user in a PostgreSQL table on your default `app`
 subgraph and also hash their password before storing it.
@@ -337,7 +338,19 @@ This:
 - inserts into the `users` table in the database.
 - returns the inserted user without password.
 
-You can then repeat this process to scale your mutations independently.
+Now you can re-introspect your connector and generate an `hml` file for the function using the following commands:
+
+```bash title="Introspect the connector and track the new function:"
+ddn connector introspect my_ts
+ddn command add my_ts insertUser
+```
+
+Don't forget to rebuild and restart your GraphQL engine after making these changes!
+
+```bash title="Create a new local build and restart your Docker containers:"
+ddn supergraph build local
+ddn run docker-start
+```
 
 ## Testing
 
