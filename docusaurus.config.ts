@@ -42,13 +42,13 @@ const config: Config = {
       } else {
         switch (process.env.release_mode) {
           case 'development':
-            return 'ws://localhost:8000/hasura-docs-ai';
+            return 'ws://localhost:8000/docs-services-server/query';
           case 'production':
             return 'wss://website-api.hasura.io/chat-bot/hasura-docs-ai';
           case 'staging':
             return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
           default:
-            return 'ws://localhost:8000/hasura-docs-ai'; // default to development if no match
+            return 'ws://localhost:8000/docs-services-server/query'; // default to development if no match
         }
       }
     })(),
