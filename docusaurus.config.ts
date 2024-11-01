@@ -34,21 +34,22 @@ const config: Config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
-
   customFields: {
     docsBotEndpointURL: (() => {
       if (process.env.CF_PAGES === '1') {
         return 'wss://website-api.stage.hasura.io/docs-services/docs-server/query'; // if we're on CF pages, use the staging environment
       } else {
-        switch (process.env.release_mode) {
+        switch (
+          process.env.release_mode // Prod: https://website-api.hasura.io/docs-services/docs-server
+        ) {
           case 'development':
-            return 'ws://localhost:8000/docs-services/docs-server/query'; // if we're on the development environment, use the local server
+            return 'ws://localhost:8000/bot/query'; // if we're on the development environment, use the local server
           case 'production':
-            return 'wss://website-api.hasura.io/docs-services/docs-server/query';
+            return 'wss://website-api.hasura.io/docs-services/docs-server/bot/query';
           case 'staging':
-            return 'wss://website-api.stage.hasura.io/docs-services/docs-server/query';
+            return 'wss://website-api.stage.hasura.io/docs-services/docs-server/bot/query';
           default:
-            return 'ws://localhost:8000/docs-services/docs-server/query'; // default to development if no match
+            return 'ws://localhost:8000/bot/query'; // default to development if no match
         }
       }
     })(),
