@@ -38,17 +38,17 @@ const config: Config = {
   customFields: {
     docsBotEndpointURL: (() => {
       if (process.env.CF_PAGES === '1') {
-        return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
+        return 'wss://website-api.stage.hasura.io/docs-services/docs-server/query'; // if we're on CF pages, use the staging environment
       } else {
         switch (process.env.release_mode) {
           case 'development':
-            return 'ws://localhost:8000/docs-services-server/query';
+            return 'ws://localhost:8000/docs-services/docs-server/query'; // if we're on the development environment, use the local server
           case 'production':
-            return 'wss://website-api.hasura.io/chat-bot/hasura-docs-ai';
+            return 'wss://website-api.hasura.io/docs-services/docs-server/query';
           case 'staging':
-            return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
+            return 'wss://website-api.stage.hasura.io/docs-services/docs-server/query';
           default:
-            return 'ws://localhost:8000/docs-services-server/query'; // default to development if no match
+            return 'ws://localhost:8000/docs-services/docs-server/query'; // default to development if no match
         }
       }
     })(),
