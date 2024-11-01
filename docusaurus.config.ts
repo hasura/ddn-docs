@@ -4,6 +4,12 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 require('dotenv').config();
 
+const BOT_ROUTES = {
+  development: 'ws://localhost:8000/bot/query',
+  production: 'wss://website-api.hasura.io/docs-services/docs-server/bot/query',
+  staging: 'wss://website-api.stage.hasura.io/docs-services/docs-server/bot/query',
+};
+
 const config: Config = {
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
@@ -37,19 +43,19 @@ const config: Config = {
   customFields: {
     docsBotEndpointURL: (() => {
       if (process.env.CF_PAGES === '1') {
-        return 'wss://website-api.stage.hasura.io/docs-services/docs-server/query'; // if we're on CF pages, use the staging environment
+        return BOT_ROUTES.staging; // if we're on CF pages, use the staging environment
       } else {
         switch (
           process.env.release_mode // Prod: https://website-api.hasura.io/docs-services/docs-server
         ) {
           case 'development':
-            return 'ws://localhost:8000/bot/query'; // if we're on the development environment, use the local server
+            return BOT_ROUTES.development; // if we're on the development environment, use the local server
           case 'production':
-            return 'wss://website-api.hasura.io/docs-services/docs-server/bot/query';
+            return BOT_ROUTES.production;
           case 'staging':
-            return 'wss://website-api.stage.hasura.io/docs-services/docs-server/bot/query';
+            return BOT_ROUTES.staging;
           default:
-            return 'ws://localhost:8000/bot/query'; // default to development if no match
+            return BOT_ROUTES.development; // default to development if no match
         }
       }
     })(),
