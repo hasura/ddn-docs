@@ -1,8 +1,7 @@
 import React from 'react';
 import GraphiQL from 'graphiql';
-import cslx from 'clsx';
 import 'graphiql/graphiql.min.css';
-import './styles.scss';
+import './styles.css';
 
 const GraphiQLIDE = ({ query, variables, response, viewOnly = true }) => {
   const notReal = async ({ query }) => {
@@ -21,21 +20,32 @@ const GraphiQLIDE = ({ query, variables, response, viewOnly = true }) => {
   }
 
   return (
-    <div
-      className={`graphiql ${cslx({
-        'with-vars': !!variables,
-        'view-only': viewOnly,
-      })}`}
-    >
+    <div>
       <GraphiQL
-        readOnly={false}
+        readOnly={true}
         editorTheme={'dracula'}
         schema={null}
         fetcher={notReal}
         query={query}
         variables={variables}
         response={response}
-      />
+        isHeadersEditorEnabled={false}
+        defaultEditorToolsVisibility={false}
+      >
+        <GraphiQL.Logo>
+          <span
+            style={{
+              fontFamily: 'sans-serif',
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: 'white',
+            }}
+          >
+            <GraphiQL.Toolbar />
+            {/*<GraphiQL.Footer/>*/}
+          </span>
+        </GraphiQL.Logo>
+      </GraphiQL>
     </div>
   );
 };

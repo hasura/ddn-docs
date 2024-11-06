@@ -1,0 +1,143 @@
+---
+sidebar_position: 6
+sidebar_label: Run a Postgres database locally
+description: "Guide to run a local Postgres connected with Adminer via Docker Compose"
+keywords:
+  - local
+  - postgres
+  - docker
+  - adminer
+seoFrontMatterUpdated: false
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Run a Postgres Database Locally
+
+## Introduction
+
+This guide will take you through setting up a local Postgres database along with [Adminer](https://www.adminer.org/), a
+free database manager tool, using Docker Compose.
+
+You can use any database management tool you prefer, we're using Adminer here. Some free and paid alternatives are:
+[pgAdmin](https://www.pgadmin.org/), [dBeaver](https://dbeaver.io/),
+[psql](https://www.postgresql.org/docs/current/app-psql.html), [TablePlus](https://tableplus.com/),
+[DataGrip](https://www.jetbrains.com/datagrip/), etc.
+
+## Step 1: Create Docker Compose file
+
+The following Docker Compose file contains a Postgres service along with an Adminer service configured to automatically
+connect to the Postgres database.
+
+By default,
+
+- Postgres will run on port `5432` and the database connection string will be
+  `postgresql://user:password@localhost:5432/dev`
+- Adminer will run on port `8081` and can be accessed on `http://localhost:8081/`
+
+You can change these in the Docker compose file in case you have other services running on those ports already.
+
+Copy the following to a new file, say `compose.postgres-adminer.yaml`:
+
+```yaml title="compose.postgres-adminer.yaml"
+version: "3.9"
+services:
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    #highlight-start
+    ports:
+      - "5432:5432" # Run Postgres on port 5432
+    #highlight-end
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dev
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_DRIVER: pgsql # server=mysql, pgsql, sqlite, sqlite2, oracle, mssql, mongo, elastic
+      ADMINER_DEFAULT_DB: dev
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_USERNAME: user
+      ADMINER_DEFAULT_PASSWORD: password
+    #highlight-start
+    ports:
+      - "8081:8080" # Run Adminer on port 8081
+    #highlight-end
+    depends_on:
+      - postgres
+    configs:
+      - source: adminer-index.php
+        target: /var/www/html/index.php
+
+configs:
+  adminer-index.php:
+    content: |
+      <?php
+        if(!count($$_GET)) {
+          $$_POST['auth'] = [
+            'server' => $$_ENV['ADMINER_DEFAULT_SERVER'],
+            'username' => $$_ENV['ADMINER_DEFAULT_USERNAME'],
+            'password' => $$_ENV['ADMINER_DEFAULT_PASSWORD'],
+            'driver' => $$_ENV['ADMINER_DEFAULT_DRIVER'],
+            'db'    => $$_ENV['ADMINER_DEFAULT_DB'],
+          ];
+        }
+        include './adminer.php';
+      ?>
+```
+
+## Step 2: Start Postgres database and Adminer
+
+Run the Docker Compose file:
+
+```bash title="In directory with compose file, run:"
+docker compose -f compose.postgres-adminer.yaml up
+```
+
+## Step 3: Manage your database via Adminer
+
+To access Adminer, head to: [http://localhost:8081](http://localhost:8081)
+
+You should see the Adminer console as follows:
+
+<Thumbnail src="/img/databases/local-postgres/adminer.png" alt="Adminer" width="1000px" />
+
+You can now create tables, add data, etc. on the Postgres database and iterate on your database schema.
+
+## Next Steps
+
+### Connect the database to your supergraph
+
+You can connect the Postgres database to your supergraph using the
+[Postgres data connector](connectors/postgresql/index.mdx) by following the steps in
+[this guide](/getting-started/quickstart.mdx) and providing the database
+connection string as the following:
+
+```bash title="Connection string to connect to local supergraph"
+postgresql://user:password@local.hasura.dev:5432/dev
+```
+
+As you iterate on your database schema you can update your supergraph metadata using the steps in
+[this guide](/getting-started/quickstart.mdx).
+
+:::warning Connecting to your local database from the cloud
+
+Note that as this is a locally running database you can connect to it directly from the data connector running locally,
+however, if you deploy your connector to Hasura DDN, the cloud-hosted version of your data connector won't be able to
+find your local database. You'll need to use a tool like [ngrok](https://ngrok.com/) to provide a tunnel to access your
+database from the cloud. This will expose the port, most likely `5432`, on which the database is running and allow
+Hasura DDN to connect to it.
+
+:::
+
+### Connect to the database directly
+
+You can also connect to the database directly using other tools, such as `psql`, using the database connection string:
+
+```bash title="To connect using psql, run:"
+psql postgresql://user:password@localhost:5432/dev
+```

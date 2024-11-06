@@ -1,16 +1,20 @@
 ---
 sidebar_label: Sort query results
 sidebar_position: 5
-description: Learn how to sort query results on Hasura using the 'order_by' argument. Tutorial includes sorting objects & nested objects.
+description:
+  "Sort the results of your queries in Hasura with the 'order_by' argument. Learn how to sort objects, nested objects,
+  and based on nested object's fields."
 keywords:
   - hasura
   - query sorting
-  - order_by
+  - graphql queries
   - object sorting
   - nested object sorting
-  - improving queries
-  - graphql
-  - hasura tutorial
+  - hasura sorting
+  - order_by
+  - graphql tutorial
+  - graphql best practices
+  - hasura guide
 seoFrontMatterUpdated: true
 ---
 
@@ -32,16 +36,16 @@ By default, for ascending ordering `null` values are returned at the end of the 
 The `order_by` argument takes an array of objects to allow sorting by multiple columns.
 
 You can also use nested objects' fields to sort the results. Only columns from object relationships** and **aggregates
-from array relationships** can be used for sorting.
+from array relationships\*\* can be used for sorting.
 
 The following are example queries for different sorting use cases:
 
 ## Sorting objects
 
-**Example:** Fetch a list of authors sorted by their names in an ascending order:
+**Example:** Fetch a list of authors sorted by their names in ascending order:
 
 <GraphiQLIDE
-  query={`query {
+  query={`query AuthorsSorted {
   authors (
     order_by: {name: Asc}
   ) {
@@ -86,7 +90,7 @@ The following are example queries for different sorting use cases:
 **Example:** Fetch a list of authors sorted by their names with a list of their articles that is sorted by their rating:
 
 <GraphiQLIDE
-  query={`query {
+  query={`query AuthorsAndArticlesSorted {
   authors (order_by: {name: Asc}) {
     id
     name
@@ -158,9 +162,20 @@ The following are example queries for different sorting use cases:
 }`}
 />
 
-## Sorting based on nested object's fields
+## Sorting by Nested Object Fields
 
-Only **columns from object relationships** and **aggregates from array relationships** can be used for sorting.
+Only **columns from object relationships** can be used for sorting.
+
+You can sort results based on fields from object relationships, limited to local object relationships between two
+collections at the moment.
+
+:::caution Limitations
+
+- Sorting is supported only for local relationships (between local collections).
+- Sorting on Array relationships are not supported yet.
+- Sorting based on remote relationships (remote databases or Remote Schema) is not supported yet. :::
+
+:::
 
 ### For object relationships
 
@@ -169,7 +184,7 @@ For object relationships only columns can be used for sorting.
 **Example:** Fetch a list of articles that are sorted by their author's ids in descending order:
 
 <GraphiQLIDE
-  query={`query {
+  query={`query ArticlesSortedByAuthor {
   articles (
     order_by: {author: {id: Desc}}
   ) {
@@ -217,298 +232,70 @@ For object relationships only columns can be used for sorting.
 }`}
 />
 
-### For array relationships
-
-For array relationships only aggregates can be used for sorting.
-
-**Example:** Fetch a list of authors sorted in descending order of their article count:
-
-<GraphiQLIDE
-  query={`query {
-  authors (
-    order_by: {
-      articles_aggregate: {count: Desc}
-    }
-  ) {
-    id
-    name
-    articles_aggregate {
-      aggregate{
-        count
-      }
-    }
-  }
-}`}
-  response={`{
-  "data": {
-    "authors": [
-      {
-        "id": 5,
-        "name": "Amii",
-        "articles_aggregate":{
-          "aggregate": {
-            "count": 3
-          }
-        }
-      },
-      {
-        "id": 4,
-        "name": "Anjela",
-        "articles_aggregate":{
-          "aggregate": {
-            "count": 2
-          }
-        }
-      },
-      {
-        "id": 8,
-        "name": "April",
-        "articles_aggregate":{
-          "aggregate": {
-            "count": 2
-          }
-        }
-      }
-    ]
-  }
-}`}
-/>
-
-**Example:** Fetch a list of authors sorted in increasing order of their highest article rating:
-
-<GraphiQLIDE
-  query={`query {
-  authors(
-    order_by: {
-      articles_aggregate: {
-        max: {rating: Asc}
-      }
-    }
-  ) {
-    id
-    name
-    articles_aggregate {
-      aggregate{
-        max {rating}
-      }
-    }
-  }
-}`}
-  response={`{
-  "data": {
-    "authors": [
-      {
-        "id": 7,
-        "name": "Berti",
-        "articles_aggregate": {
-          "aggregate": {
-            "max": {
-              "rating": 2
-            }
-          }
-        }
-      },
-      {
-        "id": 2,
-        "name": "Beltran",
-        "articles_aggregate": {
-          "aggregate": {
-            "max": {
-              "rating": 3
-            }
-          }
-        }
-      },
-      {
-        "id": 8,
-        "name": "April",
-        "articles_aggregate": {
-          "aggregate": {
-            "max": {
-              "rating": 4
-            }
-          }
-        }
-      },
-      {
-        "id": 3,
-        "name": "Sidney",
-        "articles_aggregate": {
-          "aggregate": {
-            "max": {
-              "rating": 4
-            }
-          }
-        }
-      },
-      {
-        "id": 5,
-        "name": "Amii",
-        "articles_aggregate": {
-          "aggregate": {
-            "max": {
-              "rating": 5
-            }
-          }
-        }
-      },
-      {
-        "id": 9,
-        "name": "Ninnetta",
-        "articles_aggregate": {
-          "aggregate": {
-            "max": {
-              "rating": null
-            }
-          }
-        }
-      }
-    ]
-  }
-}`}
-/>
-
-### For scalar computed fields
-
-Scalar computed fields can be used for sorting just like columns.
-
-**Example:** Computed field `total_marks` is defined on `student` table which calculates the sum of marks obtained in
-\*each subject. Fetch a list of students sorted by their total marks:
-
-<GraphiQLIDE
-  query={`query {
-  student(order_by: {total_marks: Desc}){
-    id
-    name
-    total_marks
-    physics
-    chemistry
-    maths
-  }
-}`}
-  response={`{
-  "data": {
-    "student": [
-      {
-        "id": 2,
-        "name": "Bob",
-        "total_marks": 60,
-        "physics": 21,
-        "chemistry": 22,
-        "maths": 17
-      },
-      {
-        "id": 1,
-        "name": "Alice",
-        "total_marks": 59,
-        "physics": 23,
-        "chemistry": 22,
-        "maths": 14
-      }
-    ]
-  }
-}`}
-/>
-
-### For table computed fields
-
-Aggregates of table being returned by table computed fields can be used for sorting.
-
-**Example:** Computed field `get_articles` is defined to `author` table returns list of articles. Fetch a list of
-\*authors sorted by their articles count.
-
-<GraphiQLIDE
-  query={`query{
-  author(order_by: {get_articles_aggregate: {count: Desc}}){
-    id
-    name
-    get_articles{
-      id
-      title
-      content
-    }
-  }
-}`}
-  response={`{
-  "data": {
-    "author": [
-      {
-        "id": 1,
-        "name": "Author 1",
-        "get_articles": [
-          {
-            "id": 1,
-            "title": "Article 1",
-            "content": "Sample article content 1"
-          }
-        ]
-      },
-      {
-        "id": 2,
-        "name": "Author 2",
-        "get_articles": []
-      }
-    ]
-  }
-}`}
-/>
-
-:::info Note
-
-Only computed fields whose associated SQL function with no input arguments other than table row and hasura session
-arguments are supported in order by.
-
-:::
-
 ## Sorting by multiple fields
 
-**Example:** Fetch a list of articles that is sorted by their rating (descending) and then on their published date
-(ascending):
+As stated above, `order_by` expects an object with only a single key-value pair. Should you attempt to pass multiple
+key-value pairs, like in the example below where we're attempting to sort by both `lastSeen` and then `createdAt`,
+you'll receive a validation error like this:
 
 <GraphiQLIDE
-  query={`query {
-  articles (
-    order_by: [
-      {rating: Desc},
-      {published_on: Asc}
-    ]
-  ) {
+  query={`query UserQuery {
+  users(order_by: {lastSeen: Asc, createdAt: Asc}) {
     id
-    rating
-    published_on
+    name
+  }
+}`}
+  response={`{
+  "data": null,
+  "errors": [
+    {
+      "message": "validation failed: order_by expects a list of input objects with exactly one key-value pair per input object. Please split the input object with multiple key-value pairs into a list of single key-value pair objects."
+    }
+  ]
+}`}
+/>
+
+This happens commonly when using the explorer in GraphiQL to select `order_by` fields. Instead, you can format your
+query like this wherein an array of objects is passed:
+
+<GraphiQLIDE
+  query={`query UserQuery {
+  users(order_by: [{lastSeen: Asc}, {createdAt: Asc}]) {
+    id
+    name
   }
 }`}
   response={`{
   "data": {
-    "articles": [
+    "users": [
       {
-        "id": 17,
-        "rating": 5,
-        "published_on": null
+        "id": "7cf0a66c-65b7-11ed-b904-fb49f034fbbb",
+        "name": "Sean"
       },
       {
-        "id": 14,
-        "rating": 4,
-        "published_on": null
+        "id": "82001336-65b7-11ed-b905-7fa26a16d198",
+        "name": "Rob"
       },
       {
-        "id": 7,
-        "rating": 4,
-        "published_on": "2016-07-09"
+        "id": "86d5fba0-65b7-11ed-b906-afb985970e2e",
+        "name": "Marion"
       },
       {
-        "id": 3,
-        "rating": 4,
-        "published_on": "2017-05-26"
+        "id": "8dea1160-65b7-11ed-b907-e3c5123cb650",
+        "name": "Sandeep"
+      },
+      {
+        "id": "9bd9d300-65b7-11ed-b908-571fef22d2ba",
+        "name": "Abby"
       }
     ]
   }
 }`}
 />
 
-:::info Note
+:::info Key order is not preserved
 
-Key order in input object for order_by is not preserved. This means you should only have a single key per object, or you
-may see unexpected behavior.
+Key order in input object for `order_by` is not preserved. This means you should only have a single key per object, or
+you may see unexpected behavior.
 
 :::

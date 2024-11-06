@@ -16,49 +16,80 @@ echo -e '{
 }
 ' > "$MDX_DIR/_category_.json"
 
-# List of CLI commands
-COMMANDS=("" "build" "build apply" "build create" "build delete" "build describe" "build list" "completion" "completion bash" "completion fish" "completion powershell" "completion zsh" "daemon" "daemon start" "environment" "environment create" "environment delete" "environment describe" "environment list" "help" "init" "login" "logout" "namespace" "namespace create" "namespace delete" "namespace describe" "namespace list" "plugins" "plugins install" "plugins list" "plugins uninstall" "plugins upgrade" "project" "project create" "project delete" "project describe" "project list" "secret" "secret delete" "secret get" "secret list" "secret set" "tunnel" "tunnel activate" "tunnel create" "tunnel delete" "tunnel list" "tunnel pause" "update-cli" "version")
+# Generate list of CLI commands
+IFS=$'\n' read -rd '' -a COMMANDS <<< "$(ddn --help | grep -E '^\s{2}[a-z]+' | awk '{print $1}' | sort)"
+
+# Initialize an array for subcommands
+declare -a SUBCOMMANDS
+
+# Loop through each command to generate a list of subcommands
+for cmd in "${COMMANDS[@]}"; do
+  echo "🧰 Aggregating subcommands for $cmd"
+  
+  # we can ignore the ddn and help commands
+  if [[ "$cmd" == "ddn" || "$cmd" == "help" ]]; then
+    continue
+  fi
+  
+  # Correctly capture subcommands, preserving spaces
+  IFS=$'\n' read -rd '' -a SINGLE_SUB_COMMANDS <<< "$(ddn "$cmd" --help | sed -n '/Available Commands:/,/^$/p' | grep -E '^\s{2}[a-z]+' | awk '{print $1}')"
+  
+  echo "  👀 Found ${#SINGLE_SUB_COMMANDS[@]} subcommands for $cmd"
+  
+  for subcmd in "${SINGLE_SUB_COMMANDS[@]}"; do
+    trimmed_subcmd=$(echo "$subcmd" | tr -d '\n')
+    SUBCOMMANDS+=("$cmd $trimmed_subcmd")
+    echo "    📝 $trimmed_subcmd"
+  done
+done
+
+# Combine COMMANDS and SUBCOMMANDS, and sort them
+ALL_COMMANDS_SORTED=("${COMMANDS[@]}" "${SUBCOMMANDS[@]}")
+IFS=$'\n' ALL_COMMANDS_SORTED=($(sort <<<"${ALL_COMMANDS_SORTED[*]}"))
 
 # Position counter
 position=1
 
-# Loop through each command
-for cmd in "${COMMANDS[@]}"; do
+# Loop through each command/subcommand
+for cmd in "${ALL_COMMANDS_SORTED[@]}"; do
   # Create a kabob-case file name
   cmd_slug=$(echo "$cmd" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
 
   # Capture the help text for the command
-  help_text=$(hasura3 $cmd --help)
+  help_text=$(eval "ddn $cmd --help")
+
+  # If the file name is ddn, set it to index.mdx
+  if [ "$cmd_slug" == "ddn" ]; then
+    cmd_slug="index"
+    help_text=$($cmd --help)
+  fi
 
   # parse the first line of the help text
-    synopsis=$(echo "$help_text" | head -n 1)
+  synopsis=$(echo "$help_text" | head -n 1)
 
   # Create the MDX file with frontmatter and help text
   mdx_content="---
-title: hasura3 $cmd
+title: \"ddn $cmd\"
 sidebar_position: $position
-sidebar_label: hasura3 $cmd
-description: Using the hasura3 $cmd command with the Hasura CLI
+sidebar_label: \"ddn $cmd\"
+description: \"Using the ddn $cmd command with the Hasura CLI\"
 ---
 
-# Hasura3 CLI: hasura3 $cmd 
+# Hasura DDN CLI: ddn $cmd
 
 ## Synopsis
-$synopsis.
+$synopsis
 
 \`\`\`bash
-$ hasura3 $cmd --help
+$ ddn $cmd --help
 $help_text
 \`\`\`
 "
 
-# if the file is "" then it is the root command and should be index.mdx
-if [ "$cmd_slug" == "" ]; then
-    cmd_slug="index"
-fi
-
   # Save the MDX content to a file
   echo -e "$mdx_content" > "$MDX_DIR/$cmd_slug.mdx"
   ((position++))
-  echo "Generated $cmd_slug.mdx"
+  echo "🚀 Generated $cmd_slug.mdx"
 done
+
+echo "✅ Documentation generation complete!"

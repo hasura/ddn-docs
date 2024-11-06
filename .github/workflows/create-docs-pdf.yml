@@ -1,0 +1,27 @@
+name: Build and Upload PDF
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build PDF
+        run: npx docusaurus-to-pdf
+
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: pdf-output
+          path: ./pdf_output/reference-docs.pdf
+          if-no-files-found: error

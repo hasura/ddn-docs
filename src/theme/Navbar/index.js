@@ -1,11 +1,11 @@
 import React from 'react';
-import Navbar from '@theme-original/Navbar';
-import { DDNBanner } from '@site/src/components/BannerDismissable/DDNBanner';
-export default function NavbarWrapper(props) {
+import NavbarLayout from '@theme/Navbar/Layout';
+import NavbarContent from '@theme/Navbar/Content';
+
+export default function Navbar() {
   return (
-    <>
-      <DDNBanner />
-      <Navbar {...props} />
-    </>
+    <NavbarLayout>
+      <NavbarContent />
+    </NavbarLayout>
   );
 }

@@ -1,12 +1,16 @@
-<!-- 🚧 IMPORTANT: PLEASE READ 🚧 -->
-<!-- Thank you for submitting this docs PR! 🤙 -->
-<!-- You'll need to complete the two sections below (Description and Quick Links) but please also select `Enable auto-merge` after opening your PR 🙏 -->
-<!-- Any merged docs PR will be picked up by our CI/CD pipeline and — if there are no merge conflicts — automatically be deployed to production 🎉 -->
-
-## Description
-
-<!-- 1. Give us a tl;dr of what this docs contribution is / does -->
+## Description 📝
 
 ## Quick Links 🚀
 
- <!-- Add links to the affected pages / sections here for quick review. We'll generate a comment for you after you open the PR with a link to your preview site, which will need to build. -->
+ <!-- Links to the relevant place(s) in the CloudFlare Pages build. Wait for CF comment for link. -->
+
+## Assertion Tests 🤖
+
+<!-- Add assertions between the comments below to have ChatGPT check the quality of your docs contribution (Diff) and 
+how well it integrates with existing docs. E.g., A user should be able to easily understand how to make a simple 
+query. -->
+
+<!-- For more info, see the Action's docs in the marketplace: https://github.com/marketplace/actions/docs-assertion-tester#usage -->
+
+<!-- DX:Assertion-start -->
+<!-- DX:Assertion-end -->

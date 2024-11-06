@@ -1,0 +1,530 @@
+---
+sidebar_position: 2
+sidebar_label: "Models read data"
+description: "Models allow you to define the structure of your data and how it can be queried."
+keywords:
+  - model
+  - data modeling
+toc_max_heading_level: 4
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Models Read Data
+
+## Introduction
+
+Models represent the entities — such as tables, views, or collections — in your data source, defining the structure and
+how the data can be accessed.
+
+## Lifecycle
+
+:::info New to Hasura DDN?
+
+If you haven't already, have a run through our [Quickstart](/getting-started/quickstart.mdx) guide to set up your Hasura
+DDN instance. In the sections below, we'll guide you through how to interact with your metadata and shape your API to
+your liking!
+
+:::
+
+### Creating a model
+
+To query data from your API, you'll first need to create a model that represents that data.
+
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+**Via a new table or view**
+
+```sql title="Create a new table or view in your PostgreSQL database:"
+CREATE TABLE public.users (
+  id serial PRIMARY KEY,
+  name text NOT NULL
+);
+
+INSERT INTO public.users (name)
+VALUES
+  ('Alice Johnson'),
+  ('Bob Smith'),
+  ('Charlie Davis');
+```
+
+```bash title="Use the DDN CLI to introspect your PostgreSQL instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+**Via an existing table or view**
+
+If you already have a table present, you can add it by introspecting your data source and referencing it by name.
+
+```bash title="Use the DDN CLI to introspect your PostgreSQL instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+**Via a new collection or view**
+
+```js title="Create a new table or view in your MongoDB database, and populate it with data:"
+db.createCollection("users");
+db.users.insertMany([{ name: "Alice" }, { name: "Bob" }, { name: "Eve" }]);
+```
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+**Via an existing collection or view**
+
+If you already have a collection with data present, you can add it by introspecting your data source and referencing it
+by name.
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+**Via a new table or view**
+
+```sql title="Create a new table or view in your ClickHouse database:"
+CREATE TABLE users (
+    id UInt32,
+    name String
+)
+ENGINE = MergeTree()
+ORDER BY id;
+
+INSERT INTO users (id, name) VALUES
+    (1, 'Alice Johnson'),
+    (2, 'Bob Smith'),
+    (3, 'Charlie Davis');
+```
+
+```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+**Via an existing table or view**
+
+If you already have a table present, you can add it by introspecting your data source and referencing it by name.
+
+```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+  </TabItem>
+</Tabs>
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your table:"
+query {
+  users {
+    id
+    name
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "Alice Johnson"
+      },
+      {
+        "id": 2,
+        "screamedName": "Bob Smith"
+      },
+      {
+        "id": 3,
+        "screamedName": "Charlie Davis"
+      }
+    ]
+  }
+}
+```
+
+### Extending a model
+
+Models can be extended, allowing for transformation and enrichment of the data.
+
+#### Via a native query
+
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+Within your connector's directory, you can add a new file with a `.sql` extension to define a native query.
+
+```sh title="Create a new directory to store your native queries:"
+mkdir -p <my_subgraph>/connector/<connector_name>/native_operations/queries/
+```
+
+```sql title="Create a new file in your connector's directory:"
+-- native_operations/queries/user_by_name_between.sql
+SELECT *
+FROM users
+WHERE name LIKE '%' || {{name}} || '%'
+  AND name > {{lower_bound}}
+  AND name < {{upper_bound}}
+```
+
+```sh title="Then, use the PostgreSQL connector's plugin to add the native query to your connector's configuration:"
+ddn connector plugin --connector <my_subgraph>/connector/<my_connector>/connector.yaml -- \
+  native-operation create --operation-path native_operations/queries/user_by_name_between.sql --kind query
+```
+
+```sh title="Introspect your PostgreSQL instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Then, update your models:"
+ddn model update <connector_name> "*"
+```
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+Within your connector's directory, you can add a new JSON configuration file to define a
+[native query](/connectors/mongodb/native-operations/native-queries.mdx).
+
+```sh title="Create a new directory to store your native queries:"
+mkdir -p <my_subgraph>/connector/<connector_name>/native_queries/
+```
+
+```json title="Create a new file in your connector's directory:"
+// native_queries/user_by_name_between.json
+{
+  "name": "userByName",
+  "representation": "collection",
+  "description": "Look up a user by a regular expression match on name",
+
+  "inputCollection": "users",
+
+  "arguments": {
+    "name": { "type": { "scalar": "string" } },
+    "lower_bound": { "type": { "scalar": "string" } },
+    "upper_bound": { "type": { "scalar": "string" } }
+  },
+
+  "resultDocumentType": "UserByName",
+  "objectTypes": {
+    "UserByName": {
+      "fields": {
+        "_id": { "type": { "scalar": "objectId" } },
+        "name": { "type": { "scalar": "string" } }
+      }
+    }
+  },
+
+  "pipeline": [
+    {
+      "$match": {
+        "$and": [
+          { "name": { "$regex": "{{ name }}" } },
+          { "name": { "$gt": "{{ lower_bound }}" } },
+          { "name": { "$lt": "{{ upper_bound }}" } }
+        ]
+      }
+    }
+  ]
+}
+```
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Then, update your models:"
+ddn model update <connector_name> "*"
+```
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+Within your connector's directory, you can add a new SQL configuration file to define a
+[native query](/connectors/clickhouse/native-queries.mdx).
+
+```sh title="Create a new directory to store your native queries:"
+mkdir -p <my_subgraph>/connector/<connector_name>/queries/
+```
+
+```sql title="Create a new file in your connector's directory:"
+// queries/UsersByName.sql
+SELECT *
+FROM "default"."users"
+WHERE "users"."name" = {name: String}
+```
+
+Note this uses the
+[ClickHouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
+
+```json title="Update your the queries section in your configuration.json file:"
+// configuration.json
+{
+  "tables": {},
+  "queries": {
+    "UserByName": {
+      "exposed_as": "collection",
+      "file": "queries/UserByName.sql",
+      "return_type": {
+        "kind": "definition",
+        "columns": {
+          "id": "Int32",
+          "name": "String"
+        }
+      }
+    }
+  }
+}
+```
+
+```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Then, update your models:"
+ddn model add <connector_name> UserByName
+```
+
+  </TabItem>
+</Tabs>
+
+#### Via a lambda connector
+
+[Lambda connectors](/business-logic/overview.mdx) allow you to expose custom business logic via your API. You can also
+create [relationships](/data-modeling/relationship.mdx) between an existing model and this business logic to expand the
+data a model can return.
+
+We support lambda connectors for [TypeScript](/business-logic/typescript.mdx), [Python](/business-logic/python.mdx), and
+[Go](/business-logic/go.mdx).
+
+<Tabs groupId="source-preference">
+  <TabItem value="ts" label="TypeScript">
+
+    ```sh title="Initalize a new connector and select hasura/nodejs from the list:"
+    ddn connector init my_ts -i
+    ```
+
+    ```ts title="Replace the functions.ts contents with the following:"
+    /**
+    * @readonly
+    */
+    export function nameToUpperCase(name: string): string {
+      return name.toUpperCase();
+    }
+    ```
+
+    ```bash title="Introspect the connector:"
+    ddn connector introspect my_ts
+    ```
+
+    ```bash title="Track the function:"
+    ddn command add my_ts nameToUpperCase
+    ```
+
+  </TabItem>
+  <TabItem value="python" label="Python">
+
+    ```sh title="Initalize a new connector and select hasura/python from the list:"
+    ddn connector init my_python -i
+    ```
+
+    ```python title="Replace the functions.py contents with the following:"
+    from hasura_ndc import start
+    from hasura_ndc.function_connector import FunctionConnector
+
+    connector = FunctionConnector()
+
+    @connector.register_query
+    def name_to_upper_case(name: str) -> str:
+      return name.upper()
+
+    if __name__ == "__main__":
+      start(connector)
+    ```
+
+    ```bash title="Introspect the connector:"
+    ddn connector introspect my_python
+    ```
+
+    ```bash title="Track the function:"
+    ddn command add my_python name_to_upper_case
+    ```
+
+  </TabItem>
+  <TabItem value="go" label="Go">
+
+    ```sh title="Initalize a new connector and select hasura/go from the list:"
+    ddn connector init my_go -i
+    ```
+
+    ```go title="Rename hello.go to nameToUpperCase.go:"
+    package functions
+
+    import (
+      "context"
+      "fmt"
+      "hasura-ndc.dev/ndc-go/types"
+      "strings"
+    )
+
+    // NameArguments defines the input arguments for the function
+    type NameArguments struct {
+      Name string `json:"name"` // required argument
+    }
+
+    // NameResult defines the output result for the function
+    type NameResult string
+
+    // FunctionNameToUpperCase converts a name string to uppercase
+    func FunctionNameToUpperCase(ctx context.Context, state *types.State, arguments *NameArguments) (*NameResult, error) {
+      if arguments.Name == "" {
+        return nil, fmt.Errorf("name cannot be empty")
+      }
+
+      upperCaseName := NameResult(strings.ToUpper(arguments.Name))
+      return &upperCaseName, nil
+    }
+    ```
+
+    ```bash title="Introspect the connector:"
+    ddn connector introspect my_go
+    ```
+
+    ```bash title="Track the function:"
+    ddn command add my_go nameToUpperCase
+    ```
+
+  </TabItem>
+</Tabs>
+
+```yml title="You can now create a relationship between this function and the model we created earlier:"
+---
+# e.g., inside users.hml
+kind: Relationship
+version: v1
+definition:
+  name: screamedName
+  sourceType: Users
+  target:
+    command:
+      name: NameToUpperCase
+      subgraph: app
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: name
+      target:
+        argument:
+          argumentName: name
+  description: The user's name returned in all caps.
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your expanded table with the transformed name:"
+query {
+  users {
+    id
+    screamedName
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "ALICE JOHNSON"
+      },
+      {
+        "id": 2,
+        "screamedName": "BOB SMITH"
+      },
+      {
+        "id": 3,
+        "screamedName": "CHARLIE DAVIS"
+      }
+    ]
+  }
+}
+```
+
+### Updating a model
+
+Your underlying data source may change over time. You can update your model to reflect these changes.
+
+You'll need to update the mapping of your model to the data source by updating the
+[DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) object.
+
+```bash title="Update your DataConnectorLink:"
+ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
+```
+
+```bash title="Then, update your model:"
+ddn model update <connector_name> users
+```
+
+### Deleting a model
+
+```bash title="If you no longer need a model, you can delete it:"
+ddn model remove users
+```
+
+## Reference
+
+You can learn more about models in the metadata reference [docs](/supergraph-modeling/models.mdx).

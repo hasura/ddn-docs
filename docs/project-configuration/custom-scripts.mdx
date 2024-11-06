@@ -1,0 +1,109 @@
+---
+sidebar_position: 7
+sidebar_label: Custom scripts
+description:
+  "Learn about executing custom scripts using the DDN CLI"
+keywords:
+  - hasura ddn
+  - hasura cli
+  - local dev
+  - custom scripts
+seoFrontMatterUpdated: true
+---
+
+# Custom scripts
+
+## Introduction
+
+You can define custom scripts in your context configuration which can then be executed with the `ddn run` command.
+
+You're free to create your own scripts tailored to your workflow needs. This allows you to encapsulate complex command
+sequences into simple, memorable script names.
+
+Here's an example of the context configuration structure:
+
+```yaml title="<project-root>/.hasura/context.yaml:"
+kind: Context
+version: v3
+definition:
+  current: default
+  contexts:
+    default:
+      supergraph: ../supergraph.yaml
+      subgraph: ../app/subgraph.yaml
+      localEnvFile: ../.env
+  #highlight-start
+  scripts:
+    docker-start:
+      bash: HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --pull always -d
+      powershell: $Env:HASURA_DDN_PAT = (ddn auth print-pat); docker compose --env-file .env up --build --pull always -d
+  #highlight-end
+```
+
+:::info Getting started
+
+```suggestion
+To work with custom scripts, follow the steps in the [Quickstart](/getting-started/quickstart) to set up a project with a supergraph.
+
+:::
+
+## Adding Scripts
+
+You can add new scripts to your project by defining a new entry in the `scripts` section of your
+context configuration which is defined in the `.hasura/context.yaml` file in your project.
+
+```yaml title="<project-root>/.hasura/context.yaml:"
+kind: Context
+version: v3
+definition:
+  current: default
+  contexts:
+    default:
+      supergraph: ../supergraph.yaml
+      subgraph: ../app/subgraph.yaml
+      localEnvFile: ../.env
+  scripts:
+    docker-start:
+      bash: HASURA_DDN_PAT=$(ddn auth print-pat) docker compose --env-file .env up --build --pull always -d
+      powershell: $Env:HASURA_DDN_PAT = (ddn auth print-pat); docker compose --env-file .env up --build --pull always -d
+    #highlight-start
+    <script-name>:
+      bash: <command-to-execute-for-bash>
+      powershell: <command-to-execute-for-powershell>
+    #highlight-end
+```
+
+:::info Paths in scripts are relative to your project's root path.
+:::
+
+
+## Running Scripts
+To run a script, use the command:
+
+```bash title="from any directory in the project, run:"
+ddn run <script-name>
+```
+
+:::info Paths in scripts are relative to your project's root path.
+:::
+
+## Multi-Platform Support
+
+Currently, you can define scripts for [Bash](https://www.gnu.org/software/bash/) and
+[PowerShell](https://learn.microsoft.com/en-us/powershell/) under a single script name. DDN CLI will automatically
+select the correct script version based on your environment.
+
+These can be configured using the `bash` and `powershell` fields in the script definition:
+
+```yaml
+scripts:
+  <script-name>:
+    #highlight-start
+    bash: <command-to-execute-for-bash>
+    powershell: <command-to-execute-for-powershell>
+    #highlight-end
+```
+
+You can choose to provide either one of the supported options. If the version required for the user's shell is not
+defined, the `ddn run` command will throw an error.
+
