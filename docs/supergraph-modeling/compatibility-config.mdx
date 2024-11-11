@@ -21,79 +21,93 @@ The CompatibilityConfig object is a metadata object that defines the compatibili
 By default, all projects are created with a default CompatibilityConfig object in the **globals** subgraph. It can be
 defined in any subgraph of your choice, but only once across your supergraph.
 
-The `date` field in the CompatibilityConfig object specifies the date after which any backwards incompatible changes
-made to Hasura DDN won't impact the metadata.
+The `date` field in the CompatibilityConfig object specifies the date after which any new backwards-incompatible changes
+made to Hasura DDN will be disabled and will not impact the Hasura project. For example, if your project has its `date`
+set to `2024-10-16`, then any new features added after that date that would result in breaking changes to your project
+will be disabled. To enable these features, simply increase your `date` to a newer date.
 
-### Examples
+### Compatibility dates and breaking changes
 
-#### Require valid NDC v01 version
+The following is a list of dates at which backwards-incompatible changes were added to Hasura DDN. Projects with
+CompatibilityConfig `date`s prior to these dates will have these features disabled.
 
-**Date:** `2024-11-15`
+#### 2024-11-15
 
-**Description:** When enabled, raise an error when there is an invalid version in the capabilities
-of the data connector's schema. To fix the error, please consider upgrading to the latest version
-of the data connector. Before this, we would have assumed that they were NDC v0.1.x connectors.
+##### Require a valid NDC version in data connector capabilities
 
-#### Require unique command GraphQL names
+A build error is now raised when there is an invalid version in the capabilities of a data connector's schema. To fix
+the error, please consider upgrading to the latest version of the data connector and running `ddn connector introspect`
+to correct the invalid version. Prior to this change, it was assumed that the data connector with the invalid version
+was an NDC v0.1.x connector.
 
-**Date:** `2024-10-07`
+#### 2024-10-31
 
-**Description:** When enabled, raise an error when there is a conflict with a GraphQL 
-root field or GraphQL type name that is already in use. Before this, the command would 
-be silently dropped from the GraphQL schema.
+##### Disallow comparisons against scalar array fields in predicates
 
-#### Propagate boolean expression deprecation status
+A build error is now raised if a scalar array field is configured in a BooleanExpressionType as a comparable field.
+Comparisons against scalar array fields are not supported as at this compatibility date.
 
-**Date:** `2024-09-26`
+#### 2024-10-16
 
-**Description:** Enables propagating `deprecated` status for relationship
-fields to boolean expressions that use them. The default GraphQL introspection
-behavior is to hide such fields from the schema, so this behavior is opt-in
-to avoid breakage.
+##### Enable JSON session variable support
 
-#### Disallow scalar types names conflicting with inbuilt types
+Session variables provided in JWT claims, webhook responses or in the NoAuth settings can now be any JSON value, instead
+of just a string. This enable scenarios such as being able to put lists of values into a single session variable.
+However, this now means that if you use the session variable in a comparison against a field, the field's type must
+match the type of the session variable. For example, if you are comparing against an integer field, your session
+variable must be set as a JSON number and not a string.
 
-**Date:** `2024-09-26`
+#### 2024-10-07
 
-**Description:** When enabled, defining a `ScalarType` metadata type that
-conflicts with any of the built-in type names (`ID`, `Int`, `String`,
-`Boolean`, `Float`) now raises an error that halts the build.
+##### Require unique command GraphQL names
 
-#### Require nested array filtering capability
+A build error is now raised when there is a conflict with a GraphQL root field or GraphQL type name that is already in
+use. Before this, the command would be silently dropped from the GraphQL schema.
 
-**Date:** `2024-09-18`
+#### 2024-09-26
 
-**Description:** When enabled, defining a nested array field against a model
-whose underlying data connector does not have the
-`query.exists.nested_collections` capability defined will raise an error that
-halts the build.
+##### Propagate boolean expression deprecation status
 
-#### Bypass `relation_comparisons` NDC Capability
+The `deprecated` status for relationship fields is now propagated to boolean expressions that use them. The default
+GraphQL introspection behavior is to hide such fields from the schema, so this behavior is considered a breaking change.
 
-**Date:** `2024-09-03`
+##### Disallow scalar types names conflicting with inbuilt types
 
-**Description:** Enables bypassing the `relation_comparisons` NDC capability for relationship predicates. This allows
-you to use relationships in boolean expressions even if the data connector lacks compatibility. When the capability is
-available, relationship predicates are resolved directly within the native data connector for more efficient processing.
-If not, the predicates are handled at the API layer.
+A build error is now raised when a `ScalarType` metadata type is defined that conflicts with any of the built-in type
+names (`ID`, `Int`, `String`, `Boolean`, `Float`).
 
-#### Require GraphQL Config
+#### 2024-09-18
 
-**Date:** `2024-06-30`
+##### Require nested array filtering capability
 
-**Description:** Enforce the need for [GraphQL Config](supergraph-modeling/graphql-config.mdx).
+A build error is now raised when a nested array field is defined on an ObjectType used in a Model whose underlying data
+connector does not have the `query.exists.nested_collections` capability defined.
 
+#### 2024-09-03
+
+##### Enable relationships in predicates to be used even if the data connector does not support it
+
+Previously, only data connectors that supported the `relationships.relation_comparisons` capability supported
+relationships in predicates. This change allows you to use relationships in boolean expressions even if the data
+connector lacks support. When the capability is available, relationship predicates are resolved directly within the
+native data connector for more efficient processing. If not, the predicates are handled at the API layer.
+
+#### 2024-06-30
+
+##### Require GraphQL Config
+
+A build error is now raised if a [GraphQLConfig](supergraph-modeling/graphql-config.mdx) is not provided in the project
+metadata.
 
 ---
 
 ## Metadata structure
 
-
 ### v2_CompatibilityConfig {#v2_compatibilityconfig-v2_compatibilityconfig}
 
 The compatibility configuration of the Hasura metadata.
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `CompatibilityConfig` | true |  |
-| `date` | string | true | Any backwards incompatible changes made to Hasura DDN after this date won't impact the metadata. |
+| Key    | Value                 | Required | Description                                                                                      |
+| ------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `kind` | `CompatibilityConfig` | true     |                                                                                                  |
+| `date` | string                | true     | Any backwards incompatible changes made to Hasura DDN after this date won't impact the metadata. |

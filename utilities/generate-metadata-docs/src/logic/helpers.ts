@@ -155,9 +155,9 @@ export function getDescription(metadataObject: JSONSchema7Definition): string {
 export function getExamples(metadataObject: JSONSchema7Definition): string {
   let examples = '';
   if (metadataObject.examples) {
-    examples = `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**${metadataObject.examples.map(
-      example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``
-    )}`;
+    examples =
+      `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**` +
+      metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``).join('\n\n');
   }
 
   return examples;

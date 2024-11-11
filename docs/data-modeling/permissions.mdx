@@ -1,0 +1,122 @@
+---
+sidebar_position: 5
+sidebar_label: "Permissions protect data"
+description: "Permissions allow you to control who can access your data and what they can do with it."
+keywords:
+  - permissions
+  - data modeling
+toc_max_heading_level: 4
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Permissions Protect Data
+
+## Introduction
+
+Permissions allow you to control who can access your data and what they can do with it. You can define permissions to
+restrict access to certain models, the fields they contain, and the operations that can be performed on them.
+
+## Lifecycle
+
+:::info New to Hasura DDN?
+
+If you haven't already, have a run through our [Quickstart](/getting-started/quickstart.mdx) guide to set up your Hasura
+DDN instance. In the sections below, we'll guide you through how to interact with your metadata and shape your API to
+your liking!
+
+:::
+
+### Creating permissions
+
+#### Creating a ModelPermission
+
+To implement row-level security, you can create a permission for a model.
+
+```yaml title=""
+---
+# e.g., users.hml
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Users
+  permissions:
+    # admin is present by default
+    - role: admin
+      select:
+        filter: null
+    #highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+    #highlight-end
+```
+
+The highlighted role above will filter responses from the `Users` field in your API to only those whose `id` matches the
+`x-hasura-user-id` passed in the header of the request.
+
+#### Creating a TypePermission
+
+To restrict which fields can be queried, you can create a permission for a type.
+
+```yaml title="Below, a user can only see their own name:"
+# e.g., users.hml
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: user
+  permissions:
+    # admin is present by default
+    - role: admin
+      output:
+        allowedFields:
+          - id
+          - name
+    #highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - name
+    #highlight-end
+```
+
+#### Creating a CommandPermission
+
+To determine which operations can be performed by which roles, you can create a permission for a command.
+
+```yaml title="In this example, we'll make it so a user can update their own record:"
+# e.g., UpdateUsersById.hml
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: UpdateUsersById
+  permissions:
+    - role: admin
+      allowExecution: true
+      #highlight-start
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: keyId
+          value:
+            sessionVariable: "x-hasura-user-id"
+      #highlight-end
+```
+
+### Deleting permissions
+
+If you no longer need a permission, you can remove the role from the relevant permissions array in any permission
+object.
+
+## Reference
+
+You can learn more about permissions in the metadata reference [docs](/supergraph-modeling/permissions.mdx).
