@@ -287,13 +287,13 @@ export function AiChatBot({ style }) {
               <div className="info-bar">
                 <div className={'bot-name-pic-container'}>
                   <div className="bot-name">DocsBot</div>
-                  <img src={profilePic} height={30} width={30} className="bot-pic"/>
+                  <img src={profilePic} height={30} width={30} className="bot-pic" />
                 </div>
                 <button
                   className="clear-button"
                   onClick={() => {
                     setMessages(initialMessages);
-                    setCurrentMessage({userMessage: '', botResponse: '', id: ''});
+                    setCurrentMessage({ userMessage: '', botResponse: '', id: '' });
                     setMessageThreadId(uuidv4());
                   }}
                 >
@@ -348,7 +348,7 @@ export function AiChatBot({ style }) {
                             });
                           }}
                         >
-                          <ThumbsDown className={'mb-4'}/>
+                          <ThumbsDown className={'mb-4'} />
                         </button>
                       </div>
                       <div>
@@ -358,7 +358,7 @@ export function AiChatBot({ style }) {
                               rows={4}
                               className={'w-full bg-none text-gray-700 placeholder-gray-500'}
                               onChange={e =>
-                                setBadResponse(prevState => ({...prevState, responseText: e.target.value}))
+                                setBadResponse(prevState => ({ ...prevState, responseText: e.target.value }))
                               }
                               placeholder={'Sorry about that. Please tell us how we can improve.'}
                             ></textarea>
@@ -398,6 +398,6 @@ export function AiChatBot({ style }) {
           </div>
         </div>
       )}
-        </div>
-        );
-      }
+    </div>
+  );
+}
