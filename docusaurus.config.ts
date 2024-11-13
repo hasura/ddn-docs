@@ -53,9 +53,9 @@ const config: Config = {
           case 'production':
             return BOT_ROUTES.production;
           case 'staging':
-            return BOT_ROUTES.staging;
+            return BOT_ROUTES.production; // if we're in full staging on GCP and not cloudflare pages, use the production environment
           default:
-            return BOT_ROUTES.development; // default to development if no match
+            return ''; // default to empty string if no match
         }
       }
     })(),
