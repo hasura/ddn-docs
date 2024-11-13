@@ -45,17 +45,15 @@ const config: Config = {
       if (process.env.CF_PAGES === '1') {
         return BOT_ROUTES.staging; // if we're on CF pages, use the staging environment
       } else {
-        switch (
-          process.env.release_mode // Prod: https://website-api.hasura.io/docs-services/docs-server
-        ) {
+        switch (process.env.release_mode) {
           case 'development':
             return BOT_ROUTES.development; // if we're on the development environment, use the local server
           case 'production':
             return BOT_ROUTES.production;
           case 'staging':
-            return BOT_ROUTES.staging;
+            return BOT_ROUTES.production; // if we're in full staging on GCP and not cloudflare pages, use the production environment
           default:
-            return BOT_ROUTES.development; // default to development if no match
+            return BOT_ROUTES.development; // default to development if no match (env var not generally set on local dev)
         }
       }
     })(),
