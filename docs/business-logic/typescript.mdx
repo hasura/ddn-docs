@@ -82,6 +82,18 @@ being your connector's entrypoint:
 
 ### Step 2. Add a function
 
+:::tip TypeScript developer tooling
+
+You will likely edit your `functions.ts` file in a code editor with support for displaying TypeScript compiler errors
+and code completions, such as Visual Studio Code. In order for the code editor tooling to work correctly you will need
+to have Node.js (>= v20.0.0) installed locally and you will need to install the npm packages that the connector uses:
+
+```bash title="In the connector directory, run this to install packages:"
+npm install
+```
+
+:::
+
 By default, a **function** — in the nomenclature of DDN — is already present in our `functions.ts` file. It's designated
 as a function by the JSDoc comment using the `@readonly` tag:
 
@@ -101,7 +113,7 @@ You can add another function simply by exporting a valid TypeScript function.
 To add our function, we can use the following to generate the related metadata that will link together any functions in
 this `functions.ts` file and our API.
 
-```bash title="Track the function:"
+```bash title="Introspect the connector:"
 ddn connector introspect my_ts
 ```
 
@@ -243,12 +255,23 @@ running.
 
 ## Add a procedure
 
-Inside the same `functions.ts` file, let's add a custom mutation in the form of a **procedure**.
+Inside the same `functions.ts` file, let's add a custom mutation in the form of a **procedure**. A procedure is simply a
+TypeScript function that is exported from `functions.ts` that does _not_ have the `@readonly` JSDoc annotation.
 
 For example, let's say you want to add a custom mutation to create a user in a PostgreSQL table on your default `app`
 subgraph and also hash their password before storing it.
 
-You can do this by adding the following code to the `functions.ts` file:
+You can do this by first installing the [`pg` package](https://www.npmjs.com/package/pg) (the PostgreSQL client) and the
+[`bcrypt` package](https://www.npmjs.com/package/bcrypt) (to hash the password). You should also install their
+associated TypeScript types packages. You are not limited to these packages; you can install any combination of Node.js
+packages that you need and use them at will.
+
+```bash title="In the connector directory, run the following commands to install the packages:"
+npm install pg bcrypt
+npm install --save-dev @types/pg @types/bcrypt
+```
+
+Once those packages are installed, you add the following code to the `functions.ts` file:
 
 ```typescript
 import { Client } from "pg";
@@ -315,11 +338,19 @@ This:
 - inserts into the `users` table in the database.
 - returns the inserted user without password.
 
-We're using the [`pg` PostgreSQL client](https://www.npmjs.com/package/pg) to connect to the database and run the query
-and [`bcrypt` to hash the password](https://www.npmjs.com/package/bcrypt), but since this is a Node.js Lambda function,
-you can use any combination of Node.js libraries you want.
+Now you can re-introspect your connector and generate an `hml` file for the function using the following commands:
 
-You can then repeat this process to scale your mutations independently.
+```bash title="Introspect the connector and track the new function:"
+ddn connector introspect my_ts
+ddn command add my_ts insertUser
+```
+
+Don't forget to rebuild and restart your GraphQL engine after making these changes!
+
+```bash title="Create a new local build and restart your Docker containers:"
+ddn supergraph build local
+ddn run docker-start
+```
 
 ## Testing
 
