@@ -41,14 +41,14 @@ subscription UserNotificationSubscription {
 
 You can enable subscriptions on your GraphQL API in the following ways:
 
-### Fresh Hasura DDN Project
+### New Hasura DDN Project
 
 If you're starting fresh, set up a Hasura DDN project using the [quickstart](/getting-started/quickstart.mdx) guide.
-Once your models are added to the supergraph using the [`ddn model add`](/cli/commands/ddn_model_add.mdx) command,
-subscription capabilities are automatically generated for them. For futher customization, you can
+After adding your models to the supergraph using the [`ddn model add`](/cli/commands/ddn_model_add.mdx) command,
+subscription capabilities are automatically generated! For further customization, you can
 [edit the metadata](#metadata-configuration).
 
-### Existing Project
+### Existing Hasura DDN Project
 
 To enable subscriptions in an existing DDN project, use the following CLI command:
 
@@ -57,12 +57,12 @@ ddn codemod upgrade-graphqlconfig-subscriptions
 ```
 
 This command updates the local metadata files, adding subscription-specific configurations. After running this, create a
-supergraph build and test the subscriptions on the API. For futher customization, you can
+supergraph build and test the subscriptions on the API. For further customization, you can
 [edit the metadata](#metadata-configuration).
 
 ### Metadata Configuration
 
-You can also configure subscriptions by editing the metadata HML files in your DDN project.
+You can also configure subscriptions by editing the metadata in your DDN project.
 
 #### Root Type Name
 
@@ -138,21 +138,6 @@ You can set the polling interval (in milliseconds) within the model's
 [GraphQL definition](/supergraph-modeling/models.mdx#model-modelgraphqldefinition) to determine how often the engine
 checks for updates. If not specified, the interval defaults to `1000` milliseconds (1 second).
 
-:::info Note
-
-Choosing the right polling interval is key to the performance and stability of your subscription API. Setting too short
-an interval can overburden your database with excessive queries, which can degrade performance, especially in
-high-traffic environments. Conversely, setting too long an interval may delay critical updates, making your real-time
-application less responsive.
-
-For example, a short interval might be necessary for live sports score updates or stock trading platforms where
-real-time precision is critical. A longer interval could be suitable for use cases like updating daily sales reports, or
-sending periodic system health metrics—scenarios where updates are not urgent, and system stability is prioritized over
-immediate data freshness. The default setting of 1 second is chosen to accommodate most use cases, but should be
-adjusted based on your specific real-time needs.
-
-:::
-
 An example of an `Article` [model definition](/supergraph-modeling/models.mdx#model-model) that has a custom polling
 interval configured for the `selectMany` subscription field:
 
@@ -175,6 +160,19 @@ definition:
     orderByExpressionType: ArticleOrderBy
     filterInputTypeName: ArticleFilterInput
 ```
+
+##### Polling intervals and performance
+
+Choosing the right polling interval is key to the performance and stability of your subscription API. Setting too short
+an interval can overburden your database with excessive queries, which can degrade performance, especially in
+high-traffic environments. Conversely, setting too long an interval may delay critical updates, making your real-time
+application less responsive.
+
+For example, a short interval might be necessary for live sports score updates or stock trading platforms where
+real-time precision is critical. A longer interval could be suitable for use cases like updating daily sales reports, or
+sending periodic system health metrics—scenarios where updates are not urgent, and system stability is prioritized over
+immediate data freshness. The default setting of 1 second is chosen to accommodate most use cases, but should be
+adjusted based on your specific real-time needs.
 
 #### Permissions
 
