@@ -254,11 +254,18 @@ You can do this by adding the following code to the `functions.ts` file:
 import { Client } from "pg";
 import bcrypt from "bcrypt";
 
-// Define the User type using TypeScript
-type User = {
+// Define a type to capture a new user's details using TypeScript
+type NewUser = {
   name: string;
   email: string;
   password: string; // Add a password field to the User type
+};
+
+// Define a type to capture the created User
+type User = {
+  id: number;
+  name: string;
+  email: string;
 };
 
 /**
@@ -268,7 +275,7 @@ type User = {
  * @param user The user to insert into the database. Expects a name, email, and password.
  * @returns The user that was inserted into the database.
  */
-export async function insertUser(user: User): Promise<Omit<User, "password">> {
+export async function insertUser(user: NewUser): Promise<User> {
   // Get your database connection string.
   // NB!! Use env vars for this in production NB!!
   const connectionString = "postgresql://username:password@localhost:5432/mydb";

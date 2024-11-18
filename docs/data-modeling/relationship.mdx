@@ -1,0 +1,103 @@
+---
+sidebar_position: 4
+sidebar_label: "Relationships connect data"
+description: "Relationships allow you to connect data across different models."
+keywords:
+  - relationship
+  - data modeling
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Relationships Connect Data
+
+## Introduction
+
+Relationships allow you to connect data, enabling you to query data across multiple entities.
+
+## Lifecycle
+
+:::info New to Hasura DDN?
+
+If you haven't already, have a run through our [Quickstart](/getting-started/quickstart.mdx) guide to set up your Hasura
+DDN instance. In the sections below, we'll guide you through how to interact with your metadata and shape your API to
+your liking!
+
+:::
+
+### Creating a relationship
+
+To query data across multiple entities, you'll first need to create a relationship between them.
+
+As an example, you can configure a relationship between a `posts` collection and a `users` collection. This assumes that
+both collections already have tracked models in your metadata, and that the `Post` model has a field called `userId`
+that matches values in the `id` field of `User`.
+
+```yaml title="Create relationship in your metadata:"
+# We recommend adding this to the parent model's HML file
+kind: Relationship
+version: v1
+definition:
+  name: user
+  source: Post
+  target:
+    model:
+      name: User
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: userId
+      target:
+        modelField:
+          - fieldName: id
+```
+
+### Updating a relationship
+
+Your underlying data source may change over time. You can update your relationship to reflect these changes.
+
+For example, imagine you have a `post-user` relationship, and the posts previously used a field named `userId`. Now,
+however, that field name has changed to `authorId`.
+
+First, update your connector configuration and models to reflect the changed field name.
+
+```bash title="Update your DataConnectorLink:"
+ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
+```
+
+```bash title="Then, update your model:"
+ddn model update <connector_name> users
+```
+
+Then edit the relationship configuration in subgraph metadata.
+
+```yaml title="Edit the existing metadata file:"
+# In whichever HML file contains your relationship
+kind: Relationship
+version: v1
+definition:
+  name: user
+  source: Post
+  target:
+    model:
+      name: User
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: authorId # this is the line that has changed
+      target:
+        modelField:
+          - fieldName: id
+```
+
+### Deleting a relationship
+
+If you no longer need a relationship, simply delete the metadata object.
+
+## Reference
+
+You can learn more about relationships in the metadata reference [docs](/supergraph-modeling/relationships.mdx).
