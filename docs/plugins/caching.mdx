@@ -1,0 +1,140 @@
+---
+sidebar_position: 2
+sidebar_label: Caching
+description: Explore the caching plugin, and how to incorporate it into your Hasura projects.
+keywords:
+  - hasura plugins
+  - plugins
+  - engine plugins
+  - custom execution
+  - caching
+seoFrontMatterUpdated: false
+---
+
+The [caching plugin](https://github.com/hasura/engine-plugin-caching) adds
+the ability to specify a list of queries whose responses should be cached.
+
+## Setting up for local development
+
+We can set up everything we need for local development through Docker.
+Add the following entries to your `compose.yaml` file:
+
+```yaml
+redis:
+  image: redis:latest
+  ports:
+    - 6379:6379
+
+caching:
+  build:
+    context: https://github.com/hasura/engine-plugin-caching.git
+  ports:
+    - 8787:8787
+  extra_hosts:
+    - local.hasura.dev=host-gateway
+  volumes:
+    - ./globals/plugins/caching-config.js:/app/src/config.js
+```
+
+Here, we've added a Redis instance to our Docker Compose project, as well as an
+instance of the caching plugin. The caching plugin takes a config file (which
+we've said here is saved in `./globals/plugins/caching-config.js`, though the
+path is up to you. Here's an example config file:
+
+```javascript
+export const Config = {
+  // Client header configuration
+  headers: {
+    // A secret that must be provided in incoming requests from the engine.
+    // Change this to whatever you'd like.
+    "hasura-m-auth": "zZkhKqFjqXR4g5MZCsJUZCnhCcoPyZ"
+  },
+
+  // How long a cached response should live (in seconds).
+  time_to_live: 600,
+
+  // A URL for redis. If you copied the docker-compose configuration for
+  // `redis` above, this doesn't need changing.
+  redis_url: "redis://redis:6379",
+
+  // OpenTelemetry configuration. The name of this environment variable will
+  // depend on your subgraph name - check your `.env` file to find the correct
+  // name.
+  otel_endpoint: process.env.GLOBALS_OTEL_EXPORTER_OTLP_ENDPOINT
+  otel_headers: {},
+
+  // A list of queries that we want to cache. Note that these queries will be
+  // cached based on their parsed structures, so white space doesn't matter.
+  queries_to_cache: [
+    ` query MyQuery {
+        customers {
+          firstName
+          lastName
+        }
+      }
+    `
+  ],
+};
+```
+
+The `queries_to_cache` list can be extended to contain all the queries you'd
+like to be cached. Note that the query response is cached for each set of
+session variables and each role, as these may yield different outputs.
+
+## Adding the plugin to your project
+
+Once we've configured the plugin, running `ddn run docker-start` should work
+happily. Now, we just need to configure Hasura to use the plugin. Add the
+following to one of your `subgraph.yaml` files:
+
+```yaml
+---
+kind: LifecyclePluginHook
+version: v1
+definition:
+  pre: parse
+  name: cache_get_test
+  url:
+    value: http://local.hasura.dev:8787/pre-parse
+  config:
+    request:
+      headers:
+        additional:
+          hasura-m-auth:
+            value: zZkhKqFjqXR4g5MZCsJUZCnhCcoPyZ
+      rawRequest:
+        query: {}
+        variables: {}
+---
+kind: LifecyclePluginHook
+version: v1
+definition:
+  pre: response
+  name: cache_set_test
+  url:
+    value: http://local.hasura.dev:8787/pre-response
+  config:
+    request:
+      headers:
+        additional:
+          hasura-m-auth:
+            value: zZkhKqFjqXR4g5MZCsJUZCnhCcoPyZ
+      rawRequest:
+        query: {}
+        variables: {}
+```
+
+## Running the project
+
+At this point, we can create a build of our project and start local
+development:
+
+```bash
+$ ddn supergraph build local
+$ ddn run docker-start
+```
+
+Queries marked in the caching config as cacheable should now be cached. The
+caching plugin will output logs to indicate which requests have and have not
+been cached, so `docker compose logs -f caching` will allow you to watch these
+logs as they arise.
