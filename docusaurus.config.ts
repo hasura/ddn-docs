@@ -74,7 +74,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x',
+              label: 'v3.x (DDN)',
               badge: true,
             },
           },
