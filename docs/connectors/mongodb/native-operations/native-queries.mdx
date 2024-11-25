@@ -40,9 +40,11 @@ then write configuration directly.
 
 ## Manage native queries with the DDN CLI
 
-:::info Extended JSON
+:::caution Connector version requirement
 
-Managing native queries using the CLI requires version 1.5.0 or later of the MongoDB Connector CLI plugin.
+Managing native queries using the CLI requires version 1.5.0 or later of the MongoDB Connector CLI plugin. If you have
+an earlier version please skip to the [Write native query configurations
+directly](.#write-native-query-configurations-directly) section.
 
 :::
 
@@ -82,16 +84,18 @@ In your connector configuration directory run a command like this using the path
 $ ddn connector-link native-query create title_word_frequency.json --collection movies
 ```
 
-The name of the native query is based on the input JSON file name - you can override this with the `--name` flag.
+The name of the native query is based on the input JSON file name, in this case `title_word_frequency`. You can override
+this with the `--name` flag.
 
-If your aggregation pipeline uses a collection as an input specify it with the `--collection` flag.
+If your aggregation pipeline uses a collection as an input specify it with the `--collection` flag. Your connector must
+already be configured with the schema for the collection. Type inference will be based on the configured schema.
 
 If you are updating an existing native query add the `--force` flag to overwrite the existing configuration.
 
 You should see output like this:
 
 ```
-Wrote native query configuration to your-project-dir/connector/native_queries/title_word_frequency.json
+Wrote native query configuration to your-project/connector/native_queries/title_word_frequency.json
 
 input collection: movies
 representation: collection
@@ -108,8 +112,33 @@ year: int!
 }
 ```
 
+You may keep the pipeline file that you wrote if you think that you might want to edit it to update the native query
+later, or you may delete it.
+
 The final steps are to track the native query as a collection in your metadata the same way you do when making a schema
 change to your connector configuration.
+
+#### Native Query Parameters
+
+Parameters / arguments for your native query are specified using the placeholder syntax, `"{{ parameter_name }}"` inside
+a string. The example above includes a parameter called `year` using this syntax.
+
+Despite the placeholder appearing in a string, if the only content of the string is the placeholder then the placeholder
+will be replaced with an argument value at query time which may be any type, including complex types such as arrays or
+objects. In the example above the type of the `year` parameter is `int!` so the string `"{{ year }}"` will be replaced
+with a non-null int value.
+
+The type checker attempts to infer types for parameters. If it is not able to do so you can add a type annotation with
+a bar (`|`) following the parameter name. For example, `"{{ year | int! }}"`. Type annotations use a GraphQL-style type
+expression syntax so for example a non-nullable list of nullable double values would be `[double]!`. But instead of
+GraphQL types these annotations use BSON types using the lower-case alias names [here][BSON Types]. In addition to BSON
+types you can also reference object types using names specified in your connector configuration schema, and there is
+a special type, `extendedJSON` that is the "any" type - values of that type can hold any data.
+
+[BSON Types]: https://www.mongodb.com/docs/manual/reference/bson-types/
+
+The same parameter may occur any number of times in a pipeline. If you use a type annotation you may apply it to any one
+occurrence of the parameter, or to all of them.
 
 ### List, inspect, and delete native queries
 
