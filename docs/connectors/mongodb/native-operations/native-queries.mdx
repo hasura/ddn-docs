@@ -14,10 +14,126 @@ seoFrontMatterUpdated: false
 
 ## Introduction
 
-Native Queries allow you to run custom aggregation pipelines on your MongoDB database. This allows you to run queries
-that are not supported by Hasura's GraphQL engine.
+Native Queries allow you to run custom queries on your MongoDB database. This allows you to run queries that are not
+supported by Hasura's GraphQL engine. These queries are defined as [aggregation pipelines][] which is the query format
+that is used by MongoDB's aggregate command.
 
-## Setup
+[aggregation pipelines]: https://www.mongodb.com/docs/manual/aggregation/#std-label-aggregation-pipeline-intro
+
+Native Queries can be managed either via the DDN CLI, or by editing connector configuration files directly. To connect
+a query to your data graph the native query configuration must declare the type of data that it produces, and the types
+of any parameters. The major difference between using the CLI vs configuring by hand is how these type declarations are
+managed.
+
+- The CLI will type-check your aggregation pipeline, and will automatically produce type declarations for you. But this
+functionality is experimental - there are aggregation pipeline features that the CLI does not recognize yet. The CLI
+will not be able to produce configurations for pipelines that use those features. See [supported pipeline features][].
+- When writing configuration directly you may use any aggregation pipeline features, and you have complete control over
+how types are declared. But you must write all type declarations yourself.
+
+You may freely switch between configuring using the CLI or writing configuration files directly. For example you can
+manage one native query with the CLI, and configure another directly; or you can edit CLI-generated configuration files.
+The recommendation is to try using the CLI first, and if it doesn't work or does not produce the correct configuration
+then write configuration directly.
+
+[supported pipeline features]: ./supported-aggregation-pipeline-features.mdx
+
+## Manage native queries with the DDN CLI
+
+:::info Extended JSON
+
+Managing native queries using the CLI requires version 1.5.0 or later of the MongoDB Connector CLI plugin.
+
+:::
+
+### Create a native query
+
+Create a file with a `.json` extension that contains the aggregation pipeline for you query. For example this pipeline
+outputs frequency counts for words appearing in movie titles in a given year:
+
+<figure>
+```json
+[
+  {
+    "$match": {
+      "year": "{{ year }}"
+    }
+  },
+  { 
+    "$replaceWith": {
+      "title_words": { "$split": ["$title", " "] }
+    }
+  },
+  { "$unwind": { "path": "$title_words" } },
+  { 
+    "$group": {
+      "_id": "$title_words",
+      "count": { "$count": {} }
+    }
+  }
+]
+```
+<figcaption>title_word_frequency.json</figcaption>
+</figure>
+
+In your connector configuration directory run a command like this using the path to the pipeline file as an argument,
+
+```sh
+$ ddn connector-link native-query create title_word_frequency.json --collection movies
+```
+
+The name of the native query is based on the input JSON file name - you can override this with the `--name` flag.
+
+If your aggregation pipeline uses a collection as an input specify it with the `--collection` flag.
+
+If you are updating an existing native query add the `--force` flag to overwrite the existing configuration.
+
+You should see output like this:
+
+```
+Wrote native query configuration to your-project-dir/connector/native_queries/title_word_frequency.json
+
+input collection: movies
+representation: collection
+
+## parameters
+
+year: int!
+
+## result type
+
+{
+  _id: string!,
+  count: int!
+}
+```
+
+The final steps are to track the native query as a collection in your metadata the same way you do when making a schema
+change to your connector configuration.
+
+### List, inspect, and delete native queries
+
+List names of configured native queries with,
+
+```sh
+$ ddn connector-link native-query list
+```
+
+Show information about a native including its pipeline and type declarations with,
+
+```sh
+$ ddn connector-link native-query show <native-query-name>
+```
+
+Delete a native query with,
+
+```sh
+$ ddn connector-link native-query delete <native-query-name>
+```
+
+After deleting you will need to update your metadata configuration as well.
+
+## Write native query configurations directly
 
 Native Queries can be defined by
 
@@ -26,8 +142,6 @@ Native Queries can be defined by
 
 Native Queries can take arguments using the `"{{argument_name}}"` syntax. Arguments must be specified along with their
 type.
-
-## Example
 
 Here's an example of simple `"hello"` Native Query:
 
