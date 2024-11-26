@@ -4,10 +4,22 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 require('dotenv').config();
 
+const DOCS_SERVER_ROOT_URLS = {
+  development: 'localhost:8000',
+  production: 'website-api.hasura.io',
+  staging: 'website-api.stage.hasura.io',
+};
+
+const DOCS_SERVER_URLS = {
+  development: `http://${DOCS_SERVER_ROOT_URLS.development}`,
+  production: `https://${DOCS_SERVER_ROOT_URLS.production}`,
+  staging: `https://${DOCS_SERVER_ROOT_URLS.staging}`,
+};
+
 const BOT_ROUTES = {
-  development: 'ws://localhost:8000/bot/query',
-  production: 'wss://website-api.hasura.io/docs-services/docs-server/bot/query',
-  staging: 'wss://website-api.stage.hasura.io/docs-services/docs-server/bot/query',
+  development: `ws://${DOCS_SERVER_ROOT_URLS.development}/bot/query`,
+  production: `wss://${DOCS_SERVER_ROOT_URLS.production}/docs-services/docs-server/bot/query`,
+  staging: `wss://${DOCS_SERVER_ROOT_URLS.staging}/docs-services/docs-server/bot/query`,
 };
 
 const config: Config = {
@@ -45,16 +57,22 @@ const config: Config = {
       if (process.env.CF_PAGES === '1') {
         return BOT_ROUTES.staging; // if we're on CF pages, use the staging environment
       } else {
-        switch (process.env.release_mode) {
-          case 'development':
-            return BOT_ROUTES.development; // if we're on the development environment, use the local server
-          case 'production':
-            return BOT_ROUTES.production;
-          case 'staging':
-            return BOT_ROUTES.production; // if we're in full staging on GCP and not cloudflare pages, use the production environment
-          default:
-            return BOT_ROUTES.development; // default to development if no match (env var not generally set on local dev)
+        const mode = process.env.release_mode;
+        if (mode === 'staging') {
+          return BOT_ROUTES.production; // use production route for staging
         }
+        return BOT_ROUTES[mode ?? 'development'];
+      }
+    })(),
+    docsServerURL: (() => {
+      if (process.env.CF_PAGES === '1') {
+        return DOCS_SERVER_URLS.staging; // if we're on CF pages, use the staging environment
+      } else {
+        const mode = process.env.release_mode;
+        if (mode === 'staging') {
+          return DOCS_SERVER_URLS.production; // use production route for staging
+        }
+        return DOCS_SERVER_URLS[mode ?? 'development'];
       }
     })(),
     hasuraVersion: 3,
