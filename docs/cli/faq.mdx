@@ -83,7 +83,7 @@ New features introduced in DDN may have new metadata objects or fields associate
 any of these new objects but the engine version you are running is an older version that doesn't support these objects,
 then the engine will fail to startup. This can be resolved by using the latest engine version.
 
-## `ddn run docker-start` is using a different ddn binary than the one in the current shell.
+## `ddn run docker-start` is using a different ddn binary than the one in the current shell. {#docker-start-different-binary}
 
 The `ddn run` command is just a convenient way to run arbitrary commands defined in the `scripts` section of
 `.hasura/context.yaml` of the project directory.
@@ -105,3 +105,20 @@ The DDN CLI provides a `ddn doctor` command that checks that all the required de
 If you're running `ddn run docker-start`, then by default it uses the `--pull` flag when bringing up docker containers.
 
 If you're running the docker compose command directly, then use `--pull` flag.
+
+## Why are traces are not showing up for local development?
+
+The local engine container and all connector containers send its traces to the OpenTelemetry Collector container which
+is defined in the default docker compose file initialized by the DDN ClI.
+
+The traces are then exported to a cloud endpoint by the OpenTelemetry container as defined in the `otel-collector-config.yaml`
+file initialized by the CLI by default in the project directory. For this, the OpenTelemetry Collector requires a PAT token.
+
+If you are not able to see traces during local development:
+- Make sure you are logged in to the DDN CLI. If not log in by running `ddn auth login`.
+- If you are logged in, make sure you are able to see a PAT token by running `ddn auth print-pat`.
+- Make sure that your OpenTelemetry Collector container is running.
+- If you are running the docker compose command directly, then make sure that the environment variable `HASURA_DDN_PAT` is passed to the OpenTelemetry Collector container. The value
+  for this env var would be the output of the `ddn auth print-pat` command. If you are running `ddn run docker-start`, then this
+  is already handled for you.
+- If you are getting the issue with `ddn run docker-start`, then it could be due to the issue described in [this section](#docker-start-different-binary).
