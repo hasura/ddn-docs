@@ -20,22 +20,33 @@ that is used by MongoDB's aggregate command.
 
 [aggregation pipelines]: https://www.mongodb.com/docs/manual/aggregation/#std-label-aggregation-pipeline-intro
 
-Native Queries can be managed either via the DDN CLI, or by editing connector configuration files directly. To connect
-a query to your data graph the native query configuration must declare the type of data that it produces, and the types
-of any parameters. The major difference between using the CLI vs configuring by hand is how these type declarations are
-managed.
+## Managing native queries
 
-- [BETA] The CLI will type-check your aggregation pipeline, and will automatically produce type declarations for you.
-But this functionality is experimental - there are aggregation pipeline features that the CLI does not recognize yet.
-The CLI will not be able to produce configurations for pipelines that use those features. See [supported pipeline
-features][].
-- When writing configuration directly you may use any aggregation pipeline features, and you have complete control over
+Native Queries can be managed either via the DDN CLI, or by editing connector configuration files directly.
+
+To connect a query to your data graph the native query configuration must declare the type of data that it produces, and
+the types of any parameters. The major difference between using the CLI vs configuring by hand is how these type
+declarations are managed.
+
+### 1. CLI (BETA)
+
+The CLI will type-check your aggregation pipeline, and will automatically produce type declarations for you. But this
+functionality is experimental - there are aggregation pipeline features that the CLI does not recognize yet. The CLI
+will not be able to produce configurations for pipelines that use those features. See [supported pipeline features][].
+
+### 2. Directly in configuration files
+
+When writing configuration directly you may use any aggregation pipeline features, and you have complete control over
 how types are declared. But you must write all type declarations yourself.
 
-You may freely switch between configuring using the CLI or writing configuration files directly. For example you can
+:::tip Switching between CLI and configuration files
+
+You can freely switch between configuring with the CLI or writing configuration files directly. For example you can
 manage one native query with the CLI, and configure another directly; or you can edit CLI-generated configuration files.
 The recommendation is to try using the CLI first, and if it doesn't work or does not produce the correct configuration
 then write configuration directly.
+
+:::
 
 [supported pipeline features]: ./supported-aggregation-pipeline-features.mdx
 
@@ -57,21 +68,20 @@ it is limited to managing native query configuration files, and does not lock yo
 Create a file with a `.json` extension that contains the aggregation pipeline for you query. For example this pipeline
 outputs frequency counts for words appearing in movie titles in a given year:
 
-<figure>
-```json
+```json title="title_word_frequency.json"
 [
   {
     "$match": {
       "year": "{{ year }}"
     }
   },
-  { 
+  {
     "$replaceWith": {
       "title_words": { "$split": ["$title", " "] }
     }
   },
   { "$unwind": { "path": "$title_words" } },
-  { 
+  {
     "$group": {
       "_id": "$title_words",
       "count": { "$count": {} }
@@ -79,13 +89,14 @@ outputs frequency counts for words appearing in movie titles in a given year:
   }
 ]
 ```
-<figcaption>title_word_frequency.json</figcaption>
-</figure>
 
 In your supergraph directory run a command like this using the path to the pipeline file as an argument,
 
 ```sh
-$ ddn connector plugin --connector app/connector/my_connector/connector.yaml -- native-query create title_word_frequency.json --collection movies
+$ ddn connector plugin \
+  --connector app/connector/my_connector/connector.yaml \
+  -- native-query create title_word_frequency.json \
+  --collection movies
 ```
 
 The name of the native query is based on the input JSON file name, in this case `title_word_frequency`. You can override
@@ -98,7 +109,7 @@ If you are updating an existing native query add the `--force` flag to overwrite
 
 You should see output like this:
 
-```
+```text
 Wrote native query configuration to your-project/connector/native_queries/title_word_frequency.json
 
 input collection: movies
@@ -132,12 +143,12 @@ will be replaced with an argument value at query time which may be any type, inc
 objects. In the example above the type of the `year` parameter is `int!` so the string `"{{ year }}"` will be replaced
 with a non-null int value.
 
-The type checker attempts to infer types for parameters. If it is not able to do so you can add a type annotation with
-a bar (`|`) following the parameter name. For example, `"{{ year | int! }}"`. Type annotations use a GraphQL-style type
+The type checker attempts to infer types for parameters. If it is not able to do so you can add a type annotation with a
+bar (`|`) following the parameter name. For example, `"{{ year | int! }}"`. Type annotations use a GraphQL-style type
 expression syntax so for example a non-nullable list of nullable double values would be `[double]!`. But instead of
 GraphQL types these annotations use BSON types using the lower-case alias names [here][BSON Types]. In addition to BSON
-types you can also reference object types using names specified in your connector configuration schema, and there is
-a special type, `extendedJSON` that is the "any" type - values of that type can hold any data.
+types you can also reference object types using names specified in your connector configuration schema, and there is a
+special type, `extendedJSON` that is the "any" type - values of that type can hold any data.
 
 [BSON Types]: https://www.mongodb.com/docs/manual/reference/bson-types/
 
@@ -149,19 +160,25 @@ occurrence of the parameter, or to all of them.
 List names of configured native queries with,
 
 ```sh
-$ ddn connector plugin --connector app/connector/my_connector/connector.yaml -- native-query list
+$ ddn connector plugin \
+  --connector app/connector/my_connector/connector.yaml \
+  -- native-query list
 ```
 
 Show information about a native including its pipeline and type declarations with,
 
 ```sh
-$ ddn connector plugin --connector app/connector/my_connector/connector.yaml -- native-query show <native-query-name>
+$ ddn connector plugin \
+  --connector app/connector/my_connector/connector.yaml \
+  -- native-query show <native-query-name>
 ```
 
 Delete a native query with,
 
 ```sh
-$ ddn connector plugin --connector app/connector/my_connector/connector.yaml -- native-query delete <native-query-name>
+$ ddn connector plugin \
+  --connector app/connector/my_connector/connector.yaml \
+  -- native-query delete <native-query-name>
 ```
 
 After deleting you will need to update your metadata configuration as well.
@@ -171,7 +188,7 @@ After deleting you will need to update your metadata configuration as well.
 Native Queries can be defined by
 
 1. Adding a `native_queries` directory if one doesn't already exist in your connector configuration directory
-2. Adding a .json file following the syntax laid out in the following sections.
+2. Adding a `.json` file following the syntax laid out in the following sections.
 
 Native Queries can take arguments using the `"{{argument_name}}"` syntax. Arguments must be specified along with their
 type.
