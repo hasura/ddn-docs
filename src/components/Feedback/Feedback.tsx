@@ -1,6 +1,7 @@
 import React, { ReactNode, useState, useEffect } from 'react';
-// import { saTrack } from '@site/src/utils/segmentAnalytics';
 import styles from './styles.module.css';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+
 export const Feedback = ({ metadata }: { metadata: any }) => {
   const [rating, setRating] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
   const [notes, setNotes] = useState<string | null>(null);
@@ -10,6 +11,16 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
   const [textAreaPlaceholder, setTextAreaPlaceholder] = useState<string>('This section is optional ✌️');
   const [isSubmitSuccess, setIsSubmitSuccess] = useState<boolean>(false);
   const [isActive, setIsActive] = useState<boolean>(false);
+
+  const {
+    siteConfig: { customFields },
+  } = useDocusaurusContext();
+
+  const { docsServerURL, hasuraVersion, DEV_TOKEN } = customFields as {
+    docsServerURL: string;
+    hasuraVersion: number;
+    DEV_TOKEN?: string;
+  };
 
   useEffect(() => {
     const popups = document.querySelectorAll('.chat-popup');
@@ -38,38 +49,42 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
     const sendData = async () => {
       const myHeaders = new Headers();
       myHeaders.append('Content-Type', 'application/json');
+      myHeaders.append('devtoken', DEV_TOKEN);
+
+      // { pageTitle, pageUrl, score, userFeedback, version, docsUserId }
+
+      const storedUserID = localStorage.getItem('hasuraDocsUserID') as string | 'null';
 
       const raw = JSON.stringify({
-        feedback: {
-          isHelpful: rating >= 4 ? `👍` : `👎`,
-          score: rating,
-          notes,
-          pageTitle: document.title,
-          url: window.location.href,
-        },
+        score: rating,
+        userFeedback: notes,
+        pageTitle: document.title,
+        pageUrl: window.location.href,
+        version: hasuraVersion,
+        docsUserId: storedUserID,
       });
 
       const requestOptions = {
         method: 'POST',
         headers: myHeaders,
         body: raw,
-        redirect: 'follow',
+        redirect: 'follow' as RequestRedirect,
       };
 
-      fetch('https://us-central1-websitecloud-352908.cloudfunctions.net/docs-feedback', requestOptions as any)
+      fetch(docsServerURL + '/feedback/public-new-feedback?', requestOptions)
         .then(response => response.text())
         .catch(error => console.error('error', error));
     };
 
-    if (!window.location.hostname.includes('hasura.io')) {
-      alert(
-        'Hey! We like that you like our docs and chose to use them 🎉\n\nHowever, you might want to remove the feedback component or modify the route you hit, lest you want us reading what people think of your site ✌️'
-      );
-      setRating(null);
-      setNotes(null);
-      setIsSubmitSuccess(true);
-      return;
-    }
+    // if (!window.location.hostname.includes('hasura.io')) {
+    //   alert(
+    //     'Hey! We like that you like our docs and chose to use them 🎉\n\nHowever, you might want to remove the feedback component or modify the route you hit, lest you want us reading what people think of your site ✌️'
+    //   );
+    //   setRating(null);
+    //   setNotes(null);
+    //   setIsSubmitSuccess(true);
+    //   return;
+    // }
 
     sendData()
       .then(() => {
