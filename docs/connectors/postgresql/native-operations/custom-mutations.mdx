@@ -66,8 +66,27 @@ CLI to add it to the connector configuration. For example:
      native-operation create --operation-path native_operations/mutations/insert_artist.sql --kind mutation
    ```
 
-4. Add a source entity as described in our
-   [add source entities](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx) guide.
+4. Add a source entity as described in our [add source entities](/getting-started/quickstart.mdx) guide.
+
+:::tip Other operations
+
+You can also create bespoke mutations for updates and deletes. As an example, this mutation can be used to update an
+artist's name:
+
+```sql
+-- in update_artist_name.sql
+UPDATE public."Artist"
+SET "Name" = {{new_name}}
+WHERE "ArtistId" = (
+  SELECT "ArtistId"
+  FROM public."Artist"
+  WHERE "Name" = {{current_name}}
+  LIMIT 1
+)
+RETURNING *;
+```
+
+:::
 
 ## List Native Operations
 

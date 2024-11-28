@@ -54,8 +54,8 @@ Based on the validation result, the webhook will need to respond with either a `
 a `401` status code (for an invalid or missing token).
 
 To allow the GraphQL request to go through, your webhook must return a `200` status code. You should respond with
-session variables beginning with `X-Hasura-*` in the body of your response. These will be available to your
-[permissions](/supergraph-modeling/permissions.mdx) in Hasura.
+session variables beginning with `X-Hasura-*` in the body of your response. The value of each session variable can be
+any JSON value. These will be available to your [permissions](/supergraph-modeling/permissions.mdx) in Hasura.
 
 You will, at least, need to set the `X-Hasura-Role` session variable to let the Hasura DDN know which role to use for
 this request. Unlike [JWT auth mode](auth/authentication/jwt/index.mdx), you do not have to pass
@@ -70,7 +70,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json
 
 {
-    "X-Hasura-User-Id": "25",
+    "X-Hasura-User-Id": 25,
     "X-Hasura-Role": "user",
     "X-Hasura-Is-Owner": "true",
     "X-Hasura-Custom": "custom value"
@@ -90,7 +90,7 @@ different key-value pairs.
 
 In the example below, we're demonstrating a sample authentication webhook.
 
-```yaml title="globals/auth-config.hml"
+```yaml title="globals/metadata/auth-config.hml"
 kind: AuthConfig
 version: v2
 definition:

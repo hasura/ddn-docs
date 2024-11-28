@@ -11,6 +11,8 @@ import styles from './styles.module.css';
 // import { useColorMode } from '@docusaurus/theme-common';
 // import DocsLogoDark from '@site/static/img/docs-logo-dark.svg';
 import DocsLogoLight from '@site/static/img/docs-logo-light.svg';
+import BrowserOnly from '@docusaurus/BrowserOnly';
+import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 
 function useNavbarItems() {
   // TODO temporary casting until ThemeConfig type is improved
@@ -101,6 +103,9 @@ export default function NavbarContent() {
         // TODO stop hardcoding items?
         // Ask the user to add the respective navbar items => more flexible
         <>
+          <a className="navbar__item navbar__link flex">
+            <BrowserOnly fallback={<div>Loading...</div>}>{() => <AiChatBot />}</BrowserOnly>
+          </a>
           <NavbarItems items={rightItems} />
         </>
       }

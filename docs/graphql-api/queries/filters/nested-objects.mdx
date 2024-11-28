@@ -38,6 +38,7 @@ query {
 ## Applicable Fields for Nested Field Comparisons
 
 Nested field comparisons can be made in the GraphQL API if:
+
 - The field's type is an [Object Type](supergraph-modeling/types.mdx#objecttype-objecttype)
 - The field is a [Relationship](supergraph-modeling/relationships.mdx)
 
@@ -90,8 +91,8 @@ users based on the condition that their `profile.age` is greater than 30.
 
 ## Filtering by Relationship Fields
 
-You can filter results based on conditions applied to the fields of the target model in a relationship.
-The relationship can be either an object or array type.
+You can filter results based on conditions applied to the fields of the target model in a relationship. The relationship
+can be either an object or array type.
 
 **Example:** Filter by `Array` relationship fields.
 
@@ -138,7 +139,6 @@ The relationship can be either an object or array type.
 />
 
 In this query, `books` is an Array relationship, and we filter authors who have written a book titled "GraphQL Basics".
-
 
 **Example:** Filter by `Object` relationship fields.
 
@@ -191,13 +191,63 @@ relationships is handled at the data source level, improving performance and red
 
 However, if the `relation_comparisons` capability is absent, the query engine will handle the relationship comparisons
 at its own layer. In this case, the query engine fetches the relevant mapping field values of the relationship and
-constructs the necessary comparison expressions. While this ensures that the query can still execute, it may result
-in reduced efficiency and slower responses, as more data needs to be transferred to the query engine for evaluation.
-See [Performance of Relationship Comparisons](graphql-api/queries/filters/performance-relationship-comparisons.mdx)
-for more details.
+constructs the necessary comparison expressions. While this ensures that the query can still execute, it may result in
+reduced efficiency and slower responses, as more data needs to be transferred to the query engine for evaluation. See
+[Performance of Relationship Comparisons](graphql-api/queries/filters/performance-relationship-comparisons.mdx) for more
+details.
 
 #### Compatibility Date
 
 To utilize relationship comparisons without the `relation_comparisons` capability, you must update the compatibility
 date. For detailed instructions, please refer to the
-[Compatibility Config](supergraph-modeling/compatibility-config.mdx#bypass-relation_comparisons-ndc-capability).
+[Compatibility Config](supergraph-modeling/compatibility-config.mdx#enable-relationships-in-predicates-to-be-used-even-if-the-data-connector-does-not-support-it).
+
+### Remote Relationships
+
+A relationship between two entities from different data connectors is known as a **remote relationship**. This type of
+relationship allows you to integrate and query data across multiple sources seamlessly. Filtering with a predicate from
+a model in a remote data source using remote relationships enhances query flexibility, enabling precise data retrieval
+directly on the server. This eliminates the need for client-side filtering, which not only simplifies your code but also
+reduces network data transfer, leading to improved application performance.
+
+For example:
+
+```graphql {2}
+query UsersCompletedOrders {
+  users(where: { orders: { status: { _eq: "complete" } } }) {
+    id
+    name
+    orders {
+      id
+      status
+    }
+  }
+}
+```
+
+This query retrieves a list of users along with their completed orders. Here, users and orders stored in separate data
+sources.
+
+:::info Limitations
+
+- Only remote relationships where the targets are [models](supergraph-modeling/relationships.mdx#object-type-to-a-model)
+  are supported in comparisons, with support for remote relationships targeting
+  [commands](supergraph-modeling/relationships.mdx#object-type-to-a-command) coming soon.
+
+- Remote relationships defined across subgraphs are currently not supported.
+
+- Fields involved in [relationship mapping](supergraph-modeling/relationships.mdx#relationship-relationshipmapping) must
+  be backed by data connector columns that have support for the `equal` comparison operator.
+
+:::
+
+#### Understanding Predicate Resolution
+
+The predicate of a remote relationship is resolved independently of the data connector's `relation_comparisons`
+capability. When a remote relationship is used in a comparison, the engine retrieves the relevant data from the remote
+model and constructs the necessary comparison expressions to filter the results, similar to how local relationships are
+resolved without the [`relation_comparisons`](#data-connector-capability) capability.
+
+**Consequently, the performance of remote predicates can vary significantly based on the efficiency of the underlying
+data sources and the complexity of the relationships being queried. For more details, see
+[Performance of Relationship Comparisons](graphql-api/queries/filters/performance-relationship-comparisons.mdx).**

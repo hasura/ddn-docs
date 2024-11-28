@@ -1,6 +1,6 @@
 ---
 sidebar_label: ddn supergraph build create
-sidebar_position: 67
+sidebar_position: 90
 description: Create a SupergraphBuild on Hasura DDN using the DDN CLI
 keywords:
   - hasura
@@ -34,16 +34,17 @@ ddn supergraph build create [flags]
 # Build the Supergraph and update the link schema and target env file
  ddn supergraph build create --supergraph supergraph.yaml --project pet-lion-2649 --update-connector-link-schema --target-env-file .env.cloud
 
-# Build a composed Supergraph using Subgraphs with build version (Advanced plan only)
- ddn supergraph build create --subgraph-version globals:c15b0b4031 --subgraph-version my_subgraph:c15b0b4031
+# Build a composed Supergraph using Subgraphs with build versions and using the applied Supergraph Build as the base Supergraph (Advanced plan only)
+ ddn supergraph build create --subgraph-version globals:c15b0b4031 --subgraph-version my_subgraph:c15b0b4031 --base-supergraph-on-applied
 
-# Build a composed Supergraph using Subgraphs with build version and base Supergraph version (Advanced plan only)
+# Build a composed Supergraph using Subgraphs with build versions and base Supergraph version (Advanced plan only)
  ddn supergraph build create --subgraph-version globals:c15b0b4031 --subgraph-version my_subgraph:c15b0b4031 --base-supergraph-version c15b0b4871
 ```
 
 ## Options
 
 ```sass
+    --base-supergraph-on-applied       Use the applied Supergraph as the base supergraph
     --base-supergraph-version string   Base Supergraph version for the compose build
     --ci                               Disables the use of context
 -c, --context string                   Name of the context to use. (default <current_context>)
@@ -52,7 +53,10 @@ ddn supergraph build create [flags]
     --env-file stringArray             Path to .env file. Can be repeated to provide multiple env files
 -h, --help                             help for create
     --no-build-connectors              Do not recursively build all connectors in all subgraphs and use their URLs for supergraph build. (default: false)
+    --no-diff                          Do not do a GraphQL schema diff against the applied build
+    --output-dir string                Path to the directory to output the build artifacts
 -p, --project string                   DDN Project name
+    --self-hosted-data-plane           Is the data plane self hosted?
     --subgraph-version stringArray     Subgraph(s) with build version to compose
     --supergraph string                Path to Supergraph config file
     --target-env-file string           Env file to write the connector build URLs to.

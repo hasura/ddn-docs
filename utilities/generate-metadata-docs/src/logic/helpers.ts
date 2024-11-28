@@ -48,7 +48,11 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
   let pageMarkdown = '';
 
   metadataObjectTitles.map(metadataObjectTitle => {
-    const metadataObjectSchema = findSchemaDefinitionByTitle(parentSchema, metadataObjectTitle);
+    // Loop through each schema in case there are multiple
+    const metadataObjectSchema = parentSchema
+      .flatMap(schema => findSchemaDefinitionByTitle(schema, metadataObjectTitle)) // search in each schema
+      .find(result => !!result); // stop as soon as a match is found
+
     if (metadataObjectSchema) {
       pageMarkdown += getSchemaMarkdown(metadataObjectSchema);
     } else {
@@ -151,7 +155,9 @@ export function getDescription(metadataObject: JSONSchema7Definition): string {
 export function getExamples(metadataObject: JSONSchema7Definition): string {
   let examples = '';
   if (metadataObject.examples) {
-    examples = `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**${metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``)}`;
+    examples =
+      `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**` +
+      metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``).join('\n\n');
   }
 
   return examples;
@@ -180,21 +186,39 @@ export function handleRef(metadataObject: JSONSchema7Definition): JSONSchema7Def
   const { $ref, ...strippedSchema } = metadataObject;
 
   const refPath = $ref.split('/');
-  let refObject = parentSchema;
-  refPath.forEach(path => {
-    if (path !== '#') {
-      refObject = refObject?.[path];
+
+  let refObject: JSONSchema7Definition | undefined;
+
+  // Iterate through each schema in the array to resolve the reference
+  for (const schema of parentSchema) {
+    let currentObject: any = schema;
+
+    // Then, once in each, navigate thoes ref paths
+    refPath.forEach(path => {
+      if (path !== '#') {
+        currentObject = currentObject?.[path];
+      }
+    });
+
+    // If the reference was resolved, assign the result to refObject and break
+    if (currentObject !== undefined) {
+      // We found the right schema 🎉
+      refObject = currentObject;
+      break;
     }
-  });
+  }
 
   if (refObject !== undefined) {
-    refObject = simplifyMetadataDefinition({ ...strippedSchema, ...refObject });
-    if (refObject.$ref) {
+    refObject = simplifyMetadataDefinition({ ...strippedSchema, ...(refObject as JSONSchema7Definition) });
+
+    if (refObject && refObject.$ref) {
       refObject = handleRef(refObject);
     }
+
     return refObject;
   } else {
     console.warn('Ref not found: ', $ref);
+    return metadataObject;
   }
 }
 

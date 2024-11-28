@@ -21,10 +21,10 @@ adding custom functionalities through your own code.
 
 These plugins can be applied at the following steps:
 
-| Execution Step              | Description                                                                                                                                          | Example Usage                                                                |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| **Pre-Parse**               | The first step in the execution pipeline, where custom logic can be applied before the query is parsed and its internal representation is generated. | Add an allowlist layer to restrict access to specific queries and mutations. |
-| **Pre-Response (Upcoming)** | The final step in the execution pipeline, where custom logic can be added after the query is executed but before the response is sent to the client. | Trigger Slack notifications after a mutation is executed.                    |
+| Execution Step   | Description                                                                                                                                          | Example Usage                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Pre-Parse**    | The first step in the execution pipeline, where custom logic can be applied before the query is parsed and its internal representation is generated. | Add an allowlist layer to restrict access to specific queries and mutations. |
+| **Pre-Response** | The final step in the execution pipeline, where custom logic can be added after the query is executed but before the response is sent to the client. | Trigger Slack notifications after a mutation is executed.                    |
 
 ## Architecture
 
@@ -76,7 +76,7 @@ The `pre-parse` plugin is triggered at the first step in the execution pipeline,
 step to add custom logic before parsing begins.
 
 For pre-parse plugin configuration
-[click here](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepluginhookpreparse)
+[click here](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreparsepluginhook).
 
 ### Pre-Parse Plugin Request
 
@@ -100,7 +100,7 @@ A sample request that is sent to the `pre-parse` plugin is as follows:
 ```
 
 **Note**: The request sent to the plugin can be customized based on the plugin's
-[configuration](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepluginhookconfigrequest).
+[configuration](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreresponsepluginhookconfigrequest).
 
 ### Pre-Parse Plugin Response
 
@@ -121,6 +121,18 @@ based on the plugin's logic.
 
 :::
 
+### Use Cases
+
+The `pre-parse` plugin can be used to add a multitude of functionalities to DDN. Some use cases are:
+
+- **Allowlist**: Add an allowlist layer to restrict access to specific queries and mutations based on the incoming
+  request and session information.
+- **Basic Rate Limiting**: Implement rate limiting to restrict the total number of requests that can be made to DDN in a
+  given time period.
+- **Custom Query Validation**: Add custom query validation logic to ensure that the incoming query is valid based on
+  custom business logic.
+- **Cache Get**: Implement a cache get layer to fetch the response from the cache before executing the query.
+
 ### Multiple Pre-Parse Plugins
 
 Multiple pre-parse plugins can be configured in DDN metadata. The plugins are executed in the order they are defined in
@@ -129,14 +141,14 @@ the metadata.
 Please note that if a plugin returns a `Response`, `User Error` or `Internal Error` response, the execution stops and
 the response is sent to the client. The subsequent plugins are not executed.
 
-Let's take an example where the engine is confiured with two pre-parse plugins: `Pre-parse hook 1` and `Pre-parse hook
-2`.
+Let's take an example where the engine is confiured with two pre-parse plugins: `Pre-parse hook 1` and
+`Pre-parse hook 2`.
 
 <Thumbnail src="/img/plugins/multiple-pre-parse-plugins.jpg" alt="Multiple pre-parse plugins" width="750px" />
 
-In this example, the engine is configured with two pre-parse plugins. The engine sends the request to `Pre-parse hook
-1`, which processes the request and sends a response. Now, depending on the response, the engine either continues with
-the execution or stops and sends the response to the client.
+In this example, the engine is configured with two pre-parse plugins. The engine sends the request to
+`Pre-parse hook 1`, which processes the request and sends a response. Now, depending on the response, the engine either
+continues with the execution or stops and sends the response to the client.
 
 #### Case 1: Continue
 
@@ -152,11 +164,22 @@ The `Continue` response body is ignored by DDN. The plugin can return an empty r
 #### Case 2: Response/ User Error/ Internal Error
 
 If `Pre-parse hook 1` returns a `Response` response (HTTP status code is 200) or a `User Error` response (HTTP status
-code is 400) or an `Internal Error` response (HTTP status code is 500), the engine stops the execution and sends
-the response to the client. The subsequent plugins are not executed.
+code is 400) or an `Internal Error` response (HTTP status code is 500), the engine stops the execution and sends the
+response to the client. The subsequent `pre-parse` plugins are not executed.
 
-<Thumbnail src="/img/plugins/multiple-pre-parse-plugins-p1-response.jpg" alt="Multiple pre-parse plugins with 1st plugin
-response being sent to the client" width="750px" />
+<Thumbnail
+  src="/img/plugins/multiple-pre-parse-plugins-p1-response.jpg"
+  alt="Multiple pre-parse plugins with 1st plugin
+response being sent to the client"
+  width="750px"
+/>
+
+:::note Will the subsequent pre-response plugins be executed?
+
+Yes, the subsequent `pre-response` plugins are executed even if the `pre-parse` plugins return a `Response`, `User Error` or
+`Internal Error` response.
+
+:::
 
 If all the pre-parse plugins return a `Continue` response (HTTP status code 204), the engine continues with the
 execution and sends the response generated by the engine to the client.
@@ -167,3 +190,71 @@ No, pre-parse plugins cannot modify the request in the execution pipeline. The p
 pipeline by returning appropriate responses.
 
 :::
+
+## Pre-Response Plugin
+
+The `pre-response` plugin is triggered at the final step in the execution pipeline after the query is executed. Use
+this step to add webhooks after the query is executed. Please note that the `pre-response` plugin cannot control or
+change the execution pipeline.
+
+For pre-response plugin configuration
+[click here](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreresponsepluginhook).
+
+### Pre-Response Plugin Request
+
+A sample request that is sent to the `pre-response` plugin is as follows:
+
+```json
+{
+  "response": {
+    "data": {
+      "getAuthorById": {
+        "first_name": "John"
+      }
+    }
+  },
+  "session": {
+    "role": "user",
+    "variables": {
+      "x-hasura-role": "user",
+      "x-hasura-user-id": "123"
+    }
+  },
+  "rawRequest": {
+    "query": "query MyQuery { getAuthorById(author_id: 10) { first_name } }",
+    "variables": {},
+    "operationName": "MyQuery"
+  }
+}
+```
+
+**Note**: The request sent to the plugin can be customized based on the plugin's
+[configuration](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreresponsepluginhookconfigrequest).
+
+### Pre-Response Plugin Response
+
+The `pre-response` plugin cannot control the execution pipeline. The response from the plugin is ignored by DDN.
+
+### Use Cases
+
+The `pre-response` plugin can be used to add a number of functionalities to DDN. Some use cases also make use of
+the pre-parse plugin. They are:
+
+- **Slack Notifications**: Trigger Slack notifications after a query/mutation is executed.
+- **Cache Set**: Implement a cache set layer to store the response in the cache.
+- **Cache Invalidation**: Implement a cache invalidation layer to invalidate the cache based on the incoming request
+  and session information.
+- **Audit Logs**: Add audit logs to track the queries and mutations executed by the users.
+
+### Multiple Pre-Response Plugins
+
+Multiple `pre-response` plugins can be configured in DDN metadata. The plugins are executed in parallel.
+
+Let's take an example where the engine is configured with two `pre-response` plugins: `Pre-response hook 1` and
+`Pre-response hook 2`.
+
+<Thumbnail src="/img/plugins/multiple-pre-response-plugins.jpg" alt="Multiple pre-response plugins" width="750px" />
+
+In this example, the engine is configured with two `pre-response` plugins. The engine sends the request to both the
+plugins in parallel. The engine does not wait for the response from the plugins and sends the response generated by the
+engine to the client.

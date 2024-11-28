@@ -1,0 +1,156 @@
+---
+sidebar_position: 4
+sidebar_label: With MongoDB
+description: "Learn the basics of Hasura DDN and how to get started with a MongoDB database."
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - mongodb
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and MongoDB
+
+<Prereqs />
+
+## Guide
+
+In this guide, you'll learn how to get started with Hasura DDN and a MongoDB database. You'll set up a new Hasura DDN
+project, connect it to a new MongoDB database, and run your first query. This guide assumes you're starting from
+scratch, but you can easily follow the steps if you already have data seeded; Hasura will never modify your source
+schema.
+
+### Step 1. Create a collection in your MongoDB database
+
+```js title="First, you'll create a new collection in your MongoDB database:"
+// Create the collection and insert some data
+db.createCollection("users");
+db.users.insertMany([
+  { name: "Alice", age: 25 },
+  { name: "Bob", age: 30 },
+  { name: "Charlie", age: 35 },
+]);
+```
+
+:::tip Connect to cloud local data sources
+
+Hasura DDN can connect to hosted or local data sources. If you have a cloud-hosted MongoDB provider, you can connect to
+your database and seed the table with the above data. Alternatively, you can
+[run MongoDB locally using Docker](https://hub.docker.com/_/mongo).
+
+:::
+
+### Step 2. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+### Step 3. Scaffold out a new local project
+
+```sh title="Next, you'll create a new local project. Run the following command:"
+ddn supergraph init my-project && cd my-project
+```
+
+### Step 4. Initialize your MongoDB connector
+
+```sh title="Initialize a new MongoDB connector. Run the following command:"
+ddn connector init my_mongo -i
+```
+
+From the dropdown, start typing `MongoDB` and hit enter.
+
+Set your environment variables:
+
+| Variable               | Value                                                                                                   | Required |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- | -------- |
+| `MONGODB_DATABASE_URI` | The connection string to your source in this format: `mongodb://username:password@hostname:port/dbname` | Yes      |
+
+:::info Connecting a local database?
+
+Hasura DDN uses a unique domain to resolve local services when using Docker. In the connection string above, you can
+replace `hostname` with `local.hasura.dev` if you're connecting to a local database running inside of a Docker
+container.
+
+:::
+
+### Step 5. Introspect your MongoDB database
+
+```sh title="Next, you'll introspect your MongoDB database:"
+ddn connector introspect my_mongo
+```
+
+### Step 6. Add your model
+
+```sh title="Now, you'll track the collections as models in your MongoDB database:"
+ddn models add my_mongo users
+```
+
+:::info Have multiple collections?
+
+You can quickly grab them all using:
+
+```sh
+ddn models add my_mongo "*"
+```
+
+:::
+
+### Step 7. Create a new build
+
+```sh title="Next, you'll create a new build:"
+ddn supergraph build local
+```
+
+### Step 8. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and MongoDB connector:"
+ddn run docker-start
+```
+
+### Step 9. Run your first query
+
+```sh title="Open your local console:"
+ddn console --local
+```
+
+```graphql title="And, if you write a query like this:"
+query {
+  users {
+    name
+    age
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "name": "Alice",
+        "age": 25
+      },
+      {
+        "name": "Bob",
+        "age": 30
+      },
+      {
+        "name": "Charlie",
+        "age": 35
+      }
+    ]
+  }
+}
+```
+
+## Next steps
+
+Congratulations! You've successfully set up a Hasura DDN project and connected it to a MongoDB database. Next, you can
+explore more advanced features like [relationships](/supergraph-modeling/relationships.mdx),
+[permissions](/supergraph-modeling/permissions.mdx), and more.
+
+Take a look at our [MongoDB docs](/connectors/mongodb/index.mdx) to learn more about how to use Hasura DDN with MongoDB.

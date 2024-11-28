@@ -18,9 +18,9 @@ import Thumbnail from "@site/src/components/Thumbnail";
 Relationship comparisons in GraphQL allow for powerful query filtering across related data. However, performance varies
 in Hasura DDN depending on how these comparisons are processed.
 
-This page explains the performance implications of relationship comparisons, detailing both optimized query
-execution through data connectors and the fallback mechanisms at the query engine level when certain capabilities
-are unavailable.
+This page explains the performance implications of relationship comparisons, detailing both optimized query execution
+through data connectors and the fallback mechanisms at the query engine level when certain capabilities are unavailable
+or when handling remote relationships.
 
 ## How Relationship Comparisons Work
 
@@ -47,19 +47,20 @@ between books and authors.
 To achieve optimal performance, the query engine relies on the data connector’s ability to perform the comparison at the
 data source level. This capability is known as `relation_comparisons` (For more details see
 [the native data connector spec](https://hasura.github.io/ndc-spec/specification/capabilities.html)). When the data
-connector supports this feature, the query engine pushes down the comparison logic to the underlying data connector
-to handle the filtering at the data source layer.
+connector supports this feature, the query engine pushes down the comparison logic to the underlying data connector to
+handle the filtering at the data source layer.
 
-## Handling Missing Data Connector Capability
+## Missing Data Connector Capability or Remote Relationships
 
-When the data connector lacks support for the `relation_comparisons` capability, relationship comparisons cannot be
-pushed down to the data connector for processing. Instead, the query engine must handle the comparison internally.
+When a data connector lacks support for the `relation_comparisons` capability or when handling predicates from a remote
+relationship, the query engine cannot push relationship comparisons down to the data connector for processing. Instead,
+these comparisons are handled internally by the query engine.
 
 ### How It Works
 
-Without `relation_comparisons`, the query engine performs the following steps:
+The query engine performs the following steps:
 
-1. **Fetch Related Data**: The query engine retrieves required fields from the related model.
+1. **Fetch Related Data**: The query engine retrieves required fields from the related/remote model.
 2. **Construct Comparison Expressions**: Using the fetched data, the engine constructs the necessary comparison
    expressions to filter the results.
 3. **Fetch Data**: The engine applies these expressions while fetching data from the primary model.
@@ -67,11 +68,11 @@ Without `relation_comparisons`, the query engine performs the following steps:
 ### Performance Implications
 
 - **Increased Data Transfer**: More data must be transferred from the data connector to the query engine for evaluation,
-which can lead to higher latency.
+  which can lead to higher latency.
 - **Higher Query Engine Load**: Performing comparisons in the query engine increases its workload, which can degrade
-performance, particularly with large datasets.
+  performance, particularly with large datasets.
 - **Potential Bottlenecks**: As the amount of related data increases, processing comparisons at the query engine level
-may become less efficient, which can result in slower query responses.
+  may become less efficient, which can result in slower query responses.
 
 ### Example
 
@@ -89,8 +90,8 @@ query {
 }
 ```
 
-In the above query `author` is an Object Relationship with `book.author_id -> author.id` field mapping.
-Without `relation_comparisons`, the query engine will:
+In the above query `author` is an Object Relationship with `book.author_id -> author.id` field mapping. Without
+`relation_comparisons`, the query engine will:
 
 1. Fetch the `id`s of all authors whose `name` equals "Alice Johnson".
 2. Create a comparison expression to check if `book.author_id` matches any of the author IDs obtained in step 1.
@@ -107,4 +108,8 @@ increased execution times.
 
 **Trace Example:**
 
-<Thumbnail src="/img/graphql-api/queries/console_insert-trace-resolve-relationships.png" alt="Trace for Resolving Relationships" width="1000px" />
+<Thumbnail
+  src="/img/graphql-api/queries/console_insert-trace-resolve-relationships.png"
+  alt="Trace for Resolving Relationships"
+  width="1000px"
+/>

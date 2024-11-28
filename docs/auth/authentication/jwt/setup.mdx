@@ -36,7 +36,7 @@ Below, we're demonstrating using the `BearerAuthorization` format with JWKs. How
 for both [identifying](supergraph-modeling/auth-config.mdx#authconfig-jwttokenlocation) and
 [verifying JWTs](supergraph-modeling/auth-config.mdx#authconfig-jwtalgorithm).
 
-```yaml title="globals/auth-config.hml"
+```yaml title="globals/metadata/auth-config.hml"
 kind: AuthConfig
 version: v2
 definition:
@@ -76,11 +76,11 @@ vulnerability**. Learn how to set this [here](supergraph-modeling/auth-config.md
 Your auth service should include an object with a key of `https://hasura.io/jwt/claims` in the JWT's claims. Within
 this, each claim should be prefixed with `x-hasura-*` and include the relevant information.
 
-| Key                      | Required | Value                                                                           |
-| ------------------------ | -------- | ------------------------------------------------------------------------------- |
-| `x-hasura-default-role`  | Yes      | The role that will be used when the optional x-hasura-role header is not passed |
-| `x-hasura-allowed-roles` | Yes      | A list of allowed roles for the user making the request.                        |
-| `x-hasura-[custom]`      | No       | Where `[custom]` is any value you wish (e.g., `org`, `user-id`, `customer`).    |
+| Key                      | Required | Value                                                                                                          |
+| ------------------------ | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `x-hasura-default-role`  | Yes      | The role that will be used when the optional x-hasura-role header is not passed                                |
+| `x-hasura-allowed-roles` | Yes      | A list of allowed roles for the user making the request.                                                       |
+| `x-hasura-[custom]`      | No       | Where `[custom]` is any string you wish (e.g., `org`, `user-id`, `customer`). The value can be any JSON value. |
 
 As an example, we're including the required claims by stating the default role is `user` and the list of available roles
 is limited to `user` and `admin`. Additionally, we're passing a custom key of `x-hasura-user-id` which can be used with
@@ -96,7 +96,7 @@ is limited to `user` and `admin`. Additionally, we're passing a custom key of `x
   "claims.jwt.hasura.io": {
     "x-hasura-default-role": "user",
     "x-hasura-allowed-roles": ["user", "admin"],
-    "x-hasura-user-id": "1234"
+    "x-hasura-user-id": 1234
   }
 }
 ```

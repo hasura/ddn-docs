@@ -58,7 +58,6 @@ export default function DocRootLayout({ children }) {
           />
         )}
         <DocRootLayoutMain hiddenSidebarContainer={hiddenSidebarContainer}>{children}</DocRootLayoutMain>
-        <BrowserOnly fallback={<div>Loading...</div>}>{() => <AiChatBot />}</BrowserOnly>
       </div>
     </div>
   );

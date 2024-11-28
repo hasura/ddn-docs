@@ -54,7 +54,7 @@ Below, you'll find a matrix of all supported features for the GraphQL connector:
 ## Getting started
 
 To get started with the GraphQL Data Connector, you can follow the
-[guide here](/getting-started/build/03-connect-to-data/01-connect-a-source.mdx?db=GraphQL).
+[guide here](/getting-started/quickstart.mdx).
 
 :::info Prerequisites
 
@@ -63,6 +63,156 @@ If you've never used Hasura DDN, we recommend that you first go through the
 
 :::
 
+## Configuration Overview
+
+The configuration comprises the following files:
+
+- `configuration.json` - Main configuration file. This is where you'll set up the connection to your underlying
+  endpoint.
+- `configuration.schema.json` - [JSON Schema](https://json-schema.org/) for your main configuration file. Allows your
+  IDE to validate your configuration file, enhancing your configuration experience.
+- `schema.graphql` - Stored GraphQL introspection. This file should be mostly left alone.
+
+### Introspection connection & execution connection
+
+You may wish to connect to different endpoints for introspection and query execution. This can be the case if, for
+example, you want to introspect a locally running copy of your graphql endpoint. Additionally, you may wish to set
+certain static headers for introspection only.
+
+To that end, the configuration contains both an execution and introspection connection configuration.
+
+### Request header forwarding
+
+You may wish to forward headers from the original request to the underlying connector. To achieve this, set the
+`request.forwardHeaders` property to a non-empty array of string values. Glob patterns are supported.
+
+You will also have to modify your [connector link](/supergraph-modeling/data-connector-links/) to add the following
+[argument preset](/supergraph-modeling/data-connector-links.mdx#dataconnectorlink-dataconnectorargumentpreset) section:
+
+```yaml
+kind: DataConnectorLink
+version: v1
+definition:
+  # add this section
+  argumentPresets:
+    - argument: _headers
+      value:
+        httpHeaders:
+          # list desired headers to forward
+          forward:
+            - Cookie
+            - Authorization
+            - X-Hasura-Admin-Secret
+          additional: {}
+```
+
+Note the `_headers` argument name. This argument must not conflict with any root field arguments in your target schema.
+If there is a conflict, you may change this name in both your connector link, and your connector's `configuration.json`
+file
+
+:::tip
+
+Changing this configuration will modify the exposed NDC schema, which you will need to
+[update](/cli/commands/ddn_connector-link_update/).
+
+Only do this _after_ making the [connector link](/supergraph-modeling/data-connector-links/) changes described above.
+
+:::
+
+### Response header forwarding
+
+You may want to forward request headers back to the client, typically when using the `Set-Cookie` header. To achieve
+this, set the `response.forwardHeaders` property to a non-empty array of string values. Glob patterns are supported.
+
+You will also have to modify your [connector link](/supergraph-modeling/data-connector-links/) to add the
+[response header](/supergraph-modeling/data-connector-links.mdx#dataconnectorlink-responseheaders) section:
+
+```yaml
+kind: DataConnectorLink
+version: v1
+definition:
+  # add this section
+  responseHeaders:
+    headersField: headers
+    resultField: response
+    # list desired headers to forward
+    forwardHeaders:
+      - Set-Cookie
+```
+
+:::tip
+
+Changing this configuration will modify the exposed NDC schema, which you will need to
+[update](/cli/commands/ddn_connector-link_update/).
+
+Only do this _after_ making the [connector link](/supergraph-modeling/data-connector-links/) changes described above.
+
+:::
+
+:::warning
+
+Note that returning multiple headers with the same name is not supported. Only the last header of a given name will be
+returned.
+
+This may be a problem when using the `Set-Cookie` header.
+
+This limitation will be remedied in the future.
+
+:::
+
 ## Resources
 
 - [GraphQL Connector GitHub Repo](https://github.com/hasura/ndc-graphql)
+
+### Configuration Reference
+
+#### Configuration Root
+
+| Key             | Value                                                  | Required | Description                                       |
+| --------------- | ------------------------------------------------------ | -------- | ------------------------------------------------- |
+| `introspection` | [ConnectionConfiguration](#connectionconfiguration)    | true     | Connection configuration to use for introspection |
+| `execution`     | [ConnectionConfiguration](#connectionconfiguration)    | true     | Connection configuration to use for execution     |
+| `request`       | [RequestConfiguration](#requestconfiguration) / null   | false    | Additional configuration for requests             |
+| `response`      | [ResponseConfiguration](#responseconfiguration) / null | false    | Additional configuration for responses            |
+
+#### ConnectionConfiguration
+
+| Key        | Value                                 | Required | Description                                        |
+| ---------- | ------------------------------------- | -------- | -------------------------------------------------- |
+| `endpoint` | [EnvironmentValue](#environmentvalue) | true     | GraphQL Endpoint URL                               |
+| `headers`  | [Headers](#headers)                   | false    | A map of static headers to include in all requests |
+
+#### Headers
+
+| Key           | Value                                 | Required | Description                     |
+| ------------- | ------------------------------------- | -------- | ------------------------------- |
+| `<customKey>` | [EnvironmentValue](#environmentvalue) | true     | A header to include in requests |
+
+#### EnvironmentValue
+
+Either a literal string or a reference to an environment variable
+
+**Must have exactly one of the following fields:**
+
+| Key            | Value  | Required | Description                     |
+| -------------- | ------ | -------- | ------------------------------- |
+| `value`        | string | true     | Literal string value            |
+| `valueFromEnv` | string | true     | Name of an environment variable |
+
+#### RequestConfiguration
+
+| Key               | Value         | Required | Default      | Description                                                                                                                                                                |
+| ----------------- | ------------- | -------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `forwardHeaders`  | [string]      | true     | `[]`         | List of request header names. May be [glob patterns](https://docs.rs/globmatch)                                                                                            |
+| `headersArgument` | string / null | false    | `_headers`   | Name of headers argument. Must be changed if it conflicts with existing root field argument names. Should match [connector-link configuration](#request-header-forwarding) |
+| `headerTypeName`  | string / null | false    | `_HeaderMap` | Name of headers type. Must be changed if it conflicts with other types in the target schema. Should match [connector-link configuration](#request-header-forwarding)       |
+
+#### ResponseConfiguration
+
+| Key              | Value         | Required | Default    | Description                                                                                                                 |
+| ---------------- | ------------- | -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `forwardHeaders` | [string]      | true     | `[]`       | List of response header names. May be [glob patterns](https://docs.rs/globmatch)                                            |
+| `headersField`   | string / null | false    | `headers`  | Name of the headers field in the response object. Should match [connector-link configuration](#response-header-forwarding)  |
+| `responseField`  | string / null | false    | `response` | Name of the response field in the response object. Should match [connector-link configuration](#response-header-forwarding) |
+| `typeNamePrefix` | string / null | false    | `_`        | Prefix for response type name generation. May need to be changed in case of conflicts                                       |
+| `typeNameSuffix` | string / null | false    | `Response` | Suffix for response type name generation. May need to be changed in case of conflicts                                       |

@@ -6,7 +6,7 @@ import TwitterIcon from '@site/static/icons/twitter.svg';
 import DiscordIcon from '@site/static/icons/discord.svg';
 import LinkedInIcon from '@site/static/icons/linkedin.svg';
 import YoutubeIcon from '@site/static/icons/youtube.svg';
-import styles from './styles.module.scss';
+import styles from './styles.module.css';
 import { v4 as uuidv4 } from 'uuid';
 const CustomFooter = () => {
   useEffect(() => {
@@ -24,11 +24,15 @@ const CustomFooter = () => {
       </div>
       <div className={styles['copyright']}>{`© ${new Date().getFullYear()} Hasura Inc. All rights reserved`}</div>
       <div className={styles['footerSocialIconsWrapper']}>
-        {/*<div className={styles['socialBrands']}>*/}
-        {/*  <Link href={'https://github.com/hasura/ndc-hub'} rel="noopener noreferrer" aria-label={'Github'}>*/}
-        {/*    <GithubIcon />*/}
-        {/*  </Link>*/}
-        {/*</div>*/}
+        <div className={styles['socialBrands']}>
+          <Link
+            href={'https://github.com/hasura/graphql-engine/blob/master/v3/README.md'}
+            rel="noopener noreferrer"
+            aria-label={'Github'}
+          >
+            <GithubIcon />
+          </Link>
+        </div>
         <div className={styles['socialBrands']}>
           <Link href={'https://twitter.com/hasurahq'} rel="noopener noreferrer" aria-label={'Twitter'}>
             <TwitterIcon />

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 sidebar_label: Quickstart
-description: "Create your first supergraph in less than five minutes."
+description: "Create your first supergraph API with Hasura DDN in less than a minute."
 keywords:
   - hasura ddn
   - graphql api
@@ -15,10 +15,24 @@ is_guide: true
 
 import Step from "@site/src/components/CodeStep";
 import InstallTheCli from "@site/docs/_install-the-cli.mdx";
+import CodeBlock from "@theme/CodeBlock";
+import SimpleVideo from "@site/src/components/SimpleVideo";
+import Admonition from "@theme/Admonition";
 
-# Quickstart with DDN
+# Quickstart a Supergraph API
 
-This guide will help you create a new cloud-deployed Hasura DDN supergraph in only a couple of minutes.
+<div className="flex flex-col gap-6 mb-10">
+  <div className="">
+    {/* If you break this onto another line it will lose its styling because the markdown rendering engine will add a <p> tag. Please leave it as a single line. Thanks! */}
+    <p className="text-[1.3rem]">
+      In less than <em>a minute</em> and without needing a data source connection string, you can have a supergraph API
+      running locally and deployed on Hasura DDN. 🚀{" "}
+    </p>
+  </div>
+  <div className="max-w-[750px]">
+    <SimpleVideo videoLink="https://www.youtube.com/embed/OsO6TzwFb30" />
+  </div>
+</div>
 
 ## Prerequisites
 
@@ -30,6 +44,12 @@ This guide will help you create a new cloud-deployed Hasura DDN supergraph in on
 
    The Docker based workflow helps you iterate and develop locally without deploying any changes to Hasura DDN, making
    the development experience faster and your feedback loops shorter. **You'll need Docker Compose `v2.27.1` or later.**
+
+3. **Validate the installation**
+
+   You can verify that the DDN CLI is installed correctly by running:
+
+   <CodeBlock language="bash">{`ddn doctor`}</CodeBlock>
 
 <Step
 id="login"
@@ -48,12 +68,12 @@ you'll be redirected to your CLI session and can proceed with creating your supe
 <Step
 id="supergraph-init"
 language="bash"
-code={`mkdir hasura_project && cd hasura_project\nddn supergraph init .`}
-heading={`Initialize a new supergraph in an empty directory`}
+code={'ddn supergraph init mysupergraph\ncd mysupergraph'}
+heading={`Initialize a new supergraph in a new directory`}
 >
 
 The `ddn supergraph init` command initializes a supergraph — which is a composite API — by setting up all necessary
-files and directories for development.
+files and directories for development in the new `mysupergraph` directory.
 
 When you execute this command, the CLI creates a Docker Compose file and a .env file to run the Hasura engine locally
 and other configuration files describing your supergraph. Additionally, the CLI creates two
@@ -77,14 +97,14 @@ MongoDB, MySQL, ClickHouse, etc.).
 Here we're naming our connector `my_connector` which is referenced in subsequent commands. As we are running this
 command with the interactive flag (`-i`), you'll be prompted to select a data connector type and enter any required
 environment variables, such as the connection details of your data source. The CLI will then generate the connector
-related files also add a [DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) metadata object to link your
-connector to the supergraph.
+related files and also add a [DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) metadata object to link
+your connector to the supergraph.
 
 **Don't have a data source at hand?**
 
-You can choose our `hasura/postgres` connector which by default connects to our sample Postgres database for you to
-explore. Or check [this guide](/connectors/postgresql/local-postgres.mdx) to set up a local Postgres database using
-Docker.
+If you choose our `hasura/postgres` connector, it ships with a docker compose that runs a local PostgreSQL database. You
+can check [this guide](/connectors/postgresql/local-postgres.mdx) for more details. Or you can connect to our sample
+PostgreSQL database using this URL: `postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app`
 
 </Step>
 
@@ -101,12 +121,18 @@ This creates a set of configuration files describing your data source in a forma
 updates the corresponding DataConnectorLink with the resources from the data source that can be exposed via the API.
 This will then be used in the next step to generate metadata for each resource found during introspection.
 
+:::tip Troubleshooting
+
+Is introspect not working? Confirm that the environment variables defined in the `.env` file are correct.
+
+:::
+
 </Step>
 
 <Step
 id="add-resources"
 language="bash"
-code={`ddn model add my_connector '*'\nddn relationship add my_connector '*'`}
+code={'ddn model add my_connector \'*\'\nddn command add my_connector \'*\'\nddn relationship add my_connector \'*\''}
 heading={`Add your resources`}
 >
 
@@ -138,14 +164,16 @@ code={`ddn run docker-start`}
 heading={`Start your supergraph`}
 >
 
-The `ddn run docker-start` command will execute the script found in your `.hasura/context.yaml` file.
+Open a separate terminal, navigate to your project directory and run `ddn run docker-start`. This command will execute
+the script found in your `.hasura/context.yaml` file.
 
 When you run this command, Docker will start services for your supergraph, each connector you've added, and
 observability tools.
 
-You can explore, visualize, and test your supergraph using the Hasura DDN console. Simply run `ddn console --local` or
-head to [`https://console.hasura.io/local/graphql`](https://console.hasura.io/local/graphql?url=http://localhost:3000)
-and try it out!
+You can explore, visualize, and test your supergraph using the Hasura DDN console. In the previous terminal, simply run
+`ddn console --local` or head to
+[`https://console.hasura.io/local/graphql`](https://console.hasura.io/local/graphql?url=http://localhost:3000) and try
+it out!
 
 **Congratulations! At this point, you've created your very first, fully-functioning supergraph 🎉**
 
@@ -193,40 +221,17 @@ connectors' URLs, and creates a new immutable build of your supergraph. You can 
 
 What we've laid out above is the quickest way to get started with Hasura DDN. However, you have complete, granular
 control over each step in the process and can extend and customize your supergraph to fit your teams' needs. After
-deploying your first supergraph, check out these sections to see what your supergraph can do!
+deploying your first supergraph, take your next steps with Hasura DDN 👇
 
-### Integrate custom business logic
+### Connect your own data source
 
-We've revolutionized how custom business logic is integrated into an API with our lambda connectors for TypeScript and
-Python. Gone are the days of writing separate microservices to handle business logic; with Hasura DDN, you can write
-your custom functions and expose them directly via your API! Plus, you get all the benefits of the supergraph, including
-the ability to add relationships and permissions for each function. Check it out
-[here](/getting-started/build/06-add-business-logic.mdx).
+If you didn't connect your own data source in the guide above, [give it a shot](/getting-started/quickstart.mdx)!
 
-### Add authorization
+Hasura will never affect the schema, and you maintain full control over your data. Hasura maps your existing schema to a
+powerful, flexible API without altering any underlying structures.
 
-You can quickly and easily create access-control rules for any entity in your supergraph using
-[permissions](/supergraph-modeling/permissions.mdx). Learn how to add ModelPermissions to control row-level access, and
-TypePermissions to control which columns are exposed to specific user roles. You can check both out in
-[this guide](/getting-started/build/05-add-permissions.mdx).
+### Add a collaborator
 
-### Iterate on your API
-
-In your day-to-day development cycle, you will be making changes to your data source's schema while developing new
-features. When this happens, you'll need to update your Hasura metadata to bring those changes into your API. Check out
-how to iterate on your API [here](/getting-started/build/03-connect-to-data/02-create-source-metadata.mdx).
-
-### Create relationships across sources
-
-Arguably, the biggest benefit of a GraphQL API is your ability to create nested queries that allow you to return data
-from multiple tables and — with Hasura DDN — multiple sources. With Hasura DDN's metadata-driven approach, you can
-easily author relationships, using our
-[VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura), linking together disparate
-data sources for efficient, elegant queries to power your modern applications. Learn how
-[here](/getting-started/build/07-create-a-relationship.mdx).
-
-### Add new subgraphs
-
-Hasura DDN makes it easy to collaborate and iteratively build a federated API using individual subgraphs. Subgraphs can
-be owned by specific teams and their metadata can even live in separate repositories, ensuring discrete ownership rules
-are honored. Learn how to add new subgraphs to your supergraph [here](/getting-started/build/02-init-subgraph.mdx).
+Hasura DDN makes it easy to collaborate and iteratively build an API with other contributors. You can select from a
+variety of roles ensuring your teammates have the appropriate access level while maintaining control for those who need
+it. [Add you first collaborator](/collaboration/invite.mdx)!

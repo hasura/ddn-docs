@@ -1,0 +1,170 @@
+---
+sidebar_position: 5
+sidebar_label: With ClickHouse
+description: "Learn the basics of Hasura DDN and how to get started with a ClickHouse database."
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - clickhouse
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and ClickHouse
+
+<Prereqs />
+
+## Guide
+
+In this guide, you'll learn how to get started with Hasura DDN and a ClickHouse database. You'll set up a new Hasura DDN
+project, connect it to a new ClickHouse database, and run your first query. This guide assumes you're starting from
+scratch, but you can easily follow the steps if you already have data seeded; Hasura will never modify your source
+schema.
+
+### Step 1. Create a table in your ClickHouse database
+
+```sql title="First, you'll create a new table in your ClickHouse database:"
+--- Create the table
+CREATE TABLE users (
+  id UInt32,
+  name String,
+  age UInt8
+) ENGINE = MergeTree()
+ORDER BY id;
+
+--- Insert some data
+INSERT INTO users (id, name, age) VALUES (1, 'Alice', 25);
+INSERT INTO users (id, name, age) VALUES (2, 'Bob', 30);
+INSERT INTO users (id, name, age) VALUES (3, 'Charlie', 35);
+```
+
+:::tip Connect to cloud local data sources
+
+Hasura DDN can connect to hosted or local data sources. If you have a cloud-hosted ClickHouse provider, you can connect
+to your database and seed the table with the above data. Alternatively, you can
+[run ClickHouse locally using Docker](https://hub.docker.com/r/clickhouse/clickhouse-server/).
+
+:::
+
+### Step 2. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+### Step 3. Scaffold out a new local project
+
+```sh title="Next, you'll create a new local project. Run the following command:"
+ddn supergraph init my-project && cd my-project
+```
+
+### Step 4. Initialize your ClickHouse connector
+
+```sh title="Initialize a new ClickHouse connector. Run the following command:"
+ddn connector init my_clickhouse -i
+```
+
+From the dropdown, start typing `ClickHouse` and hit enter.
+
+Set your environment variables:
+
+| Variable              | Value                                                                        | Required |
+| --------------------- | ---------------------------------------------------------------------------- | -------- |
+| `CLICKHOUSE_URL`      | The connection string to your source in this format: `https://hostname:port` | Yes      |
+| `CLICKHOUSE_USERNAME` | Your ClickHouse username.                                                    | Yes      |
+| `CLICKHOUSE_PASSWORD` | Your ClickHouse password.                                                    | Yes      |
+
+:::info Connecting a local database?
+
+Hasura DDN uses a unique domain to resolve local services when using Docker. In the connection string above, you can
+replace `hostname` with `local.hasura.dev` if you're connecting to a local database running inside of a Docker
+container.
+
+Typically, your port value will be `8123`. Additionally, don't forget to modify `https` » `http`!
+
+:::
+
+### Step 5. Introspect your ClickHouse database
+
+```sh title="Next, you'll introspect your ClickHouse database:"
+ddn connector introspect my_clickhouse
+```
+
+### Step 6. Add your model
+
+```sh title="Now, you'll track the tables as models in your ClickHouse database:"
+ddn models add my_clickhouse users
+```
+
+:::info Have multiple tables?
+
+You can quickly grab them all using:
+
+```sh
+ddn models add my_clickhouse "*"
+```
+
+:::
+
+### Step 7. Create a new build
+
+```sh title="Next, you'll create a new build:"
+ddn supergraph build local
+```
+
+### Step 8. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and ClickHouse connector:"
+ddn run docker-start
+```
+
+### Step 9. Run your first query
+
+```sh title="Open your local console:"
+ddn console --local
+```
+
+```graphql title="And, if you write a query like this:"
+query {
+  users {
+    id
+    name
+    age
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Alice",
+        "age": 25
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "age": 30
+      },
+      {
+        "id": 3,
+        "name": "Charlie",
+        "age": 35
+      }
+    ]
+  }
+}
+```
+
+## Next steps
+
+Congratulations! You've successfully set up a Hasura DDN project and connected it to a ClickHouse database. Next, you
+can explore more advanced features like [relationships](/supergraph-modeling/relationships.mdx),
+[permissions](/supergraph-modeling/permissions.mdx), and more.
+
+Take a look at our [ClickHouse docs](/connectors/clickhouse/index.mdx) to learn more about how to use Hasura DDN with
+ClickHouse.
