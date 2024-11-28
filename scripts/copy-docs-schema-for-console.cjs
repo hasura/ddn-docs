@@ -31,6 +31,5 @@ try {
   copyJsonSchema();
   console.log('\x1b[32m\nSuccessfully copied the docs JSON schema file to project root!\n\x1b[0m');
 } catch (e) {
-  console.error('Build failed:', e.message);
-  process.exit(1); // Exit with error code
+  console.error('Could not copy the docs JSON schema file to project root:', e.message);
 }
