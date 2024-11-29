@@ -5,24 +5,17 @@ import './styles.css';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { CloseIcon, RespondingIconGray, SparklesIcon } from '@site/src/components/AiChatBot/icons';
 import { useLocalStorage } from 'usehooks-ts';
-import profilePic from '@site/static/img/docs-bot-profile-pic.webp';
+// @ts-ignore
+import profilePic from './docs-bot-profile-pic.webp';
 import { v4 as uuidv4 } from 'uuid';
+import ThumbsDown from './thumbs-down.svg';
+import { BadBotResponse, BotWebsocketEvent, WebsocketPayload } from '@site/src/components/AiChatBot/types';
 
 interface Message {
   userMessage: string;
   botResponse: string;
+  id?: string;
 }
-
-interface Query {
-  previousMessages: Message[];
-  currentUserInput: string;
-}
-
-// Websocket Event data types (stringified)
-// {  type: "loading", message: "Processing your request..." }
-// {  type: "responsePart", message: "...part of response..." }
-// {  type: "error", message: "error description" }
-// {  type: "endOfStream", message: "End of stream..." }
 
 const initialMessages: Message[] = [
   {
@@ -51,10 +44,13 @@ export function AiChatBot({ style }) {
   // Manage the text input
   const [input, setInput] = useState<string>('');
   // Manage the message thread ID
-  const [messageThreadId, setMessageThreadId] = useLocalStorage<String>(
+  const [messageThreadId, setMessageThreadId] = useLocalStorage<string>(
     `hasuraV${customFields.hasuraVersion}ThreadId`,
     uuidv4()
   );
+  // Manage the responseQuality
+  const [badResponse, setBadResponse] = useState<BadBotResponse | null>(null);
+
   // Manage the historical messages
   const [messages, setMessages] = useLocalStorage<Message[]>(
     `hasuraV${customFields.hasuraVersion}BotMessages`,
@@ -105,7 +101,7 @@ export function AiChatBot({ style }) {
         behavior: 'smooth',
       });
     }
-  }, [currentMessage.botResponse]);
+  }, [currentMessage.botResponse, badResponse]);
 
   // Detect if user scrolls up and disable auto-scrolling
   const handleScroll = e => {
@@ -126,8 +122,6 @@ export function AiChatBot({ style }) {
 
     const queryDevToken = process.env.NODE_ENV === 'development' && DEV_TOKEN ? `&devToken=${DEV_TOKEN}` : '';
 
-    console.log('process.env.NODE_ENV', process.env.NODE_ENV);
-
     const connectWebSocket = () => {
       websocket = new WebSocket(
         encodeURI(`${docsBotEndpointURL}?version=${hasuraVersion}&userId=${storedUserID}${queryDevToken}`)
@@ -139,11 +133,13 @@ export function AiChatBot({ style }) {
         clearTimeout(reconnectInterval);
       };
 
+      // Handle incoming messages
       websocket.onmessage = event => {
-        let response = { type: '', message: '' };
+        let response: BotWebsocketEvent;
 
         try {
-          response = JSON.parse(event.data) as { type: string; message: string };
+          response = JSON.parse(event.data) as { type: BotWebsocketEvent['type']; message: string };
+          // TODO check if this is the correct type
         } catch (e) {
           console.error('error parsing websocket message', e);
         }
@@ -214,11 +210,41 @@ export function AiChatBot({ style }) {
     }
 
     if (ws) {
-      const toSend = JSON.stringify({ previousMessages: messages, currentUserInput: input, messageThreadId });
-      setCurrentMessage({ userMessage: sanitizedInput, botResponse: '' });
+      const messageId = uuidv4();
+      setCurrentMessage({ userMessage: sanitizedInput, botResponse: '', id: messageId });
       setInput('');
-      ws.send(toSend);
+      const chatPayload: WebsocketPayload = {
+        payloadType: 'chatMessage',
+        chatMessage: {
+          previousMessages: messages,
+          currentUserInput: sanitizedInput,
+          messageId,
+          messageThreadId,
+        },
+        responseQuality: null,
+      };
+      ws.send(JSON.stringify(chatPayload));
       setIsResponding(true);
+    }
+  };
+
+  const handleBadBotResponse = async () => {
+    if (badResponse) {
+      console.log('responseQuality', badResponse);
+      // TODO SANITIZE AND VALIDATE RESPONSE QUALITY!!!
+      if (ws) {
+        const badBotResponsePayload: WebsocketPayload = {
+          payloadType: 'badBotResponse',
+          badBotResponse: {
+            messageId: badResponse.messageId,
+            responseText: badResponse.responseText,
+          },
+          chatMessage: null,
+        };
+
+        ws.send(JSON.stringify(badBotResponsePayload));
+      }
+      setBadResponse(null);
     }
   };
 
@@ -267,7 +293,7 @@ export function AiChatBot({ style }) {
                   className="clear-button"
                   onClick={() => {
                     setMessages(initialMessages);
-                    setCurrentMessage({ userMessage: '', botResponse: '' });
+                    setCurrentMessage({ userMessage: '', botResponse: '', id: '' });
                     setMessageThreadId(uuidv4());
                   }}
                 >
@@ -304,12 +330,53 @@ export function AiChatBot({ style }) {
                       </div>
                     )}
                   </div>
+                  {messages.length > 3 && !isResponding && (
+                    <form
+                      id={'bad-response-form'}
+                      onSubmit={e => {
+                        e.preventDefault();
+                        handleBadBotResponse();
+                      }}
+                    >
+                      <div className={'flex'}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBadResponse({
+                              responseText: null,
+                              messageId: messages.at(-1).id ?? '',
+                            });
+                          }}
+                        >
+                          <ThumbsDown className={'mb-4'} />
+                        </button>
+                      </div>
+                      <div>
+                        {badResponse !== null && (
+                          <div className="border border-gray-200 rounded-2xl p-5 mb-10">
+                            <textarea
+                              rows={4}
+                              className={'w-full bg-none text-gray-700 placeholder-gray-500'}
+                              onChange={e =>
+                                setBadResponse(prevState => ({ ...prevState, responseText: e.target.value }))
+                              }
+                              placeholder={'Sorry about that. Please tell us how we can improve.'}
+                            ></textarea>
+                            <button type={'submit'} className={'bg-gray-300 p-3 rounded-lg font-bold text-sm'}>
+                              Submit
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </form>
+                  )}
                   <div className="responding-div">{isResponding ? RespondingIconGray : null}</div>
                 </div>
               </div>
               {/* Handles scrolling to the end */}
               {/*<div ref={messagesEndRef} />*/}
               <form
+                id={'chat-form'}
                 className="input-container"
                 onSubmit={e => {
                   e.preventDefault();

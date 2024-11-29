@@ -196,15 +196,17 @@ The response to the above request should identify the `User` with `user_id: 1`.
 ## Metadata structure
 
 
-### Model {#model-model}
+#### Model {#model-model}
 
 The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `Model` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [ModelV1](#model-modelv1) | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [undefined](#model-undefined) |  |
+| [undefined](#model-undefined) |  |
 
  **Example:**
 
@@ -245,6 +247,83 @@ definition:
       entitySource: true
   description: Description for the model Articles
 ```
+
+
+#### undefined {#model-undefined}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Model` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [ModelV2](#model-modelv2) | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md. |
+
+
+
+#### ModelV2 {#model-modelv2}
+
+The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `name` | [ModelName](#model-modelname) | true | The name of the data model. |
+| `objectType` | [CustomTypeName](#model-customtypename) | true | The type of the objects of which this model is a collection. |
+| `globalIdSource` | boolean | false | Whether this model should be used as the global ID source for all objects of its type. |
+| `arguments` | [[ArgumentDefinition](#model-argumentdefinition)] | false | A list of arguments accepted by this model. Defaults to no arguments. |
+| `source` | [ModelSource](#model-modelsource) / null | false | The source configuration for this model. |
+| `filterExpressionType` | [CustomTypeName](#model-customtypename) / null | false | The boolean expression type that should be used to perform filtering on this model. |
+| `orderByExpression` | [OrderByExpressionName](#model-orderbyexpressionname) / null | false | The order by expression to use for this model. |
+| `aggregateExpression` | [AggregateExpressionName](#model-aggregateexpressionname) / null | false | The name of the AggregateExpression that defines how to aggregate over this model |
+| `graphql` | [ModelGraphQlDefinitionV2](#model-modelgraphqldefinitionv2) / null | false | Configuration for how this model should appear in the GraphQL schema. |
+| `description` | string / null | false | The description of the model. Gets added to the description of the model in the graphql schema. |
+
+
+
+#### ModelGraphQlDefinitionV2 {#model-modelgraphqldefinitionv2}
+
+The definition of how a model appears in the GraphQL API. Note: ModelGraphQlDefinitionV2 removed the `order_by_expression_type` property. See rfcs/open-dd-expression-type-changes.md.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `selectUniques` | [[SelectUniqueGraphQlDefinition](#model-selectuniquegraphqldefinition)] | true | For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model. |
+| `selectMany` | [SelectManyGraphQlDefinition](#model-selectmanygraphqldefinition) / null | false | Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model. |
+| `argumentsInputType` | [GraphQlTypeName](#model-graphqltypename) / null | false | The type name of the input type used to hold the arguments of the model. |
+| `apolloFederation` | [ModelApolloFederationConfiguration](#model-modelapollofederationconfiguration) / null | false | Apollo Federation configuration |
+| `filterInputTypeName` | [GraphQlTypeName](#model-graphqltypename) / null | false | The type name of the input type used to hold the filtering settings used by aggregates (etc) to filter their input before processing |
+| `aggregate` | [ModelAggregateGraphQlDefinition](#model-modelaggregategraphqldefinition) / null | false | Configures the query root field added to the GraphQL API that can be used to aggregate over the model |
+
+ **Example:**
+
+```yaml
+selectUniques:
+  - queryRootField: ArticleByID
+    uniqueIdentifier:
+      - article_id
+    description: Description for the select unique ArticleByID
+selectMany:
+  queryRootField: ArticleMany
+  description: Description for the select many ArticleMany
+aggregate:
+  queryRootField: ArticleAggregate
+  description: Aggregate over Articles
+```
+
+
+#### OrderByExpressionName {#model-orderbyexpressionname}
+
+The name of an order by expression.
+
+
+**Value:** string
+
+
+#### undefined {#model-undefined}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `Model` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ModelV1](#model-modelv1) | true | The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. |
+
 
 
 #### ModelV1 {#model-modelv1}

@@ -31,7 +31,32 @@ will be disabled. To enable these features, simply increase your `date` to a new
 The following is a list of dates at which backwards-incompatible changes were added to Hasura DDN. Projects with
 CompatibilityConfig `date`s prior to these dates will have these features disabled.
 
+#### 2024-11-26
+
+##### Logical operators in scalar boolean expression types
+
+Previously, if logical operators (ie. `_and`, `_or`, `_not`) were enabled in scalar `BooleanExpressionType`s, they would
+_not_ appear in the GraphQL API. Now, if they are enabled, they will correctly appear in the GraphQL API as configured.
+
+#### 2024-11-18
+
+##### Disallow object boolean expression type
+
+A build error is now raised if `ObjectBooleanExpressionType` is used to define a boolean expression. To resolve this,
+you can upgrade all object boolean expression types in your metadata by running the following DDN codemod command.
+
+```bash
+ddn codemod upgrade-object-boolean-expression-types
+```
+
+Learn more about the [command here](cli/commands/ddn_codemod_upgrade-object-boolean-expression-types.mdx).
+
 #### 2024-11-15
+
+##### Require unique model GraphQL names
+
+A build error is now raised if a root field defined in a `Model`'s GraphQL config conflicts with an existing root field.
+Previously, the conflicting root field was silently excluded from the GraphQL schema.
 
 ##### Require a valid NDC version in data connector capabilities
 
@@ -39,6 +64,14 @@ A build error is now raised when there is an invalid version in the capabilities
 the error, please consider upgrading to the latest version of the data connector and running `ddn connector introspect`
 to correct the invalid version. Prior to this change, it was assumed that the data connector with the invalid version
 was an NDC v0.1.x connector.
+
+#### 2024-11-13
+
+##### Allow resolving boolean expression fields without GraphQL config
+
+Previously, comparable fields, relationships, and aggregate fields of a `BooleanExpressionType` were validated only if
+the `graphql` field was configured in the metadata. These fields are now validated regardless of whether the `graphql`
+configuration is specified.
 
 #### 2024-10-31
 

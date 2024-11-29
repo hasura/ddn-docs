@@ -512,7 +512,7 @@
                                                           "description": "The key to use for decoding the JWT.",
                                                           "allOf": [
                                                             {
-                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
                                                             }
                                                           ]
                                                         }
@@ -576,8 +576,8 @@
                                           "description": "static session variables to use whilst running the engine",
                                           "type": "object",
                                           "additionalProperties": {
-                                            "description": "Value of a session variable",
-                                            "type": "string"
+                                            "description": "JSON value of a session variable",
+                                            "tsType": "any"
                                           }
                                         }
                                       },
@@ -716,7 +716,7 @@
                                       "required": ["singleUrl"],
                                       "properties": {
                                         "singleUrl": {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
                                         }
                                       },
                                       "additionalProperties": false
@@ -733,10 +733,10 @@
                                           "required": ["read", "write"],
                                           "properties": {
                                             "read": {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
                                             },
                                             "write": {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
                                             }
                                           },
                                           "additionalProperties": false
@@ -758,7 +758,7 @@
                                   "description": "Key value map of HTTP headers to be sent with an HTTP request. The key is the header name and the value is a potential reference to an environment variable.",
                                   "type": "object",
                                   "additionalProperties": {
-                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
                                   }
                                 }
                               ]
@@ -1138,7 +1138,7 @@
                                                       "enum": ["named"]
                                                     },
                                                     "name": {
-                                                      "description": "The name can refer to a primitive type or a scalar type",
+                                                      "description": "The name can refer to a scalar or object type",
                                                       "type": "string"
                                                     }
                                                   }
@@ -1530,6 +1530,15 @@
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/capabilities/definitions/NestedFieldCapabilities"
                                                     }
                                                   ]
+                                                },
+                                                "exists": {
+                                                  "description": "Does the connector support EXISTS predicates",
+                                                  "default": {},
+                                                  "allOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/capabilities/definitions/ExistsCapabilities"
+                                                    }
+                                                  ]
                                                 }
                                               }
                                             },
@@ -1565,6 +1574,23 @@
                                                 },
                                                 "aggregates": {
                                                   "description": "Does the connector support aggregating values within nested fields",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "ExistsCapabilities": {
+                                              "title": "Exists Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "nested_collections": {
+                                                  "description": "Does the connector support ExistsInCollection::NestedCollection",
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/capabilities/definitions/LeafCapability"
@@ -1691,7 +1717,7 @@
                                                     "description": "Key value map of HTTP headers to be forwarded in the headers argument of a data connector request.",
                                                     "type": "object",
                                                     "additionalProperties": {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
                                                     }
                                                   }
                                                 ]
@@ -1795,10 +1821,7 @@
                                   "description": "The name of the root operation type name for queries. Usually `query`.",
                                   "allOf": [
                                     {
-                                      "$id": "https://hasura.io/jsonschemas/metadata/GraphQlTypeName",
-                                      "title": "GraphQlTypeName",
-                                      "description": "The name of a GraphQL type.",
-                                      "type": "string"
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                     }
                                   ]
                                 },
@@ -1816,7 +1839,7 @@
                                           "description": "The name of arguments passing field. Usually `args`.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         }
@@ -1842,7 +1865,7 @@
                                           "description": "The name of the limit operation field. Usually `limit`.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         }
@@ -1868,7 +1891,7 @@
                                           "description": "The name of the offset operation field. Usually `offset`.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         }
@@ -1894,7 +1917,7 @@
                                           "description": "The name of the filter operation field. Usually `where`.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         },
@@ -1912,7 +1935,7 @@
                                                   "description": "The name of the `and` operator. Usually `_and`.",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                     }
                                                   ]
                                                 },
@@ -1920,7 +1943,7 @@
                                                   "description": "The name of the `or` operator. Usually `_or`.",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                     }
                                                   ]
                                                 },
@@ -1928,7 +1951,7 @@
                                                   "description": "The name of the `not` operator. Usually `_not`.",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                     }
                                                   ]
                                                 },
@@ -1936,7 +1959,7 @@
                                                   "description": "The name of the `is null` operator. Usually `_is_null`.",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                     }
                                                   ]
                                                 }
@@ -1967,7 +1990,7 @@
                                           "description": "The name of the filter operation field. Usually `order_by`.",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         },
@@ -1985,7 +2008,7 @@
                                                   "description": "The name of the ascending parameter. Usually `Asc`.",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                     }
                                                   ]
                                                 },
@@ -1993,7 +2016,7 @@
                                                   "description": "The name of the descending parameter. Usually `Desc`.",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                     }
                                                   ]
                                                 }
@@ -2032,7 +2055,7 @@
                                                 }
                                               },
                                               "typeName": {
-                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                               }
                                             },
                                             "additionalProperties": false
@@ -2060,7 +2083,7 @@
                                           "description": "The name of the filter input parameter of aggregate fields and field name in predicates",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         },
@@ -2068,7 +2091,7 @@
                                           "description": "The name of the _count field used for the count aggregate function",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         },
@@ -2076,7 +2099,7 @@
                                           "description": "The name of the _count_distinct field used for the count distinct aggregate function",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                             }
                                           ]
                                         }
@@ -2102,7 +2125,7 @@
                                   "description": "The name of the root operation type name for mutations. Usually `mutation`.",
                                   "allOf": [
                                     {
-                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                     }
                                   ]
                                 }
@@ -2122,7 +2145,7 @@
                                       "description": "The name of the root operation type name for subscriptions. Usually `subscription`.",
                                       "allOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         }
                                       ]
                                     }
@@ -2291,7 +2314,7 @@
                                     "description": "The type of this field. This uses the GraphQL syntax to represent field types and must refer to one of the inbuilt OpenDd types or another user-defined type.",
                                     "allOf": [
                                       {
-                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/outputType/allOf/0"
+                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/outputType/allOf/0"
                                       }
                                     ]
                                   },
@@ -2303,7 +2326,7 @@
                                     "description": "Whether this field is deprecated. If set, the deprecation status is added to the field's graphql schema.",
                                     "anyOf": [
                                       {
-                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
                                       },
                                       {
                                         "type": "null"
@@ -2322,10 +2345,10 @@
                                       "required": ["argumentType", "name"],
                                       "properties": {
                                         "name": {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/arguments/items/properties/name"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/arguments/items/properties/name"
                                         },
                                         "argumentType": {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/outputType/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/outputType/allOf/0"
                                         },
                                         "description": {
                                           "type": ["string", "null"]
@@ -2362,7 +2385,7 @@
                                       "description": "The name to use for the GraphQL type representation of this object type when used in an output context.",
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         },
                                         {
                                           "type": "null"
@@ -2373,7 +2396,7 @@
                                       "description": "The name to use for the GraphQL type representation of this object type when used in an input context.",
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         },
                                         {
                                           "type": "null"
@@ -2482,7 +2505,7 @@
                                                       "description": "Arguments to the column field",
                                                       "anyOf": [
                                                         {
-                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/source/anyOf/0/properties/argumentMapping/allOf/0"
+                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/source/anyOf/0/properties/argumentMapping/allOf/0"
                                                         },
                                                         {
                                                           "type": "null"
@@ -2569,7 +2592,7 @@
                                       "description": "The name of the GraphQl type to use for this scalar.",
                                       "allOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         }
                                       ]
                                     }
@@ -2757,7 +2780,7 @@
                                       "description": "The name to use for the GraphQL type representation of this boolean expression type.",
                                       "allOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         }
                                       ]
                                     }
@@ -2925,7 +2948,7 @@
                                                     "description": "The name of the relationship to use for comparison",
                                                     "allOf": [
                                                       {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/name/allOf/0"
                                                       }
                                                     ]
                                                   },
@@ -2967,7 +2990,7 @@
                                               "description": "The OpenDD type name of the scalar type that this boolean expression applies to.",
                                               "allOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/representation/allOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/representation/allOf/0"
                                                 }
                                               ]
                                             },
@@ -2993,7 +3016,7 @@
                                                     "description": "An OpenDD type",
                                                     "allOf": [
                                                       {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/outputType/allOf/0"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/outputType/allOf/0"
                                                       }
                                                     ]
                                                   }
@@ -3027,7 +3050,7 @@
                                                     "description": "Name of the scalar type according to the data connector's schema",
                                                     "allOf": [
                                                       {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/dataConnectorScalarType/allOf/0"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/dataConnectorScalarType/allOf/0"
                                                       }
                                                     ]
                                                   },
@@ -3106,7 +3129,7 @@
                                       "description": "The name to use for the GraphQL type representation of this boolean expression type.",
                                       "allOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         }
                                       ]
                                     }
@@ -3117,6 +3140,267 @@
                                   "type": "null"
                                 }
                               ]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                {
+                  "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpression",
+                  "title": "OrderByExpression",
+                  "description": "Definition of an order by expression on an OpenDD type.",
+                  "examples": [
+                    {
+                      "kind": "OrderByExpression",
+                      "version": "v1",
+                      "definition": {
+                        "name": "Album_order_by_exp",
+                        "operand": {
+                          "object": {
+                            "orderedType": "Album",
+                            "orderableFields": [
+                              {
+                                "fieldName": "AlbumId",
+                                "orderByExpression": "Int_order_by_exp"
+                              },
+                              {
+                                "fieldName": "ArtistId",
+                                "orderByExpression": "Int_order_by_exp"
+                              },
+                              {
+                                "fieldName": "Address",
+                                "orderByExpression": "Address_order_by_default_exp"
+                              }
+                            ],
+                            "orderableRelationships": [
+                              {
+                                "relationshipName": "artist",
+                                "orderByExpression": "Artist_order_by_default_exp"
+                              }
+                            ]
+                          }
+                        },
+                        "graphql": {
+                          "expressionTypeName": "App_Album_order_by_exp"
+                        },
+                        "description": "Order by expression for Albums"
+                      }
+                    },
+                    {
+                      "kind": "OrderByExpression",
+                      "version": "v1",
+                      "definition": {
+                        "name": "Int_order_by_exp",
+                        "operand": {
+                          "scalar": {
+                            "orderedType": "Int",
+                            "enableOrderByDirections": {
+                              "enableAll": true
+                            }
+                          }
+                        },
+                        "graphql": {
+                          "expressionTypeName": "App_Int_order_by_exp"
+                        },
+                        "description": "Order by expression for Int"
+                      }
+                    }
+                  ],
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["OrderByExpression"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v1"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionV1",
+                          "title": "OrderByExpressionV1",
+                          "description": "Definition of a type representing an order by expression on an OpenDD type.",
+                          "type": "object",
+                          "required": ["name", "operand"],
+                          "properties": {
+                            "name": {
+                              "description": "The name used to refer to this expression. This name is unique only in the context of the `orderedType`",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionName",
+                                  "title": "OrderByExpressionName",
+                                  "description": "The name of an order by expression.",
+                                  "type": "string",
+                                  "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
+                                }
+                              ]
+                            },
+                            "operand": {
+                              "description": "The type that this expression applies to.",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionOperand",
+                                  "title": "OrderByExpressionOperand",
+                                  "description": "Configuration for object or scalar order by expression",
+                                  "oneOf": [
+                                    {
+                                      "title": "Object",
+                                      "description": "Definition of an order by expression on an OpenDD object type",
+                                      "type": "object",
+                                      "required": ["object"],
+                                      "properties": {
+                                        "object": {
+                                          "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionObjectOperand",
+                                          "title": "OrderByExpressionObjectOperand",
+                                          "description": "Definition of an type representing an order by expression on an OpenDD object type.",
+                                          "type": "object",
+                                          "required": ["orderableFields", "orderableRelationships", "orderedType"],
+                                          "properties": {
+                                            "orderedType": {
+                                              "description": "The type that this expression applies to.",
+                                              "allOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                }
+                                              ]
+                                            },
+                                            "orderableFields": {
+                                              "description": "Orderable fields of the `orderedType`",
+                                              "type": "array",
+                                              "items": {
+                                                "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionOrderableField",
+                                                "title": "OrderByExpressionOrderableField",
+                                                "description": "Definition of a field in a type representing an order by expression on an OpenDD type.",
+                                                "type": "object",
+                                                "required": ["fieldName", "orderByExpression"],
+                                                "properties": {
+                                                  "fieldName": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                  },
+                                                  "orderByExpression": {
+                                                    "description": "OrderByExpression to use for this field.",
+                                                    "allOf": [
+                                                      {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            },
+                                            "orderableRelationships": {
+                                              "description": "Orderable relationships",
+                                              "type": "array",
+                                              "items": {
+                                                "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionOrderableRelationship",
+                                                "title": "OrderByExpressionOrderableRelationship",
+                                                "description": "Definition of a relationship in a type representing an order by expression on an OpenDD type.",
+                                                "type": "object",
+                                                "required": ["relationshipName"],
+                                                "properties": {
+                                                  "relationshipName": {
+                                                    "description": "The name of the relationship.",
+                                                    "allOf": [
+                                                      {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                      }
+                                                    ]
+                                                  },
+                                                  "orderByExpression": {
+                                                    "description": "The OrderByExpression to use for this relationship. This is optional for model relationships. If not specified we use the model's OrderByExpression configuration. For local command relationships this is required.",
+                                                    "anyOf": [
+                                                      {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                      },
+                                                      {
+                                                        "type": "null"
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "title": "Scalar",
+                                      "description": "Definition of an order by expression on an OpenDD scalar type",
+                                      "type": "object",
+                                      "required": ["scalar"],
+                                      "properties": {
+                                        "scalar": {
+                                          "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionScalarOperand",
+                                          "title": "OrderByExpressionScalarOperand",
+                                          "description": "Definition of a type representing an order by expression on an OpenDD scalar type.",
+                                          "type": "object",
+                                          "required": ["enableOrderByDirections", "orderedType"],
+                                          "properties": {
+                                            "orderedType": {
+                                              "description": "The type that this expression applies to.",
+                                              "allOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/representation/allOf/0"
+                                                }
+                                              ]
+                                            },
+                                            "enableOrderByDirections": {
+                                              "description": "Order by directions supported by this scalar type.",
+                                              "allOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/orderableFields/items/properties/orderByDirections"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "graphql": {
+                              "description": "Configuration for how this order by expression should appear in the GraphQL schema.",
+                              "anyOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/OrderByExpressionGraphQlConfiguration",
+                                  "title": "OrderByExpressionGraphQlConfiguration",
+                                  "description": "GraphQL configuration settings for a type representing an order by expression on an OpenDD type.",
+                                  "type": "object",
+                                  "required": ["expressionTypeName"],
+                                  "properties": {
+                                    "expressionTypeName": {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/GraphQlTypeName",
+                                      "title": "GraphQlTypeName",
+                                      "description": "The name of a GraphQL type.",
+                                      "type": "string"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "description": {
+                              "description": "The description of the order by expression.",
+                              "type": ["string", "null"]
                             }
                           },
                           "additionalProperties": false
@@ -3212,7 +3496,7 @@
                                     "comparisonExpressionTypeName": {
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         },
                                         {
                                           "type": "null"
@@ -3350,7 +3634,7 @@
                                                     "description": "The aggregate expression used to aggregate the type of the field",
                                                     "allOf": [
                                                       {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
                                                       }
                                                     ]
                                                   }
@@ -3385,7 +3669,7 @@
                                               "description": "The name of the scalar type the aggregate expression is aggregating",
                                               "allOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/representation/allOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/representation/allOf/0"
                                                 }
                                               ]
                                             },
@@ -3416,7 +3700,7 @@
                                                     "type": ["string", "null"]
                                                   },
                                                   "returnType": {
-                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/outputType/allOf/0"
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/outputType/allOf/0"
                                                   }
                                                 },
                                                 "additionalProperties": false
@@ -3448,7 +3732,7 @@
                                                     "description": "The matching scalar type in the data connector for the operand scalar type",
                                                     "allOf": [
                                                       {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/dataConnectorScalarType/allOf/0"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/dataConnectorScalarType/allOf/0"
                                                       }
                                                     ]
                                                   },
@@ -3528,7 +3812,7 @@
                               "description": "Configuration for the count distinct aggregate function used over the operand",
                               "anyOf": [
                                 {
-                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/count/anyOf/0"
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/count/anyOf/0"
                                 },
                                 {
                                   "type": "null"
@@ -3554,7 +3838,7 @@
                                       "description": "The type name to use for the aggregate selection type",
                                       "allOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         }
                                       ]
                                     },
@@ -3562,7 +3846,7 @@
                                       "description": "Whether this command root field is deprecated. If set, this will be added to the graphql schema as a deprecated field.",
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
                                         },
                                         {
                                           "type": "null"
@@ -3713,7 +3997,7 @@
                                     "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
                                   },
                                   "type": {
-                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/outputType/allOf/0"
+                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/outputType/allOf/0"
                                   },
                                   "description": {
                                     "type": ["string", "null"]
@@ -3839,7 +4123,7 @@
                               "description": "The name of the AggregateExpression that defines how to aggregate over this model",
                               "anyOf": [
                                 {
-                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/name/allOf/0"
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
                                 },
                                 {
                                   "type": "null"
@@ -3890,7 +4174,7 @@
                                             "description": "The name of the query root field for this API.",
                                             "allOf": [
                                               {
-                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                               }
                                             ]
                                           },
@@ -3909,7 +4193,7 @@
                                             "description": "Whether this select unique query field is deprecated. If set, the deprecation status is added to the select unique root field's graphql schema.",
                                             "anyOf": [
                                               {
-                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
                                               },
                                               {
                                                 "type": "null"
@@ -3930,7 +4214,7 @@
                                                     "description": "The name of the subscription root field.",
                                                     "allOf": [
                                                       {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                       }
                                                     ]
                                                   },
@@ -3942,7 +4226,7 @@
                                                     "description": "Whether this subscription root field is deprecated. If set, the deprecation status is added to the subscription root field's graphql schema.",
                                                     "anyOf": [
                                                       {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
                                                       },
                                                       {
                                                         "type": "null"
@@ -3982,7 +4266,7 @@
                                               "description": "The name of the query root field for this API.",
                                               "allOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                 }
                                               ]
                                             },
@@ -3994,7 +4278,7 @@
                                               "description": "Whether this select many query field is deprecated. If set, the deprecation status is added to the select many root field's graphql schema.",
                                               "anyOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
                                                 },
                                                 {
                                                   "type": "null"
@@ -4005,7 +4289,7 @@
                                               "description": "Enable subscription on this select many root field.",
                                               "anyOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectUniques/items/properties/subscription/anyOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectUniques/items/properties/subscription/anyOf/0"
                                                 },
                                                 {
                                                   "type": "null"
@@ -4024,7 +4308,7 @@
                                       "description": "The type name of the input type used to hold the arguments of the model.",
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         },
                                         {
                                           "type": "null"
@@ -4035,7 +4319,7 @@
                                       "description": "The type name of the order by expression input type.",
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         },
                                         {
                                           "type": "null"
@@ -4068,7 +4352,7 @@
                                       "description": "The type name of the input type used to hold the filtering settings used by aggregates (etc) to filter their input before processing",
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/1/oneOf/0/properties/definition/properties/query/properties/rootOperationTypeName/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
                                         },
                                         {
                                           "type": "null"
@@ -4089,7 +4373,7 @@
                                               "description": "The name of the query root field for this API.",
                                               "allOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/rootFieldName/allOf/0"
                                                 }
                                               ]
                                             },
@@ -4101,7 +4385,7 @@
                                               "description": "Whether this aggregate query field is deprecated. If set, the deprecation status is added to the aggregate root field's graphql schema.",
                                               "anyOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
                                                 },
                                                 {
                                                   "type": "null"
@@ -4112,7 +4396,7 @@
                                               "description": "Enable subscription on this aggregate root field.",
                                               "anyOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectUniques/items/properties/subscription/anyOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectUniques/items/properties/subscription/anyOf/0"
                                                 },
                                                 {
                                                   "type": "null"
@@ -4121,6 +4405,207 @@
                                             }
                                           },
                                           "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "description": {
+                              "description": "The description of the model. Gets added to the description of the model in the graphql schema.",
+                              "type": ["string", "null"]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["Model"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v2"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/ModelV2",
+                          "title": "ModelV2",
+                          "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md.",
+                          "type": "object",
+                          "required": ["name", "objectType"],
+                          "properties": {
+                            "name": {
+                              "description": "The name of the data model.",
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/name/allOf/0"
+                                }
+                              ]
+                            },
+                            "objectType": {
+                              "description": "The type of the objects of which this model is a collection.",
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/name/allOf/0"
+                                }
+                              ]
+                            },
+                            "globalIdSource": {
+                              "description": "Whether this model should be used as the global ID source for all objects of its type.",
+                              "default": false,
+                              "type": "boolean"
+                            },
+                            "arguments": {
+                              "description": "A list of arguments accepted by this model. Defaults to no arguments.",
+                              "default": [],
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/arguments/items"
+                              }
+                            },
+                            "source": {
+                              "description": "The source configuration for this model.",
+                              "anyOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/source/anyOf/0"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "filterExpressionType": {
+                              "description": "The boolean expression type that should be used to perform filtering on this model.",
+                              "anyOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/name/allOf/0"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "orderByExpression": {
+                              "description": "The order by expression to use for this model.",
+                              "anyOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/name/allOf/0"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "aggregateExpression": {
+                              "description": "The name of the AggregateExpression that defines how to aggregate over this model",
+                              "anyOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "graphql": {
+                              "description": "Configuration for how this model should appear in the GraphQL schema.",
+                              "anyOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/ModelGraphQlDefinitionV2",
+                                  "title": "ModelGraphQlDefinitionV2",
+                                  "description": "The definition of how a model appears in the GraphQL API. Note: ModelGraphQlDefinitionV2 removed the `order_by_expression_type` property. See rfcs/open-dd-expression-type-changes.md.",
+                                  "examples": [
+                                    {
+                                      "selectUniques": [
+                                        {
+                                          "queryRootField": "ArticleByID",
+                                          "uniqueIdentifier": ["article_id"],
+                                          "description": "Description for the select unique ArticleByID"
+                                        }
+                                      ],
+                                      "selectMany": {
+                                        "queryRootField": "ArticleMany",
+                                        "description": "Description for the select many ArticleMany"
+                                      },
+                                      "aggregate": {
+                                        "queryRootField": "ArticleAggregate",
+                                        "description": "Aggregate over Articles"
+                                      }
+                                    }
+                                  ],
+                                  "type": "object",
+                                  "required": ["selectUniques"],
+                                  "properties": {
+                                    "selectUniques": {
+                                      "description": "For each select unique defined here, a query root field is added to the GraphQL API that can be used to select a unique object from the model.",
+                                      "type": "array",
+                                      "items": {
+                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectUniques/items"
+                                      }
+                                    },
+                                    "selectMany": {
+                                      "description": "Select many configuration for a model adds a query root field to the GraphQl API that can be used to retrieve multiple objects from the model.",
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/selectMany/anyOf/0"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "argumentsInputType": {
+                                      "description": "The type name of the input type used to hold the arguments of the model.",
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "apolloFederation": {
+                                      "description": "Apollo Federation configuration",
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/apolloFederation/anyOf/0"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "filterInputTypeName": {
+                                      "description": "The type name of the input type used to hold the filtering settings used by aggregates (etc) to filter their input before processing",
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/6/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/expressionTypeName"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "aggregate": {
+                                      "description": "Configures the query root field added to the GraphQL API that can be used to aggregate over the model",
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/graphql/anyOf/0/properties/aggregate/anyOf/0"
                                         },
                                         {
                                           "type": "null"
@@ -4222,7 +4707,7 @@
                               "default": [],
                               "type": "array",
                               "items": {
-                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/arguments/items"
+                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/arguments/items"
                               }
                             },
                             "source": {
@@ -4298,7 +4783,7 @@
                                       "default": {},
                                       "allOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/source/anyOf/0/properties/argumentMapping/allOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/source/anyOf/0/properties/argumentMapping/allOf/0"
                                         }
                                       ]
                                     }
@@ -4352,7 +4837,7 @@
                                       "description": "Whether this command root field is deprecated. If set, this will be added to the graphql schema as a deprecated field.",
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/deprecated/anyOf/0"
                                         },
                                         {
                                           "type": "null"
@@ -4491,7 +4976,7 @@
                                               "description": "The name of the data model.",
                                               "allOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/name/allOf/0"
                                                 }
                                               ]
                                             },
@@ -4536,7 +5021,7 @@
                                                       "description": "The name of the aggregate expression that defines how to aggregate across the relationship.",
                                                       "allOf": [
                                                         {
-                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/7/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
                                                         }
                                                       ]
                                                     },
@@ -4573,7 +5058,7 @@
                                               "description": "The name of the command.",
                                               "allOf": [
                                                 {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/name/allOf/0"
                                                 }
                                               ]
                                             },
@@ -4653,7 +5138,7 @@
                                                     "required": ["sessionVariable"],
                                                     "properties": {
                                                       "sessionVariable": {
-                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/argumentPresets/items/properties/value/allOf/0/oneOf/1/properties/sessionVariable"
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/properties/permissions/items/properties/argumentPresets/items/properties/value/allOf/0/oneOf/1/properties/sessionVariable"
                                                       }
                                                     },
                                                     "additionalProperties": false
@@ -4712,7 +5197,7 @@
                                                 "required": ["argumentName"],
                                                 "properties": {
                                                   "argumentName": {
-                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/arguments/items/properties/name"
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/arguments/items/properties/name"
                                                   }
                                                 },
                                                 "additionalProperties": false
@@ -4728,7 +5213,7 @@
                                               "modelField": {
                                                 "type": "array",
                                                 "items": {
-                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/1/properties/fieldPath/items"
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/1/properties/fieldPath/items"
                                                 }
                                               }
                                             },
@@ -4952,7 +5437,7 @@
                                                   "description": "Value for preset",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
                                                     }
                                                   ]
                                                 }
@@ -5073,7 +5558,7 @@
                               "description": "The name of the model for which permissions are being defined.",
                               "allOf": [
                                 {
-                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/name/allOf/0"
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/name/allOf/0"
                                 }
                               ]
                             },
@@ -5232,7 +5717,7 @@
                                                                 "description": "The value expression to compare against.",
                                                                 "allOf": [
                                                                   {
-                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
+                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
                                                                   }
                                                                 ]
                                                               }
@@ -5283,7 +5768,7 @@
                                                                 "description": "The name of the relationship of the object type of the model to follow.",
                                                                 "allOf": [
                                                                   {
-                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/name/allOf/0"
+                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/name/allOf/0"
                                                                   }
                                                                 ]
                                                               },
@@ -5291,7 +5776,7 @@
                                                                 "description": "The predicate to apply on the related objects. If this is null, then the predicate evaluates to true as long as there is at least one related object present.",
                                                                 "anyOf": [
                                                                   {
-                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
                                                                   },
                                                                   {
                                                                     "type": "null"
@@ -5313,7 +5798,7 @@
                                                           "and": {
                                                             "type": "array",
                                                             "items": {
-                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
                                                             }
                                                           }
                                                         },
@@ -5328,7 +5813,7 @@
                                                           "or": {
                                                             "type": "array",
                                                             "items": {
-                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
                                                             }
                                                           }
                                                         },
@@ -5341,7 +5826,7 @@
                                                         "required": ["not"],
                                                         "properties": {
                                                           "not": {
-                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
                                                           }
                                                         },
                                                         "additionalProperties": false
@@ -5357,7 +5842,7 @@
                                             "default": [],
                                             "type": "array",
                                             "items": {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/argumentPresets/items"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/properties/permissions/items/properties/argumentPresets/items"
                                             }
                                           },
                                           "allowSubscriptions": {
@@ -5432,7 +5917,7 @@
                               "description": "The name of the command for which permissions are being defined.",
                               "allOf": [
                                 {
-                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/name/allOf/0"
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/name/allOf/0"
                                 }
                               ]
                             },
@@ -5487,7 +5972,7 @@
                                           "description": "Argument name for preset",
                                           "allOf": [
                                             {
-                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/8/oneOf/0/properties/definition/properties/arguments/items/properties/name"
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/arguments/items/properties/name"
                                             }
                                           ]
                                         },
@@ -5526,7 +6011,7 @@
                                                   "required": ["booleanExpression"],
                                                   "properties": {
                                                     "booleanExpression": {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
                                                     }
                                                   },
                                                   "additionalProperties": false
@@ -5732,7 +6217,7 @@
                                                           "description": "Configuration for the query.",
                                                           "anyOf": [
                                                             {
-                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
                                                             },
                                                             {
                                                               "type": "null"
@@ -5743,7 +6228,7 @@
                                                           "description": "Configuration for the variables.",
                                                           "anyOf": [
                                                             {
-                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
                                                             },
                                                             {
                                                               "type": "null"
@@ -5786,7 +6271,7 @@
                                   "description": "The URL to access the lifecycle plugin hook.",
                                   "allOf": [
                                     {
-                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
                                     }
                                   ]
                                 },
@@ -5814,7 +6299,7 @@
                                                   "description": "Configuration for the headers.",
                                                   "anyOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/headers/anyOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/headers/anyOf/0"
                                                     },
                                                     {
                                                       "type": "null"
@@ -5825,7 +6310,7 @@
                                                   "description": "Configuration for the session (includes roles and session variables).",
                                                   "anyOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
                                                     },
                                                     {
                                                       "type": "null"
@@ -5836,7 +6321,7 @@
                                                   "description": "Configuration for the raw request.",
                                                   "allOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/rawRequest/allOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/rawRequest/allOf/0"
                                                     }
                                                   ]
                                                 },
@@ -5844,7 +6329,7 @@
                                                   "description": "Configuration for the response.",
                                                   "anyOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
                                                     },
                                                     {
                                                       "type": "null"

@@ -4,6 +4,24 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 require('dotenv').config();
 
+const DOCS_SERVER_ROOT_URLS = {
+  development: 'localhost:8000',
+  production: 'website-api.hasura.io',
+  staging: 'website-api.stage.hasura.io',
+};
+
+const DOCS_SERVER_URLS = {
+  development: `http://${DOCS_SERVER_ROOT_URLS.development}`,
+  production: `https://${DOCS_SERVER_ROOT_URLS.production}`,
+  staging: `https://${DOCS_SERVER_ROOT_URLS.staging}`,
+};
+
+const BOT_ROUTES = {
+  development: `ws://${DOCS_SERVER_ROOT_URLS.development}/bot/query`,
+  production: `wss://${DOCS_SERVER_ROOT_URLS.production}/docs-services/docs-server/bot/query`,
+  staging: `wss://${DOCS_SERVER_ROOT_URLS.staging}/docs-services/docs-server/bot/query`,
+};
+
 const config: Config = {
   title: 'Hasura GraphQL Docs',
   tagline: 'Instant GraphQL on all your data',
@@ -34,22 +52,27 @@ const config: Config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
-
   customFields: {
     docsBotEndpointURL: (() => {
       if (process.env.CF_PAGES === '1') {
-        return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
+        return BOT_ROUTES.staging; // if we're on CF pages, use the staging environment
       } else {
-        switch (process.env.release_mode) {
-          case 'development':
-            return 'ws://localhost:8000/hasura-docs-ai';
-          case 'production':
-            return 'wss://website-api.hasura.io/chat-bot/hasura-docs-ai';
-          case 'staging':
-            return 'wss://website-api.stage.hasura.io/chat-bot/hasura-docs-ai';
-          default:
-            return 'ws://localhost:8000/hasura-docs-ai'; // default to development if no match
+        const mode = process.env.release_mode;
+        if (mode === 'staging') {
+          return BOT_ROUTES.production; // use production route for staging
         }
+        return BOT_ROUTES[mode ?? 'development'];
+      }
+    })(),
+    docsServerURL: (() => {
+      if (process.env.CF_PAGES === '1') {
+        return DOCS_SERVER_URLS.staging; // if we're on CF pages, use the staging environment
+      } else {
+        const mode = process.env.release_mode;
+        if (mode === 'staging') {
+          return DOCS_SERVER_URLS.production; // use production route for staging
+        }
+        return DOCS_SERVER_URLS[mode ?? 'development'];
       }
     })(),
     hasuraVersion: 3,
@@ -69,7 +92,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: 'v3.x',
+              label: 'v3.x (DDN)',
               badge: true,
             },
           },
