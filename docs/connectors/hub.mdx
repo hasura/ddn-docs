@@ -1,6 +1,6 @@
 ---
-sidebar_position: 3
-sidebar_label: Connector Hub
+sidebar_position: 8.6
+sidebar_label: Connector Hub Publishing Guide
 description: Learn how to author, set up, publish, and maintain connectors on the Connector Hub.
 keywords:
   - connector hub
@@ -16,25 +16,12 @@ keywords:
 seoFrontMatterUpdated: true
 ---
 
-
-# NDC Connector Publication Automation Guide
-
-## Table of Contents
-
-1. Introduction
-2. Prerequisites
-3. Automated Publication Process Overview
-4. `connector-packaging.json` Format
-5. Creating a new connector
-6. Creating a new connector release and updating existing connectors
-7. Automation Trigger Process
-8. Troubleshooting
-9. FAQs
-10. Additional Resources
+# NDC Connector Publishing Guide
 
 ## 1. Introduction
 
-This guide details the automated process for publishing new connectors and updating existing versions on the [Hasura Connector Hub](https://hasura.io/connectors) and in the Hasura DDN documentation.
+This guide details the automated process for publishing new connectors and updating existing versions on the
+[Hasura Connector Hub](https://hasura.io/connectors) and in the Hasura DDN documentation.
 
 ## 2. Prerequisites
 
@@ -55,7 +42,8 @@ The automated publication process simplifies and accelerates the deployment of N
 
 ## 4. `connector-packaging.json` Format
 
-To package a connector, you will need to create a `connector-packaging.json` file for each connector version. The file contains necessary information to access the package definition. Here's the required format:
+To package a connector, you will need to create a `connector-packaging.json` file for each connector version. The file
+contains necessary information to access the package definition. Here's the required format:
 
 ```
 {
@@ -74,7 +62,8 @@ To package a connector, you will need to create a `connector-packaging.json` fil
 Required fields:
 
 - `version`: The version of the connector (e.g., "1.0.0").
-- `uri`: The URL to download the connector package. This should be a tarball containing the connector package definition and must be accessible without authentication.
+- `uri`: The URL to download the connector package. This should be a tarball containing the connector package definition
+  and must be accessible without authentication.
 - `checksum`: The checksum of the connector package.
   - `type`: The algorithm used for the checksum (currently only "sha256" is supported).
   - `value`: The actual checksum value.
@@ -97,19 +86,20 @@ registry/
       └── [connector-name]/
 ```
 
-   Replace `[namespace]` with your organization's namespace and `[connector-name]` with the name of your connector.
-
-
+Replace `[namespace]` with your organization's namespace and `[connector-name]` with the name of your connector.
 
 2. Add the following files to your connector's folder:
 
    - `logo.png` or `logo.svg`: The logo for your connector (preferably in SVG format).
-   - `README.md`: Documentation for your connector, including description, usage instructions, and any other relevant information.
+   - `README.md`: Documentation for your connector, including description, usage instructions, and any other relevant
+     information.
    - `metadata.json`: Metadata file containing information about the connector.
 
 ### 5.2 Create Connector Metadata
 
-Create a `metadata.json` file in your connector's folder. This file contains crucial information about your connector and the data present in this file is going to appear on the connector’s home page at the [connector hub](http://hasura.io/connectors). Here's a detailed structure with explanations:
+Create a `metadata.json` file in your connector's folder. This file contains crucial information about your connector
+and the data present in this file is going to appear on the connector’s home page at the
+[connector hub](http://hasura.io/connectors). Here's a detailed structure with explanations:
 
 ```
 {
@@ -146,16 +136,15 @@ Field explanations:
   - `tags`: Keywords related to your connector.
   - `latest_version`: The most recent version of your connector.
 
-
 - `author`: Information about the connector's author or organization.
 
-- `is_verified`: Set this to false as only connectors developed by Hasura can be tagged as verified.Boolean indicating if the connector is verified by Hasura (initially set to `false`).
+- `is_verified`: Set this to false as only connectors developed by Hasura can be tagged as verified.
 
-- `is_hosted_by_hasura`: Set this to false as connectors not developed by Hasura cannot be hostednot Hasura Boolean indicating if the connector can be hosted by Hasura.
+- `is_hosted_by_hasura`: Set this to false as connectors not developed by Hasura cannot be hosted by Hasura.
 
 - `source_code`: Information about the connector's source code.
 
-  - `is_open_source`: Set this to true as all connectors have to be open-source. Boolean indicating if the connector is open source.
+  - `is_open_source`: Set this to true as all connectors have to be open-source.
   - `repository`: URL of the source code repository.
 
 ### 5.3 Add Initial Connector Version
@@ -224,11 +213,14 @@ Once the pull request is approved, the GitHub workflow will automatically:
 
 ## 7. Automation Trigger Process
 
-The connector publication automation is designed to run automatically for every commit made to a pull request targeting the `main` branch. This process ensures that your changes are continuously validated and updated in the staging environment. Here's how it works:
+The connector publication automation is designed to run automatically for every commit made to a pull request targeting
+the `main` branch. This process ensures that your changes are continuously validated and updated in the staging
+environment. Here's how it works:
 
 ### 7.1 Pull Request Creation
 
-When you create a pull request against the `main` branch with changes in the `registry` folder, it triggers the automation process.
+When you create a pull request against the `main` branch with changes in the `registry` folder, it triggers the
+automation process.
 
 ### 7.2 Commit-Based Triggers
 
@@ -259,7 +251,8 @@ This process allows for continuous iteration and testing in the staging environm
 
 Once the pull request is approved and merged into the `main` branch:
 
-- The final version of the connector (based on the last commit in the PR) is automatically published to the Production Hasura DDN.
+- The final version of the connector (based on the last commit in the PR) is automatically published to the Production
+  Hasura DDN.
 - This process ensures that only thoroughly reviewed and tested connector versions reach the production environment.
 
 ### 7.6 Important Notes
@@ -267,24 +260,28 @@ Once the pull request is approved and merged into the `main` branch:
 - The automation only triggers for changes made in the `registry` folder.
 - Ensure your `connector-packaging.json` file is valid for each commit to avoid automation failures.
 - You can use the staging environment to thoroughly test your connector before it reaches production.
-- Multiple connector versions or updates to multiple connectors can be included in a single PR, and the automation will handle all changes appropriately.
+- Multiple connector versions or updates to multiple connectors can be included in a single PR, and the automation will
+  handle all changes appropriately.
 
 ## 7. Troubleshooting
 
 Common issues and their solutions:
 
-- Issue: Pull request automation doesn't trigger
-  Solution: Ensure the PR targets the `main` branch and modifies files under the `registry/` directory
-- Issue: Automation fails due to missing environment variables
-  Solution: Ping Karthikeyan Chinnakonda/Vishnu Bharathi on GitHub.
+- **Issue**: Pull request automation doesn't trigger  
+  **Solution**: Ensure the PR targets the `main` branch and modifies files under the `registry/` directory
+
+- **Issue**: Automation fails due to missing environment variables  
+  **Solution**: Ping Karthikeyan Chinnakonda `@codingKarthik` or Vishnu Bharathi `@scriptNull` on GitHub.
 
 ## 8. FAQs
 
-Q: How long does the automation process take?
-A: The process typically takes a few minutes, depending on the size of the connector package and the number of changes.
+**Q**: How long does the automation process take?  
+**A**: The process typically takes a few minutes, depending on the size of the connector package and the number of
+changes.
 
-Q: Can I publish multiple connector versions in one PR?
-A: Yes, you can include multiple versions or even multiple connectors in a single pull request.
+**Q**: Can I publish multiple connector versions in one PR?  
+**A**: Yes, you can include multiple versions or even multiple connectors in a single pull request.
 
-Q: What happens if the automation process fails?
-A: The process will attempt to clean up any partially uploaded files and will not update the registry database. Check the GitHub Actions log for detailed error messages.
+**Q**: What happens if the automation process fails?  
+**A**: The process will attempt to clean up any partially uploaded files and will not update the registry database.
+Check the GitHub Actions log for detailed error messages.
