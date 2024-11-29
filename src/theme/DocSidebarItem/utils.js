@@ -13,6 +13,7 @@ import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
 import Collaboration from '@site/static/icons/features/collaborators.svg';
 import Federation from '@site/static/icons/data_federation.svg';
+import Builds from '@site/static/icons/builds.svg';
 import Enterprise from '@site/static/icons/features/enterprise.svg';
 import Glossary from '@site/static/icons/box.svg';
 import Quickstart from '@site/static/icons/speedometer-04.svg';
@@ -83,6 +84,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'federation-icon':
       icons = <Federation />;
+      break;
+    case 'build-icon':
+      icons = <Builds />;
       break;
     case 'enterprise-icon':
       icons = <Enterprise />;
