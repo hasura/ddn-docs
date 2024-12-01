@@ -155,7 +155,9 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
       for (const [propertyKey, propertySchema] of Object.entries(metadataObject.properties)) {
         const propertyType = handleSchemaDefinition(propertySchema);
         const requiredProp = metadataObject.required ? metadataObject.required.includes(propertyKey) : false;
-        markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
+        markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(
+          propertySchema
+        )} |\n`;
       }
     }
 
@@ -214,7 +216,9 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
       let [propertyKey, propertySchema] = Object.entries(sub_object.properties)[0];
       const propertyType = handleSchemaDefinition(propertySchema);
       const requiredProp = false;
-      markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(propertySchema)} |\n`;
+      markdownValue += `| \`${propertyKey}\` | ${propertyType} | ${requiredProp} | ${getDescription(
+        propertySchema
+      )} |\n`;
     });
 
     const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle);
