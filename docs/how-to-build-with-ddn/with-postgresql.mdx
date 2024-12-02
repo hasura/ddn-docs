@@ -26,21 +26,22 @@ This tutorial takes about fifteen minutes to complete. You'll learn how to:
 
 Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
 
-This tutorial assumes you're starting from scratch and using the PostgreSQL image that ships with the connector, but you
-can easily follow the steps if you already have data seeded; Hasura will never modify your source schema.
+This tutorial assumes you're starting from scratch; a PostgreSQL docker image ships with the data connector you'll use
+in just a bit to connect a locally-running database to Hasura, but you can easily follow the steps if you already have
+data seeded; Hasura will never modify your source schema.
 
 <Prereqs />
 
 ## Tutorial
 
-### Step 1. Authenticate your CLI {#step-2}
+### Step 1. Authenticate your CLI
 
 ```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
 ddn auth login
 ```
 
 This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
-acknowledge your login and check for any updates.
+acknowledge your login, giving you access to Hasura Cloud resources.
 
 ### Step 2. Scaffold out a new local project
 
@@ -48,11 +49,12 @@ acknowledge your login and check for any updates.
 ddn supergraph init my-project && cd my-project
 ```
 
-Once you move into this directory, you'll see your project scaffolded out for you.
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
 
-### Step 3. Initialize your PostgreSQL connector {#step-4}
+### Step 3. Initialize your PostgreSQL connector
 
-```sh title="Initialize a new PostgreSQL connector:"
+```sh title="In your project directory, run:"
 ddn connector init my_pg -i
 ```
 
@@ -103,11 +105,12 @@ SELECT * FROM users;
 
 ### Step 6. Introspect your PostgreSQL database
 
-```sh title="Next, introspect your PostgreSQL database:"
+```sh title="Next, use the CLI to introspect your PostgreSQL database:"
 ddn connector introspect my_pg
 ```
 
-After running this, you should see the `users` table present in your `app/connector/my_pg/configuration.json` file.
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_pg/configuration.json` file; you can view this using `cat` or open the file in your editor.
 
 ### Step 7. Add your model
 
@@ -115,12 +118,13 @@ After running this, you should see the `users` table present in your `app/connec
 ddn models add my_pg users
 ```
 
-Open the `app/metadata` directory and you'll find a newly-generated file: `users.hml`. The Hasura engine will use this
-Hasura Metadata Language file to bring the `users` table from PostgreSQL into your API.
+Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The Hasura engine will use this
+Hasura Metadata Language file to bring the `users` table from PostgreSQL into your API as a
+[model](/supergraph-modeling/models.mdx).
 
 ### Step 8. Create a new build
 
-```sh title="Next, create a new build:"
+```sh title="To create a local build, run:"
 ddn supergraph build local
 ```
 
@@ -174,7 +178,7 @@ query {
 }
 ```
 
-### Step 11. Iterate on your schema
+### Step 11. Iterate on your PostgreSQL schema
 
 ```sql title="Via Adminer, add a new table and insert some data to your PostgreSQL database:"
 -- Create the posts table
@@ -194,7 +198,7 @@ INSERT INTO posts (user_id, title, content) VALUES
   (3, 'Hello World', 'Charlie joins the conversation.');
 ```
 
-```sql title="Verify this by running the following query:"
+```sql title="Using Adminer, verify this by running the following query:"
 -- Fetch all posts with user information
 SELECT
   posts.id AS post_id,
@@ -225,8 +229,8 @@ modifying, or dropping tables.
 ddn connector introspect my_pg
 ```
 
-In `app/connector/my_pg/configuration.json`, you'll see the new `posts` table. In `app/metadata/my_pg.hml`, you'll see
-the new `posts` table present in the metadata as well.
+In `app/connector/my_pg/configuration.json`, you'll see schema updated to include operations for the `posts` table. In
+`app/metadata/my_pg.hml`, you'll see `posts` present in the metadata as well.
 
 #### Step 12.2. Update your metadata
 
@@ -289,7 +293,7 @@ query GetPosts {
 
 ### Step 14. Create a relationship
 
-```sh title="Since there's already a foreign key on the posts table, we can easily add the relationship:"
+```sh title="Since there's already a foreign key on the posts table in PostgreSQL, we can easily add the relationship:"
 ddn relationship add my_pg "posts"
 ```
 
@@ -374,8 +378,18 @@ query GetPosts {
 
 ## Next steps
 
-Congratulations! You've successfully set up a Hasura DDN project and connected it to a PostgreSQL database. Next, you
-can explore more advanced features like [permissions](/supergraph-modeling/permissions.mdx) and more.
+Congratulations on completing your first Hasura DDN project with PostgreSQL! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to a local PostgreSQL database.
+- You set up metadata to represent your tables and relationships, which acts as the blueprint for your API.
+- Then, you created a build—essentially compiling everything into a ready-to-use API—and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+
+Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
 
 Take a look at our [PostgreSQL docs](/connectors/postgresql/index.mdx) to learn more about how to use Hasura DDN with
-PostgreSQL.
+PostgreSQL. Or, if you're ready, get started with adding [permissions](/supergraph-modeling/permissions.mdx) to control
+access to your API.
