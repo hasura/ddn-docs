@@ -243,6 +243,7 @@ export function simplifyMetadataDefinition(metadataObject: JSONSchema7Definition
       ...simplifyMetadataDefinition(anyOf[0]),
     };
   }
+
   return simplifiedSchema;
 }
 
