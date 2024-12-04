@@ -1,0 +1,84 @@
+```sh title="Initalize a new connector and select hasura/nodejs from the list:"
+ddn connector init my_ts -i
+```
+
+```ts title="Replace the functions.ts contents with the following:"
+/**
+ * @readonly
+ */
+export function nameToUpperCase(name: string): string {
+  return name.toUpperCase();
+}
+```
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_ts
+```
+
+```bash title="Track the function:"
+ddn command add my_ts nameToUpperCase
+```
+
+```yml title="You can now create a relationship between this function and the model we created earlier:"
+---
+# e.g., inside users.hml
+kind: Relationship
+version: v1
+definition:
+  name: screamedName
+  sourceType: Users
+  target:
+    command:
+      name: NameToUpperCase
+      subgraph: app
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: name
+      target:
+        argument:
+          argumentName: name
+  description: The user's name returned in all caps.
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your expanded table with the transformed name:"
+query {
+  users {
+    id
+    screamedName
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "ALICE JOHNSON"
+      },
+      {
+        "id": 2,
+        "screamedName": "BOB SMITH"
+      },
+      {
+        "id": 3,
+        "screamedName": "CHARLIE DAVIS"
+      }
+    ]
+  }
+}
+```

@@ -11,12 +11,15 @@ toc_max_heading_level: 4
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Thumbnail from "@site/src/components/Thumbnail";
-import ModelCreatePostgreSQL from "./_partials/_postgreSQL/_model-create.mdx";
-import ModelCreateMongoDB from "./_partials/_mongoDB/_model-create.mdx";
-import ModelCreateClickHouse from "./_partials/_clickHouse/_model-create.mdx";
-import ModelExtendNativeQueryPostgreSQL from "./_partials/_postgreSQL/_model-extend-native-query.mdx";
-import ModelExtendNativeQueryMongoDB from "./_partials/_mongoDB/_model-extend-native-query.mdx";
-import ModelExtendNativeQueryClickHouse from "./_partials/_clickHouse/_model-extend-native-query.mdx";
+import ModelCreatePostgreSQL from "./_partials/_classic-connectors/_postgreSQL/_model-create.mdx";
+import ModelCreateMongoDB from "./_partials/_classic-connectors/_mongoDB/_model-create.mdx";
+import ModelCreateClickHouse from "./_partials/_classic-connectors/_clickHouse/_model-create.mdx";
+import ModelExtendNativeQueryPostgreSQL from "./_partials/_classic-connectors/_postgreSQL/_model-extend-native-query.mdx";
+import ModelExtendNativeQueryMongoDB from "./_partials/_classic-connectors/_mongoDB/_model-extend-native-query.mdx";
+import ModelExtendNativeQueryClickHouse from "./_partials/_classic-connectors/_clickHouse/_model-extend-native-query.mdx";
+import ModelExtendLambdaTypescript from "./_partials/_lambda-connectors/_typescript/_modelExtend.mdx";
+import ModelExtendLambdaPython from "./_partials/_lambda-connectors/_python/_modelExtend.mdx";
+import ModelExtendLambdaGo from "./_partials/_lambda-connectors/_go/_modelExtend.mdx";
 
 # Models Read Data
 
@@ -90,317 +93,32 @@ Models can be extended, allowing for transformation and enrichment of the data.
   </TabItem>
 </Tabs>
 
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL">
+#### Via a lambda data connector
 
-Within your connector's directory, you can add a new file with a `.sql` extension to define a native query.
-
-```sh title="Create a new directory to store your native queries:"
-mkdir -p <my_subgraph>/connector/<connector_name>/native_operations/queries/
-```
-
-```sql title="Create a new file in your connector's directory:"
--- native_operations/queries/user_by_name_between.sql
-SELECT *
-FROM users
-WHERE name LIKE '%' || {{name}} || '%'
-  AND name > {{lower_bound}}
-  AND name < {{upper_bound}}
-```
-
-```sh title="Then, use the PostgreSQL connector's plugin to add the native query to your connector's configuration:"
-ddn connector plugin --connector <my_subgraph>/connector/<my_connector>/connector.yaml -- \
-  native-operation create --operation-path native_operations/queries/user_by_name_between.sql --kind query
-```
-
-```sh title="Introspect your PostgreSQL instance:"
-ddn connector introspect <connector_name>
-```
-
-```sh title="Then, update your models:"
-ddn model update <connector_name> "*"
-```
-
-  </TabItem>
-  <TabItem value="MongoDB" label="MongoDB">
-
-Within your connector's directory, you can add a new JSON configuration file to define a
-[native query](/connectors/mongodb/native-operations/native-queries.mdx).
-
-```sh title="Create a new directory to store your native queries:"
-mkdir -p <my_subgraph>/connector/<connector_name>/native_queries/
-```
-
-```json title="Create a new file in your connector's directory:"
-// native_queries/user_by_name_between.json
-{
-  "name": "userByName",
-  "representation": "collection",
-  "description": "Look up a user by a regular expression match on name",
-
-  "inputCollection": "users",
-
-  "arguments": {
-    "name": { "type": { "scalar": "string" } },
-    "lower_bound": { "type": { "scalar": "string" } },
-    "upper_bound": { "type": { "scalar": "string" } }
-  },
-
-  "resultDocumentType": "UserByName",
-  "objectTypes": {
-    "UserByName": {
-      "fields": {
-        "_id": { "type": { "scalar": "objectId" } },
-        "name": { "type": { "scalar": "string" } }
-      }
-    }
-  },
-
-  "pipeline": [
-    {
-      "$match": {
-        "$and": [
-          { "name": { "$regex": "{{ name }}" } },
-          { "name": { "$gt": "{{ lower_bound }}" } },
-          { "name": { "$lt": "{{ upper_bound }}" } }
-        ]
-      }
-    }
-  ]
-}
-```
-
-```bash title="Use the DDN CLI to introspect your MongoDB instance:"
-ddn connector introspect <connector_name>
-```
-
-```sh title="Then, update your models:"
-ddn model update <connector_name> "*"
-```
-
-  </TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse">
-
-Within your connector's directory, you can add a new SQL configuration file to define a
-[native query](/connectors/clickhouse/native-queries.mdx).
-
-```sh title="Create a new directory to store your native queries:"
-mkdir -p <my_subgraph>/connector/<connector_name>/queries/
-```
-
-```sql title="Create a new file in your connector's directory:"
-// queries/UsersByName.sql
-SELECT *
-FROM "default"."users"
-WHERE "users"."name" = {name: String}
-```
-
-Note this uses the
-[ClickHouse parameter syntax](https://clickhouse.com/docs/en/interfaces/cli#cli-queries-with-parameters-syntax)
-
-```json title="Update your the queries section in your configuration.json file:"
-// configuration.json
-{
-  "tables": {},
-  "queries": {
-    "UserByName": {
-      "exposed_as": "collection",
-      "file": "queries/UserByName.sql",
-      "return_type": {
-        "kind": "definition",
-        "columns": {
-          "id": "Int32",
-          "name": "String"
-        }
-      }
-    }
-  }
-}
-```
-
-```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
-ddn connector introspect <connector_name>
-```
-
-```sh title="Then, update your models:"
-ddn model add <connector_name> UserByName
-```
-
-  </TabItem>
-</Tabs>
-
-#### Via a lambda connector
-
-[Lambda connectors](/business-logic/overview.mdx) allow you to expose custom business logic via your API. You can also
-create [relationships](/data-modeling/relationship.mdx) between an existing model and this business logic to expand the
-data a model can return.
+[Lambda data connectors](/business-logic/overview.mdx) allow you to expose custom business logic via your API. You can
+also create [relationships](/data-modeling/relationship.mdx) between an existing model and this business logic to expand
+the data a model can return.
 
 We support lambda data connectors for [TypeScript](/business-logic/typescript.mdx),
 [Python](/business-logic/python.mdx), and [Go](/business-logic/go.mdx).
 
-<Tabs groupId="source-preference">
+<Tabs groupId="source-preference" className="api-tabs">
   <TabItem value="ts" label="TypeScript">
 
-    ```sh title="Initalize a new connector and select hasura/nodejs from the list:"
-    ddn connector init my_ts -i
-    ```
-
-    ```ts title="Replace the functions.ts contents with the following:"
-    /**
-    * @readonly
-    */
-    export function nameToUpperCase(name: string): string {
-      return name.toUpperCase();
-    }
-    ```
-
-    ```bash title="Introspect the connector:"
-    ddn connector introspect my_ts
-    ```
-
-    ```bash title="Track the function:"
-    ddn command add my_ts nameToUpperCase
-    ```
+    <ModelExtendLambdaTypescript />
 
   </TabItem>
   <TabItem value="python" label="Python">
 
-    ```sh title="Initalize a new connector and select hasura/python from the list:"
-    ddn connector init my_python -i
-    ```
-
-    ```python title="Replace the functions.py contents with the following:"
-    from hasura_ndc import start
-    from hasura_ndc.function_connector import FunctionConnector
-
-    connector = FunctionConnector()
-
-    @connector.register_query
-    def name_to_upper_case(name: str) -> str:
-      return name.upper()
-
-    if __name__ == "__main__":
-      start(connector)
-    ```
-
-    ```bash title="Introspect the connector:"
-    ddn connector introspect my_python
-    ```
-
-    ```bash title="Track the function:"
-    ddn command add my_python name_to_upper_case
-    ```
+    <ModelExtendLambdaPython />
 
   </TabItem>
   <TabItem value="go" label="Go">
 
-    ```sh title="Initalize a new connector and select hasura/go from the list:"
-    ddn connector init my_go -i
-    ```
-
-    ```go title="Rename hello.go to nameToUpperCase.go:"
-    package functions
-
-    import (
-      "context"
-      "fmt"
-      "hasura-ndc.dev/ndc-go/types"
-      "strings"
-    )
-
-    // NameArguments defines the input arguments for the function
-    type NameArguments struct {
-      Name string `json:"name"` // required argument
-    }
-
-    // NameResult defines the output result for the function
-    type NameResult string
-
-    // FunctionNameToUpperCase converts a name string to uppercase
-    func FunctionNameToUpperCase(ctx context.Context, state *types.State, arguments *NameArguments) (*NameResult, error) {
-      if arguments.Name == "" {
-        return nil, fmt.Errorf("name cannot be empty")
-      }
-
-      upperCaseName := NameResult(strings.ToUpper(arguments.Name))
-      return &upperCaseName, nil
-    }
-    ```
-
-    ```bash title="Introspect the connector:"
-    ddn connector introspect my_go
-    ```
-
-    ```bash title="Track the function:"
-    ddn command add my_go nameToUpperCase
-    ```
+    <ModelExtendLambdaGo />
 
   </TabItem>
 </Tabs>
-
-```yml title="You can now create a relationship between this function and the model we created earlier:"
----
-# e.g., inside users.hml
-kind: Relationship
-version: v1
-definition:
-  name: screamedName
-  sourceType: Users
-  target:
-    command:
-      name: NameToUpperCase
-      subgraph: app
-  mapping:
-    - source:
-        fieldPath:
-          - fieldName: name
-      target:
-        argument:
-          argumentName: name
-  description: The user's name returned in all caps.
-```
-
-```bash title="Create a new build:"
-ddn supergraph build local
-```
-
-```bash title="Start your services:"
-ddn run docker-start
-```
-
-```bash title="Open your development console:"
-ddn console --local
-```
-
-```graphql title="You can now query your expanded table with the transformed name:"
-query {
-  users {
-    id
-    screamedName
-  }
-}
-```
-
-```json title="With a response like this:"
-{
-  "data": {
-    "users": [
-      {
-        "id": 1,
-        "screamedName": "ALICE JOHNSON"
-      },
-      {
-        "id": 2,
-        "screamedName": "BOB SMITH"
-      },
-      {
-        "id": 3,
-        "screamedName": "CHARLIE DAVIS"
-      }
-    ]
-  }
-}
-```
 
 ### Updating a model
 

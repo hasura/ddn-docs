@@ -1,0 +1,89 @@
+```sh title="Initalize a new connector and select hasura/python from the list:"
+ddn connector init my_python -i
+```
+
+```python title="Replace the functions.py contents with the following:"
+from hasura_ndc import start
+from hasura_ndc.function_connector import FunctionConnector
+
+connector = FunctionConnector()
+
+@connector.register_query
+def name_to_upper_case(name: str) -> str:
+  return name.upper()
+
+if __name__ == "__main__":
+  start(connector)
+```
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_python
+```
+
+```bash title="Track the function:"
+ddn command add my_python name_to_upper_case
+```
+
+```yml title="You can now create a relationship between this function and the model we created earlier:"
+---
+# e.g., inside users.hml
+kind: Relationship
+version: v1
+definition:
+  name: screamedName
+  sourceType: Users
+  target:
+    command:
+      name: NameToUpperCase
+      subgraph: app
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: name
+      target:
+        argument:
+          argumentName: name
+  description: The user's name returned in all caps.
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your expanded table with the transformed name:"
+query {
+  users {
+    id
+    screamedName
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "ALICE JOHNSON"
+      },
+      {
+        "id": 2,
+        "screamedName": "BOB SMITH"
+      },
+      {
+        "id": 3,
+        "screamedName": "CHARLIE DAVIS"
+      }
+    ]
+  }
+}
+```
