@@ -1,0 +1,77 @@
+**Via a new table or view**
+
+```sql title="Create a new table or view in your ClickHouse database:"
+CREATE TABLE users (
+    id UInt32,
+    name String
+)
+ENGINE = MergeTree()
+ORDER BY id;
+
+INSERT INTO users (id, name) VALUES
+    (1, 'Alice Johnson'),
+    (2, 'Bob Smith'),
+    (3, 'Charlie Davis');
+```
+
+```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+**Via an existing table or view**
+
+If you already have a table present, you can add it by introspecting your data source and referencing it by name.
+
+```bash title="Use the DDN CLI to introspect your ClickHouse instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your table:"
+query {
+  users {
+    id
+    name
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "Alice Johnson"
+      },
+      {
+        "id": 2,
+        "screamedName": "Bob Smith"
+      },
+      {
+        "id": 3,
+        "screamedName": "Charlie Davis"
+      }
+    ]
+  }
+}
+```

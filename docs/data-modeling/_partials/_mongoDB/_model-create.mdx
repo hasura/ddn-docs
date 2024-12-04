@@ -1,0 +1,69 @@
+**Via a new collection or view**
+
+```js title="Create a new table or view in your MongoDB database, and populate it with data:"
+db.createCollection("users");
+db.users.insertMany([{ name: "Alice" }, { name: "Bob" }, { name: "Eve" }]);
+```
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+**Via an existing collection or view**
+
+If you already have a collection with data present, you can add it by introspecting your data source and referencing it
+by name.
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, add your model:"
+ddn model add <connector_name> users
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your table:"
+query {
+  users {
+    id
+    name
+  }
+}
+```
+
+```json title="With a response like this:"
+{
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "screamedName": "Alice Johnson"
+      },
+      {
+        "id": 2,
+        "screamedName": "Bob Smith"
+      },
+      {
+        "id": 3,
+        "screamedName": "Charlie Davis"
+      }
+    ]
+  }
+}
+```
