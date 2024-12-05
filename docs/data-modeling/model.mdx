@@ -5,7 +5,7 @@ description: "Models allow you to define the structure of your data and how it c
 keywords:
   - model
   - data modeling
-toc_max_heading_level: 4
+toc_max_heading_level: 3
 ---
 
 import Tabs from "@theme/Tabs";
@@ -35,18 +35,19 @@ A model brings together other metadata definitions to create a queryable entity 
 The lifecycle in creating a model in your metadata is as follows:
 
 1. Have some entity in your data source that you want to make queryable via your API.
-2. Introspect your data source using the DDN CLI and the relevant data connector.
+2. Introspect your data source using the DDN CLI with the relevant data connector to fetch the entity resources.
 3. Add the model to your metadata with the DDN CLI.
 4. Create a build of your supergraph API with the DDN CLI.
 5. Serve your build as your API with the Hasura engine either locally or in the cloud.
-6. Iterate on your API by repeating this process and by editing your metadata manually as needed.
+6. Iterate on your API by repeating this process or by editing your metadata manually as needed.
 
 ![](/img/data-modeling/ddn-cli-process.png)
 
-## How to create a model
+## Create a model
 
 To add a model you will need to have a data connector already setup and connected to the data source. Follow the
-tutorial in [How to Build with DDN](/getting-started/overview.mdx) to get to that point.
+[Quickstart](/getting-started/quickstart) or the tutorial in [How to Build with DDN](/getting-started/overview.mdx) to
+get to that point.
 
 ```bash title="Introspect your data source:"
 ddn connector introspect <connector_name>
@@ -62,7 +63,7 @@ This is an optional step and will output a list of resources that DDN discovered
 step.
 
 ```bash title="Add the model from the discovered resources to your metadata:"
-ddn model add <connector_name> <model_name>
+ddn model add <connector_name> <collection_name>
 ```
 
 Or you can optionally add all the models by specifying `"*"`.
@@ -83,29 +84,58 @@ because this has been set in the CLI context. You can learn more about creating 
 
 :::
 
-## How to extend a model
+For a walkthrough on how to create a model, see the [Model Tutorials](#model_tutorials) section.
 
-A model can be extended with more data by adding a native query or a relationship to a lambda data connector or other
-data type.
+## Update a model
+
+If you want to update your model to reflect a change that happened in the underlying data source you should first
+introspect to get the latest resources and then update the relevant model.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, update your existing model:"
+ddn model update <connector_name> <model_name>
+```
+
+You will see an output which explains how new resources were added or updated in the model.
+
+You can now build your supergraph API, serve it, and query your data with the updated model.
+
+You can also update the model by editing the metadata manually.
+
+## Extend a model
+
+A model can be extended with more data by adding a native query or a relationship to another data type, including one
+exposed via a lambda data connector, in order to return nested data or enrich and transform the returning data.
 
 ### Native query
 
-For instance, you can create a native query to perform any query natively on the underlying data source and then expose
-that query as an additional field on your model.
+You can create a native query on the underlying data source and then expose it as an additional field on your model.
 
-The process of adding a native query is more or less unique to each data connector.
+The process of adding a native query is more or less unique for each data connector as each data source by nature has
+its own syntax.
 
-### Relationship 
+Discover how to add a native query for your data connector in the relevant section [here](/).
 
-With a relationship you can extend to another model or command. Including commands exposed via a lambda data connector.
+### Relationship
 
-The process of adding a relationship is more or less the same.
+With a relationship you can extend a model to another model or command, including commands exposed via a lambda data
+connector.
 
-## How to update a model
+Relationships are defined in metadata from an [object type](/supergraph-modeling/types.mdx#objecttype-objecttype), to a
+[model](/supergraph-modeling/models.mdx) or [command](/supergraph-modeling/commands.mdx).
 
-## How to delete a model
+## Delete a model
 
-## Tutorials
+```bash title="If you no longer need a model, you can delete it:"
+ddn model remove users
+```
+
+In addition to removing the Model object itself, the DDN CLI will also remove the associated metadata definitions.
+
+## Model Tutorials {#model-tutorials}
 
 The tutorials below follow on from each particular tutorial in the
 [How to Build with DDN](/getting-started/overview.mdx) section. Select the relevant data connector to follow the
@@ -132,6 +162,21 @@ To query data from your API, you'll first need to create a model that represents
 
   </TabItem>
 </Tabs>
+
+### Updating a model
+
+Your underlying data source may change over time. You can update your model to reflect these changes.
+
+You'll need to update the mapping of your model to the data source by updating the
+[DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) object.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, update your model:"
+ddn model update <connector_name> users
+```
 
 ### Extending a model
 
@@ -183,21 +228,6 @@ We support lambda data connectors for [TypeScript](/business-logic/typescript.md
 
   </TabItem>
 </Tabs>
-
-### Updating a model
-
-Your underlying data source may change over time. You can update your model to reflect these changes.
-
-You'll need to update the mapping of your model to the data source by updating the
-[DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) object.
-
-```bash title="Introspect your data source:"
-ddn connector introspect <connector_name>
-```
-
-```bash title="Then, update your model:"
-ddn model update <connector_name> users
-```
 
 ### Deleting a model
 
