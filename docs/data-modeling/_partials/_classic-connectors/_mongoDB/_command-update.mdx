@@ -1,0 +1,45 @@
+For example if you have a [native mutation](/connectors/mongodb/native-operations/native-mutations.mdx) that inserts a
+user you can modify it to include a second field on new documents.
+
+```json title="Edit the existing native mutation in your connector's directory:"
+// native_mutations/insert_user.json
+{
+  "name": "insertUser",
+  "description": "Inserts a user record into the database",
+
+  "arguments": {
+    "name": { "type": { "scalar": "string" } },
+    "role": { "type": { "nullable": { "scalar": "string" } } } // add an argument
+  },
+
+  "resultType": {
+    "object": "InsertUser"
+  },
+  "objectTypes": {
+    "InsertUser": {
+      "fields": {
+        "ok": { "type": { "scalar": "double" } },
+        "n": { "type": { "scalar": "int" } }
+      }
+    }
+  },
+
+  "command": {
+    "insert": "users",
+    "documents": [
+      {
+        "name": "{{ name }}",
+        "role": "{{ role }}" // include a field with the value of the new argument
+      }
+    ]
+  }
+}
+```
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Then, update your commands:"
+ddn command update <connector_name> "*"
+```

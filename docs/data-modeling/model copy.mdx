@@ -15,12 +15,6 @@ import Thumbnail from "@site/src/components/Thumbnail";
 import ModelCreatePostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-create.mdx";
 import ModelCreateMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-create.mdx";
 import ModelCreateClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-create.mdx";
-import ModelExtendNativeQueryPostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-extend-native-query.mdx";
-import ModelExtendNativeQueryMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-extend-native-query.mdx";
-import ModelExtendNativeQueryClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-extend-native-query.mdx";
-import ModelExtendLambdaTypescript from "@site/docs/data-modeling/_partials/_lambda-connectors/_typescript/_modelExtend.mdx";
-import ModelExtendLambdaPython from "@site/docs/data-modeling/_partials/_lambda-connectors/_python/_modelExtend.mdx";
-import ModelExtendLambdaGo from "@site/docs/data-modeling/_partials/_lambda-connectors/_go/_modelExtend.mdx";
 
 # Models Read Data
 
@@ -44,7 +38,7 @@ The lifecycle in creating a model in your metadata is as follows:
 
 ## Create a model
 
-To add a model you will need to have a data connector already set up and connected to the data source. Follow the
+To add a model you will need to have a data connector already setup and connected to the data source. Follow the
 [Quickstart](/getting-started/quickstart) or the tutorial in [How to Build with DDN](/getting-started/overview.mdx) to
 get to that point.
 
@@ -106,67 +100,6 @@ You can also update the model by editing the metadata manually.
 
 For a walkthrough on how to update a model, see the [Model Tutorials](#model_tutorials) section.
 
-## Extend a model
-
-A model can be extended with more data by adding a native query or a relationship to another data type, including one
-exposed via a lambda data connector, in order to return nested data or enrich the returning data.
-
-### Native query
-
-You can create a native query to run on the underlying data source and then expose it as an additional field on your
-model. The process of adding a native query is more or less unique for each data connector as each data source by nature
-has its own syntax.
-
-Discover how to add a native query for your data connector in the relevant section [here](/).
-
-{/* TODO: Add link */}
-
-### Relationship
-
-With a relationship you can extend a model to another model or command, including commands exposed via a lambda data
-connector.
-
-The DDN CLI and your data connectors will detect many relationships in your data sources automatically and once
-introspected, you can add them to your metadata.
-
-```bash title="Introspect your data source:"
-ddn connector introspect <connector_name>
-```
-
-```bash title="Add relationships to your metadata:"
-ddn relationship add <connector_link_name> <collection_name>
-```
-
-For example, if I wanted to extend my `Customers` model to be able to include their `Orders` when I queried it, my
-relationship would be something like:
-
-```yaml title="Relationship definition:"
----
-kind: Relationship
-version: v1
-definition:
-  name: orders
-  sourceType: Customers
-  target:
-    model:
-      name: Orders
-      relationshipType: Array
-      aggregate:
-        aggregateExpression: OrdersAggExp
-  mapping:
-    - source:
-        fieldPath:
-          - fieldName: customerId
-      target:
-        modelField:
-          - fieldName: customerId
-  graphql:
-    aggregateFieldName: ordersAggregate
-```
-
-Read more about relationships in the [Relationships](/data-modeling/relationship.mdx) section. Or see the tutorial
-[below](#tutorial-extend-model) on extending a model.
-
 ## Delete a model
 
 ```bash title="If you no longer need a model, you can delete it:"
@@ -217,57 +150,6 @@ ddn connector introspect <connector_name>
 ```bash title="Then, update your model:"
 ddn model update <connector_link_name> <model_name>
 ```
-
-### Extending a model {#tutorial-extend-model}
-
-Models can be extended, allowing for transformation and enrichment of the data.
-
-#### Via a native query
-
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL">
-
-    <ModelExtendNativeQueryPostgreSQL />
-
-  </TabItem>
-  <TabItem value="MongoDB" label="MongoDB">
-
-    <ModelExtendNativeQueryMongoDB />
-
-  </TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse">
-
-    <ModelExtendNativeQueryClickHouse />
-
-  </TabItem>
-</Tabs>
-
-#### Via a lambda data connector
-
-[Lambda data connectors](/business-logic/overview.mdx) allow you to expose custom business logic via your API. You can
-also create [relationships](/data-modeling/relationship.mdx) between an existing model and this business logic to expand
-the data a model can return.
-
-We support lambda data connectors for [TypeScript](/business-logic/typescript.mdx),
-[Python](/business-logic/python.mdx), and [Go](/business-logic/go.mdx).
-
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="ts" label="TypeScript">
-
-    <ModelExtendLambdaTypescript />
-
-  </TabItem>
-  <TabItem value="python" label="Python">
-
-    <ModelExtendLambdaPython />
-
-  </TabItem>
-  <TabItem value="go" label="Go">
-
-    <ModelExtendLambdaGo />
-
-  </TabItem>
-</Tabs>
 
 ### Deleting a model
 
