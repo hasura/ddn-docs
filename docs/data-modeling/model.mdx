@@ -11,15 +11,15 @@ toc_max_heading_level: 4
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Thumbnail from "@site/src/components/Thumbnail";
-import ModelCreatePostgreSQL from "./_partials/_classic-connectors/_postgreSQL/_model-create.mdx";
-import ModelCreateMongoDB from "./_partials/_classic-connectors/_mongoDB/_model-create.mdx";
-import ModelCreateClickHouse from "./_partials/_classic-connectors/_clickHouse/_model-create.mdx";
-import ModelExtendNativeQueryPostgreSQL from "./_partials/_classic-connectors/_postgreSQL/_model-extend-native-query.mdx";
-import ModelExtendNativeQueryMongoDB from "./_partials/_classic-connectors/_mongoDB/_model-extend-native-query.mdx";
-import ModelExtendNativeQueryClickHouse from "./_partials/_classic-connectors/_clickHouse/_model-extend-native-query.mdx";
-import ModelExtendLambdaTypescript from "./_partials/_lambda-connectors/_typescript/_modelExtend.mdx";
-import ModelExtendLambdaPython from "./_partials/_lambda-connectors/_python/_modelExtend.mdx";
-import ModelExtendLambdaGo from "./_partials/_lambda-connectors/_go/_modelExtend.mdx";
+import ModelCreatePostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-create.mdx";
+import ModelCreateMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-create.mdx";
+import ModelCreateClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-create.mdx";
+import ModelExtendNativeQueryPostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-extend-native-query.mdx";
+import ModelExtendNativeQueryMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-extend-native-query.mdx";
+import ModelExtendNativeQueryClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-extend-native-query.mdx";
+import ModelExtendLambdaTypescript from "@site/docs/data-modeling/_partials/_lambda-connectors/_typescript/_modelExtend.mdx";
+import ModelExtendLambdaPython from "@site/docs/data-modeling/_partials/_lambda-connectors/_python/_modelExtend.mdx";
+import ModelExtendLambdaGo from "@site/docs/data-modeling/_partials/_lambda-connectors/_go/_modelExtend.mdx";
 
 # Models Read Data
 
@@ -27,6 +27,8 @@ import ModelExtendLambdaGo from "./_partials/_lambda-connectors/_go/_modelExtend
 
 In DDN, **Models** represent entities that can be queried in your data sources, such as tables, views, collections,
 native operations and more.
+
+A model brings together other metadata definitions to create a queryable entity in your API.
 
 ## Lifecycle
 
@@ -40,6 +42,68 @@ The lifecycle in creating a model in your metadata is as follows:
 6. Iterate on your API by repeating this process and by editing your metadata manually as needed.
 
 ![](/img/data-modeling/ddn-cli-process.png)
+
+## How to create a model
+
+To add a model you will need to have a data connector already setup and connected to the data source. Follow the
+tutorial in [How to Build with DDN](/getting-started/overview.mdx) to get to that point.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+Whenever you update your data source, you can run the above command to fetch the latest resources.
+
+```bash title="Show the resources discovered from your data source:"
+ddn connector show-resources <connector_name>
+```
+
+This is an optional step and will output a list of resources that DDN discovered in your data source in the previous
+step.
+
+```bash title="Add the model from the discovered resources to your metadata:"
+ddn model add <connector_name> <model_name>
+```
+
+Or you can optionally add all the models by specifying `"*"`.
+
+```bash title="Add all models from your data source:"
+ddn model add <connector_name> "*"
+```
+
+This will add models with their accompanying metadata definitions to your metadata.
+
+You can now build your supergraph API, serve it, and query your data.
+
+:::info Context for commands
+
+Note that the above commands work without also adding the relevant subgraph to the command with the `--subgraph` flag
+because this has been set in the CLI context. You can learn more about creating and switching contexts in the
+[CLI context](/getting-started/overview.mdx) section. {/* TODO: Add link */}
+
+:::
+
+## How to extend a model
+
+A model can be extended with more data by adding a native query or a relationship to a lambda data connector or other
+data type.
+
+### Native query
+
+For instance, you can create a native query to perform any query natively on the underlying data source and then expose
+that query as an additional field on your model.
+
+The process of adding a native query is more or less unique to each data connector.
+
+### Relationship 
+
+With a relationship you can extend to another model or command. Including commands exposed via a lambda data connector.
+
+The process of adding a relationship is more or less the same.
+
+## How to update a model
+
+## How to delete a model
 
 ## Tutorials
 
@@ -127,8 +191,8 @@ Your underlying data source may change over time. You can update your model to r
 You'll need to update the mapping of your model to the data source by updating the
 [DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) object.
 
-```bash title="Update your DataConnectorLink:"
-ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
 ```
 
 ```bash title="Then, update your model:"
