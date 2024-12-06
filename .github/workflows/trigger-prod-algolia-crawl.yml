@@ -1,0 +1,38 @@
+name: Trigger Algolia Crawler Crawl
+
+on:
+  push:
+    branches:
+      - release-prod
+
+jobs:
+  start-crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Trigger Algolia Crawler Crawl
+        env:
+          CRAWLER_USER_ID: ${{ secrets.ALGOLIA_CRAWLER_USER_ID }}
+          CRAWLER_API_KEY: ${{ secrets.ALGOLIA_CRAWLER_API_KEY }}
+          CRAWLER_ID: 'd93f39e4-e10c-4b66-b392-316224e30ade'
+        run: |
+          echo "Starting crawl for CRAWLER_ID: $CRAWLER_ID"
+
+          # Construct the Authorization header
+          AUTH_HEADER=$(echo -n "$CRAWLER_USER_ID:$CRAWLER_API_KEY" | base64)
+
+          # Trigger the crawl using the Algolia Crawler API
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "https://crawler.algolia.com/api/v1/crawlers/$CRAWLER_ID/crawl" \
+            -H "Authorization: Basic $AUTH_HEADER" \
+            -H "Content-Type: application/json")
+
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "Crawl triggered successfully."
+          else
+            echo "Failed to trigger crawl. HTTP Status: $RESPONSE"
+            exit 1
+          fi
