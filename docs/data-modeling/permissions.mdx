@@ -16,28 +16,26 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## Introduction
 
-Permissions allow you to control who can access your data and what they can do with it. You can define permissions to
-restrict access to certain models, the fields they contain, and the operations that can be performed on them.
+Permissions allow you to control what can be accessed in your API by which user roles.
 
-## Lifecycle
+When an authentication mode is enabled, the Hasura engine will look for session variables on every API request. The
+engine can then use permissions defined in metadata and the session variables to determine if the request is allowed to
+proceed.
 
-:::info New to Hasura DDN?
+To learn about authentication modes and supplying the session variables, see
+[Authentication](/auth/authentication/index.mdx).
 
-If you haven't already, have a run through our [Quickstart](/getting-started/quickstart.mdx) guide to set up your Hasura
-DDN instance. In the sections below, we'll guide you through how to interact with your metadata and shape your API to
-your liking!
+## Create permissions
 
-:::
+### Row access
 
-### Creating permissions
+You can create a `ModelPermission` object to implement row-level security and restrict which rows a user can access.
 
-#### Creating a ModelPermission
-
-To implement row-level security, you can create a permission for a model.
+For example, to only allow users to access their own records in the `Users` table:
 
 ```yaml title=""
 ---
-# e.g., users.hml
+# e.g., Users.hml
 kind: ModelPermissions
 version: v1
 definition:
@@ -62,17 +60,19 @@ definition:
 The highlighted role above will filter responses from the `Users` field in your API to only those whose `id` matches the
 `x-hasura-user-id` passed in the header of the request.
 
-#### Creating a TypePermission
+### Field access
 
-To restrict which fields can be queried, you can create a permission for a type.
+To restrict which fields can be queried, you can create a `TypePermission` object.
 
-```yaml title="Below, a user can only see their own name:"
-# e.g., users.hml
+Below, the user role can only access the `name` field, not the `id` field which the admin role can.
+
+```yaml title="The user role can only access their name field:"
+# e.g., Users.hml
 ---
 kind: TypePermissions
 version: v1
 definition:
-  typeName: user
+  typeName: Users
   permissions:
     # admin is present by default
     - role: admin
@@ -88,9 +88,9 @@ definition:
     #highlight-end
 ```
 
-#### Creating a CommandPermission
+### Command (mutation) access
 
-To determine which operations can be performed by which roles, you can create a permission for a command.
+To determine commands can be executed by which roles, you can create a `CommandPermission` object.
 
 ```yaml title="In this example, we'll make it so a user can update their own record:"
 # e.g., UpdateUsersById.hml
@@ -98,24 +98,32 @@ To determine which operations can be performed by which roles, you can create a 
 kind: CommandPermissions
 version: v1
 definition:
-  commandName: UpdateUsersById
+  commandName: UpdateUsersById # Specify the existing command
   permissions:
     - role: admin
       allowExecution: true
       #highlight-start
     - role: user
       allowExecution: true
-      argumentPresets:
+      argumentPresets: # Specify the arguments and their values which need to be passed to the command
         - argument: keyId
           value:
-            sessionVariable: "x-hasura-user-id"
+            sessionVariable: "x-hasura-user-id" # The value of the argument must equal the session variable
       #highlight-end
 ```
 
-### Deleting permissions
+## Update permissions
 
-If you no longer need a permission, you can remove the role from the relevant permissions array in any permission
-object.
+Since all permissions are stored in metadata, you can use your text editor to find and update them easily.
+
+For example, to check everything which the `user` role can access, search for `- role: user` and analyze the results.
+
+## Deleting permissions
+
+If you no longer need a role, find all mentions of it in your metadata and remove them all.
+
+If you no longer need a particular permissions, simply remove it from the relevant `ModelPermissions`,
+`TypePermissions`, or `CommandPermissions` object.
 
 ## Reference
 
