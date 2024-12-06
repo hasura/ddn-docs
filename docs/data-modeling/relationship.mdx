@@ -20,14 +20,26 @@ Relationships allow you to connect data, enabling you to query data across multi
 Examples include:
 
 - Querying a `Customer` and at the same time getting their `Orders` and each `Product` item in those orders.
-- Querying an `Order` and also getting a live currency conversion for the price of the order.
+- Querying an `Order` and also getting a live currency conversion for the value of the order.
 
-Many relationships can be detected when introspecting a data source, for instance from foreign keys in a relational
-database. You can add these relationships to your metadata with the DDN CLI.
+## Creating a relationship
+
+### Using the DDN CLI
+
+The DDN CLI and your data connectors will detect many relationships in your data sources automatically, for instance
+from foreign keys in a relational database, and once introspected, you can add them to your metadata.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Add relationships to your metadata:"
+ddn relationship add <connector_link_name> <collection_name>
+```
+
+### Manually adding a relationship
 
 Relationships can also be manually added to your metadata.
-
-### Creating a relationship
 
 Relationships are defined in metadata from an [object type](/supergraph-modeling/types.mdx#objecttype-objecttype), to a
 [model](/supergraph-modeling/models.mdx) or [command](/supergraph-modeling/commands.mdx). But since models and commands
@@ -40,36 +52,36 @@ As an example, you can configure a relationship so that you can also get Orders 
 kind: Relationship
 version: v1
 definition:
-  sourceType: Customers # The source object type which also defines the model
-  name: orders # The name we want to use when we query the Orders from the Customer
+  sourceType: Customers # The existing source object type which also defines the model
+  name: orders # A name we want to use when we query the Orders from the Customer
   target:
     model: # The target can be a model or a command
-      name: Orders # The target model that we want to access when we query the Orders from the Customer
+      name: Orders # The existing model that we want to access when we query the Orders from the Customer
       relationshipType: Array # The relationship type which can be Object or Array. Since a customer can have many orders, we use an Array.
-  mapping: # the mapping defines which field on the source object type maps to which field on the target model
+  mapping: # The mapping defines which field on the source object type maps to which field on the target model
     - source:
         fieldPath:
-          - fieldName: customerId # The field on the source object type that we want to map to the target model
+          - fieldName: customerId # The existing field on the source object type that we want to map to the target model
       target:
         modelField:
-          - fieldName: customerId # The field on the target model that we want to map to the source object type
+          - fieldName: customerId # The existing field on the target model that we want to map to the source object type
 ```
 
-By defining a `Relationship` object, all [models](/supergraph-modeling/models.mdx) or
-[commands](/supergraph-modeling/commands.mdx) whose output type is the source object type defined in the relationship
-will now have a connection to the target model or command.
+By defining this `Relationship` object, all other [models](/supergraph-modeling/models.mdx) or
+[commands](/supergraph-modeling/commands.mdx) whose output type is the source object type in the relationship will now
+have a connection to the target model or command.
 
-### Updating a relationship
+## Updating a relationship
 
 Your underlying data source may change over time. You can update your relationship to reflect these changes.
 
-For example, imagine you have a `post-user` relationship, and the posts previously used a field named `userId`. Now,
+For example, imagine you have a `post => user` relationship, and the posts previously used a field named `userId`. Now,
 however, that field name has changed to `authorId`.
 
 First, update your connector configuration and models to reflect the changed field name.
 
-```bash title="Update your DataConnectorLink:"
-ddn connector-link update <connector_name> --subgraph <path_to_subgraph.yaml>
+```bash title="Update your source introspection:"
+ddn connector introspect <connector_name>
 ```
 
 ```bash title="Then, update your model:"
@@ -92,15 +104,16 @@ definition:
   mapping:
     - source:
         fieldPath:
-          - fieldName: authorId # this is the line that has changed
+          - fieldName: authorId # The line which has changed
       target:
         modelField:
           - fieldName: id
 ```
 
-### Deleting a relationship
+## Deleting a relationship
 
-If you no longer need a relationship, simply delete the metadata object.
+If you no longer need a relationship, simply delete the `Relationship` metadata object manually. It is fully
+self-contained.
 
 ## Reference
 
