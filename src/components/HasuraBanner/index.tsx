@@ -9,7 +9,7 @@ const HasuraBanner = () => {
   return (
     <Link
       className={styles['remove-text-decoration']}
-      href="https://hasura.io/docs/3.0/getting-started/quickstart?pg=docs&plcmt=pre-footer&cta=connect-your-own-data-source&tech=default"
+      href="https://hasura.io/docs/3.0/quickstart?pg=docs&plcmt=pre-footer&cta=connect-your-own-data-source&tech=default"
       id="banner-button"
     >
       <div className={styles['hasura-wrapper']}>
