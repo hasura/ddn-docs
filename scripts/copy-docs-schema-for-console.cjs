@@ -20,16 +20,16 @@ function copyJsonSchema() {
   }
 
   const sourcePath = path.join(docsDir, docsFile);
-  const targetPath = path.join(__dirname, '../docs-schema.json');
+  const targetPath = path.join(__dirname, '../static/docs-schema.json');
 
   fs.copyFileSync(sourcePath, targetPath);
 }
 
-execSync(`docusaurus build`, { cwd: rootDir, stdio: 'inherit' });
-
 try {
   copyJsonSchema();
-  console.log('\x1b[32m\nSuccessfully copied the docs JSON schema file to project root!\n\x1b[0m');
+  console.log('\x1b[32m\nSuccessfully copied the docs JSON schema file to static assets!\n\x1b[0m');
 } catch (e) {
-  console.error('Could not copy the docs JSON schema file to project root:', e.message);
+  console.error('Could not copy the docs JSON schema file to static assets:', e.message);
 }
+
+execSync(`docusaurus build`, { cwd: rootDir, stdio: 'inherit' });
