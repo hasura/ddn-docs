@@ -15,12 +15,12 @@ import Thumbnail from "@site/src/components/Thumbnail";
 import ModelCreatePostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-create.mdx";
 import ModelCreateMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-create.mdx";
 import ModelCreateClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-create.mdx";
-import ModelExtendNativeQueryHowToPostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-extend-native-query-how-to.mdx";
-import ModelExtendNativeQueryTutorialPostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-extend-native-query-tutorial.mdx";
-import ModelExtendNativeQueryHowToMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-extend-native-query-how-to.mdx";
-import ModelExtendNativeQueryTutorialMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-extend-native-query-tutorial.mdx";
-import ModelExtendNativeQueryHowToClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-extend-native-query-how-to.mdx";
-import ModelExtendNativeQueryTutorialClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-extend-native-query-tutorial.mdx";
+import ModelCreateNativeQueryHowToPostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-create-native-query-how-to.mdx";
+import ModelCreateNativeQueryTutorialPostgreSQL from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_model-create-native-query-tutorial.mdx";
+import ModelCreateNativeQueryHowToMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-create-native-query-how-to.mdx";
+import ModelCreateNativeQueryTutorialMongoDB from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_model-create-native-query-tutorial.mdx";
+import ModelCreateNativeQueryHowToClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-create-native-query-how-to.mdx";
+import ModelCreateNativeQueryTutorialClickHouse from "@site/docs/data-modeling/_partials/_classic-connectors/_clickhouse/_model-create-native-query-tutorial.mdx";
 import ModelExtendLambdaTypescript from "@site/docs/data-modeling/_partials/_lambda-connectors/_typescript/_modelExtend.mdx";
 import ModelExtendLambdaPython from "@site/docs/data-modeling/_partials/_lambda-connectors/_python/_modelExtend.mdx";
 import ModelExtendLambdaGo from "@site/docs/data-modeling/_partials/_lambda-connectors/_go/_modelExtend.mdx";
@@ -88,6 +88,34 @@ flag because this has been set in the CLI context. You can learn more about crea
 
 For a walkthrough on how to create a model, see the [Model Tutorials](#model-tutorials) section.
 
+### Via native query
+
+You can use the query syntax of the underlying data source to create a native query and expose it as a model in your
+supergraph API.
+
+The process of adding a native query is more or less unique for each data connector as each data source by nature has
+its own syntax.
+
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+    <ModelCreateNativeQueryHowToPostgreSQL />
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+    <ModelCreateNativeQueryHowToMongoDB />
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+    <ModelCreateNativeQueryHowToClickHouse />
+
+  </TabItem>
+</Tabs>
+
+Find a tutorial on how to add a native query for your data connector in the relevant section [here](/).
+
 ## Update a model
 
 If you want to update your model to reflect a change that happened in the underlying data source you should first
@@ -111,84 +139,15 @@ For a walkthrough on how to update a model, see the [Model Tutorials](#model-tut
 
 ## Extend a model
 
-A model can be extended with more data by adding a native query or a relationship to another data type, including one
-exposed via a lambda data connector, in order to return nested data or enrich the returning data.
+A model can be extended in order to return nested data or to enrich or add to the data.
 
-### Native query
+For example you can extend a model like `Customers` to also return the related `Orders` for each customer.
 
-You can create a native query to run on the underlying data source and then expose it as an additional field on your
-model.
+Or you can add a custom piece of logic on a model like `Orders` to compute and return the current currency conversion of
+the total price of the order.
 
-The process of adding a native query is more or less unique for each data connector as each data source by nature has
-its own syntax.
-
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL">
-
-    <ModelExtendNativeQueryHowToPostgreSQL />
-
-  </TabItem>
-  <TabItem value="MongoDB" label="MongoDB">
-
-    <ModelExtendNativeQueryHowToMongoDB />
-
-  </TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse">
-
-    <ModelExtendNativeQueryHowToClickHouse />
-
-  </TabItem>
-</Tabs>
-
-Discover how to add a native query for your data connector in the relevant section [here](/).
-
-{/* TODO: Add link */}
-
-### Relationship
-
-With a relationship you can extend a model to another model or command, including commands exposed via a lambda data
-connector.
-
-The DDN CLI and your data connectors will detect many relationships in your data sources automatically and once
-introspected, you can add them to your metadata.
-
-```bash title="Introspect your data source:"
-ddn connector introspect <connector_name>
-```
-
-```bash title="Add relationships to your metadata:"
-ddn relationship add <connector_link_name> <collection_name>
-```
-
-For example, if I wanted to extend my `Customers` model to be able to include their `Orders` when I queried it, my
-relationship would be something like:
-
-```yaml title="Relationship definition:"
----
-kind: Relationship
-version: v1
-definition:
-  name: orders
-  sourceType: Customers
-  target:
-    model:
-      name: Orders
-      relationshipType: Array
-      aggregate:
-        aggregateExpression: OrdersAggExp
-  mapping:
-    - source:
-        fieldPath:
-          - fieldName: customerId
-      target:
-        modelField:
-          - fieldName: customerId
-  graphql:
-    aggregateFieldName: ordersAggregate
-```
-
-Read more about relationships in the [Relationships](/data-modeling/relationship.mdx) section. Or see the tutorial
-[below](#tutorial-extend-model) on extending a model.
+The way this is done is via a `Relationship`. Read more about
+[creating relationships here](/data-modeling/relationship.mdx).
 
 ## Delete a model
 
@@ -243,54 +202,8 @@ ddn model update <connector_link_name> <model_name>
 
 ### Extending a model {#tutorial-extend-model}
 
-Models can be extended, allowing for transformation and enrichment of the data.
-
-#### Via a native query
-
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="PostgreSQL" label="PostgreSQL">
-
-    <ModelExtendNativeQueryTutorialPostgreSQL />
-
-  </TabItem>
-  <TabItem value="MongoDB" label="MongoDB">
-
-    <ModelExtendNativeQueryTutorialMongoDB />
-
-  </TabItem>
-  <TabItem value="ClickHouse" label="ClickHouse">
-
-    <ModelExtendNativeQueryTutorialClickHouse />
-
-  </TabItem>
-</Tabs>
-
-#### Via a lambda data connector
-
-[Lambda data connectors](/business-logic/overview.mdx) allow you to expose custom business logic via your API. You can
-also create [relationships](/data-modeling/relationship.mdx) between an existing model and this business logic to expand
-the data a model can return.
-
-We support lambda data connectors for [TypeScript](/business-logic/typescript.mdx),
-[Python](/business-logic/python.mdx), and [Go](/business-logic/go.mdx).
-
-<Tabs groupId="source-preference" className="api-tabs">
-  <TabItem value="ts" label="TypeScript">
-
-    <ModelExtendLambdaTypescript />
-
-  </TabItem>
-  <TabItem value="python" label="Python">
-
-    <ModelExtendLambdaPython />
-
-  </TabItem>
-  <TabItem value="go" label="Go">
-
-    <ModelExtendLambdaGo />
-
-  </TabItem>
-</Tabs>
+Find tutorials about extending a model with related information or custom logic in the
+[Relationships](/data-modeling/relationship.mdx) section.
 
 ### Deleting a model
 

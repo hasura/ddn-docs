@@ -153,3 +153,49 @@ self-contained.
 ## Reference
 
 You can learn more about relationships in the metadata reference [docs](/supergraph-modeling/relationships.mdx).
+
+### TEMP Relationship from model.mdx
+
+With a relationship you can extend a model to another model or command, including commands exposed via a lambda data
+connector.
+
+The DDN CLI and your data connectors will detect many relationships in your data sources automatically and once
+introspected, you can add them to your metadata.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Add relationships to your metadata:"
+ddn relationship add <connector_link_name> <collection_name>
+```
+
+For example, if I wanted to extend my `Customers` model to be able to include their `Orders` when I queried it, my
+relationship would be something like:
+
+```yaml title="Relationship definition:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: orders
+  sourceType: Customers
+  target:
+    model:
+      name: Orders
+      relationshipType: Array
+      aggregate:
+        aggregateExpression: OrdersAggExp
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: customerId
+      target:
+        modelField:
+          - fieldName: customerId
+  graphql:
+    aggregateFieldName: ordersAggregate
+```
+
+Read more about relationships in the [Relationships](/data-modeling/relationship.mdx) section. Or see the tutorial
+[below](#tutorial-extend-model) on extending a model.
