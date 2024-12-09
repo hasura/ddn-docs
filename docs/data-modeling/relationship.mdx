@@ -38,9 +38,12 @@ The lifecycle in creating a relationship in your metadata is as follows:
 
 ## Create a relationship
 
-Relationships are defined between a source object type and a target model or command.
+Relationships are defined in metadata from an [object type](/supergraph-modeling/types.mdx#objecttype-objecttype), to a
+[model](/supergraph-modeling/models.mdx) or [command](/supergraph-modeling/commands.mdx). But since models and commands
+are also defined with object types, you can think of relationships as being between models and/or commands.
 
-The target model can be from the same or different data connector, or be created with a native query.
+Relationships can be added between any kind of semantically related models and/or commands. They do not need to be
+backed by the same data source.
 
 The target command can be enabled with a a custom piece of business logic on a lambda data connector, or a native
 mutation operation.
@@ -79,13 +82,6 @@ flag because this has been set in the CLI context. You can learn more about crea
 ### Manually creating a relationship
 
 Relationships can also be manually added to your metadata.
-
-Relationships are defined in metadata from an [object type](/supergraph-modeling/types.mdx#objecttype-objecttype), to a
-[model](/supergraph-modeling/models.mdx) or [command](/supergraph-modeling/commands.mdx). But since models and commands
-are also defined with object types, you can think of relationships as being between models and/or commands.
-
-Relationships can be added between any kind of semantically related models or commands. They do not need to be backed by
-the same data source.
 
 The [VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can help you to author
 relationships.
@@ -151,7 +147,113 @@ self-contained.
 
 ## Tutorials
 
+These tutorials follow on from the tutorials in the How to Build with DDN section.
+
+We will use a business logic function defined in a lambda data connector to build a relationship for all connector
+types.
+
+<details>
+  <summary>Create a custom function with the TypeScript lambda data connector to use in the tutorials</summary>
+
+Initialize a new data connector with the TypeScript connector.
+
+```bash title="Run the following command in your DDN project directory:"
+ddn connector init my_ts -i
+```
+
+- Select `hasura/nodejs` from the list of connectors.
+- Accept the suggested port.
+
+```ts
+export function shoutName(name: string) {
+  return `${name.toUpperCase()}`;
+}
+```
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_ts
+```
+
+Then, we can add the model made available from the introspection.
+
+```bash title="Track the function:"
+ddn model add my_ts shoutName
+```
+
+</details>
+
 ### Creating a relationship
+
+#### Between a model and a model
+
+
+#### Between a model and a business logic function as a command
+
+To create a relationship between the `Users` model and the `shoutName` function, we can use the following command we can
+create the following relationship. Using the
+[VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) makes the authoring of the
+relationship easier.
+
+```yaml title="Create a relationship:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: shoutName
+  sourceType: Users
+  target:
+    command:
+      name: ShoutName
+      subgraph: app
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: name
+      target:
+        argument:
+          argumentName: name
+```
+
+```bash title="Create a build of your supergraph API:"
+ddn supergraph build local
+```
+
+```bash title="Serve your build as your API locally:"
+ddn run docker-start
+ddn console --local
+```
+
+Using the console, we can now query the `Users` model and get the `shoutName` function as a result.
+
+```graphql title="Query the Users model:"
+query {
+  users {
+    name
+    shoutName
+  }
+}
+```
+
+```json title="Result:"
+{
+  "data": {
+    "users": [
+      {
+        "name": "Alice",
+        "shoutName": "ALICE"
+      },
+      {
+        "name": "Bob",
+        "shoutName": "BOB"
+      },
+      {
+        "name": "Charlie",
+        "shoutName": "CHARLIE"
+      }
+    ]
+  }
+}
+```
 
 ### Updating a relationship
 
