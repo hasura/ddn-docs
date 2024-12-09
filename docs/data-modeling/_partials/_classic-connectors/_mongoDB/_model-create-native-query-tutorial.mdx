@@ -1,0 +1,53 @@
+Within your connector's directory, you can add a new JSON configuration file to define a
+[native query](/connectors/mongodb/native-operations/native-queries.mdx).
+
+```sh title="Create a new directory to store your native queries:"
+mkdir -p <my_subgraph>/connector/<connector_name>/native_queries/
+```
+
+```json title="Create a new file in your connector's directory:"
+// native_queries/user_by_name_between.json
+{
+  "name": "userByName",
+  "representation": "collection",
+  "description": "Look up a user by a regular expression match on name",
+
+  "inputCollection": "users",
+
+  "arguments": {
+    "name": { "type": { "scalar": "string" } },
+    "lower_bound": { "type": { "scalar": "string" } },
+    "upper_bound": { "type": { "scalar": "string" } }
+  },
+
+  "resultDocumentType": "UserByName",
+  "objectTypes": {
+    "UserByName": {
+      "fields": {
+        "_id": { "type": { "scalar": "objectId" } },
+        "name": { "type": { "scalar": "string" } }
+      }
+    }
+  },
+
+  "pipeline": [
+    {
+      "$match": {
+        "$and": [
+          { "name": { "$regex": "{{ name }}" } },
+          { "name": { "$gt": "{{ lower_bound }}" } },
+          { "name": { "$lt": "{{ upper_bound }}" } }
+        ]
+      }
+    }
+  ]
+}
+```
+
+```bash title="Use the DDN CLI to introspect your MongoDB instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Then, update your models:"
+ddn model update <connector_name> "*"
+```
