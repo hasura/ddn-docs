@@ -20,7 +20,9 @@ Relationships allow you to connect data, enabling you to query data across multi
 Examples include:
 
 - Querying a `Customer` and at the same time getting their `Orders` and each `Product` item in those orders.
-- Querying an `Order` and also getting a live currency conversion for the value of the order.
+- Querying a `Customer` and also getting the analytics of their app usage from another data source.
+- Querying an `Order` and also getting a live currency conversion for the value of the order enabled with a lambda data
+  connector with a connection to a currency exchange API.
 
 ## Lifecycle
 
@@ -35,6 +37,13 @@ The lifecycle in creating a relationship in your metadata is as follows:
 ![](/img/data-modeling/ddn-cli-process.png)
 
 ## Create a relationship
+
+Relationships are defined between a source object type and a target model or command.
+
+The target model can be from the same or different data connector, or be created with a native query.
+
+The target command can be enabled with a a custom piece of business logic on a lambda data connector, or a native
+mutation operation.
 
 ### Using the DDN CLI
 
@@ -67,7 +76,7 @@ flag because this has been set in the CLI context. You can learn more about crea
 
 :::
 
-### Manually adding a relationship
+### Manually creating a relationship
 
 Relationships can also be manually added to your metadata.
 
@@ -77,6 +86,9 @@ are also defined with object types, you can think of relationships as being betw
 
 Relationships can be added between any kind of semantically related models or commands. They do not need to be backed by
 the same data source.
+
+The [VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can help you to author
+relationships.
 
 For example, you can configure a relationship so that you can also get Orders when querying a Customer.
 
@@ -104,6 +116,8 @@ By defining this `Relationship` object, all other [models](/supergraph-modeling/
 [commands](/supergraph-modeling/commands.mdx) whose output type is the source object type in the relationship will now
 have a connection to the target model or command.
 
+Learn more about the [Relationship](/supergraph-modeling/relationships.mdx) object.
+
 ## Update a relationship
 
 Your underlying data source may change over time. You can update your relationship to reflect these changes.
@@ -118,7 +132,7 @@ ddn connector introspect <connector_name>
 ```
 
 ```bash title="Then, update your model:"
-ddn model update <connector_name> users
+ddn model update <connector_name> <model_name>
 ```
 
 Now, you can either delete the existing `Relationship` object and use the DDN CLI to add it again:
@@ -127,32 +141,21 @@ Now, you can either delete the existing `Relationship` object and use the DDN CL
 ddn relationship add <connector_link_name> <collection_name>
 ```
 
-Or you can update the `Relationship` object manually:
-
-```yaml title="Edit the existing metadata file:"
-# In whichever HML file contains your relationship
-kind: Relationship
-version: v1
-definition:
-  name: user
-  source: Post
-  target:
-    model:
-      name: User
-      relationshipType: Object
-  mapping:
-    - source:
-        fieldPath:
-          - fieldName: authorId # The line which has changed
-      target:
-        modelField:
-          - fieldName: id
-```
+Or you can update the `Relationship` object manually. Learn more about the
+[Relationship](/supergraph-modeling/relationships.mdx) object.
 
 ## Delete a relationship
 
 If you no longer need a relationship, simply delete the `Relationship` metadata object manually. It is fully
 self-contained.
+
+## Tutorials
+
+### Creating a relationship
+
+### Updating a relationship
+
+### Deleting a relationship
 
 ## Reference
 
