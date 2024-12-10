@@ -9,6 +9,9 @@ keywords:
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import PostgresRelationshipCreateModelToModel from "@site/docs/data-modeling/_partials/_classic-connectors/_postgreSQL/_relationship-create-model-to-model.mdx";
+import MongoDBRelationshipCreateModelToModel from "@site/docs/data-modeling/_partials/_classic-connectors/_mongoDB/_relationship-create-model-to-model.mdx";
+import ClickHouseRelationshipCreateModelToModel from "@site/docs/data-modeling/_partials/_classic-connectors/_clickHouse/_relationship-create-model-to-model.mdx";
 
 # Relationships Connect Data
 
@@ -126,10 +129,10 @@ Learn more about the [Relationship](/supergraph-modeling/relationships.mdx) obje
 
 Your underlying data source may change over time. You can update your relationship to reflect these changes.
 
-For example, imagine you have a `post => user` relationship, and the posts previously used a field named `userId`. Now,
-however, that field name has changed to `authorId`.
+If you have an automatically detected relationship and a property on the source object type has changed, you can update
+the relationship to reflect this change.
 
-First, update your connector configuration and models to reflect the changed field name.
+First, update your connector configuration and models.
 
 ```bash title="Update your source introspection:"
 ddn connector introspect <connector_name>
@@ -155,7 +158,8 @@ self-contained.
 
 ## Tutorials
 
-These tutorials follow on from the tutorials in the How to Build with DDN section.
+These tutorials follow on from the tutorials in the
+[How to Build with DDN section](/how-to-build-with-ddn/overview.mdx).
 
 We will use a business logic function defined in a lambda data connector to build a relationship for all connector
 types.
@@ -171,7 +175,7 @@ ddn connector init my_ts -i
 
 - Select `hasura/nodejs` from the list of connectors.
 - Accept the suggested port.
-- Edit the `functions.ts` file with the `shoutName` function.
+- Edit the `functions.ts` file in the connector directory with the `shoutName` function.
 
 ```ts
 export function shoutName(name: string) {
@@ -198,24 +202,50 @@ ddn model add my_ts shoutName
 <Tabs groupId="source-preference" className="api-tabs">
   <TabItem value="PostgreSQL" label="PostgreSQL">
 
-PostgreSQL
+<PostgresRelationshipCreateModelToModel />
 
   </TabItem>
   <TabItem value="MongoDB" label="MongoDB">
 
-PostgreSQL
+<MongoDBRelationshipCreateModelToModel />
 
   </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse">
 
-PostgreSQL
+<ClickHouseRelationshipCreateModelToModel />
 
   </TabItem>
 </Tabs>
 
 #### Between a model and a model manually
 
-#### Between a command and a model
+Relationships can also be manually added to your metadata and the process is the same regardless of the data source, or
+data connector.
+
+The [VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can help you to author
+relationships.
+
+For example, you can configure a relationship so that you can also get Orders when querying a Customer.
+
+```yaml title="Create a relationship in your metadata:"
+---
+kind: Relationship
+version: v1
+definition:
+  sourceType: Customers # The existing source object type which also defines the model
+  name: orders # A name we want to use when we query the Orders from the Customer
+  target:
+    model: # The target can be a model or a command
+      name: Orders # The existing model or command that we want to access when we query the Orders from the Customer
+      relationshipType: Array # The relationship type which can be Object or Array. Since a customer can have many orders, we use an Array.
+  mapping: # The mapping defines which field on the source object type maps to which field on the target model
+    - source:
+        fieldPath:
+          - fieldName: customerId # The existing field on the source object type that we want to map to the target model
+      target:
+        modelField:
+          - fieldName: customerId # The existing field on the target model that we want to map to the source object type
+```
 
 #### Between a model and a command
 
@@ -287,6 +317,8 @@ query {
 ```
 
 With relationships and custom commands we can transform or enrich any data.
+
+#### Between a command and a model
 
 ### Updating a relationship
 
