@@ -163,6 +163,7 @@ ddn connector init my_ts -i
 
 - Select `hasura/nodejs` from the list of connectors.
 - Accept the suggested port.
+- Edit the `functions.ts` file with the `shoutName` function.
 
 ```ts
 export function shoutName(name: string) {
@@ -186,32 +187,31 @@ ddn model add my_ts shoutName
 
 #### Between a model and a model
 
-
 #### Between a model and a business logic function as a command
 
-To create a relationship between the `Users` model and the `shoutName` function, we can use the following command we can
-create the following relationship. Using the
-[VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) makes the authoring of the
-relationship easier.
+To create a relationship between the `Users` model and the `shoutName` function (see the drop-down above for how to
+implement this function) we can create the following relationship. Using the
+[VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) makes the authoring and
+validation of the relationship easier.
 
 ```yaml title="Create a relationship:"
 ---
 kind: Relationship
 version: v1
 definition:
-  name: shoutName
-  sourceType: Users
+  name: shoutName # Define a name to expose in the supergraph API
+  sourceType: Users # The existing source object type (which also defines the source model Users)
   target:
-    command:
-      name: ShoutName
-      subgraph: app
+    command: # The target is a command
+      name: ShoutName # The name of the existing command we have defined in metadata
+      subgraph: app # The existing subgraph the command is defined in
   mapping:
     - source:
         fieldPath:
-          - fieldName: name
+          - fieldName: name # The field on the source object type that we want to provide to the target command as an argument
       target:
         argument:
-          argumentName: name
+          argumentName: name # The name of the argument on the target command that we want to map to the source field
 ```
 
 ```bash title="Create a build of your supergraph API:"
@@ -223,7 +223,8 @@ ddn run docker-start
 ddn console --local
 ```
 
-Using the console, we can now query the `Users` model and get the `shoutName` function as a result.
+We can now query the `Users` model and also return the result of the `shoutName` function with its default argument of
+`name`.
 
 ```graphql title="Query the Users model:"
 query {
@@ -254,6 +255,8 @@ query {
   }
 }
 ```
+
+With relationships and custom commands we can transform or enrich any data.
 
 ### Updating a relationship
 
