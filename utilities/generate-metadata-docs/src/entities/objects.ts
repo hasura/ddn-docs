@@ -23,6 +23,7 @@ export const topLevelMetadataObjects: Record<string, string> = {
   AggregateExpression: 'aggregate-expressions',
   BooleanExpressionType: 'boolean-expressions',
   ObjectBooleanExpressionType: 'boolean-expressions',
+  OrderByExpression: 'orderby-expressions',
   Model: 'models',
   Command: 'commands',
   Relationship: 'relationships',
