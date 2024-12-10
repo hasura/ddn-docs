@@ -1,36 +1,26 @@
 **Via a new table or view**
 
 ```sql title="Create a new table or view in your PostgreSQL database:"
-CREATE TABLE public.users (
+CREATE TABLE public.comments (
   id serial PRIMARY KEY,
-  name text NOT NULL
+  comment text NOT NULL,
+  user_id integer NOT NULL,
+  post_id integer NOT NULL
 );
 
-INSERT INTO public.users (name)
+INSERT INTO public.comments (comment, user_id, post_id)
 VALUES
-  ('Alice Johnson'),
-  ('Bob Smith'),
-  ('Charlie Davis');
+  ('Great post! Really enjoyed reading this.', 1, 2),
+  ('Thanks for sharing your thoughts!', 2, 1),
+  ('Interesting perspective.', 3, 1);
 ```
 
 ```bash title="Use the DDN CLI to introspect your PostgreSQL instance:"
-ddn connector introspect <connector_name>
+ddn connector introspect my_pg
 ```
 
 ```bash title="Then, add your model:"
-ddn model add <connector_link_name> users
-```
-
-**Via an existing table or view**
-
-If you already have a table present, you can add it by introspecting your data source and referencing it by name.
-
-```bash title="Use the DDN CLI to introspect your PostgreSQL instance:"
-ddn connector introspect <connector_name>
-```
-
-```bash title="Then, add your model:"
-ddn model add <connector_link_name> users
+ddn model add my_pg comments
 ```
 
 ```bash title="Create a new build:"
@@ -47,9 +37,11 @@ ddn console --local
 
 ```graphql title="You can now query your table:"
 query {
-  users {
+  comments {
     id
-    name
+    comment
+    user_id
+    post_id
   }
 }
 ```
@@ -57,18 +49,24 @@ query {
 ```json title="With a response like this:"
 {
   "data": {
-    "users": [
+    "comments": [
       {
         "id": 1,
-        "name": "Alice Johnson"
+        "comment": "Great post! Really enjoyed reading this.",
+        "user_id": 1,
+        "post_id": 2
       },
       {
         "id": 2,
-        "name": "Bob Smith"
+        "comment": "Thanks for sharing your thoughts!",
+        "user_id": 2,
+        "post_id": 1
       },
       {
         "id": 3,
-        "name": "Charlie Davis"
+        "comment": "Interesting perspective.",
+        "user_id": 3,
+        "post_id": 1
       }
     ]
   }

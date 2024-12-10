@@ -1,29 +1,33 @@
-**Via a new collection or view**
-
-```js title="Create a new table or view in your MongoDB database, and populate it with data:"
-db.createCollection("users");
-db.users.insertMany([{ name: "Alice" }, { name: "Bob" }, { name: "Eve" }]);
+```js title="Create a new collection in your MongoDB database, and populate it with data:"
+db.createCollection("comments");
+db.comments.insertMany([
+  {
+    comment_id: 1,
+    comment: "Great post! Really enjoyed reading this.",
+    user_id: 1,
+    post_id: 2,
+  },
+  {
+    comment_id: 2,
+    comment: "Thanks for sharing your thoughts!",
+    user_id: 2,
+    post_id: 1,
+  },
+  {
+    comment_id: 3,
+    comment: "Interesting perspective.",
+    user_id: 3,
+    post_id: 1,
+  },
+]);
 ```
 
 ```bash title="Use the DDN CLI to introspect your MongoDB instance:"
-ddn connector introspect <connector_name>
+ddn connector introspect my_mongo
 ```
 
 ```bash title="Then, add your model:"
-ddn model add <connector_name> users
-```
-
-**Via an existing collection or view**
-
-If you already have a collection with data present, you can add it by introspecting your data source and referencing it
-by name.
-
-```bash title="Use the DDN CLI to introspect your MongoDB instance:"
-ddn connector introspect <connector_name>
-```
-
-```bash title="Then, add your model:"
-ddn model add <connector_name> users
+ddn model add my_mongo comments
 ```
 
 ```bash title="Create a new build:"
@@ -40,9 +44,11 @@ ddn console --local
 
 ```graphql title="You can now query your table:"
 query {
-  users {
-    id
-    name
+  comments {
+    comment_id
+    comment
+    user_id
+    post_id
   }
 }
 ```
@@ -50,18 +56,24 @@ query {
 ```json title="With a response like this:"
 {
   "data": {
-    "users": [
+    "comments": [
       {
-        "id": 1,
-        "name": "Alice Johnson"
+        "comment_id": 1,
+        "comment": "Great post! Really enjoyed reading this.",
+        "user_id": 1,
+        "post_id": 2
       },
       {
-        "id": 2,
-        "name": "Bob Smith"
+        "comment_id": 2,
+        "comment": "Thanks for sharing your thoughts!",
+        "user_id": 2,
+        "post_id": 1
       },
       {
-        "id": 3,
-        "name": "Charlie Davis"
+        "comment_id": 3,
+        "comment": "Interesting perspective.",
+        "user_id": 3,
+        "post_id": 1
       }
     ]
   }
