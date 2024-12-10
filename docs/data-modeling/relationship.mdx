@@ -19,14 +19,23 @@ Relationships allow you to connect data, enabling you to query data across multi
 
 Examples include:
 
-- Querying a `Customer` and at the same time getting their `Orders` and each `Product` item in those orders.
-- Querying a `Customer` and also getting the analytics of their app usage from another data source.
+- Querying a `Customer` and at the same time getting their `Orders` and each `Product` item in those orders. (Model to
+  Model)
+- Querying a `Customer` and also getting the analytics of their app usage from another data source. (Model to Model in
+  another subgraph or data connector)
 - Querying an `Order` and also getting a live currency conversion for the value of the order enabled with a lambda data
-  connector with a connection to a currency exchange API.
+  connector with a connection to a currency exchange API. (Model to Command)
+- Updating a `Customer` with a specialized custom mutation and then getting the updated `Customer` back. (Command to
+  Model)
+
+Relationships can be added between _any_ kind of semantically related models and/or commands. They do not need to be
+related in the data source by, for example, a foreign key. They also do not need to be backed by the same data source or
+be in the same subgraph.
 
 ## Lifecycle
 
-The lifecycle in creating a relationship in your metadata is as follows:
+Many relationships can be created automatically by the DDN CLI from detected underlying connections such as foreign
+keys. In such cases the lifecycle in creating a relationship in your metadata is as follows:
 
 1. Introspect your data source using the DDN CLI with the relevant data connector to fetch the entity resources.
 2. Add the detected relationships to your metadata with the DDN CLI.
@@ -36,14 +45,14 @@ The lifecycle in creating a relationship in your metadata is as follows:
 
 ![](/img/data-modeling/ddn-cli-process.png)
 
+If the relationship cannot be detected automatically, you can easily manually create a relationship in your metadata and
+then perform lifecycle steps 3-5 as needed.
+
 ## Create a relationship
 
 Relationships are defined in metadata from an [object type](/supergraph-modeling/types.mdx#objecttype-objecttype), to a
 [model](/supergraph-modeling/models.mdx) or [command](/supergraph-modeling/commands.mdx). But since models and commands
 are also defined with object types, you can think of relationships as being between models and/or commands.
-
-Relationships can be added between any kind of semantically related models and/or commands. They do not need to be
-backed by the same data source.
 
 The target command can be enabled with a a custom piece of business logic on a lambda data connector, or a native
 mutation operation.
@@ -185,9 +194,31 @@ ddn model add my_ts shoutName
 
 ### Creating a relationship
 
-#### Between a model and a model
+#### Between a model and a model detected automatically
 
-#### Between a model and a business logic function as a command
+<Tabs groupId="source-preference" className="api-tabs">
+  <TabItem value="PostgreSQL" label="PostgreSQL">
+
+PostgreSQL
+
+  </TabItem>
+  <TabItem value="MongoDB" label="MongoDB">
+
+PostgreSQL
+
+  </TabItem>
+  <TabItem value="ClickHouse" label="ClickHouse">
+
+PostgreSQL
+
+  </TabItem>
+</Tabs>
+
+#### Between a model and a model manually
+
+#### Between a command and a model
+
+#### Between a model and a command
 
 To create a relationship between the `Users` model and the `shoutName` function (see the drop-down above for how to
 implement this function) we can create the following relationship. Using the
