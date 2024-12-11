@@ -88,7 +88,6 @@ The best way to avoid this potential problem is to **escape** any user inputs th
 provides an operator that does this: `{ "$literal": <input value> }`. Unfortunately that operator is not allowed in
 allowed in all contexts, so the specific procedure for escaping inputs depends on where those inputs appear.
 
-
 ### Escape inputs in `$match` stages
 
 This section applies to `$match` stages that do **not** use the `$expr` syntax to switch to an expression context. If
@@ -97,11 +96,10 @@ you have a `$match` stage that uses the `$expr` operator see the [Escape inputs 
 [Escape inputs in other stages]: #escape-inputs-in-other-stages
 
 Although MongoDB aggregation pipelines support a fully-featured expression language, those expressions are not allowed
-by default in stages that use a specialized set of operators, like `$match`. Instead of expressions `$match` takes
-a [query predicate][] which only permits a limited set of query and projection operators: `{ "$eq": <value> }`, `{
-"$or": [<predicates>] }`, etc. This means that the input-escaping operator, `{ "$literal": <input value> }`, is not
-permitted because that is an expression operator, not a query operator. On the other hand this also means that arbitrary
-expressions cannot be injected into this context via user input.
+by default in `$match`. Instead of expressions `$match` takes a [query predicate][] which only permits a limited set of
+query operators: `{ "$eq": <value> }`, `{ "$or": [<predicates>] }`, etc. This means that the input-escaping operator, `{
+"$literal": <input value> }`, is not permitted because that is an expression operator, not a query operator. On the
+other hand this also means that arbitrary expressions cannot be injected into this context via user input.
 
 [query predicate]: https://www.mongodb.com/docs/manual/reference/glossary/#std-term-query-predicate
 
@@ -151,10 +149,6 @@ In general the MongoDB connector checks that user inputs match the types declare
 `extendedJSON` than the connector will accept any type of argument.
 
 :::
-
-### Escape inputs in `$group`, `$bucket`, `$bucketAuto`, `$setWindowFields` stages
-
-TODO
 
 ### Escape inputs in other stages
 
