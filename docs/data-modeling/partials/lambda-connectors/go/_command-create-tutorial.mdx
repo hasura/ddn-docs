@@ -20,8 +20,8 @@ type NameArguments struct {
 // NameResult defines the output result for the function
 type NameResult string
 
-// FunctionNameToUpperCase converts a name string to uppercase
-func FunctionNameToUpperCase(ctx context.Context, state *types.State, arguments *NameArguments) (*NameResult, error) {
+// FunctionShoutName converts a name string to uppercase
+func FunctionShoutName(ctx context.Context, state *types.State, arguments *NameArguments) (*NameResult, error) {
   if arguments.Name == "" {
     return nil, fmt.Errorf("name cannot be empty")
   }
@@ -36,29 +36,7 @@ ddn connector introspect my_go
 ```
 
 ```bash title="Track the function:"
-ddn command add my_go nameToUpperCase
-```
-
-```yml title="You can now create a relationship between this function and the model we created earlier:"
----
-# e.g., inside users.hml
-kind: Relationship
-version: v1
-definition:
-  name: screamedName
-  sourceType: Users
-  target:
-    command:
-      name: NameToUpperCase
-      subgraph: app
-  mapping:
-    - source:
-        fieldPath:
-          - fieldName: name
-      target:
-        argument:
-          argumentName: name
-  description: The user's name returned in all caps.
+ddn command add my_go shoutName
 ```
 
 ```bash title="Create a new build:"
@@ -74,31 +52,15 @@ ddn console --local
 ```
 
 ```graphql title="You can now query your expanded table with the transformed name:"
-query {
-  users {
-    id
-    screamedName
-  }
+query ShoutTheName {
+  shoutName(name: "Alice")
 }
 ```
 
 ```json title="With a response like this:"
 {
   "data": {
-    "users": [
-      {
-        "id": 1,
-        "screamedName": "ALICE JOHNSON"
-      },
-      {
-        "id": 2,
-        "screamedName": "BOB SMITH"
-      },
-      {
-        "id": 3,
-        "screamedName": "CHARLIE DAVIS"
-      }
-    ]
+    "shoutName": "ALICE"
   }
 }
 ```
