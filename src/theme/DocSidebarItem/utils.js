@@ -27,7 +27,7 @@ import Deployment from '@site/static/icons/features/deployment.svg';
 import Upgrade from '@site/static/icons/cloud-lightning.svg';
 import Recipe from '@site/static/icons/beaker.svg';
 import PromptQL from '@site/static/icons/features/prompt-ql.svg';
-import styles from './styles.module.css';
+
 import { useColorMode } from '@docusaurus/theme-common';
 
 export function addIconsToLabel(label, className) {
@@ -40,97 +40,104 @@ export function addIconsToLabel(label, className) {
 
   const isDarkMode = definedColorMode === 'dark';
 
-  // Conditional rendering for sidebar icons
+  // Add inline styles for the icon
+  const iconStyle = {
+    width: '20px',
+    height: '20px',
+    display: 'block',
+  };
+
+  // When creating icons, apply the style
   let icons;
   switch (className) {
     case 'introduction-icon':
-      icons = <Introduction />;
+      icons = <Introduction style={iconStyle} />;
       break;
     case 'basics-icon':
-      icons = <Basics />;
+      icons = <Basics style={iconStyle} />;
       break;
     case 'getting-started-icon':
-      icons = <GettingStarted />;
+      icons = <GettingStarted style={iconStyle} />;
       break;
     case 'auth-icon':
-      icons = <Auth />;
+      icons = <Auth style={iconStyle} />;
       break;
     case 'connectors-icon':
-      icons = <Connectors />;
+      icons = <Connectors style={iconStyle} />;
       break;
     case 'plugins-icon':
-      icons = <Plugins />;
+      icons = <Plugins style={iconStyle} />;
       break;
     case 'data-modeling':
-      icons = <DataModeling />;
+      icons = <DataModeling style={iconStyle} />;
       break;
     case 'graphQL-api-icon':
-      icons = <GraphQLAPI />;
+      icons = <GraphQLAPI style={iconStyle} />;
       break;
     case 'ci-cd-icon':
-      icons = <CiCd />;
+      icons = <CiCd style={iconStyle} />;
       break;
     case 'prompt-ql-icon':
-      icons = <PromptQL />;
+      icons = <PromptQL style={iconStyle} />;
       break;
     case 'project-configuration':
-      icons = <ProjectConfiguration />;
+      icons = <ProjectConfiguration style={iconStyle} />;
       break;
     case 'hasura-cli-icon':
-      icons = <HasuraCLI />;
+      icons = <HasuraCLI style={iconStyle} />;
       break;
     case 'observability-icon':
-      icons = <Observability />;
+      icons = <Observability style={iconStyle} />;
       break;
     case 'collaboration-icon':
-      icons = <Collaboration />;
+      icons = <Collaboration style={iconStyle} />;
       break;
     case 'federation-icon':
-      icons = <Federation />;
+      icons = <Federation style={iconStyle} />;
       break;
     case 'build-icon':
-      icons = <Builds />;
+      icons = <Builds style={iconStyle} />;
       break;
     case 'enterprise-icon':
-      icons = <Enterprise />;
+      icons = <Enterprise style={iconStyle} />;
       break;
     case 'glossary-icon':
-      icons = <Glossary />;
+      icons = <Glossary style={iconStyle} />;
       break;
     case 'quickstart-icon':
-      icons = <Quickstart />;
+      icons = <Quickstart style={iconStyle} />;
       break;
     case 'supergraph-modeling-icon':
-      icons = <SupergraphModeling />;
+      icons = <SupergraphModeling style={iconStyle} />;
       break;
     case 'faq-icon':
-      icons = <Faq />;
+      icons = <Faq style={iconStyle} />;
       break;
     case 'community-icon':
-      icons = <Community />;
+      icons = <Community style={iconStyle} />;
       break;
     case 'billing-icon':
-      icons = <Billing />;
+      icons = <Billing style={iconStyle} />;
       break;
     case 'logic-icon':
-      icons = <Actions />;
+      icons = <Actions style={iconStyle} />;
       break;
     case 'help-icon':
-      icons = <Help />;
+      icons = <Help style={iconStyle} />;
       break;
     case 'deployment':
-      icons = <Deployment />;
+      icons = <Deployment style={iconStyle} />;
       break;
     case 'upgrade':
-      icons = <Upgrade />;
+      icons = <Upgrade style={iconStyle} />;
       break;
     case 'recipes':
-      icons = <Recipe />;
+      icons = <Recipe style={iconStyle} />;
       break;
   }
 
   return (
-    <div className={styles['sidebar_link_wrapper']}>
+    <div>
       {icons} {label}
     </div>
   );
