@@ -1,0 +1,71 @@
+---
+sidebar_position: 4
+sidebar_label: Troubleshooting
+description: "Learn how to troubleshoot common issues when connecting to data sources with Hasura DDN."
+keywords:
+  - hasura ddn
+  - data sources
+  - data connectors
+  - troubleshoot
+  - help
+---
+
+# Troubleshooting
+
+## Common issues
+
+### My connector can't connect to the data source
+
+When initializing a new connector, we verify the connection string you provide to ensure your data source is reachable.
+If this process fails, try the following solutions:
+
+#### Your source isn't accessible to the public internet
+
+If your data source is hosted behind a firewall or restricts access to specific IP addresses, it may block external
+connections. Unless you're using [Private DDN](https://hasura.io/pricing), you need to allow access from all IP
+addresses. You can do this by adding the following to your allowlist:
+
+```plaintext
+0.0.0.0/0
+```
+
+#### Docker networking issues
+
+Hasura DDN resolves `local.hasura.dev` to your machine's `localhost`. This avoids Docker networking conflicts, where
+`localhost` might point to your source's container instead of your local machine. To fix this, update any `localhost`
+references in your connection strings to `local.hasura.dev`.
+
+### There's a port conflict for my connector
+
+Use `docker ps` to check for any running processes that would conflict with your source's container. If you find one,
+kill it and then try initializing the connector again.
+
+### My connector isn't reflecting schema changes in my data source
+
+You may have not re-run the introspection steps. Remember, each time your data source's schema changes, you'll need to
+re-run this command to make Hasura DDN aware of the new schema. Follow the guide
+[here](/data-sources/introspect-a-source.mdx).
+
+### My connector isn't reflecting schema changes in my API
+
+If you've modified your metadata and are getting errors when trying to use your API, you may need to force a rebuild of
+the connector.
+
+Identify the connector's container and image; kill the container and delete the image. Then, re-run the
+`ddn run docker-start` command to rebuild the connector's image in addition to your other services.
+
+## Get help
+
+### Discord
+
+We're available on Discord! Check out
+[the `#v3-help-forum`](https://discord.com/channels/407792526867693568/1205357708677480468) to post your question and
+get help from the community and Hasura team members!
+
+### GitHub
+
+Each connector has a public repository on GitHub. Typically, they'll follow the naming convention of
+`hasura/ndc-<connector-name>`. Create issues on these repositories to get help directly from the teams responsible for
+the connectors.
+
+You can search the list of public repositories [here](https://github.com/orgs/hasura/repositories).
