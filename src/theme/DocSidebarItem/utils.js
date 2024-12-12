@@ -27,7 +27,7 @@ import Deployment from '@site/static/icons/features/deployment.svg';
 import Upgrade from '@site/static/icons/cloud-lightning.svg';
 import Recipe from '@site/static/icons/beaker.svg';
 import PromptQL from '@site/static/icons/features/prompt-ql.svg';
-import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
+import styles from './styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
 
 export function addIconsToLabel(label, className) {
