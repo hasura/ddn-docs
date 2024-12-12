@@ -31,12 +31,35 @@ will be disabled. To enable these features, simply increase your `date` to a new
 The following is a list of dates at which backwards-incompatible changes were added to Hasura DDN. Projects with
 CompatibilityConfig `date`s prior to these dates will have these features disabled.
 
-#### 2024-12-05
+#### 2024-12-?? (TBD)
 
 ##### Prevent conflicts between boolean expression fields in GraphQL
 
 Conflicts between fields on boolean expression types that have the same name (such as conflicts between fields and
 logical operators) are now detected and a build error is raised.
+
+##### Disallow multiple fields on input objects in GraphQL in `order_by`
+
+GraphQL queries with `order_by` arguments that contain multiple properties set on one input object now properly return
+an error. For example `order_by: { location: { city: Asc, country: Asc } }` is no longer allowed. This is because the
+order of input object fields in GraphQL is not defined, so it is unclear whether ordering should be first by city or
+first by country. Instead, write this query like so:
+`order_by: [{ location: { city: Asc } }, { location: { country: Asc } }]`.
+
+Additionally, ordering by nested fields using a nested array is no longer allowed (for example:
+`order_by: { location: [{ city: Asc }, { country: Asc }] }`). Instead, write this query like so:
+`order_by: [{ location: { city: Asc } }, { location: { country: Asc } }]`.
+
+##### Disallow non-scalar fields in Model v1 `orderableFields`
+
+`orderableFields` in `Model` v1 now only allows fields of scalar types. Previously this was allowed, but queries that
+tried to order against the non-scalar fields would fail at runtime or produce unexpected results.
+
+##### Disallow nested fields and nested relationships in OrderByExpressions when the data connector does not support them
+
+Previously `OrderByExpression`s that incorporated nested fields and nested relationships were allowed to be used with
+`Model`s that sourced from data connectors that did not support ordering by nested fields and nested relationships. Such
+a configuration will now result in a build error.
 
 #### 2024-11-26
 
@@ -143,12 +166,11 @@ metadata.
 
 ## Metadata structure
 
-
 ### v2_CompatibilityConfig {#v2_compatibilityconfig-v2_compatibilityconfig}
 
 The compatibility configuration of the Hasura metadata.
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `CompatibilityConfig` | true |  |
-| `date` | string | true | Any backwards incompatible changes made to Hasura DDN after this date won't impact the metadata. |
+| Key    | Value                 | Required | Description                                                                                      |
+| ------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `kind` | `CompatibilityConfig` | true     |                                                                                                  |
+| `date` | string                | true     | Any backwards incompatible changes made to Hasura DDN after this date won't impact the metadata. |
