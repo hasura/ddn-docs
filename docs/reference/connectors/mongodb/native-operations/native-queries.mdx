@@ -71,7 +71,7 @@ outputs frequency counts for words appearing in movie titles in a given year:
 [
   {
     "$match": {
-      "year": "{{ year }}"
+      "year": { "$eq": "{{ year }}" }
     }
   },
   {
@@ -129,13 +129,23 @@ year: int!
 You may keep the pipeline file that you wrote if you think that you might want to edit it to update the native query
 later, or you may delete it.
 
-The final steps are to track the native query as a collection in your metadata the same way you do when making a schema
-change to your connector configuration.
+The final step is to update your metadata to track the new native query:
+
+```sh
+$ ddn connector-link update my_connector --add-all-resources
+```
 
 #### Native Query Parameters
 
 Parameters / arguments for your native query are specified using the placeholder syntax, `"{{ parameter_name }}"` inside
 a string. The example above includes a parameter called `year` using this syntax.
+
+:::danger Avoid code injection
+
+When placeholders are substituted, arguments are **not** sanitized. It is up to you as the author of a native query to
+construct the query to avoid potential code injection. See [Security Best Practices](./security-best-practices.mdx).
+
+:::
 
 Despite the placeholder appearing in a string, if the only content of the string is the placeholder then the placeholder
 will be replaced with an argument value at query time which may be any type, including complex types such as arrays or
@@ -189,8 +199,15 @@ Native Queries can be defined by
 1. Adding a `native_queries` directory if one doesn't already exist in your connector configuration directory
 2. Adding a `.json` file following the syntax laid out in the following sections.
 
-Native Queries can take arguments using the `"{{argument_name}}"` syntax. Arguments must be specified along with their
-type.
+Native Queries can take arguments using the placeholder syntax, `"{{argument_name}}"`. Arguments must be specified along
+with their type.
+
+:::danger Avoid code injection
+
+When placeholders are substituted, arguments are **not** sanitized. It is up to you as the author of a native query to
+construct the query to avoid potential code injection. See [Security Best Practices](./security-best-practices.mdx).
+
+:::
 
 Here's an example of simple `"hello"` Native Query:
 
@@ -216,7 +233,7 @@ Here's an example of simple `"hello"` Native Query:
     {
       "$documents": [
         {
-          "__value": "{{ name }}"
+          "__value": { "$literal": "{{ name }}" }
         }
       ]
     }
@@ -233,6 +250,13 @@ Check out our page on writing valid Hasura DDN
 [Native Operations syntax](/reference/connectors/mongodb/native-operations/syntax.mdx).
 
 :::
+
+To add the native query to your supergraph you need to update the metadata with
+a command like this one,
+
+```sh
+$ ddn connector-link update <connector-name> --add-all-resources
+```
 
 ### Usage
 
