@@ -9,6 +9,8 @@ keywords:
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import Thumbnail from "@site/src/components/Thumbnail";
+
 import PostgresRelationshipCreateModelToModel from "@site/docs/data-modeling/partials/classic-connectors/postgreSQL/_relationship-create-model-to-model.mdx";
 import MongoDBRelationshipCreateModelToModel from "@site/docs/data-modeling/partials/classic-connectors/mongoDB/_relationship-create-model-to-model.mdx";
 import ClickHouseRelationshipCreateModelToModel from "@site/docs/data-modeling/partials/classic-connectors/clickHouse/_relationship-create-model-to-model.mdx";
@@ -29,8 +31,8 @@ Examples include:
   connector with a connection to a currency exchange API. (Model to Command)
 
 Relationships can be added between _any_ kind of semantically related models and/or commands. They do not need to be
-related in the data source by, for example, by a foreign key. They also do not need to be backed by the same data source
-or be in the same subgraph.
+related in the data source by, for example, a foreign key. They also do not need to be backed by the same data source or
+be in the same subgraph.
 
 ## Lifecycle
 
@@ -43,10 +45,10 @@ keys. In such cases the lifecycle in creating a relationship in your metadata is
 4. Serve your build as your API with the Hasura engine either locally or in the cloud.
 5. Iterate on your API by repeating this process or by editing your metadata manually as needed.
 
-![](/img/data-modeling/ddn-cli-process.png)
+<Thumbnail src="/img/data-modeling/ddn-cli-process.png" alt="Data modeling lifecycle" width="1000px" />
 
 If the relationship cannot be detected automatically, you can easily manually create a relationship in your metadata and
-then perform lifecycle steps 3-5 as needed.
+then perform lifecycle steps 3-5 from above as needed.
 
 ## Create a relationship
 
@@ -320,48 +322,3 @@ self-contained.
 ## Reference
 
 You can learn more about relationships in the metadata reference [docs](/supergraph-modeling/relationships.mdx).
-
-### TEMP Relationship from model.mdx
-
-With a relationship you can extend a model to another model or command, including commands exposed via a lambda data
-connector.
-
-The DDN CLI and your data connectors will detect many relationships in your data sources automatically and once
-introspected, you can add them to your metadata.
-
-```bash title="Introspect your data source:"
-ddn connector introspect <connector_name>
-```
-
-```bash title="Add relationships to your metadata:"
-ddn relationship add <connector_link_name> <collection_name>
-```
-
-For example, if I wanted to extend my `Customers` model to be able to include their `Orders` when I queried it, my
-relationship would be something like:
-
-```yaml title="Relationship definition:"
----
-kind: Relationship
-version: v1
-definition:
-  name: orders
-  sourceType: Customers
-  target:
-    model:
-      name: Orders
-      relationshipType: Array
-      aggregate:
-        aggregateExpression: OrdersAggExp
-  mapping:
-    - source:
-        fieldPath:
-          - fieldName: customerId
-      target:
-        modelField:
-          - fieldName: customerId
-  graphql:
-    aggregateFieldName: ordersAggregate
-```
-
-Read more about relationships in the [Relationships](/data-modeling/relationship.mdx) section. Or see the tutorial...
