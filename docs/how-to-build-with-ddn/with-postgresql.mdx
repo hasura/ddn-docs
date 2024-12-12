@@ -16,13 +16,15 @@ import Prereqs from "@site/docs/_prereqs.mdx";
 
 ## Overview
 
-This tutorial takes about fifteen minutes to complete. You'll learn how to:
+This tutorial takes about twenty minutes to complete. You'll learn how to:
 
 - Set up a new Hasura DDN project
 - Connect it to a PostgreSQL database
 - Generate Hasura metadata
 - Create a build
 - Run your first query
+- Create relationships
+- Mutate data
 
 Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
 
@@ -380,6 +382,52 @@ query GetPosts {
 }
 ```
 
+### Step 17. Add all commands
+
+We'll track the available operations — for inserting, updating, and deleting — on our `users` and `posts` tables as
+commands.
+
+```sh title="Add all available commands:"
+ddn command add my_pg "*"
+```
+
+You'll see newly-generated metadata files in the `metadata` directory for your connector that represent insert, update,
+and delete operations.
+
+```sh title="As your metadata has changed, create a new build:"
+ddn supergraph build local
+```
+
+```sh title="Bring down the servies by pressing CTRL+C and start them back up:"
+ddn run docker-start
+```
+
+### Step 18. Insert new data
+
+```graphql title="Create a new post for Charlie:"
+mutation InsertSinglePost {
+  insertPosts(
+    objects: {
+      content: "I am an expert in Bird Law and I demand satisfcation."
+      title: "Charlie has more to say"
+      userId: "3"
+    }
+  ) {
+    returning {
+      id
+      title
+      content
+      user {
+        id
+        name
+      }
+    }
+  }
+}
+```
+
+You should see a response that returns your inserted data along with the `id` and `name` fields for the author.
+
 ## Next steps
 
 Congratulations on completing your first Hasura DDN project with PostgreSQL! 🎉
@@ -391,6 +439,7 @@ Here's what you just accomplished:
 - Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
   GraphQL queries to fetch data.
 - Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+- Finally, we looked at how to enable mutations and insert data using your new API.
 
 Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
 
