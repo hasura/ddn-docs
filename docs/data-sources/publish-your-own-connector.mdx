@@ -45,23 +45,36 @@ You can learn more about building a connector by reading about our SDKs:
 git clone https://github.com/hasura/ndc-hub.git
 ```
 
-### Step 2. Create a folder under the [registry](https://github.com/hasura/ndc-hub/tree/main/registry) folder  {#step-2}
+### Step 2. Create a new directory for your connector in the registry {#step-2}
 
-To publish the `sqlite` connector under the `hasura` namespace, create the following directory structure:
+Create a new folder structure in [the `registry` directory](https://github.com/hasura/ndc-hub/tree/main/registry) of the
+`ndc-hub` repo:
 
+```plaintext
 registry/
-└── hasura/
-    └── sqlite
+  └── [namespace]/
+      └── [connector-name]/
+```
 
-
-
+Replace `[namespace]` with your organization's namespace and `[connector-name]` with the name of your connector.
 
 ### Step 3. Create a `connector-packaging.json` {#step-3}
 
+Within your newly created connector's directory in the registry, create a new `releases` directory with a folder for
+your first release and a `connector-packaging.json` for it:
+
+```plaintext {4-6}
+registry/
+  └── [namespace]/
+      └── [connector-name]/
+          └── releases/
+              └── v1.0.0/
+                  └── connector-packaging.json
+```
+
 #### Format
 
-To package a connector, you will need to create a `connector-packaging.json` file for each connector version. The file
-contains necessary information to access the package definition. Here's the required format:
+Below is the required shape for the `connector-packaging.json` file for each connector version:
 
 ```json
 {
@@ -90,30 +103,26 @@ contains necessary information to access the package definition. Here's the requ
 
 Ensure all fields are correctly filled out for each new connector version you publish.
 
-### Step 3. Create a new directory in the registry
+### Step 4. Add the other required files
 
-#### 3.1 Prepare connector files
+Add the following files to your connector's directory in the registry; details are below.
 
-Create a new folder structure in the `registry` directory of the `ndc-hub` repo:
-
-```
+```plaintext {5-7}
 registry/
   └── [namespace]/
       └── [connector-name]/
+          ├─ releases/
+          ├─ logo.(png|svg)
+          ├─ metadata.json
+          └─ README.md
 ```
-
-Replace `[namespace]` with your organization's namespace and `[connector-name]` with the name of your connector.
-
-Add the following files to your connector's folder:
 
 - `logo.png` or `logo.svg`: The logo for your connector (preferably in SVG format).
 - `README.md`: Documentation for your connector, including description, usage instructions, and any other relevant
   information.
 - `metadata.json`: Metadata file containing information about the connector.
 
-#### Step 3.2 Create connector metadata
-
-Create a `metadata.json` file in your connector's folder. This file contains crucial information about your connector:
+The `metadata.json` file in your connector's folder contains crucial information about your connector:
 
 ```json
 {
@@ -154,20 +163,14 @@ Create a `metadata.json` file in your connector's folder. This file contains cru
 - **is_verified**: Set this to `false` as only connectors developed by Hasura can be tagged as verified.
 - **is_hosted_by_hasura**: Set this to `false` as connectors not developed by Hasura cannot be hosted by Hasura.
 
-#### Step 3.3 Add initial connector version
-
-1. Create a new folder under `registry/[namespace]/[connector-name]/releases/` with the version number.
-2. The version must start with the letter 'v', for example: `v1.0.0`.
-3. Add [a `connector-packaging.json` file](#step-2) in this folder with the connector metadata.
-
-#### Step 3.4 Submit for review
+### Step 5. Submit for review
 
 1. Commit all your changes to a new branch.
 2. Create a pull request targeting the `main` branch of the `ndc-hub` repository.
 3. In the pull request description provide any additional context about your new connector.
 4. Wait for review and approval from the Hasura team.
 
-#### Step 3.5 Post-approval process
+#### Post-approval process
 
 Once your pull request is approved and merged:
 
@@ -209,7 +212,7 @@ registry/
 2. Create a pull request targeting the `main` branch of the `ndc-hub` repository.
 3. Wait for approval from a Hasura team member.
 
-### Step 5. Post-approval process
+#### Post-approval process
 
 Once the pull request is approved, the GitHub workflow will automatically:
 
