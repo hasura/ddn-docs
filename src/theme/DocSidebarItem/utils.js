@@ -26,7 +26,7 @@ import Billing from '@site/static/icons/features/credit-card-check.svg';
 import Deployment from '@site/static/icons/features/deployment.svg';
 import Upgrade from '@site/static/icons/cloud-lightning.svg';
 import Recipe from '@site/static/icons/beaker.svg';
-
+import PromptQL from '@site/static/icons/features/prompt-ql.svg';
 import styles from '@site/src/theme/DocSidebarItem/Category/styles.module.css';
 import { useColorMode } from '@docusaurus/theme-common';
 
@@ -69,6 +69,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'ci-cd-icon':
       icons = <CiCd />;
+      break;
+    case 'prompt-ql-icon':
+      icons = <PromptQL />;
       break;
     case 'project-configuration':
       icons = <ProjectConfiguration />;
