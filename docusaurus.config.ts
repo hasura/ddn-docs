@@ -149,6 +149,7 @@ const config: Config = {
     },
     navbar: {
       title: '',
+      hideOnScroll: true,
       logo: {
         alt: 'Hasura Logo',
         src: 'img/logo-dark.svg',
