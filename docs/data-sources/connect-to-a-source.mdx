@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+sidebar_label: Connect to a Source
+description: "Learn how to connect any data source to Hasrua DDN."
+keywords:
+  - hasura ddn
+  - data sources
+  - connect
+  - data connector
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Connect to a source
+
+## Introduction
+
+This guide explains how to initialize a connector, configure its environment variables, and link it to your data source.
+Once initialized, you'll be ready to introspect the source and integrate it into your API.
+
+You'll need a [project](/cli/commands/ddn_supergraph_init.mdx) before initializing a connector.
+
+## Step 1. Initialize a connector
+
+Regardless which connector you're using, you'll always begin by initializing it with a unique name:
+
+```sh title="Initialize a new connector in a project directory:"
+ddn connector init <your_name_for_the_connector> -i
+```
+
+A wizard will appear with a dropdown list. If you know the name of the connector, start typing the name. Otherwise, use
+the arrows to scroll through the list. Hit `ENTER` when you've selected your desired connector; you'll then be prompted
+to enter some values.
+
+:::info Customization
+
+You can customize which subgraph this connector is added to by
+[changing your project's context](/cli/commands/ddn_context.mdx) or using flags. More information can be found in the
+[CLI docs](/cli/commands/ddn_connector_init.mdx) for the `ddn connector init` command.
+
+:::
+
+## Step 2. Add environment variables
+
+The CLI will assign a random port for the connector to use during local development. You can hit `ENTER` to accept the
+suggested value or enter your own. Then, depending on your connector, there may be a set of environment variables that
+it requires:
+
+<Tabs groupId="source-preference" className="api-tabs">
+
+<TabItem value="PostgreSQL" label="PostgreSQL">
+
+| ENV              | Example                                       | Description                                                            |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
+| `CONNECTION_URI` | `postgresql://user:password@host:5432/dbname` | The full connection string used to connect to the PostgreSQL database. |
+
+</TabItem>
+<TabItem value="MongoDB" label="MongoDB">
+
+| ENV            | Example                        | Description                                                                                             |
+| -------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `MONGO_DB_URL` | `mongodb://host:27017/db_name` | The full connection string — **including the database name** — used to connect to the MongoDB instance. |
+
+</TabItem>
+<TabItem value="ClickHouse" label="ClickHouse">
+
+| ENV                 | Example             | Description                                               |
+| ------------------- | ------------------- | --------------------------------------------------------- |
+| `CONNECTION_STRING` | `https://host:8123` | The HTTP(S) connection string to the ClickHouse instance. |
+| `USERNAME`          | `default`           | The database username.                                    |
+| `PASSWORD`          | `default`           | The database password.                                    |
+
+</TabItem>
+
+</Tabs>
+
+If your data source requires a connection string or endpoint, the CLI will confirm that it successfully tested the
+connection to your source. Additionally, it generates configuration files, which you can find in the `connector`
+directory of the subgraph where you added the connector (default: `app`). Finally, the CLI will create a
+[DataConnectorLink](/supergraph-modeling/data-connector-links.mdx) in your connector's `metadata` directory.
+
+## Next steps
+
+Now that you've initialized a connector and connected it to your data, you're ready to introspect the source and
+populate the configuration files with source-specific information that Hasura will need to build your API. Check out the
+[introspection page](/data-sources/introspect-a-source.mdx) to learn more.

@@ -71,7 +71,7 @@ export const Selector: React.FC<SelectorProps> = ({
             </div>
           ) : null
         )}
-        <Link to="/connectors/overview" className="data-source">
+        <Link to="/data-sources/overview" className="data-source">
           <div className="image-container">
             <Icon />
           </div>
