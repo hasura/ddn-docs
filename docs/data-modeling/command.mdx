@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 sidebar_label: "Commands modify data"
 description: "Commands allow you to modify data in your data source."
 keywords:
@@ -11,21 +11,109 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Thumbnail from "@site/src/components/Thumbnail";
 
+import CommandCreatePostgreSQL from "@site/docs/data-modeling/partials/classic-connectors/postgreSQL/_command-create-tutorial.mdx";
+import CommandCreateMongoDB from "@site/docs/data-modeling/partials/classic-connectors/mongoDB/_command-create-tutorial.mdx";
+import CommandCreateClickHouse from "@site/docs/data-modeling/partials/classic-connectors/clickHouse/_command-create-tutorial.mdx";
+import CommandUpdatePostgreSQL from "@site/docs/data-modeling/partials/classic-connectors/postgreSQL/_command-update-tutorial.mdx";
+import CommandUpdateMongoDB from "@site/docs/data-modeling/partials/classic-connectors/mongoDB/_command-update-tutorial.mdx";
+import CommandUpdateClickHouse from "@site/docs/data-modeling/partials/classic-connectors/clickHouse/_command-update-tutorial.mdx";
+import CommandCreateLambdaTypescript from "@site/docs/data-modeling/partials/lambda-connectors/typescript/_command-create-tutorial.mdx";
+import CommandCreateLambdaPython from "@site/docs/data-modeling/partials/lambda-connectors/python/_command-create-tutorial.mdx";
+import CommandCreateLambdaGo from "@site/docs/data-modeling/partials/lambda-connectors/go/_command-create-tutorial.mdx";
+import CommandUpdateLambdaTypescript from "@site/docs/data-modeling/partials/lambda-connectors/typescript/_command-update-tutorial.mdx";
+import CommandUpdateLambdaPython from "@site/docs/data-modeling/partials/lambda-connectors/python/_command-update-tutorial.mdx";
+import CommandUpdateLambdaGo from "@site/docs/data-modeling/partials/lambda-connectors/go/_command-update-tutorial.mdx";
+
 # Commands Modify Data
 
 ## Introduction
 
-Commands enable you to perform actions that modify data — such a perform updates or inserts — in your data source.
-Commands also allow you to execute custom business logic directly via your API.
+In DDN, commands represent operations in your API that can be executed such as those which modify data in your data
+sources, (inserts, updates, deletes), or custom business logic operations.
 
 ## Lifecycle
 
-:::info New to Hasura DDN?
+The lifecycle in creating a command in your metadata is as follows:
 
-If you haven't already, have a run through our [Quickstart](/quickstart.mdx) guide to set up your Hasura DDN instance.
-In the sections below, we'll guide you through how to interact with your metadata and shape your API to your liking!
+1. Have some operation in your data source that you want to make executable via your API.
+2. Introspect your data source using the DDN CLI with the relevant data connector to fetch the operation resources.
+3. Add the command to your metadata with the DDN CLI.
+4. Create a build of your supergraph API with the DDN CLI.
+5. Serve your build as your API with the Hasura engine either locally or in the cloud.
+6. Iterate on your API by repeating this process or by editing your metadata manually as needed.
+
+<Thumbnail src="/img/data-modeling/ddn-cli-process.png" alt="Data modeling lifecycle" />
+
+## Create a command
+
+To add a command you will need to have a data connector already set up and connected to the data source. Follow the
+[Quickstart](/quickstart.mdx) or the tutorial in [How to Build with DDN](/how-to-build-with-ddn/overview.mdx) to get to
+that point.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Show the resources discovered from your data source:"
+ddn connector show-resources <connector_name>
+```
+
+```bash title="Add the command from the discovered resources to your metadata:"
+ddn command add <connector_link_name> <operation_name>
+```
+
+Or you can optionally add all the commands by specifying `"*"`.
+
+```bash title="Add all commands from your data source:"
+ddn command add <connector_link_name> "*"
+```
+
+This will add commands with their accompanying metadata definitions to your metadata.
+
+You can now build your supergraph API, serve it, and execute your commands.
+
+:::info Context for CLI commands
+
+Note that the above CLI commands work without also adding the relevant subgraph to the command with the `--subgraph`
+flag because this has been set in the CLI context. You can learn more about creating and switching contexts in the
+[CLI context](/) section. {/* TODO UPDATE LINK */}
 
 :::
+
+For a walkthrough on how to create a command, see the [Command Tutorials](#command-tutorials) section below.
+
+## Update a command
+
+If you want to update your command to reflect a change that happened in the underlying data source you should first
+introspect to get the latest resources and then update the relevant command.
+
+```bash title="Introspect your data source:"
+ddn connector introspect <connector_name>
+```
+
+```bash title="Then, update your existing command:"
+ddn command update <connector_link_name> <command_name>
+```
+
+You will see an output which explains how new resources were added or updated in the command.
+
+You can now build your supergraph API, serve it, and execute your commands with the updated definitions.
+
+You can also update the command by editing the command's metadata manually.
+
+## Delete a command
+
+```bash title="If you no longer need a command, you can delete it:"
+ddn command remove <command_name>
+```
+
+Along with the command itself, the associated metadata is also removed.
+
+## Tutorials {#command-tutorials}
+
+The tutorials below follow on from each particular tutorial in the
+[How to Build with DDN](/how-to-build-with-ddn/overview.mdx) section. Select the relevant data connector to follow the
+tutorial.
 
 ### Creating a command
 
@@ -33,72 +121,22 @@ To modify data, you first need to create a command that maps to a specific opera
 
 <Tabs groupId="source-preference" className="api-tabs">
   <TabItem value="PostgreSQL" label="PostgreSQL">
-
-Since ndc-postgres v1.2.0, mutations are generated automatically. If you are on an earlier version, since v0.8.0, you
-can still get autogenerated mutations by adding `"mutationsVersion": "v2"` to your configuration.json. You can read more
-about this configuration option and others on the PostgreSQL connector
-[configuration docs](/connectors/postgresql/configuration-reference/version-5.mdx).
-
-```bash title="Use the DDN CLI to introspect your MongoDB instance:"
-ddn connector introspect <connector_name>
-```
-
-```sh title="Then, update your commands:"
-ddn command add <connector_name> "*"
-```
-
+    <CommandCreatePostgreSQL />
   </TabItem>
   <TabItem value="MongoDB" label="MongoDB">
-
-The MongoDB data connector defines custom commands via
-[native mutations](/connectors/mongodb/native-operations/native-mutations.mdx).
-
-Within your connector's directory, you can add a new JSON configuration file to define a native mutation.
-
-```sh title="Create a new directory to store your native mutations:"
-mkdir -p <my_subgraph>/connector/<connector_name>/native_mutations/
-```
-
-```json title="Create a new file in your connector's directory:"
-// native_mutations/insert_user.json
-{
-  "name": "insertUser",
-  "description": "Inserts a user record into the database",
-
-  "arguments": {
-    "name": { "type": { "scalar": "string" } }
-  },
-
-  "resultType": {
-    "object": "InsertUser"
-  },
-  "objectTypes": {
-    "InsertUser": {
-      "fields": {
-        "ok": { "type": { "scalar": "double" } },
-        "n": { "type": { "scalar": "int" } }
-      }
-    }
-  },
-
-  "command": {
-    "insert": "users",
-    "documents": [{ "name": "{{ name }}" }]
-  }
-}
-```
-
-```bash title="Use the DDN CLI to introspect your MongoDB instance:"
-ddn connector introspect <connector_name>
-```
-
-```sh title="Then, update your commands:"
-ddn command add <connector_name> "*"
-```
-
+    <CommandCreateMongoDB />
   </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse">
-Commands are currently not supported on ClickHouse.
+    <CommandCreateClickHouse />
+  </TabItem>
+  <TabItem value="TypeScript" label="Node.js TypeScript">
+    <CommandCreateLambdaTypescript />
+  </TabItem>
+  <TabItem value="Python" label="Python">
+    <CommandCreateLambdaPython />
+  </TabItem>
+  <TabItem value="Go" label="Go">
+    <CommandCreateLambdaGo />
   </TabItem>
 </Tabs>
 
@@ -115,78 +153,28 @@ Your underlying data source may change over time. You can update your command to
 
 <Tabs groupId="source-preference" className="api-tabs">
   <TabItem value="PostgreSQL" label="PostgreSQL">
-
-Since ndc-postgres v1.2.0, mutations are generated automatically. If you are on an earlier version, since v0.8.0, you
-can still get autogenerated mutations by adding `"mutationsVersion": "v2"` to your configuration.json. You can read more
-about this configuration option and others on the PostgreSQL connector
-[configuration docs](/connectors/postgresql/configuration-reference/version-5.mdx).
-
-```bash title="Use the DDN CLI to introspect your MongoDB instance:"
-ddn connector introspect <connector_name>
-```
-
-```sh title="Then, update your commands:"
-ddn command update <connector_name> "*"
-```
-
+    <CommandUpdatePostgreSQL />
   </TabItem>
   <TabItem value="MongoDB" label="MongoDB">
-
-For example if you have a [native mutation](/connectors/mongodb/native-operations/native-mutations.mdx) that inserts a
-user you can modify it to include a second field on new documents.
-
-```json title="Edit the existing native mutation in your connector's directory:"
-// native_mutations/insert_user.json
-{
-  "name": "insertUser",
-  "description": "Inserts a user record into the database",
-
-  "arguments": {
-    "name": { "type": { "scalar": "string" } },
-    "role": { "type": { "nullable": { "scalar": "string" } } } // add an argument
-  },
-
-  "resultType": {
-    "object": "InsertUser"
-  },
-  "objectTypes": {
-    "InsertUser": {
-      "fields": {
-        "ok": { "type": { "scalar": "double" } },
-        "n": { "type": { "scalar": "int" } }
-      }
-    }
-  },
-
-  "command": {
-    "insert": "users",
-    "documents": [
-      {
-        "name": "{{ name }}",
-        "role": "{{ role }}" // include a field with the value of the new argument
-      }
-    ]
-  }
-}
-```
-
-```bash title="Use the DDN CLI to introspect your MongoDB instance:"
-ddn connector introspect <connector_name>
-```
-
-```sh title="Then, update your commands:"
-ddn command update <connector_name> "*"
-```
-
+    <CommandUpdateMongoDB />
   </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse">
-Commands are currently not supported on ClickHouse.
+    <CommandUpdateClickHouse />
+  </TabItem>
+  <TabItem value="TypeScript" label="Node.js TypeScript">
+    <CommandUpdateLambdaTypescript />
+  </TabItem>
+  <TabItem value="Python" label="Python">
+    <CommandUpdateLambdaPython />
+  </TabItem>
+  <TabItem value="Go" label="Go">
+    <CommandUpdateLambdaGo />
   </TabItem>
 </Tabs>
 
 ### Deleting a command
 
-```bash title="If you no longer need a command, you can delete it:"
+```bash title="If you no longer need a command, you can delete it with the CLI:"
 ddn command remove <command_name>
 ```
 
