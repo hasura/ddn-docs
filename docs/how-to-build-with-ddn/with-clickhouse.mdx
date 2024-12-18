@@ -134,6 +134,10 @@ ddn connector introspect my_ch
 After running this, you should see a representation of your database's schema in the
 `app/connector/my_ch/configuration.json` file; you can view this using `cat` or open the file in your editor.
 
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_ch
+```
+
 ### Step 6. Add your model
 
 ```sh title="Now, track the table from your ClickHouse database as a model in your DDN metadata:"
@@ -206,6 +210,7 @@ query {
 curl -u default_user:default_password -X POST \
     --data "CREATE TABLE posts (
         user_id UInt32,
+        post_id UInt32,
         title String,
         content String
     ) ENGINE = MergeTree()
@@ -215,11 +220,11 @@ curl -u default_user:default_password -X POST \
 
 ```sh title="Then, seed it:"
 curl -u default_user:default_password -X POST \
-    --data "INSERT INTO posts (user_id, title, content) VALUES
-    (1, 'My First Post', 'This is Alice''s first post.'),
-    (1, 'Another Post', 'Alice writes again!'),
-    (2, 'Bob''s Post', 'Bob shares his thoughts.'),
-    (3, 'Hello World', 'Charlie joins the conversation.');" \
+    --data "INSERT INTO posts (user_id, post_id, title, content) VALUES
+    (1, 1, 'My First Post', 'This is Alice''s first post.'),
+    (1, 2, 'Another Post', 'Alice writes again!'),
+    (2, 3, 'Bob''s Post', 'Bob shares his thoughts.'),
+    (3, 4, 'Hello World', 'Charlie joins the conversation.');" \
     http://localhost:8123
 ```
 
@@ -275,6 +280,7 @@ ddn run docker-start
 query GetPosts {
   posts {
     userId
+    postId
     title
     content
   }
@@ -287,21 +293,25 @@ query GetPosts {
     "posts": [
       {
         "userId": 1,
+        "postId": 1,
         "title": "My First Post",
         "content": "This is Alice's first post."
       },
       {
         "userId": 1,
+        "postId": 2,
         "title": "Another Post",
         "content": "Alice writes again!"
       },
       {
         "userId": 2,
+        "postId": 3,
         "title": "Bob's Post",
         "content": "Bob shares his thoughts."
       },
       {
         "userId": 3,
+        "postId": 4,
         "title": "Hello World",
         "content": "Charlie joins the conversation."
       }
@@ -356,6 +366,7 @@ ddn run docker-start
 ```graphql title="Now, execute a nested query using your relationship:"
 query GetPosts {
   posts {
+    postId
     title
     content
     user {
@@ -372,6 +383,7 @@ query GetPosts {
   "data": {
     "posts": [
       {
+        "postId": 1,
         "title": "My First Post",
         "content": "This is Alice's first post.",
         "user": {
@@ -381,6 +393,7 @@ query GetPosts {
         }
       },
       {
+        "postId": 2,
         "title": "Another Post",
         "content": "Alice writes again!",
         "user": {
@@ -390,6 +403,7 @@ query GetPosts {
         }
       },
       {
+        "postId": 3,
         "title": "Bob's Post",
         "content": "Bob shares his thoughts.",
         "user": {
@@ -399,6 +413,7 @@ query GetPosts {
         }
       },
       {
+        "postId": 4,
         "title": "Hello World",
         "content": "Charlie joins the conversation.",
         "user": {
