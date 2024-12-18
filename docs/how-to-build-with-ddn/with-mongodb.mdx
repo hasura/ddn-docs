@@ -189,10 +189,10 @@ query {
 
 docker exec -it mongodb mongosh my_database --eval "
 db.posts.insertMany([
-  { user_id: 1, title: 'My First Post', content: 'This is Alice\'s first post.' },
-  { user_id: 1, title: 'Another Post', content: 'Alice writes again!' },
-  { user_id: 2, title: 'Bob\'s Post', content: 'Bob shares his thoughts.' },
-  { user_id: 3, title: 'Hello World', content: 'Charlie joins the conversation.' }
+  { user_id: 1, post_id: 1, title: 'My First Post', content: 'This is Alice\'s first post.' },
+  { user_id: 1, post_id: 2, title: 'Another Post', content: 'Alice writes again!' },
+  { user_id: 2, post_id: 3, title: 'Bob\'s Post', content: 'Bob shares his thoughts.' },
+  { user_id: 3, post_id: 4, title: 'Hello World', content: 'Charlie joins the conversation.' }
 ]);
 "
 ```
@@ -250,6 +250,7 @@ This will create a fresh image of your connector along with restarting your othe
 query GetPosts {
   posts {
     userId
+    postId
     title
     content
   }
@@ -262,21 +263,25 @@ query GetPosts {
     "posts": [
       {
         "userId": 1,
+        "postId": 1,
         "title": "My First Post",
         "content": "This is Alice's first post."
       },
       {
         "userId": 1,
+        "postId": 2,
         "title": "Another Post",
         "content": "Alice writes again!"
       },
       {
         "userId": 2,
+        "postId": 3,
         "title": "Bob's Post",
         "content": "Bob shares his thoughts."
       },
       {
         "userId": 3,
+        "postId": 4,
         "title": "Hello World",
         "content": "Charlie joins the conversation."
       }
@@ -334,6 +339,7 @@ ddn run docker-start
 ```graphql title="Now, execute a nested query using your relationship:"
 query GetPosts {
   posts {
+    postId
     title
     content
     user {
@@ -350,6 +356,7 @@ query GetPosts {
   "data": {
     "posts": [
       {
+        "postId": 1,
         "title": "My First Post",
         "content": "This is Alice's first post.",
         "user": {
@@ -359,6 +366,7 @@ query GetPosts {
         }
       },
       {
+        "postId": 2,
         "title": "Another Post",
         "content": "Alice writes again!",
         "user": {
@@ -368,6 +376,7 @@ query GetPosts {
         }
       },
       {
+        "postId": 3,
         "title": "Bob's Post",
         "content": "Bob shares his thoughts.",
         "user": {
@@ -377,6 +386,7 @@ query GetPosts {
         }
       },
       {
+        "postId": 4,
         "title": "Hello World",
         "content": "Charlie joins the conversation.",
         "user": {
