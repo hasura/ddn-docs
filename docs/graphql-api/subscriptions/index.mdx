@@ -1,10 +1,7 @@
 ---
 sidebar_label: Subscriptions
 sidebar_position: 0
-description:
-  "Comprehensive guide to working with GraphQL Subscriptions and leveraging the real-time capabilities of Hasura's
-  GraphQL API. Explore functionalities like live updates, filtering, and multiple concurrent subscriptions. Learn more
-  about managing subscriptions effectively, and the use of variables, fragments, and directives."
+description: "Learn how subscriptions unlock the power of real-time data for your applications."
 keywords:
   - graphql subscriptions
   - hasura graphql api
@@ -14,7 +11,12 @@ keywords:
 toc_max_heading_level: 4
 ---
 
-# GraphQL Subscriptions
+# Basics of Subscriptions
+
+## Introduction
+
+Subscriptions allow you to push **real-time updates** from your data sources to clients, making them ideal for building
+reactive applications without constant polling.
 
 :::warning Currently in beta
 
@@ -22,38 +24,17 @@ Subscriptions are in beta and are free to use during this period.
 
 :::
 
-GraphQL subscriptions allow you to push real-time updates from your database to clients, making them ideal for building
-reactive applications without constant polling.
-
-Subscriptions are supported for the following queries:
-
-- [Select unique](/supergraph-modeling/models.mdx#model-selectuniquegraphqldefinition)
-- [Select many](/supergraph-modeling/models.mdx#model-selectmanygraphqldefinition)
-- [Aggregate](/supergraph-modeling/models.mdx#model-modelaggregategraphqldefinition)
-
-Example:
-
-```graphql
-subscription UserNotificationSubscription {
-  notifications(where: { user_id: { _eq: 123 } }) {
-    id
-    created_at
-    message
-  }
-}
-```
-
-## Enabling Subscriptions
+## Configuration
 
 You can enable subscriptions on your GraphQL API in the following ways:
 
-### New Hasura DDN Project
+### New Hasura DDN project
 
 If you're starting fresh, set up a Hasura DDN project using the [quickstart](/quickstart.mdx) guide. After adding your
 models to the supergraph using the [`ddn model add`](/cli/commands/ddn_model_add.mdx) command, subscription capabilities
 are automatically generated! For further customization, you can [edit the metadata](#metadata-configuration).
 
-### Existing Hasura DDN Project
+### Existing Hasura DDN project
 
 To enable subscriptions in an existing DDN project, use the following CLI command:
 
@@ -65,137 +46,20 @@ This command updates the local metadata files, adding subscription-specific conf
 supergraph build and test the subscriptions on the API. For further customization, you can
 [edit the metadata](#metadata-configuration).
 
-### Metadata Configuration
+### Metadata configuration
 
-You can also configure subscriptions by editing the metadata in your DDN project.
+You can configure the overall usage of subscriptions in your GraphQL API using
+[the `GraphQlConfig` object](/supergraph-modeling/graphql-config.mdx#graphqlconfig-subscriptiongraphqlconfig) in your
+metadata.
 
-#### Root Type Name
+Additionally, you can customize individual subscriptions by modifying the
+[`SubscriptionGraphQlDefinition` field](/supergraph-modeling/models.mdx#model-subscriptiongraphqldefinition) on any
+model's `selectUniques`, `selectMany`, or `aggregate` fields.
 
-Set or update the subscription root type in your GraphQL API by modifying the `graphql-config.hml` file located at
-`globals/metadata/graphql-config.hml`. This ensures the subscription root type is defined, which is necessary for
-enabling subscriptions. You will have to add the following in the `definition` for
-[`GraphqlConfig`](/supergraph-modeling/graphql-config.mdx#graphqlconfig-graphqlconfig)
+## Learn more
 
-```yaml
-subscription:
-  rootOperationTypeName: Subscription
-```
+Subscriptions are supported for the following queries:
 
-Example:
-
-```yaml {8-9} title="<project-root>/globals/metadata/graphql-config.hml"
-kind: GraphqlConfig
-version: v1
-definition:
-  query:
-    rootOperationTypeName: Query
-  mutation:
-    rootOperationTypeName: Mutation
-  subscription:
-    rootOperationTypeName: Subscription
-```
-
-#### Model Root Field
-
-For each model, update the root field name for subscriptions in the corresponding model's HML file. You can also
-configure other optional parameters, such as the [polling interval](#polling-interval), the root field's description,
-and its deprecation status.
-
-An example of an `Article` [model definition](/supergraph-modeling/models.mdx#model-model) with subscriptions enabled
-for the `selectMany`, `selectUniques`, and `aggregate` root fields:
-
-```yaml {13-15,20-24,29-30} title="<project-root>/<subgraph-name>/metadata/Article.hml"
-kind: Model
-version: v1
-definition:
-  name: Article
-  objectType: Article
-  source:
-    dataConnectorName: my_connector
-    collection: article
-  aggregateExpression: ArticleAggExp
-  graphql:
-    selectMany:
-      queryRootField: article
-      subscription:
-        rootField: article
-        description: Subscribe to article model
-    selectUniques:
-      - queryRootField: articleById
-        uniqueIdentifier:
-          - id
-        subscription:
-          rootFIeld: articleById
-          description: Subscribe to article model by its unique id
-          deprecated:
-            reason: Use article root field with filters
-    orderByExpressionType: ArticleOrderBy
-    filterInputTypeName: ArticleFilterInput
-    aggregate:
-      queryRootField: articleAggregate
-      subscription:
-        rootField: articleAggregate
-```
-
-#### Polling Interval
-
-You can set the polling interval (in milliseconds) within the model's
-[GraphQL definition](/supergraph-modeling/models.mdx#model-modelgraphqldefinition) to determine how often the engine
-checks for updates. If not specified, the interval defaults to `1000` milliseconds (1 second).
-
-An example of an `Article` [model definition](/supergraph-modeling/models.mdx#model-model) that has a custom polling
-interval configured for the `selectMany` subscription field:
-
-```yaml {15} title="<project-root>/<subgraph-name>/metadata/Article.hml"
-kind: Model
-version: v1
-definition:
-  name: Article
-  objectType: Article
-  source:
-    dataConnectorName: my_connector
-    collection: article
-  aggregateExpression: ArticleAggExp
-  graphql:
-    selectMany:
-      queryRootField: article
-      subscription:
-        rootField: article
-        pollingIntervalMs: 2000 # 2 seconds
-    orderByExpressionType: ArticleOrderBy
-    filterInputTypeName: ArticleFilterInput
-```
-
-##### Polling intervals and performance
-
-Choosing the right polling interval is key to the performance and stability of your subscription API. Setting too short
-an interval can overburden your database with excessive queries, which can degrade performance, especially in
-high-traffic environments. Conversely, setting too long an interval may delay critical updates, making your real-time
-application less responsive.
-
-For example, a short interval might be necessary for live sports score updates or stock trading platforms where
-real-time precision is critical. A longer interval could be suitable for use cases like updating daily sales reports, or
-sending periodic system health metrics—scenarios where updates are not urgent, and system stability is prioritized over
-immediate data freshness. The default setting of 1 second is chosen to accommodate most use cases, but should be
-adjusted based on your specific real-time needs.
-
-#### Permissions
-
-Access to subscription root fields is managed through the `select`
-[permission definition](/supergraph-modeling/permissions.mdx#modelpermissions-selectpermission). To allow a role to use
-subscriptions for a specific model, set `allowSubscriptions` to `true` in the model's
-[permission definition](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions).
-
-Example of a select permission for an `Article` model with subscriptions allowed for the `user` role:
-
-```yaml {9} title="<project-root>/<subgraph-name>/metadata/Article.hml"
-kind: ModelPermissions
-version: v1
-definition:
-  modelName: Article
-  permissions:
-    - role: user
-      select:
-        filter: null
-        allowSubscriptions: true
-```
+- [Select unique](/graphql-api/subscriptions/select-unique.mdx)
+- [Select many](/graphql-api/subscriptions/select-many.mdx)
+- [Aggregates](/graphql-api/subscriptions/aggregates.mdx)
