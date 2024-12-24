@@ -8,6 +8,7 @@ import Connectors from '@site/static/icons/event-triggers.svg';
 import Plugins from '@site/static/icons/remote-schema.svg';
 import DataModeling from '@site/static/icons/features/data-modeling.svg';
 import GraphQLAPI from '@site/static/icons/graphql-logo.svg';
+import JsonAPI from '@site/static/icons/jsonapi-logo-small.svg';
 import ProjectConfiguration from '@site/static/icons/dataflow-01.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Observability from '@site/static/icons/eye.svg';
@@ -72,6 +73,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'graphQL-api-icon':
       icons = <GraphQLAPI style={iconStyle} />;
+      break;
+    case 'json-api-icon':
+      icons = <JsonAPI style={iconStyle} />;
       break;
     case 'ci-cd-icon':
       icons = <CiCd style={iconStyle} />;
