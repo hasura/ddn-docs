@@ -23,7 +23,7 @@ const BOT_ROUTES = {
 };
 
 const config: Config = {
-  title: 'Hasura GraphQL Docs',
+  title: 'Hasura DDN Docs',
   tagline: 'Instant GraphQL on all your data',
   favicon: 'img/favicon.png',
 
