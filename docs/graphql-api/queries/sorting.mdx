@@ -166,17 +166,6 @@ The following are example queries for different sorting use cases:
 
 Only **columns from object relationships** can be used for sorting.
 
-You can sort results based on fields from object relationships, limited to local object relationships between two
-collections at the moment.
-
-:::caution Limitations
-
-- Sorting is supported only for local relationships (between local collections).
-- Sorting on Array relationships are not supported yet.
-- Sorting based on remote relationships (remote databases or Remote Schema) is not supported yet. :::
-
-:::
-
 ### For object relationships
 
 For object relationships only columns can be used for sorting.
@@ -234,59 +223,49 @@ For object relationships only columns can be used for sorting.
 
 ## Sorting by multiple fields
 
-As stated above, `order_by` expects an object with only a single key-value pair. Should you attempt to pass multiple
-key-value pairs, like in the example below where we're attempting to sort by both `lastSeen` and then `createdAt`,
-you'll receive a validation error like this:
-
 <GraphiQLIDE
-  query={`query UserQuery {
-  users(order_by: {lastSeen: Asc, createdAt: Asc}) {
+  query={`query ArticlesSortedByAuthor {
+  articles (
+    order_by: {author: {id: Desc, name: Desc}}
+  ) {
     id
-    name
-  }
-}`}
-  response={`{
-  "data": null,
-  "errors": [
-    {
-      "message": "validation failed: order_by expects a list of input objects with exactly one key-value pair per input object. Please split the input object with multiple key-value pairs into a list of single key-value pair objects."
+    rating
+    published_on
+    author {
+      id
+      name
     }
-  ]
-}`}
-/>
-
-This happens commonly when using the explorer in GraphiQL to select `order_by` fields. Instead, you can format your
-query like this wherein an array of objects is passed:
-
-<GraphiQLIDE
-  query={`query UserQuery {
-  users(order_by: [{lastSeen: Asc}, {createdAt: Asc}]) {
-    id
-    name
   }
 }`}
   response={`{
   "data": {
-    "users": [
+    "articles": [
       {
-        "id": "7cf0a66c-65b7-11ed-b904-fb49f034fbbb",
-        "name": "Sean"
+        "id": 3,
+        "title": "Article 3",
+        "content": "Sample article content 3",
+        "author": {
+          "id": 2,
+          "name": "Author 2"
+        }
       },
       {
-        "id": "82001336-65b7-11ed-b905-7fa26a16d198",
-        "name": "Rob"
+        "id": 1,
+        "title": "Article 1",
+        "content": "Sample article content 1",
+        "author": {
+          "id": 1,
+          "name": "Author 1"
+        }
       },
       {
-        "id": "86d5fba0-65b7-11ed-b906-afb985970e2e",
-        "name": "Marion"
-      },
-      {
-        "id": "8dea1160-65b7-11ed-b907-e3c5123cb650",
-        "name": "Sandeep"
-      },
-      {
-        "id": "9bd9d300-65b7-11ed-b908-571fef22d2ba",
-        "name": "Abby"
+        "id": 2,
+        "title": "Article 2",
+        "content": "Sample article content 2",
+        "author": {
+          "id": 1,
+          "name": "Author 1"
+        }
       }
     ]
   }

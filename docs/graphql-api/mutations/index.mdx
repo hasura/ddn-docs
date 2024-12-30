@@ -11,16 +11,52 @@ keywords:
   - api mutations
 ---
 
-# GraphQL Mutations
+# Basics of Mutations
 
-Mutations are used to modify data in a database. They are analogous to the `INSERT`, `UPDATE` and `DELETE` commands in
-SQL. Hasura provides a powerful and flexible GraphQL API to perform mutations.
+## Introduction
 
-## Next steps
+GraphQL mutations are used to **modify data** by invoking [commands](/supergraph-modeling/commands.mdx) in your Hasura
+DDN project. Mutations allow you to insert, update, or delete records while maintaining control over what data is
+affected and returned.
+
+Mutations can perform inserts to add new records, specifying values for each field in the command. You can also update
+existing records by applying changes to fields that match certain conditions. Similarly, you can delete records that
+meet specific criteria, ensuring precise control over which data is removed.
+
+Just like queries, mutations allow you to specify fields in the response. This means you can retrieve the affected data
+after a mutation, such as returning the new or updated values of fields in the records you modified.
+
+Since the GraphQL API is self-documenting, you can write mutations manually or use tools like auto-completion and the
+GraphiQL explorer in the Hasura DDN console to help you build and test them. GraphiQL shows the available mutation
+types, fields, and input arguments, making it easier to construct and validate mutations.
+
+## Configuration
 
 Currently, you can perform mutations via the GraphQL API using the following methods:
 
 - Some data connectors support mutations out-of-the-box and — when
-  [adding `commands`](/cli/commands/ddn_command_add.mdx) will generate them automatically.
-- You can mutate data via the TypeScript connector using the Command Query Separation (CQS) pattern. Learn more
-  [here](/business-logic/overview.mdx).
+  [adding `commands`](/cli/commands/ddn_command_add.mdx) that are
+  [procedures](/supergraph-modeling/commands.mdx#command-procedurename) — will generate them automatically.
+- Some data connectors support authoring native mutations — such as with the
+  [MongoDB connector](/reference/connectors/mongodb/native-operations/native-mutations.mdx) — to enable you to write
+  custom logic for inserts, updates, and deletes.
+- You can mutate data via any lambda connector using the Command Query Separation (CQS) pattern. Learn more
+  [here](/business-logic/tutorials/1-add-custom-logic.mdx).
+
+:::info Not sure what your connector supports?
+
+For questions about feature support, check out the [connector reference docs](/reference/connectors/index.mdx).
+
+:::
+
+You can configure the overall usage of mutations in your GraphQL API using
+[the `GraphQlConfig` object](/supergraph-modeling/graphql-config.mdx#graphqlconfig-mutationgraphqlconfig) in your
+metadata. Additionally, you can customize individual mutations by modifying
+[the `GraphQlDefinition` metadata object](/supergraph-modeling/commands.mdx#command-commandgraphqldefinition) for a
+command.
+
+## Learn more
+
+- [Insert data](/graphql-api/mutations/insert-data.mdx)
+- [Update data](/graphql-api/mutations/update-data.mdx)
+- [Delete data](/graphql-api/mutations/delete-data.mdx)
