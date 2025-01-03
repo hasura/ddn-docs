@@ -10,6 +10,7 @@ import BrowserOnly from '@docusaurus/BrowserOnly';
 import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
 import fetchUser from '@theme/DocRoot/Layout/FetchUser';
 import posthog from 'posthog-js';
+import { initOpenReplay, startOpenReplayTracking } from '@site/src/components/OpenReplay/OpenReplay';
 
 export default function DocRootLayout({ children }) {
   const sidebar = useDocsSidebar();
@@ -17,9 +18,19 @@ export default function DocRootLayout({ children }) {
   const isBrowser = useIsBrowser();
   const [hiddenSidebarContainer, setHiddenSidebarContainer] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [hasInitializedOpenReplay, setHasInitializedOpenReplay] = useState(false);
 
   useEffect(() => {
     if (isBrowser && !hasInitialized) {
+      (async () => {
+        try {
+          await initOpenReplay();
+          setHasInitializedOpenReplay(true);
+        } catch (error) {
+          console.error('Failed to initialize OpenReplay:', error);
+        }
+      })();
+
       posthog.init('phc_MZpdcQLGf57lyfOUT0XA93R3jaCxGsqftVt4iI4MyUY', {
         api_host: 'https://analytics-posthog.hasura-app.io',
       });
@@ -27,6 +38,12 @@ export default function DocRootLayout({ children }) {
       setHasInitialized(true);
     }
   }, [isBrowser, hasInitialized]);
+
+  useEffect(() => {
+    if (isBrowser && hasInitializedOpenReplay) {
+      startOpenReplayTracking();
+    }
+  }, [hasInitializedOpenReplay]);
 
   useEffect(() => {
     if (isBrowser && hasInitialized) {
