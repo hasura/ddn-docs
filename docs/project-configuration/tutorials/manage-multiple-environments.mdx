@@ -1,0 +1,126 @@
+---
+sidebar_position: 2
+sidebar_label: Manage mulitple environments
+description: ""
+keywords:
+  - hasura
+  - hasura ddn
+---
+
+# Manage Multiple Environments
+
+## Introduction
+
+Managing multiple contexts in Hasura DDN allows you to replicate the functionality of traditional environments like
+`staging` and `production`, but with greater flexibility. Instead of rigidly defined environments, Hasura DDN uses
+contexts to store key details such as project configurations, metadata, and environment variables. This approach lets
+you switch between different setups without disrupting your workflow or end users.
+
+In this tutorial, you'll learn how to:
+
+- Set up multiple contexts to test and collaborate on your project
+- Use the CLI to manage your project's contexts
+- Build and deploy projects with shared metadata across different contexts
+
+This tutorial should take less than ten minutes.
+
+## Step 1. Initialize a new local project
+
+```sh title="Create a new local project:"
+ddn supergraph init environments-example && cd environments-example
+```
+
+This will scaffold out the necessary files for a Hasura DDN project in a new `environments-example` directory.
+
+## Step 2. Create a new project context and switch to it
+
+```sh title="From the project directory, run:"
+ddn context create-context staging
+```
+
+Verify this by opening the `.hasura/context.yaml` file. You'll see a `contexts` array with two entries: `default` and
+your newly-created `staging`.
+
+:::tip What can be stored in context?
+
+Contexts store a series of key-value pairs that make it easy to switch between different setups. Valid keys are:
+
+- `project` — identifying the cloud project's name to be used for commands which require a `--project` flag.
+- `supergraph` — identifying the `supergraph.yaml` configuration file to be used for commands which require a
+  `--supergraph` flag.
+- `subgraph` — identifying the current subgraph to be used for commands which require a `--subgraph` flag.
+- `localEnvFile` — identifying the file of local environment variables to be used during development.
+- `cloudEnvFile` — identifying the file of cloud environment variables to be used during cloud builds.
+- `selfHostedDataPlane` — the ID of the self-hosted data plane if you're using a Private DDN.
+
+:::
+
+## Step 3. Update the context values
+
+```sh title="First, set the supergraph configuration:"
+ddn context set supergraph "supergraph.yaml"
+```
+
+```sh title="Then, which subgraphs to include:"
+ddn context set subgraph "app/subgraph.yaml"
+```
+
+```sh title="Finally, stub out a local .env.staging file and add it to your staging context:"
+touch .env.staging && ddn context set localEnvFile ".env.staging"
+```
+
+You'll see each of these key-value pairs added to your `staging` context.
+
+:::tip Customize these values
+
+The examples provided here are starting points and can be adapted to suit your project's requirements. Ideally, the
+values included in your `.env.staging` file will reference resources such as testing database instances. Keep the keys
+consistent with those in your production `.env` files, but assign different values tailored for staging or testing
+environments.
+
+:::
+
+## Step 4. Create a new staging cloud project
+
+```sh title="Using your new context, create a cloud project:"
+ddn project init --env-file-name ".env.staging.cloud"
+```
+
+The CLI will add the project's name and your `cloudEnvFile` to your `staging` context.
+
+## Step 5. Create a new build on your staging project
+
+```sh
+ddn supergraph build create
+```
+
+The CLI will output information about the build, including a console URL which you can open in your browser. While there
+will be no root fields available via the API, you can find information about the included subgraphs in the `Explorer`
+section. Your local metadata was used to create this API build on your `staging` project.
+
+## Step 6. Create a new production cloud project
+
+```sh title="First, switch contexts:"
+ddn context set-current-context default
+```
+
+```sh title="Then, create a new project:"
+ddn project init
+```
+
+In your `context.yaml`, you'll now see a `project` and `cloudEnvFile` value for your `default` context. We're
+considering this our `production` instance.
+
+## Step 7. Create a new build on your production project
+
+```sh title="Since our current context is default, we can now use the same metadata to create a productioun build:"
+ddn supergraph build create
+```
+
+Just as with our `staging` project, you can navigate to the console URL output by the CLI and explore your `production`
+build.
+
+## Next steps
+
+Now that you know how contexts can help you manage environments, see how easy it is to
+[set up CI/CD](/deployment/ddn/deploy-your-supergraph#cicd) using the CLI and contexts.
