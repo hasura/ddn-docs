@@ -4,18 +4,30 @@ sidebar_position: 2
 
 # Model Permissions
 
-By default, whenever a new model is created in your supergraph, all records are only accessible to the `admin` role. You
-can think of these as permissions on rows in a database table.
+To limit what **data** in a model is available to a role in your supergraph, you define a `ModelPermissions` object with
+a `filter` expression.
 
-You can restrict access to certain rows by adding a new item to the `permissions` array in the `ModelPermissions`
+By default, whenever a new model is created in your supergraph, all records are only accessible to the `admin` role. You
+can think of these as permissions on rows in a typical relational database table.
+
+You can restrict access to certain data by adding a new item to the `permissions` array in the `ModelPermissions`
 object. Each item in the array should have a `role` field and a `select` field. The `select` field should contain a
 `filter` expression that determines which rows are accessible to the role when selecting from the model.
 
-Most commonly, you'll use session variables — provided via your configured
-[authentication mechanism](/auth/authentication/index.mdx) — to restrict access to rows based on the user's identity or
-other criteria. You can also use argument presets to enforce row-level security. You can see an example of this below.
+Most commonly, you'll use session variables — accessed by Hasura Engine via your configured
+[authentication mechanism](/auth/authentication/index.mdx) in a JWT or body of a webhook response — to restrict access
+to rows based on the user's role, identity or other criteria.
 
-To make a new ModelPermission or role available in your supergraph, after updating your metadata, you'll need to
+This filter expression can reference
+
+- The fields in your Model
+- Logical operators: `and`, `or` and `not`
+- `fieldIsNull` predicate
+- `fieldComparison` predicate
+- Relationship predicates
+- `null`
+
+To make a new `ModelPermission` or role available in your supergraph, after updating your metadata, you'll need to
 [create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
 
 ### Examples
