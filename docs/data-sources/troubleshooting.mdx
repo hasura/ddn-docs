@@ -35,6 +35,30 @@ Hasura DDN resolves `local.hasura.dev` to your machine's `localhost`. This avoid
 `localhost` might point to your source's container instead of your local machine. To fix this, update any `localhost`
 references in your connection strings to `local.hasura.dev`.
 
+### My connector won't introspect my data source
+
+If you encounter an error like the following:
+
+```plaintext
+ERR Failed building the container: exit status 17
+```
+
+You'll likely see the following in the logs:
+
+```plaintext
+Failed to resolve source metadata for ghcr.io/hasura/<connector>: failed to authorize: failed to fetch oauth token: unexpected status from GET request to https://ghcr.io/token?scope=repository%3Ahasura%2F<connector>%3Apull&service=ghcr.io: 403 Forbidden
+```
+
+When this happens, your GitHub access token located in your Docker credentials store is likely out-of-date.
+
+To resolve, this, generate a new PAT with `package` scope and run the following:
+
+```sh
+echo "<GH_PAT>" | docker login ghcr.io -u <YOUR_GITHUB_USERNAME> --password-stdin
+```
+
+Your terminal should return `Login Succeeded`.
+
 ### There's a port conflict for my connector
 
 Use `docker ps` to check for any running processes that would conflict with your source's container. If you find one,
