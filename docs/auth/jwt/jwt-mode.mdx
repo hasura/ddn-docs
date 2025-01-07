@@ -9,8 +9,8 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## Introduction
 
-JWT mode requires that the client making the query sends a valid JWT to the Hasura Engine endpoint. This JWT is provided
-by an auth service such as Auth0, AWS Cognito, Firebase, Clerk, or your own custom solution.
+JWT mode requires that the client making the query sends a valid JSON Web Token to the Hasura Engine endpoint. This JWT
+is provided by an auth service such as Auth0, AWS Cognito, Firebase, Clerk, or your own custom solution.
 
 Hasura then verifies and decodes the JWT to extract `x-hasura-*` session variable claim values from a defined namespace
 in the token.
@@ -32,18 +32,22 @@ You can enable your Hasura DDN instance to use JWTs in just a few steps.
 ## Step 1. Update your AuthConfig
 
 Hasura utilizes an [AuthConfig](/supergraph-modeling/auth-config.mdx) object that allows you to define the configuration
-for your authentication service. The `auth-config.hml` file can be found in your `globals` directory.
+for your authentication service. In a standard setup the `auth-config.hml` file can be found in your `globals`
+directory.
 
-You can use
-[Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura#:~:text=Hasura%20Language%20Server%20Extension%20for,%2C%20syntax%20highlighting%2C%20and%20more)
-to scaffold out your `AuthConfig` object by typing `AuthConfig` and selecting this object from the list of available
+:::tip Hasura DDN VS Code extension
+
+You can use [Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) to
+scaffold out your `AuthConfig` object by typing `AuthConfig` and selecting this object from the list of available
 options. As you navigate through the skeleton, you can type `CTRL+SPACEBAR` at any point to reveal options for the
 different key-value pairs.
 
-Below, we're demonstrating using the `BearerAuthorization` format with a fixed secret key from an environment variable.
-However, Hasura DDN supports other methods for both
-[identifying](supergraph-modeling/auth-config.mdx#authconfig-jwttokenlocation) and
-[verifying JWTs](supergraph-modeling/auth-config.mdx#authconfig-jwtalgorithm).
+:::
+
+Below, we're showing using the `BearerAuthorization` header location format using a fixed secret key from an environment
+variable. However, Hasura DDN supports other methods for
+[where the engine can locate the JWT](supergraph-modeling/auth-config.mdx#authconfig-jwttokenlocation) and
+[how it is verified](supergraph-modeling/auth-config.mdx#authconfig-jwtalgorithm).
 
 ```yaml title="globals/metadata/auth-config.hml"
 kind: AuthConfig
@@ -64,17 +68,13 @@ definition:
             valueFromEnv: AUTH_SECRET
 ```
 
-:::info Other configuration options are available
+Read more about other setup options [here](/supergraph-modeling/auth-config.mdx#authconfig-jwtconfig).
 
-What we've provided above is a sample configuration. However, there are many options available, which you can learn
-about [here](/supergraph-modeling/auth-config.mdx#authconfig-jwtconfig).
+## Step 2. Define the JWT with custom claims
 
-:::
-
-## Step 2. Define the JWT with claims
-
-Your auth service should include an object with a key of `claims.jwt.hasura.io` in the JWT's claims. Within this, each
-claim should be prefixed with `x-hasura-*` and include the relevant information.
+Your auth service should include an object with a key of `claims.jwt.hasura.io` in the JWT. Within this, each claim
+should be prefixed with `x-hasura-*` and include the relevant information. Note that an extra optional `x-hasura-role`
+**header** can be passed to override the default role found in the JWT's custom claims.
 
 | Key                      | Required | Value                                                                                                          |
 | ------------------------ | -------- | -------------------------------------------------------------------------------------------------------------- |
@@ -85,6 +85,7 @@ claim should be prefixed with `x-hasura-*` and include the relevant information.
 In the simple example below, we're including the required claims by stating the default role is `admin` and the list of
 available roles is limited to `user` and `admin`. Additionally, we're passing a custom key of `x-hasura-user-id` which
 can be used with [permissions](/supergraph-modeling/permissions.mdx) when executing queries.
+[Read more about the default claims here](/auth/jwt/jwt-configuration.mdx#hasura-jwt-format).
 
 ```json
 {
@@ -98,9 +99,10 @@ can be used with [permissions](/supergraph-modeling/permissions.mdx) when execut
 }
 ```
 
-Your auth server will encode this object using a secret and create a token which can then be passed as a header to
-Hasura or any other service. You can see an example of the above token encoded
-[here](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTUxNjMyNTQyMiwiY2xhaW1zLmp3dC5oYXN1cmEuaW8iOnsieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoiYWRtaW4iLCJ4LWhhc3VyYS1hbGxvd2VkLXJvbGVzIjpbInVzZXIiLCJhZG1pbiJdLCJ4LWhhc3VyYS11c2VyLWlkIjoxMjM0fX0.84qumMkdpgmvU_pJBugScWxGRmy-AF2KDiCYd7G0Knk)
+Your auth service will encode this object using a secret and create a token which can then be passed to Hasura. You can
+see an example of the above token encoded
+[here](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiY2xhaW1zLmp3dC5oYXN1cmEuaW8iOnsieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoiYWRtaW4iLCJ4LWhhc3VyYS1hbGxvd2VkLXJvbGVzIjpbInVzZXIiLCJhZG1pbiJdLCJ4LWhhc3VyYS11c2VyLWlkIjoxMjM0fX0.1Dv6B077loe9wGcUFwK_JAHRUtLOZHOEp9EE-OehUzY).
+The signature secret to verify this token with the HS256 algorithm is `ultra-secret-very-secret-super-secret-key`.
 
 :::warning Setting audience check
 
@@ -114,14 +116,17 @@ vulnerability**. Learn how to set this [here](supergraph-modeling/auth-config.md
 
 :::
 
+## Step 3. Add permissions to an object in your supergraph
+
+{/* TODO: Add permissions to an object in your supergraph */}
+
 ## Step 3. Rebuild your supergraph
 
-Once you've updated your `auth-config.hml` and updated your claims, you can rebuild your supergraph and test it locally.
+Once you've updated your `AuthConfig` object in `auth-config.hml` and updated your claims, you can rebuild your
+supergraph and test it locally.
 
 ```bash title="For example, from the root of your project, run:"
-ddn supergraph build local \
-  --supergraph supergraph.yaml \
-  --env-file .env
+ddn supergraph build local
 ```
 
 ## Step 4. Make an authenticated request
@@ -130,12 +135,15 @@ In the example above, we're using the `BearerAuthorization` method. As such, as 
 instance by including a header with the key-value of `Authorization: Bearer <our-encoded-token>`. For testing, you can
 pass this value in the Hasura DDN console's header section.
 
+{/* TODO: Make an authenticated request example */}
+
 ## Next steps
 
 If you're looking for step-by-step help to get started with common authentication providers, check
-[this section](/auth/jwt/tutorials/index.mdx) of recipes.
+[this section](/auth/jwt/tutorials/index.mdx) of tutorials.
 
-**Authentication is only part of the puzzle!** Hasura DDN empowers you to easily write your access-control rules,
-commonly known as authorization, using declarative metadata. You can use the values passed in your JWTs to then limit
-which [models](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and
-[types](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions) a user has access to with each request.
+{/* TODO: Rewrite this section */} **Authentication is only part of the puzzle!** Hasura DDN empowers you to easily
+write your access-control rules, commonly known as authorization, using declarative metadata. You can use the values
+passed in your JWTs to then limit which [models](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions)
+and [types](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions) a user has access to with each
+request.

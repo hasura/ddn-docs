@@ -15,22 +15,33 @@ keywords:
 sidebar_position: 2
 ---
 
-# Enabling Webhook Authentication
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Webhook Mode
 
 ## Introduction
 
 You can enable your Hasura DDN instance to use an auth webhook in just a few steps.
 
+This requires specifying a URL - which Hasura calls with the original request headers - that then returns a body
+containing the session variables after authenticating the request.
+
+<Thumbnail src="/img/auth/auth-webhook-overview-diagram.png" alt="Authentication using webhooks" width="1000px" />
+
 ## Step 1. Update your AuthConfig
 
 Hasura utilizes an [AuthConfig](/supergraph-modeling/auth-config.mdx) object that allows you to define the configuration
-for your authentication service. The `auth-config.hml` file can be found in your `globals` directory.
+for your authentication service. In a standard setup the `auth-config.hml` file can be found in your `globals`
+directory.
 
-You can use
-[Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura#:~:text=Hasura%20Language%20Server%20Extension%20for,%2C%20syntax%20highlighting%2C%20and%20more)
-to scaffold out your `AuthConfig` object by typing `AuthConfig` and selecting this object from the list of available
+:::tip Hasura DDN VS Code extension
+
+You can use [Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) to
+scaffold out your `AuthConfig` object by typing `AuthConfig` and selecting this object from the list of available
 options. As you navigate through the skeleton, you can type `CTRL+SPACEBAR` at any point to reveal options for the
 different key-value pairs.
+
+:::
 
 In the example below, we're demonstrating a sample authentication webhook.
 
@@ -44,10 +55,10 @@ definition:
       method: Post
 ```
 
-:::info Other configuration options are available
+:::info GET vs POST
 
-What we've provided above is a sample configuration. However, there are many options available, which you can learn
-about [here](/supergraph-modeling/auth-config.mdx#authconfig-authhookconfig).
+What we've provided above is a sample configuration as a POST request but it can be configured as a GET request. See the
+reference for `AuthHookConfig` [here](/supergraph-modeling/auth-config.mdx#authconfig-authhookconfig)
 
 :::
 
@@ -67,30 +78,35 @@ process:
 }
 ```
 
-When a request is sent to Hasura, these headers will be forwarded to your webhook.
+Headers are forwarded to the auth webhook from the client on each request received by the Hasura engine.
 
-### Parsing
+In this example, we're passing an encoded JWT in the `Authorization` header, however webhook mode is flexible and you
+can pass any headers you wish.
 
-Your webhook is then responsible for parsing, validating, and using the token passed in the header. It will need to:
+### Token Parsing
+
+In this example, the webhook is then responsible for validating and parsing the token passed in the header. It will need
+to:
 
 - **Extract the Token:** Retrieve the Authorization header from the incoming request and extract the token.
 
 - **Validate the Token:** Use a library or your own logic to validate the token. This involves verifying the token's
-  signature and decoding its payload to extract user information.
+  signature with the secret key.
+
+- **Extract Claims:** Decode the token to extract the claims.
 
 ### Response
 
 Based on the validation result, the webhook will need to respond with either a `200` status code (for a valid token) or
 a `401` status code (for an invalid or missing token).
 
-To allow the GraphQL request to go through, your webhook must return a `200` status code. You should respond with
-session variables beginning with `X-Hasura-*` in the body of your response. The value of each session variable can be
-any JSON value. These will be available to your [permissions](/supergraph-modeling/permissions.mdx) in Hasura.
+You should respond with session variables beginning with `X-Hasura-*` in an object in the **body** of your response. The
+value of each session variable can be any JSON value. These will be available to your
+[permissions](/supergraph-modeling/permissions.mdx) in Hasura.
 
 You will, at least, need to set the `X-Hasura-Role` session variable to let the Hasura DDN know which role to use for
 this request. Unlike [JWT auth mode](auth/authentication/jwt/index.mdx), you do not have to pass
-`X-Hasura-Allowed-Roles` or `X-Hasura-Default-Role` session variables. This is because the webhook is called for each
-request, allowing the auth service to easily switch the user role if needed.
+`X-Hasura-Allowed-Roles` or `X-Hasura-Default-Role` session variables.
 
 In the example below the `X-Hasura-Is-Owner` and `X-Hasura-Custom` are examples of custom session variables which can be
 used to enforce permissions in your supergraph.
@@ -107,6 +123,10 @@ Content-Type: application/json
 }
 ```
 
+## Step 3. Define permissions
+
+{/* TODO: Write this section */}
+
 ## Step 3. Rebuild your supergraph
 
 Once you've updated your `auth-config.hml`, you can rebuild your supergraph and test it locally.
@@ -122,11 +142,3 @@ ddn supergraph build local \
 In the example above, we're using the `BearerAuthorization` method. As such, as we can make a request to our Hasura DDN
 instance by including a header with the key-value of `Authorization: Bearer <our-encoded-token>`. For testing, you can
 pass this value in the Hasura DDN console's header section.
-
-:::tip Authentication is only part of the puzzle!
-
-Hasura DDN empowers you to easily write your access-control rules, commonly known as authorization, using declarative
-metadata. You can use the values passed in your response to then limit which
-[models](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions) and
-[types](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions) a user has access to with each request.
-:::

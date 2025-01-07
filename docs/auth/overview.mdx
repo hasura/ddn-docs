@@ -31,8 +31,8 @@ import Icon from "@site/static/icons/shield-tick.svg";
 Hasura is agnostic about how you authenticate users. You can integrate many popular auth services or use your own custom
 solution.
 
-After authentication, session variables are passed via valid JWT or webhook to the engine to be checked against your
-access control rules or "permissions".
+After authentication, session variables are passed via either a valid JWT or webhook to the engine to be checked against
+your access control rules or "permissions".
 
 ## AuthConfig options
 
@@ -41,21 +41,21 @@ specified in the `AuthConfig` object within your metadata.
 
 ### JWT mode
 
-Your authentication service must issue JWTs which contain session variables which are passed to the Hasura Engine by the
-client on each request.
+Your authentication service must issue JWTs which contain session variables that are passed to the Hasura Engine by the
+client on each request. [Read more](/auth/jwt/index.mdx).
 
 ### Webhook mode
 
-Hasura Engine will call a webhook on each request which with client headers forwarded. On successful authentication, the
-webhook must return a valid `http` response with session variables.
+Hasura Engine will call a webhook on each request with the client headers forwarded. On successful authentication, the
+webhook must return a valid `http` response with session variables in the body. [Read more](/auth/webhook/index.mdx).
 
 ### NoAuth mode
 
-No authentication is required for a specific role.
+No authentication is required for a specific role to access the data. [Read more](/auth/noauth-mode.mdx).
 
 ## Session variable requirements
 
-Session variables passed via JWT or webhook can contain any information you want but must at least contain an
+Session variables passed via JWT or webhook can contain any information you want, but must at least contain an
 `x-hasura-default-role` property and `x-hasura-allowed-roles` array.
 
 Only keys prefixed with `x-hasura-` will be accessible by the engine.

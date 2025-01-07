@@ -1,38 +1,40 @@
 ---
 sidebar_position: 2
-sidebar_label: JWT Configuration
 ---
 
-Example JWT JSON configuration object:
+# JWT Configuration
+
+This section describes the JSON Web Token (JWT) configuration options available in Hasura DDN.
+
+## Payload Definition
+
+Example JSON Web Token (JWT) payload configuration definition:
 
 ```json
 {
-  "type": "<optional-type-of-key>",
-  "key": "<optional-key-as-string>",
-  "jwk_url": "<optional-url-to-refresh-jwks>",
-  "claims_namespace": "<optional-key-name-in-claims>",
-  "claims_namespace_path":"<optional-json-path-to-the-claims>",
+  "type": "optional-type-of-key",
+  "key": "optional-key-as-string",
+  "jwk_url": "optional-url-to-refresh-jwks",
+  "sub": "optional-string-to-verify-subject",
+  "claims_namespace": "optional-key-name-in-claims",
+  "claims_namespace_path": "optional-json-path-to-the-claims",
   "claims_format": "json|stringified_json",
-  "audience": <optional-string-or-list-of-strings-to-verify-audience>,
-  "issuer": "<optional-string-to-verify-issuer>",
-  "claims_map": <optional-object-of-session-variable-to-claim-jsonpath-or-literal-value>,
-  "allowed_skew": <optional-number-of-seconds-in-integer>,
-  "header": "<optional-key-to-indicate-cookie-or-authorization-header>"
+  "audience": "optional-string-or-list-of-strings-to-verify-audience",
+  "issuer": "optional-string-to-verify-issuer",
+  "claims_map": "optional-object-of-session-variable-to-claim-jsonpath-or-literal-value",
+  "allowed_skew": "optional-number-of-seconds-in-integer",
+  "header": "optional-key-to-indicate-cookie-or-authorization-header"
 }
 ```
 
 As a minimum, either the `type` **and** `key` values OR the `jwk_url` value **have to be present**.
 
-## Hasura JWT
-
-### Example Decoded Payload
+## Example Decoded Payload
 
 ```json
 {
-  "sub": "1234567890",
-  "name": "John Doe",
-  "admin": true,
-  "iat": 1516239022,
+  "iat": 1735916718,
+  "exp": 1796916677,
   "https://hasura.io/jwt/claims": {
     "x-hasura-default-role": "user",
     "x-hasura-allowed-roles": ["user", "admin"],
@@ -43,42 +45,30 @@ As a minimum, either the `type` **and** `key` values OR the `jwk_url` value **ha
 }
 ```
 
-### Example Encoded JWT
+## Example Encoded JWT
 
 ```text
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjI
-zOTAyMiwiaHR0cHM6Ly9oYXN1cmEuaW8vand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2x
-lcyI6WyJ1c2VyIiwiYWRtaW4iXSwieC1oYXN1cmEtdXNlci1pZCI6IjEyMyIsIngtaGFzdXJhLW9yZy1pZCI6IjQ1NiIsIngtaGFzdXJhLWN1c3RvbSI6ImN
-1c3RvbS12YWx1ZSJ9fQ.07mlUOhH3Oigz_Yyil8EC579Ht6PbZ1yr8fYJfhQ4NE
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiaHR0cHM6Ly9oYXN1cmEuaW8vand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIiwiYWRtaW4iXSwieC1oYXN1cmEtdXNlci1pZCI6IjEyMyIsIngtaGFzdXJhLW9yZy1pZCI6IjQ1NiIsIngtaGFzdXJhLWN1c3RvbSI6ImN1c3RvbS12YWx1ZSJ9fQ.HL8jbe3FTkhiFckHsATMZVnAYtmYkI2TjnZ6pfFewcc
 ```
 
 **Note:** `x-hasura-default-role` and `x-hasura-allowed-roles` are mandatory, while the rest of the claims are optional.
 
-[See here for the JWT debugger](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMiwiaHR0cHM6Ly9oYXN1cmEuaW8vand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIiwiYWRtaW4iXSwieC1oYXN1cmEtdXNlci1pZCI6IjEyMyIsIngtaGFzdXJhLW9yZy1pZCI6IjQ1NiIsIngtaGFzdXJhLWN1c3RvbSI6ImN1c3RvbS12YWx1ZSJ9fQ.07mlUOhH3Oigz_Yyil8EC579Ht6PbZ1yr8fYJfhQ4NE)
-of this example JWT token. The signature secret is `ultra-secret-very-secret-super-secret-key`.
+[See here for the JWT debugger](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiaHR0cHM6Ly9oYXN1cmEuaW8vand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIiwiYWRtaW4iXSwieC1oYXN1cmEtdXNlci1pZCI6IjEyMyIsIngtaGFzdXJhLW9yZy1pZCI6IjQ1NiIsIngtaGFzdXJhLWN1c3RvbSI6ImN1c3RvbS12YWx1ZSJ9fQ.HL8jbe3FTkhiFckHsATMZVnAYtmYkI2TjnZ6pfFewcc)
+of this example JWT token. The signature secret to verify this token with the HS256 algorithm is
+`ultra-secret-very-secret-super-secret-key`.
 
-### Hasura JWT format
+## Hasura JWT format
 
 The `x-hasura-role` value can be sent as a plain **header** in the request to indicate the role which should be used.
 
 When your auth server generates the JWT, the custom claims in the JWT **must contain the following** in a custom
 `https://hasura.io/jwt/claims` [namespace](#claims-namespace):
 
-1.  A `x-hasura-allowed-roles` field. A list of allowed roles for the user i.e. acceptable values of the optional
-    `x-hasura-role` _header_.
-2.  A `x-hasura-default-role` field. The role that will be used when the optional `x-hasura-role` _header_ is **not
+1.  A `x-hasura-default-role` field. The role that will be used when the optional `x-hasura-role` _header_ is **not
     passed**.
+2.  A `x-hasura-allowed-roles` field. A list of allowed roles for the user i.e. acceptable values of the optional
+    `x-hasura-role` _header_.
 3.  Add any other optional `x-hasura-*` claim fields (required as per your defined permissions) to the custom namespace.
-
-The JWT should be sent to Hasura Engine in an: `Authorization: Bearer <JWT>` header. Eg:
-
-```http
-POST /v1/graphql HTTP/1.1
-Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
-X-Hasura-Role: editor
-
-...
-```
 
 To summarize, `x-hasura-allowed-roles` session variable contains a list of all the roles that the user can assume and
 the `x-hasura-role` header tells the Hasura Engine which role to use for the request, and if that is missing then the
@@ -95,54 +85,43 @@ send the `x-hasura-role` header in the request.
 This setup is designed so that there is one authoritative way to construct your JWT token for the Hasura Engine which
 can cover a wide range of use cases.
 
-### Hasura JWT Claim Description
+## Hasura JWT Claim Description
 
-#### x-hasura-allowed-roles
-
-The `x-hasura-allowed-roles` list can contain all the roles which a particular user can assume, eg:
-`[ "user", "manager", "owner" ]`. Usually, these will have varying degrees of access to your data as specified in
-Permissions and by specifying this list it lets the Hasura Engine know that this user can assume any of them.
-
-#### x-hasura-default-role
+### x-hasura-default-role
 
 The `x-hasura-default-role` will be the role that the user falls back to when no `x-hasura-role` value is specified in
 the header of the request. Usually, this will be the role with the least privileges and can be overridden by the
 `x-hasura-role` header when making a request.
 
-#### x-hasura-\*
+### x-hasura-allowed-roles
+
+The `x-hasura-allowed-roles` list can contain all the roles which a particular user can assume, eg:
+`[ "user", "manager", "owner" ]`. Usually, these will have varying degrees of access to your data as specified in
+Permissions and by specifying this list it lets the Hasura Engine know that this user can assume any of them.
+
+### x-hasura-\*
 
 The JWT can have other user-defined `x-hasura-*` fields and their values can only be strings (they will be converted to
 the right type automatically). You can use these `x-hasura-*` values in your permission rules.
 
-The JWT will normally also contain standard (`sub`, `iat` etc.) and custom (`name`, `admin` etc.) claims
+The JWT will normally also contain standard (`sub`, `iat` etc.) and custom (`name`, `admin` etc.) claims depending on
+your auth provider.
 
-### JWT Notes
+## JWT Notes
 
 - JWT claim fields eg: `x-hasura-default-role` are case-insensitive.
-- Hasura GraphQL Engine only has access to headers and JWT claims which are prefixed with `x-hasura-`.
-- Hasura GraphQL Engine only has access to JWT claims in the `https://hasura.io/jwt/claims` or
-  [custom defined](#claims-namespace) namespace.
+- Hasura Engine only has access to headers and JWT claims which are prefixed with `x-hasura-`.
+- Hasura Engine only has access to JWT claims in namespace defined in the `AuthConfig` object in metadata.
 - All `x-hasura-*` values should be of type `String`, they will be converted to the right type automatically.
-- In JWT mode on a secured endpoint JWT authentication is **enforced** when **both** the `X-Hasura-Admin-Secret` header
-  **and** the `Authorization: Bearer <JWT>` header are found in the request allowing _posing_ as a user with the
-  specific role defined in the JWT.
 
 ## Hasura JWT configuration options
 
-### type {#jwt-json-type}
+## type {#jwt-json-type}
 
 This specifies the cryptographic signing algorithm which is used to sign the JWTs. Valid values are : `HS256`, `HS384`,
-`HS512`, `RS256`, `RS384`, `RS512`, `Ed25519`, `ES256`, `ES384`, `ES512`. (see [https://jwt.io](https://jwt.io/)).
+`HS512`, `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `PS256`, `PS384`, `PS512`, `EdDSA`.
 
-`HS*` is for HMAC-SHA based algorithms. `RS*` is for RSA based signing. `Ed*` is for Edwards-curve Digital Signature
-algorithms. `ES*` is for Elliptic-curve Digital Signature algorithms. For example, if your auth server is using
-HMAC-SHA256 for signing the JWTs, then use `HS256`. If it is using RSA with SHA-512, then use `RS512`. If it is using an
-EdDSA instance of Edwards25519, then use `Ed25519`. If it is using an ES instance of ECDSA with 256-bit curve, then use
-`ES256`.
-
-This is an optional field. This is required only if you are using the `key` property in the config.
-
-### key {#jwt-json-key}
+## key {#jwt-json-key}
 
 - In the case of a symmetric key (i.e. a HMAC-based key), just the key as is. (e.g. -"abcdef..."). The key must be long
   enough for the chosen algorithm, (e.g. for HS256 it must be at least 32 characters long).
@@ -151,7 +130,7 @@ This is an optional field. This is required only if you are using the `key` prop
 
 This is an optional field. You can also provide a URL to fetch JWKs from using the `jwk_url` field.
 
-### jwk_url {#jwt-json-jwk_url}
+## jwk_url {#jwt-json-jwk_url}
 
 An URL where a provider publishes their JWKs (JSON Web Keys - which are used for signing the JWTs). The URL **must**
 publish the JWKs in the standard format as described [here](https://tools.ietf.org/html/rfc7517).
@@ -159,7 +138,7 @@ publish the JWKs in the standard format as described [here](https://tools.ietf.o
 This is optional as you have the alternative of also providing the key (certificate, PEM-encoded public key) as a
 string - in the [`key`](#jwt-json-key) field along with the [`type`](#jwt-json-type).
 
-#### Rotating JWKs
+### Rotating JWKs
 
 Some providers rotate their JWKs (e.g. Firebase). If the provider sends any of the following with the response of the
 JWK, then the Hasura Engine will refresh the JWKs automatically.
@@ -172,9 +151,11 @@ If the provider does not send the above, the JWKs are not refreshed.
 
 The following is the behavior in detail:
 
-##### JWK procedure on startup
+### JWK procedure on startup
 
-1.  GraphQL Engine will fetch the JWK and will -
+{/* TODO Toan check */}
+
+1.  Hasura Engine will fetch the JWK and will -
 
     1. first, try to parse `no-cache`, `no-store` or `must-revalidate` in a `Cache-Control` header.
     2. second, try to parse an `max-age` or `s-maxage` directive in a `Cache-Control` header.
@@ -194,9 +175,9 @@ The following is the behavior in detail:
     However, if `max-age` is not specified or if `no-cache` or `no-store` are present, then it will refresh the JWKs
     once every minute.
 
-##### JWK procedure while running
+### JWK procedure while running
 
-1.  While GraphQL Engine is running with refreshing JWKs, in one refresh cycle it will -
+1.  While Hasura Engine is running with refreshing JWKs, in one refresh cycle it will -
 
     1. first, try to parse an `max-age` or `s-maxage` directive in a `Cache-Control` header.
     2. second, check if an `Expires` header is present (if `Cache-Control` is not present), and try to parse the value
@@ -205,19 +186,20 @@ The following is the behavior in detail:
 2.  If it is able to parse any of the above successfully, then it will use that parsed time to refetch the JWKs again.
     If it is unable to parse any values, then it will sleep for one minute and then start another refresh cycle.
 
-##### JWK publisher URLs
+#### JWK publisher URLs
 
-- Auth0 publishes their JWK url at: `https://<YOUR_AUTH0_DOMAIN>.auth0.com` but has a known bug.
-  [See Auth0's issues here](#auth0-issues).
+- Auth0 publishes their JWK url at: `https://<YOUR_AUTH0_DOMAIN>.auth0.com`.
 - Firebase publishes their JWK url at:
   `https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com`.
 
 ### claims_namespace {#claims-namespace}
 
-This is an optional field. You can specify the key name, inside which the Hasura specific claims will be present, e.g.
-`https://mydomain.com/claims`. The default value is `https://hasura.io/jwt/claims`.
+You can specify the key name in the `AuthConfig` object, inside which the Hasura specific claims will be present, e.g.
+`https://mydomain.com/claims`.
 
-##### Configure `claims_namespace_path` {#claims-namespace-path}
+#### Configure `claims_namespace_path` {#claims-namespace-path}
+
+{/* TODO Toan delete */}
 
 An optional JSON path value to the Hasura claims present in the JWT token. Example values are `$.hasura.claims` or `$`
 (i.e. root of the payload).
@@ -247,7 +229,7 @@ set, then the default value of `claims_namespace` i.e. `https://hasura.io/jwt/cl
 
 :::
 
-### claims_format
+## claims_format
 
 This is an optional field, with only the following possible values allowed: `json`, `stringified_json`
 
@@ -290,7 +272,7 @@ If `claims_format` is `stringified_json` then the JWT claims should look like:
 }
 ```
 
-### audience
+## audience
 
 This is an optional field. Certain providers might set a claim which indicates the intended audience for the JWT. This
 can be checked by setting this field.
@@ -332,7 +314,7 @@ vulnerability**.
 
 :::
 
-### issuer
+## issuer
 
 This is an optional field. It takes a string value.
 
@@ -351,14 +333,14 @@ Examples:
 }
 ```
 
-#### Issuer Notes
+### Issuer Notes
 
 - Certain providers require you to verify the `iss` claim on the JWT. To do that you can set this field to the
   appropriate value.
 - A JWT configuration without an issuer will match any issuer field present in an incoming JWT.
 - An incoming JWT without an issuer specified will match a configuration even if it specifies an issuer.
 
-### claims_map
+## claims_map
 
 This is an optional field. Certain providers might not allow adding custom claims. In such a case, you can map Hasura
 session variables with existing JWT claims using `claims_map`. The `claims_map` is a JSON object where keys are session
@@ -483,12 +465,12 @@ The corresponding JWT config should be:
 In the above example, the `x-hasura-allowed-roles` and `x-hasura-default-role` values are set in the JWT config and the
 value of the `x-hasura-user-id` is a JSON path to the value in the JWT token.
 
-### allowed_skew
+## allowed_skew
 
 `allowed_skew` is an optional field to provide some leeway (to account for clock skews) while comparing the JWT expiry
 time. This field expects an integer value which will be the number of seconds of the skew value.
 
-### header
+## header
 
 This is an optional field, which indicates which request header to read the JWT from. This field is a stringified JSON
 object.
@@ -526,34 +508,6 @@ If `header` is `{"type": "CustomHeader", "name": "header_name" }` then JWT heade
 
 ```none
 header_name: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
-```
-
-## Run Hasura GraphQL Engine in JWT mode {#running-with-jwt}
-
-### Docker
-
-Using the flag:
-
-```shell
-$ docker run -p 8080:8080 \
-    hasura/graphql-engine:latest \
-    graphql-engine \
-    --database-url postgres://<username>:<password>@<hostname>:<port>/<dbname> \
-    serve \
-    --admin-secret <myadminsecretkey> \
-    --jwt-secret '{"type":"HS256", "key": "3EK6FD+o0+c7tzBNVfjpMkNDi2yARAAKzQlk8O2IKoxQu4nF7EdAh8s3TwpHwrdWT6R"}'
-```
-
-Using environment variables:
-
-```shell
-$ docker run -p 8080:8080 \
-    -e HASURA_GRAPHQL_ADMIN_SECRET="<myadminsecretkey>" \
-    -e HASURA_GRAPHQL_JWT_SECRET='{"type":"RS512", "key": "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n"}' \
-    hasura/graphql-engine:latest \
-    graphql-engine \
-    --database-url postgres://<username>:<password>@<hostname>:<port>/<dbname> \
-    serve
 ```
 
 ## Hasura JWT Config Examples
@@ -659,6 +613,8 @@ needs to have the public key.
 
 ## Multiple JWT Secrets
 
+{/* TODO Toan check */}
+
 By providing a set of JWT secrets to GraphQL Engine on Cloud or Enterprise versions, you can set it up to authenticate
 using various JWT issuers. This configuration option allows for greater flexibility in authentication.
 
@@ -677,8 +633,8 @@ vulnerability**.
 ## JWT with the WebSocket protocol
 
 When executing a subscription (or query or mutation) over the WebSocket protocol, the authentication step is executed on
-`connection_init` when the websocket is connected to Hasura GraphQL Engine and is valid until the expiry of the JWT when
-in JWT mode.
+`connection_init` when the websocket is connected to Hasura Engine and is valid until the expiry of the JWT when in JWT
+mode.
 
 Once authenticated, all operations are allowed without further check, until the authentication expires.
 
@@ -716,8 +672,8 @@ If you are using Firebase and Hasura, use this config:
 
 ### Auth0 {#auth0-issues}
 
-Refer to the [Auth0 JWT Integration tutorial](https://hasura.io/learn/graphql/hasura-authentication/integrations/auth0/)
-for a detailed guide on integrating Auth0 with Hasura.
+Refer to the [Auth0 JWT tutorial](/auth/jwt/tutorials/1-auth0.mdx) for a detailed guide on integrating Auth0 with
+Hasura.
 
 ### Clerk
 
@@ -725,10 +681,12 @@ Clerk integrates with Hasura GraphQL Engine using JWTs.
 
 Clerk publishes their JWK under: `https://<YOUR_CLERK_FRONTEND_API>/.well-known/jwks.json`
 
-Refer to the [Clerk authentication guide](https://hasura.io/learn/graphql/hasura-authentication/integrations/clerk/) to
-set up authenticated requests to Hasura with Clerk.
+Refer to the [Clerk JWT tutorial](/auth/jwt/tutorials/4-clerk.mdx) to set up authenticated requests to Hasura with
+Clerk.
 
 ## Generate a JWT Config for Auth0 or Firebase {#generating-jwt-config}
+
+{/* TODO Toan check */}
 
 The JWT Config to be used in env `HASURA_GRAPHQL_JWT_SECRET` or `--jwt-secret` flag can be generated using:
 [https://hasura.io/jwt-config](https://hasura.io/jwt-config).
