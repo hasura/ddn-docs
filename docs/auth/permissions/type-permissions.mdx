@@ -1,5 +1,48 @@
 ---
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # Type Permissions
+
+By default, whenever a new type is created in your supergraph, each field is defined as being only accessible to the
+`admin` role.
+
+To generate a new role, add a new item to the `permissions` array in the TypePermissions object.
+
+Each item in the array should have a `role` field and an `output` field. The `output` field should contain an
+`allowedFields` array, which lists the fields that are accessible to the role when the type is used in an output
+context.
+
+To make a new `TypePermission` object or role available in your supergraph, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+```yaml
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: article
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - article_id
+          - author_id
+          - title
+    - role: user
+      output:
+        allowedFields:
+          - article_id
+          - author_id
+```
+
+| **Field**                                         | **Description**                                                                                   | **Reference**                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **kind**                                          | Indicates that this object is defining permissions for a specific type.                           | [TypePermissions](#typepermissions-typepermissions)           |
+| **version**                                       | Specifies the version of the type permissions structure.                                          | [TypePermissionsV1](#typepermissions-typepermissionsv1)       |
+| **definition.typeName**                           | The name of the type for which permissions are being defined.                                     | [CustomTypeName](#typepermissions-customtypename)             |
+| **definition.permissions**                        | A list of permissions specifying which fields are accessible for different roles.                 | [TypePermission](#typepermissions-typepermission)             |
+| **definition.permissions[].role**                 | The role for which permissions are being defined.                                                 | [Role](#typepermissions-role)                                 |
+| **definition.permissions[].output.allowedFields** | The fields of the type that are accessible for a role when the type is used in an output context. | [TypeOutputPermission](#typepermissions-typeoutputpermission) |

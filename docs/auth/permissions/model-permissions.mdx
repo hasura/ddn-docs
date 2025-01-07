@@ -1,6 +1,50 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Model Permissions
 
+By default, whenever a new model is created in your supergraph, all records are only accessible to the `admin` role. You
+can think of these as permissions on rows in a database table.
+
+You can restrict access to certain rows by adding a new item to the `permissions` array in the `ModelPermissions`
+object. Each item in the array should have a `role` field and a `select` field. The `select` field should contain a
+`filter` expression that determines which rows are accessible to the role when selecting from the model.
+
+Most commonly, you'll use session variables — provided via your configured
+[authentication mechanism](/auth/authentication/index.mdx) — to restrict access to rows based on the user's identity or
+other criteria. You can also use argument presets to enforce row-level security. You can see an example of this below.
+
+To make a new ModelPermission or role available in your supergraph, after updating your metadata, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+```yaml
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Articles
+  permissions:
+    - role: admin
+      select:
+        filter: null
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: author_id
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+```
+
+| **Field**                                  | **Description**                                                                                            | **Reference**                                              |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **kind**                                   | Indicates that this object is defining permissions for a specific model.                                   | [ModelPermissions](#modelpermissions-modelpermissions)     |
+| **version**                                | Specifies the version of the model permissions structure.                                                  | [ModelPermissionsV1](#modelpermissions-modelpermissionsv1) |
+| **definition.modelName**                   | The name of the model for which permissions are being defined.                                             | [ModelName](#modelpermissions-modelname)                   |
+| **definition.permissions**                 | A list of permissions specifying which rows or objects are accessible for different roles.                 | [ModelPermission](#modelpermissions-modelpermission)       |
+| **definition.permissions[].role**          | The role for which permissions are being defined.                                                          | [Role](#modelpermissions-role)                             |
+| **definition.permissions[].select.filter** | A filter expression that determines which rows are accessible for this role when selecting from the model. | [ModelPredicate](#modelpermissions-modelpredicate)         |

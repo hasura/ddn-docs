@@ -1,5 +1,77 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # Command Permissions
+
+By default, whenever a new command is created in your supergraph, it is only executable by the `admin` role.
+
+You can enable or restrict access to commands by adding a new item to the `permissions` array in the
+`CommandPermissions` object. Each item in the array should have a `role` field and an `allowExecution` field. The
+`allowExecution` field should be set to `true` if the command is executable by the role.
+
+Further, you can use argument presets to pass actual logical expressions to your data sources to control how they do
+things.
+
+For example, a data connector might expose a `Command` called `delete_user_by_id` with two arguments - `user_id` and
+`pre_check`. `user_id` is the primary key of the user you'd like to remove, and `pre_check` lets you provide a custom
+boolean expression.
+
+```yaml
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: delete_user_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: pre_check
+          value:
+            booleanExpression:
+              fieldComparison:
+                field: is_invincible
+                operator: _eq
+                value:
+                  literal: false
+```
+
+Now, when `admin` runs this command, once again, they can do what they want, and provide their own `pre_check` if they
+want. The `user` however, is able to pass a `user_id` argument, but the `pre_check` expression is passed to the data
+connector which will only let them delete the row if the row's `is_invincible` value is set to `false`.
+
+To make a execution of a command available to a role in your supergraph, after updating your metadata, you'll need to
+[create a new build](/cli/commands/ddn_supergraph_build_local.mdx) using the CLI.
+
+### Examples
+
+```yaml
+---
+kind: CommandPermissions
+version: v1
+definition:
+  commandName: get_article_by_id
+  permissions:
+    - role: admin
+      allowExecution: true
+    - role: user
+      allowExecution: true
+      argumentPresets:
+        - argument: id
+          value:
+            literal: 100
+```
+
+| **Field**                                    | **Description**                                                                         | **Reference**                                                    |
+| -------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **kind**                                     | Indicates that this object is defining permissions for a specific command.              | [CommandPermissions](#commandpermissions-commandpermissions)     |
+| **version**                                  | Specifies the version of the command permissions structure.                             | [CommandPermissionsV1](#commandpermissions-commandpermissionsv1) |
+| **definition.commandName**                   | The name of the command for which permissions are being defined.                        | [CommandName](#commandpermissions-commandname)                   |
+| **definition.permissions**                   | A list of permissions specifying whether the command is executable by different roles.  | [CommandPermission](#commandpermissions-commandpermission)       |
+| **definition.permissions[].role**            | The role for which permissions are being defined.                                       | [Role](#commandpermissions-role)                                 |
+| **definition.permissions[].allowExecution**  | Indicates whether the command is executable by the role.                                | [CommandPermission](#commandpermissions-commandpermission)       |
+| **definition.permissions[].argumentPresets** | Preset values for arguments that are enforced when the command is executed by the role. | [ArgumentPreset](#commandpermissions-argumentpreset)             |
+
+---
