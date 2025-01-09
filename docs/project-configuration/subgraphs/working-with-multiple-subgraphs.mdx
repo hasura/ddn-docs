@@ -1,20 +1,76 @@
 ---
 sidebar_position: 2
-sidebar_label: Create relationships across subgraphs
+sidebar_label: Work with multiple subgraphs
 description: ""
 keywords:
   - hasura
   - hasura ddn
 ---
 
-# How to Create Relationships across Subgraphs
+# How to Work with Multiple Subgraphs
 
 ## Introduction
 
-## Step 1.
+In your daily development, you'll often encounter scenarios where your project requires multiple subgraphs to represent
+distinct domains. We'll walk you through the best practices for working with multiple subgraphs, setting their context,
+and establishing relationships across them to create a unified supergraph.
 
-## Step 2.
+## Set subgraph context
 
-## Considerations for multi-repository projects
+If you're working in a project with multiple subgraphs, there will be the need to switch between subgraphs when
+executing commands with the DDN CLI. While the CLI supports a `--subgraph` flag, it is much more convenient to set your
+subgraph in context.
+
+```sh title="Switch between context using the path to the subgraph's configuration file:"
+ddn context set subgraph ./<subgraph-name>/subgraph.yaml
+```
+
+```sh title="You can verify this by checking the current context:"
+ddn context get subgraph
+```
+
+Which should return the path you entered. This will ensure any commands you run — such as adding a new data connector —
+are run in the appropriate subgraph.
+
+## Create relationships across subgraphs
+
+Within any model's HML file, you can add a [relationship object](/supergraph-modeling/relationships.mdx) as you normally
+would **but add a `subgraph` key-value pair** identifying in which subgraph the model is located.
+
+```yaml tile="For example, a billing subgraph:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: orders
+  sourceType: Users
+  target:
+    model:
+      #highlight-start
+      subgraph: billing
+      #highlight-end
+      name: Orders
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: userId
+```
+
+:::info Considerations for multi-repository projects
+
+[Hasura's VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) assists in authoring
+metadata objects like the one above. It offers autocomplete and knows about your metadata, enabling validation and short
+feedback loops for you as developer. However, when in a multi-repository project wherein subgraphs are split among
+various repositories, the extension will only be able assist with the metadata which is locally available.
+
+For more information, see the next steps section below.
+
+:::
 
 ## Next steps
+
+- [Learn how to split subgraphs across repositories](/project-configuration/subgraphs/working-with-multiple-repositories.mdx)

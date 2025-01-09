@@ -1,6 +1,6 @@
 ---
 sidebar_position: 3
-sidebar_label: Split subgraphs across repositories
+sidebar_label: Split Subgraphs across Repositories
 description: ""
 keywords:
   - hasura
@@ -11,18 +11,7 @@ keywords:
 
 ## Introduction
 
-Managing multiple repositories in Hasura DDN lets you streamline development across independent subgraphs while
-maintaining a unified supergraph. This approach provides flexibility for teams to work autonomously on their respective
-domains, all within a single coordinated API. By organizing your project into multiple repositories, you can iterate and
-deploy changes seamlessly without impacting other subgraphs, ensuring a smooth and collaborative development experience.
-
-You'll learn:
-
-- How to organize your project into subgraphs
-- How to provision a "parent" repo
-- How to set up your cloud project for multi-subgraph development
-- How to create independent subgraph repositories
-- How to create, test, and deploy your supergraph as subgraphs develop independently
+You can split your subgraphs into multiple repositories while unifying them under a single "parent" project.
 
 :::warning DDN Advanced Plan required
 
@@ -31,145 +20,135 @@ In order to utilize multi-repository collaboration, you must have an active
 
 :::
 
-## Create the initial project
+## Create the Initial Project
 
-Being by creating a "parent project" that will serve as the coordinated supergraph for your independent subgraph
-repositories. The person creating this will assume the role of **supergraph admin** and have full control over
-provisioning subgraphs, inviting collaborators, and managing the API as a whole.
+Begin by creating a "parent" project that will serve as the coordinated supergraph for your independent subgraph
+repositories. This central project will manage provisioning subgraphs, inviting collaborators, and maintaining the
+overall API.
 
-### Step 1. Initialize a new local project
+### Step 1. Initialize a New Local Project
 
-```sh title="Create a new local project and initialize a git repository:"
-ddn supergraph init parent-project && cd parent-project && git init
+```sh
+ddn supergraph init <parent-project> && cd <parent-project> && git init
 ```
 
-This will scaffold out the local configuration for a DDN project and initialize a git repository.
+This will scaffold the local configuration for your DDN project and initialize a Git repository.
 
-### Step 2. Create a cloud project
+### Step 2. Create a Cloud Project
 
-```sh title="From the local project directory, create a new cloud project:"
+```sh
 ddn project init
 ```
 
-In `.hasura/context.yaml`, you'll see a new `project` key-value pair with the name of the project returned from the CLI.
+In your configuration file (e.g., `.hasura/context.yaml`), you'll see a new `project` entry with the name of the project
+returned by the CLI.
 
-### Step 3. Create a commit
+### Step 3. Create an Initial Commit
 
-```sh title="Create an initial commit with your local project mapped to the cloud project via context:"
+```sh
 git add . && git commit -m "Initial commit"
 ```
 
-At this point, you can push your repository to your preferred hosting service.
+Push this repository to your preferred hosting service to share it with collaborators.
 
-### Step 4. Provision subgraphs
+### Step 4. Provision Subgraphs
 
-If you already know the various subgraphs you'll initially include in your project, you can add them using the DDN CLI.
-In our example, we'll add a subgraph called `billing`.
+If you know the subgraphs to include, you can provision them using the DDN CLI. Replace `<subgraph-name>` with the
+desired name:
 
-```sh title="For each subgraph, repeat this command:"
-ddn project subgraph create billing
+```sh
+ddn project subgraph create <subgraph-name>
 ```
 
-:::info This can be completed as needed
+:::info On-Demand Subgraphs
 
-If you're not yet sure which subgraphs should be included when you provision your parent project, you can do this on an
-as-needed basis when collaborators are onboarded.
+Subgraphs can be added as needed when collaborators are onboarded.
 
 :::
 
-### Step 5. Create a supergraph build
+### Step 5. Create a Base Build
 
-```sh title="Create an initial supergraph build:"
+```sh
 ddn supergraph build create
 ```
 
-This will serve as the foundation for your first subgraph build to expand upon.
+This initial build serves as the foundation for future subgraph builds.
 
-### Step 6. Invite collaborators
+### Step 6. Invite Collaborators
 
-Head to the project's console at [console.hasura.io](https://console.hasura.io) and navigate to
-`Setetings/Collaborators`. Then, invite collaborators based on their role:
+Navigate to your project's console and invite collaborators based on their roles:
 
-| Role               | Description                                                                                                    |
-| ------------------ | -------------------------------------------------------------------------------------------------------------- |
-| Subgraph Admin     | Users with permissions to create builds and deploy them to the parent project's endpoint.                      |
-| Subgraph Developer | Developers responsible for implementing features and making iterative changes to the subgraph's functionality. |
+| Role      | Description                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| Admin     | Users with permissions to manage builds and deploy them to the parent project's endpoint.                       |
+| Developer | Developers responsible for implementing features and making iterative changes to their respective sub-projects. |
 
-:::info Learn more about collaborators
+Each collaborator will receive an invitation to join the project and can proceed to add their subgraphs.
 
-Learn more about collaborators and roles [here](/collaboration/invite.mdx).
+## Add Independent Subgraphs to the Project
+
+Each subgraph resides in its own repository. This could be an existing repository or a newly initialized one.
+
+### Step 1. Create a New Repository for a Subgraph
+
+```sh
+ddn supergraph init <subgraph-name> --create-subgraph <subgraph-name> && cd <subgraph-name> && git init
+```
+
+This scaffolds the necessary structure and initializes a Git repository.
+
+### Step 2. Map the Subgraph to the Parent Project
+
+```sh
+ddn project init --with-project <parent-project-name>
+```
+
+Your configuration file will now link this subgraph to the parent project.
+
+:::info Local Development
+
+You can add data sources and develop locally at this point. Check out relevant tutorials for adding sources.
 
 :::
 
-Each collaborator will receive an email inviting them to your project; direct them to the steps below to enable them to
-start adding their subgraphs to your project.
+### Step 3. Set the Subgraph Context
 
-## Add independent subgraphs to the project
-
-Each subgraph will live in its own repository. While this can be an existing repository, we're going to demonstrate
-initializing a new repository below.
-
-### Step 1. Create a new repo for a subgraph
-
-```sh title="Initialize a new local project and git repo:"
-ddn supergraph init billing-subgraph --create-subgraph billing && cd billing-subgraph && git init
+```sh
+ddn context set subgraph ./<subgraph-name>/subgraph.yaml
 ```
 
-This will scaffold out the necessary project structure along with initializing a git repository for version control.
+This sets the subgraph configuration for the CLI.
 
-### Step 2. Map the local project to the existing cloud project
+### Step 4. Create a Subgraph Build
 
-```sh title="Use the --with-project flag to map the local directory to the parent cloud project, replacing the name with your parent project's name:"
-ddn project init --with-project <project-name>
-```
-
-You'll see the `project` key-value pair updated in your `.hasura/context.yaml` file.
-
-:::info Local development
-
-At this point, you can proceed to add data sources to your subgraph and develop locally. For more information on local
-development, check out our tutorials on adding sources [here](/data-sources/overview.mdx).
-
-:::
-
-### Step 3. Set the subgraph context
-
-```sh title="Change the context to your subgraph's configuration file:"
-ddn context set subgraph ./billing/subgraph.yaml
-```
-
-This will set your unique subgraph in your `.hasura/context.yaml` file and make the CLI commands below more concise.
-
-### Step 4. Create a subgraph build
-
-```sh title="Once your local metadata is in its desired state, create a subgraph build on your DDN project:"
+```sh
 ddn subgraph build create
 ```
 
-The CLI will return the subgraph's build version; you'll need this value in the next step.
+The CLI returns a build version for integration into the parent project.
 
-### Step 5. Create a supergraph build
+### Step 5. Integrate the Subgraph Build into the Parent Project
 
-```sh title="Begin by listing the available supergrpah builds:"
+```sh
 ddn supergraph build get
 ```
 
-Grab the most-recent build's version and use it — along with the subgraph build version — in the following command.
+Use the latest build version from the parent project and the subgraph build version in the following command:
 
-```sh title="Finally, create a supergraph build incorporating your latest subgraph build:"
-ddn supergraph build create --subgraph-version <subgraph-name:build-version> --base-supergraph-version <supergraph-build-id>
+```sh
+ddn supergraph build create --subgraph-version <subgraph-name:build-version> --base-supergraph-version <parent-build-id>
 ```
 
-The CLI will return a build URL for the console so you can explore your build and test your subgraph changes with others
-before applying the build to the supergraph. In order to apply the build, you must be a **subgraph admin** or higher:
+This integrates the subgraph changes into the parent project.
+
+### Step 6. Apply the Build
 
 ```sh
 ddn supergraph build apply <supergraph-build-version>
 ```
 
-## Recap
+This finalizes the integration, making the changes available to all collaborators.
 
-By organizing your project into multiple repositories, you can create a flexible and collaborative workflow for subgraph
-development in Hasura DDN. Starting with a parent project, you learned how to provision subgraphs, invite collaborators,
-and manage builds to integrate subgraph changes into a unified supergraph. This structure ensures teams can work
-independently while maintaining seamless integration and coordination across the entire API.
+## Next steps
+
+- [Follow an end-to-end tutorial](/project-configuration/tutorials/work-with-multiple-repositories.mdx)
