@@ -60,8 +60,47 @@ Provide the following information in the form:
   This CIDR range is used internally by Kubernetes to assign IP addresses to services running in the cluster. Default
   value: 172.20.0.0/16.
 - **Region:** Select the geographical region for your Data Plane deployment.
-- **Zones:** Select availability zones using the AZ IDs (e.g. use1-az1, use1-az2) for your Data Plane deployment. The
-  number of zones selected must match your data plane contract.
+- **Zones:** Select availability zones using the AZ IDs (e.g., use1-az1, use1-az2) for your Data Plane deployment. The
+  number of zones selected must match your data plane contract. Choosing multiple AZs ensures higher availability and fault tolerance.
+
+  <details>
+  <summary>How to get AZ IDs</summary>
+
+  AZ IDs are unique identifiers for Availability Zones within a region. You can obtain AZ IDs using either the AWS CLI or the AWS Console. Note that Availability Zone names (e.g., us-east-1a) may map to different physical locations for different AWS accounts, but AZ IDs remain consistent across accounts. For more information, see the [AWS documentation on working with AZ IDs](https://docs.aws.amazon.com/ram/latest/userguide/working-with-az-ids.html).
+
+  1. Using AWS CLI:
+     Run the following command, replacing `<region>` with your desired region:
+     ```bash
+     aws ec2 describe-availability-zones \
+       --region <region> \
+       --output table \
+       --query "AvailabilityZones[?State=='available'] | [].{ZoneName: ZoneName, ZoneId: ZoneId}"
+     ```
+
+     For example, for the us-east-1 region, the output might look like this:
+     ```
+     -----------------------------
+     | DescribeAvailabilityZones |
+     +-----------+---------------+
+     |  ZoneId   |   ZoneName    |
+     +-----------+---------------+
+     |  use1-az1 |  us-east-1a   |
+     |  use1-az2 |  us-east-1b   |
+     |  use1-az3 |  us-east-1c   |
+     +-----------+---------------+
+     ```
+
+  2. Using AWS Console:
+     - Log in to the AWS Console
+     - Navigate to the EC2 service
+     - Select your desired region from the top-right corner dropdown
+     - On the EC2 Dashboard page, look for the "Service health" section
+     - Under "Service health", you'll find a "Zones" subsection listing the Availability Zones with their corresponding Zone IDs
+
+  <br/>
+
+  Remember to select the AZ IDs that correspond to your chosen region. It's best to choose at least two AZs for high availability.
+  </details>
 
 :::warning Please note
 
