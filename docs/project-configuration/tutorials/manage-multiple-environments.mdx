@@ -1,10 +1,13 @@
 ---
 sidebar_position: 2
 sidebar_label: Manage mulitple environments
-description: ""
+description: "Learn how to leverage contexts to manage multiple environments from a single source of metadata."
 keywords:
   - hasura
   - hasura ddn
+  - environments
+  - context
+  - tutorial
 ---
 
 # Manage Multiple Environments
@@ -36,56 +39,19 @@ This will scaffold out the necessary files for a Hasura DDN project in a new `en
 
 ### Step 2. Add a data source and seed data
 
-In this tutorial, we'll use the PostgreSQL connector and some seed data.
+In this tutorial, we'll use the PostgreSQL connector and our sample PostgreSQL database:
 
-```sh title="In your project directory, run:"
+```plaintext
+postgresql://read_only_user:readonlyuser@35.236.11.122:5432/v3-docs-sample-app
+```
+
+```sh title="In your project directory, run the following, choose hasura/postrges, and pass the connection URI above when prompted:"
 ddn connector init my_pg -i
-```
-
-From the dropdown, start typing `PostgreSQL` and hit enter to advance through all the options.
-
-The CLI will output something similar to this:
-
-```plaintext
-HINT To access the local Postgres database:
-- Run: docker compose -f app/connector/my_pg/compose.postgres-adminer.yaml up -d
-- Open Adminer in your browser at http://localhost:5143 and create tables
-- To connect to the database using other clients use postgresql://user:password@local.hasura.dev:8105/dev
-```
-
-```sh title="Use the hint from the CLI output:"
-docker compose -f app/connector/my_pg/compose.postgres-adminer.yaml up -d
-```
-
-Run `docker ps` to see on which port Adminer is running. Then, you can then navigate to the address below to access it:
-
-```plaintext
-http://localhost:<ADMINER_PORT>
-```
-
-```sql title="Next, via Adminer select SQL command from the left-hand nav, then enter the following:"
---- Create the table
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  age INT NOT NULL
-);
-
---- Insert some data
-INSERT INTO users (name, age) VALUES ('Alice', 25);
-INSERT INTO users (name, age) VALUES ('Bob', 30);
-INSERT INTO users (name, age) VALUES ('Charlie', 35);
-```
-
-You can verify this worked by using Adminer to query all records from the `users` table:
-
-```sql
-SELECT * FROM users;
 ```
 
 ### Step 3. Generate the Hasura metadata
 
-```sh title="Next, use the CLI to introspect your PostgreSQL database:"
+```sh title="Next, use the CLI to introspect the PostgreSQL database:"
 ddn connector introspect my_pg
 ```
 
@@ -123,7 +89,6 @@ query {
   users {
     id
     name
-    age
   }
 }
 ```
@@ -133,19 +98,24 @@ query {
   "data": {
     "users": [
       {
-        "id": 1,
-        "name": "Alice",
-        "age": 25
+        "id": "7cf0a66c-65b7-11ed-b904-fb49f034fbbb",
+        "name": "Sean"
       },
       {
-        "id": 2,
-        "name": "Bob",
-        "age": 30
+        "id": "82001336-65b7-11ed-b905-7fa26a16d198",
+        "name": "Rob"
       },
       {
-        "id": 3,
-        "name": "Charlie",
-        "age": 35
+        "id": "86d5fba0-65b7-11ed-b906-afb985970e2e",
+        "name": "Marion"
+      },
+      {
+        "id": "8dea1160-65b7-11ed-b907-e3c5123cb650",
+        "name": "Sandeep"
+      },
+      {
+        "id": "9bd9d300-65b7-11ed-b908-571fef22d2ba",
+        "name": "Abby"
       }
     ]
   }
@@ -165,15 +135,8 @@ your newly-created `staging`.
 
 :::tip What can be stored in context?
 
-Contexts store a series of key-value pairs that make it easy to switch between different setups. Valid keys are:
-
-- `project` — identifying the cloud project's name to be used for commands which require a `--project` flag.
-- `supergraph` — identifying the `supergraph.yaml` configuration file to be used for commands which require a
-  `--supergraph` flag.
-- `subgraph` — identifying the current subgraph to be used for commands which require a `--subgraph` flag.
-- `localEnvFile` — identifying the file of local environment variables to be used during development.
-- `cloudEnvFile` — identifying the file of cloud environment variables to be used during cloud builds.
-- `selfHostedDataPlane` — the ID of the self-hosted data plane if you're using a Private DDN.
+Contexts store a series of key-value pairs that make it easy to switch between different setups. You can learn more
+[here](/project-configuration/project-management/manage-contexts.mdx).
 
 :::
 
