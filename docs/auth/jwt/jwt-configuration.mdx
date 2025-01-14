@@ -46,7 +46,7 @@ As a minimum, either the `type` **and** `key` values OR the `jwk_url` value **ha
 {
   "iat": 1735916718,
   "exp": 1796916677,
-  "https://hasura.io/jwt/claims": {
+  "claims.jwt.hasura.io": {
     "x-hasura-default-role": "user",
     "x-hasura-allowed-roles": ["user", "admin"],
     "x-hasura-user-id": "123",
@@ -73,7 +73,8 @@ of this example JWT token. The signature secret to verify this token with the HS
 The `x-hasura-role` value can be sent as a plain **header** in the request to indicate the role which should be used.
 
 When your auth server generates the JWT, the custom claims in the JWT **must contain the following** in a custom
-`https://hasura.io/jwt/claims` [namespace](#claims-namespace):
+namespace. This namespace can be any string you choose, as long as it matches the `claims_namespace` defined in your
+AuthConfig. Using `claims.jwt.hasura.io` will match our examples:
 
 1.  A `x-hasura-default-role` field. The role that will be used when the optional `x-hasura-role` _header_ is **not
     passed**.
@@ -236,7 +237,7 @@ The JWT token should be in the following format if the `claims_namespace_path` i
 :::info Claims namespace values
 
 The JWT config can only have one of either `claims_namespace` or `claims_namespace_path` values set. If neither keys are
-set, then the default value of `claims_namespace` i.e. `https://hasura.io/jwt/claims` will be used.
+set, then the default value of `claims_namespace` i.e. `claims.jwt.hasura.io` will be used.
 
 :::
 
@@ -261,7 +262,7 @@ If `claims_format` is `json` then the JWT claims should look like:
   "name": "John Doe",
   "admin": true,
   "iat": 1516239022,
-  "https://hasura.io/jwt/claims": {
+  "claims.jwt.hasura.io": {
     "x-hasura-allowed-roles": ["editor", "user", "mod"],
     "x-hasura-default-role": "user",
     "x-hasura-user-id": "1234567890",
@@ -279,7 +280,7 @@ If `claims_format` is `stringified_json` then the JWT claims should look like:
   "name": "John Doe",
   "admin": true,
   "iat": 1516239022,
-  "https://hasura.io/jwt/claims": "{\"x-hasura-allowed-roles\":[\"editor\",\"user\",\"mod\"],\"x-hasura-default-role\":\"user\",\"x-hasura-user-id\":\"1234567890\",\"x-hasura-org-id\":\"123\",\"x-hasura-custom\":\"custom-value\"}"
+  "claims.jwt.hasura.io": "{\"x-hasura-allowed-roles\":[\"editor\",\"user\",\"mod\"],\"x-hasura-default-role\":\"user\",\"x-hasura-user-id\":\"1234567890\",\"x-hasura-org-id\":\"123\",\"x-hasura-custom\":\"custom-value\"}"
 }
 ```
 
