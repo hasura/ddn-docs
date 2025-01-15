@@ -1,0 +1,113 @@
+---
+sidebar_position: 2
+sidebar_label: Deploying incrementally
+description: "Learn how to deploy your project incrementally to Hasura DDN."
+keywords:
+  - hasura ddn
+  - graphql api
+  - quickstart
+  - getting started
+  - guide
+---
+
+# Deploying incrementally
+
+You have fine-grained control over the compositions of which versions of connectors, subgraphs, and eventual supergraph
+are deployed to Hasura DDN.
+
+You can build and deploy these incrementally, or all at once as we've shown in the
+[Deploy to DDN](/deployment/deploying-your-project/deploy-to-ddn.mdx) guide.
+
+## Building and deploying specific connectors
+
+### Step 1: Create a new build of the connector on Hasura DDN.
+
+To build the connector and have it running on the Hasura DDN infrastructure you can run the following command:
+
+```bash
+ddn connector build create --connector <path-to-connector.yaml>
+```
+
+The output will include the ConnectorBuild Id, the ConnectorBuild Read URL, the ConnectorBuild Write URL, and the
+Authorization Header used to communicate with the connector.
+
+### Step 2: Update the env values
+
+Update the env values for the connector URLS and Authorization Header in the corresponding .env.cloud file:
+
+```env
+APP_MY_CONNECTOR_CONNECTION_URI="<existing-connection-uri>"
+APP_MY_CONNECTOR_AUTHORIZATION_HEADER="<new-authorization-header>"
+APP_MY_CONNECTOR_READ_URL="<new-read-url>"
+APP_MY_CONNECTOR_WRITE_URL="<new-write-url>"
+```
+
+### Step 3: Build the supergraph without building connectors
+
+```bash
+ddn supergraph build create --no-build-connectors
+```
+
+The build version will be output after the build is complete.
+
+Note that you can also build subgraphs individually without building connectors, see the section on
+[building and deploying a specific subgraph build](#build-deploy-subgraph) below.
+
+### Step 4: Deploy the supergraph
+
+```bash
+ddn supergraph build apply <build-version>
+```
+
+This will apply the build to the supergraph to become the active API.
+
+## Building and deploying a specific subgraph build {#build-deploy-subgraph}
+
+You can build subgraphs independently too.
+
+### Step 1: Build
+
+```bash
+ddn subgraph build create
+```
+
+This will create a build of the subgraph and any connectors that are associated with it and output the build version.
+
+As always, this will use the current subgraph set in the `context.yaml` file. You can override this with the
+`--subgraph` flag or change subgraph context with `ddn context set subgraph <path-to-subgraph.yaml>`.
+
+:::info Hasura DDN only
+
+There is no local subgraph-only build command.
+
+:::
+
+### Step 2 Option 1: Build the supergraph with the new subgraph build
+
+You can create a build of the rest of the supergraph but direct Hasura DDN to use the new specific subgraph build.
+
+```bash
+ddn supergraph build create --subgraph-version <subgraph-name>:<subgraph-build-version>
+```
+
+This will output the build version and you can now use it for testing or apply the supergraph build to be the active
+API.
+
+```bash
+ddn supergraph build apply <build-version>
+```
+
+You can compose any combination of subgraph builds this way to create your supergraph builds.
+
+### Step 2 Option 2: Apply the subgraph build to the active API
+
+You can also apply the subgraph build directly to the active API.
+
+```bash
+ddn subgraph build apply <build-version>
+```
+
+## Summary
+
+You have full control over the composition of your supergraph and can build and deploy subgraphs and connectors
+incrementally and independently to compose your supergraph.
