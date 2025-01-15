@@ -1,0 +1,127 @@
+---
+sidebar_position: 2
+sidebar_label: Deploy to DDN
+description: "Learn how to deploy your project to Hasura DDN."
+keywords:
+  - hasura ddn
+  - deploy
+  - deployment
+  - hosting
+---
+
+# Deploying your project to Hasura DDN
+
+Deploying your project to Hasura DDN is a simple process and can be done in 3 steps.
+
+## Deployment flow
+
+1. Initialize a project on Hasura DDN.
+2. Create a supergraph build on Hasura DDN.
+3. Apply the supergraph build to your project on Hasura DDN.
+
+### Step 1: Create a project on Hasura DDN
+
+```bash title="Initialize a project on Hasura DDN"
+ddn project init
+```
+
+You can optionally also append a project name to this command.
+
+The CLI will respond with the project name, the subgraph(s) and env file which were created, and a hint to create a
+supergraph build.
+
+```text title="Example output"
+9:42AM INF Using Supergraph config file "supergraph.yaml" found in context.
+9:42AM INF Project "alive-corgi-5690" created on Hasura DDN successfully
+9:42AM INF Subgraph "globals" created on Project "alive-corgi-5690" successfully
+9:42AM INF Subgraph "app" created on Project "alive-corgi-5690" successfully
+9:42AM INF Using localEnvFile ".env" found in context.
+9:42AM INF env file ".env.cloud" created successfully
+9:42AM INF Project "alive-corgi-5690" set in context
+9:42AM INF CloudEnvFile set as ".env.cloud" in context
++-----------+------------------+
+| Project   | alive-corgi-5690 |
++-----------+------------------+
+| Subgraphs | globals,app      |
++-----------+------------------+
+HINT Create a SupergraphBuild on the DDN project: ddn supergraph build create
+```
+
+You now have a project on Hasura DDN with the same subgraphs as you have locally. Currently, the subgraphs are empty.
+
+:::info Create vs Initialize
+
+The `ddn project init` command is similar to `ddn project create` but it also creates the subgraphs and env file for
+you. `ddn project create` will only create an empty project and you will need to create the DDN project subgraphs and
+local `.env.cloud` file yourself.
+
+:::
+
+### Step 2: Create a supergraph build on Hasura DDN
+
+```bash
+ddn supergraph build create
+```
+
+This command will create builds for each subgraph, each connector in those subgraphs, and the supergraph. Each of these
+can be built independently but this command will create them all.
+
+```text title="Example output"
+9:49AM INF Using Supergraph config file "supergraph.yaml" found in context.
+9:49AM INF Using Project "alive-corgi-5690" found in context.
+9:49AM INF Using cloudEnvFile ".env.cloud" found in context.
+9:49AM INF Using Target env file ".env.cloud" found in context.
+9:49AM INF Building Connector "my_connector" in Subgraph "app"
+9:49AM INF The connector "my_connector" can be secured by setting a secret to the environment variable "APP_MY_CONNECTOR_HASURA_SERVICE_TOKEN_SECRET" which maps to "HASURA_SERVICE_TOKEN_SECRET". Since no secret was provided, we will generate a random secret to secure the connector.
+9:49AM INF ConnectorBuild ID: "eb1540f9-7e99-4ea8-9a9c-7d19e55e0c87"
+9:50AM INF Connector "my_connector" in Subgraph "app" built successfully with ID "eb1540f9-7e99-4ea8-9a9c-7d19e55e0c87"
+9:50AM INF DataConnectorLink "my_connector" already upto date
+9:50AM INF Updated env file for Subgraph "app"
+9:50AM INF SupergraphBuild created on Hasura DDN successfully
++---------------+--------------------------------------------------------------------------------------------------+
+| Build Version | 85b0961544                                                                                       |
++---------------+--------------------------------------------------------------------------------------------------+
+| API URL       | https://alive-corgi-5690-85b0961544.ddn.hasura.app/graphql                                       |
++---------------+--------------------------------------------------------------------------------------------------+
+| Console URL   | https://console.hasura.io/project/alive-corgi-5690/build/85b0961544                              |
++---------------+--------------------------------------------------------------------------------------------------+
+| PromptQL URL  | https://promptql.console.hasura.io/project/alive-corgi-5690/build/85b0961544/promptql-playground |
++---------------+--------------------------------------------------------------------------------------------------+
+| Project Name  | alive-corgi-5690                                                                                 |
++---------------+--------------------------------------------------------------------------------------------------+
+9:50AM INF GraphQL schema diff feature is not available for the project's current plan. Continuing...
+HINT Explore SupergraphBuild on the DDN console: ddn console --build-version 85b0961544
+```
+
+You can now use the console to explore the supergraph build.
+
+This build is still not the "official" applied API for the project.
+
+### Step 3: Apply the supergraph build to your project
+
+```bash
+ddn supergraph build apply <build-version>
+```
+
+eg:
+
+```bash
+ddn supergraph build apply 85b0961544
+```
+
+This build is now the "official" applied API for the project and is accessible via the API URL in the output of the
+command or via the console.
+
+```text title="Example output"
+9:52AM INF Using Project "alive-corgi-5690" found in context.
+9:52AM INF GraphQL schema diff feature is not available for the project's current plan. Continuing...
++---------+-------------------------------------------------+
+| API URL | https://alive-corgi-5690.ddn.hasura.app/graphql |
++---------+-------------------------------------------------+
+9:52AM INF SupergraphBuild version "85b0961544" applied to project "alive-corgi-5690" successfully
+```
+
+## Summary
+
+There are many more options and flows available for deploying your project to Hasura DDN and we have detailed the
+simplest and most common flow here.
