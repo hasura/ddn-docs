@@ -1,0 +1,163 @@
+---
+sidebar_position: 3
+sidebar_label: Split Subgraphs across repositories
+description: "Learn how to split subgraphs across multiple repositories."
+keywords:
+  - hasura
+  - hasura ddn
+  - subgraphs
+  - multiple subgraphs
+  - parent repo
+  - multiple repositories
+  - mutli-repo
+  - ddn advanced
+  - advanced
+  - CLI
+  - context
+---
+
+# How to Split Subgraphs across Repositories
+
+## Introduction
+
+You can split your subgraphs into multiple repositories while unifying them under a single "parent" project.
+
+:::warning DDN Advanced Plan required
+
+In order to utilize multi-repository collaboration, you must have an active
+[DDN Advanced Plan](https://hasura.io/pricing).
+
+:::
+
+## Create the Initial Project
+
+Begin by creating a "parent" project that will serve as the coordinated supergraph for your independent subgraph
+repositories. This central project will manage provisioning subgraphs, inviting collaborators, and maintaining the
+overall API.
+
+### Step 1. Initialize a new local project
+
+```sh
+ddn supergraph init <parent-project> && cd <parent-project> && git init
+```
+
+This will scaffold the local configuration for your DDN project and initialize a Git repository.
+
+### Step 2. Create a cloud project
+
+```sh
+ddn project init
+```
+
+In your configuration file (e.g., `.hasura/context.yaml`), you'll see a new `project` entry with the name of the project
+returned by the CLI.
+
+### Step 3. Create an initial commit
+
+```sh
+git add . && git commit -m "Initial commit"
+```
+
+Push this repository to your preferred hosting service to share it with collaborators.
+
+### Step 4. Provision subgraphs
+
+If you know the subgraphs to include, you can provision them using the DDN CLI. Replace `<subgraph-name>` with the
+desired name:
+
+```sh
+ddn project subgraph create <subgraph-name>
+```
+
+:::info On-Demand Subgraphs
+
+Subgraphs can be added as needed when collaborators are onboarded.
+
+:::
+
+### Step 5. Create a base build
+
+```sh
+ddn supergraph build create
+```
+
+This initial build serves as the foundation for future subgraph builds.
+
+### Step 6. Invite collaborators
+
+Navigate to your project's console and invite collaborators based on their roles:
+
+| Role      | Description                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| Admin     | Users with permissions to manage builds and deploy them to the parent project's endpoint.                       |
+| Developer | Developers responsible for implementing features and making iterative changes to their respective sub-projects. |
+
+Each collaborator will receive an invitation to join the project and can proceed to add their subgraphs.
+
+## Add Independent Subgraphs to the Project
+
+Each subgraph resides in its own repository. This could be an existing repository or a newly initialized one.
+
+### Step 1. Create a new repository for a subgraph
+
+```sh
+ddn supergraph init <subgraph-name> --create-subgraph <subgraph-name> && cd <subgraph-name> && git init
+```
+
+This scaffolds the necessary structure and initializes a Git repository.
+
+### Step 2. Map the subgraph to the parent project
+
+```sh
+ddn project init --with-project <parent-project-name>
+```
+
+Your configuration file will now link this subgraph to the parent project.
+
+:::info Local Development
+
+You can add data sources and develop locally at this point. Check out relevant tutorials for adding sources.
+
+:::
+
+### Step 3. Set the subgraph context
+
+```sh
+ddn context set subgraph ./<subgraph-name>/subgraph.yaml
+```
+
+This sets the subgraph configuration for the CLI.
+
+### Step 4. Create a subgraph build
+
+```sh
+ddn subgraph build create
+```
+
+The CLI returns a build version for integration into the parent project.
+
+### Step 5. Integrate the subgraph build into the parent project
+
+```sh
+ddn supergraph build get
+```
+
+Use the latest build version from the parent project and the subgraph build version in the following command:
+
+```sh
+ddn supergraph build create --subgraph-version <subgraph-name:build-version> --base-supergraph-version <parent-build-id>
+```
+
+This integrates the subgraph changes into the parent project.
+
+### Step 6. Apply the build
+
+```sh
+ddn supergraph build apply <supergraph-build-version>
+```
+
+This finalizes the integration, making the changes available to all collaborators.
+
+## Next steps
+
+- [Follow an end-to-end tutorial](/project-configuration/tutorials/work-with-multiple-repositories.mdx)
