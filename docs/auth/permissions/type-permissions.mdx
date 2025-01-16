@@ -12,6 +12,10 @@ sidebar_label: Type Permissions
 
 To make API **fields** available to a role in your supergraph, you define a `TypePermissions` object.
 
+You can think of TypePermissions as being similar to column-level permissions in a relational database. Just as you can
+restrict access to specific columns in a table based on the user's role, TypePermissions allow you to control access to
+specific fields in a type within your supergraph.
+
 By default, whenever a new type is created in your supergraph, each field is defined as being only accessible to the
 `admin` role.
 
@@ -26,13 +30,14 @@ To make a new `TypePermission` object or role available in your supergraph, you'
 
 ## Example
 
-```yaml
+```yaml title="Allow admin to access all fields in the article type, disallow user from accessing the author_id field."
 ---
 kind: TypePermissions
 version: v1
 definition:
   typeName: article
   permissions:
+    # highlight-start
     - role: admin
       output:
         allowedFields:
@@ -43,7 +48,8 @@ definition:
       output:
         allowedFields:
           - article_id
-          - author_id
+          - title
+  # highlight-end
 ```
 
 ## Reference
