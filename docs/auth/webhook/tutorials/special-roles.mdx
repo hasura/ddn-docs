@@ -1,5 +1,6 @@
 ---
 description: "Learn how to make admin-level and unauthenticated requests to a Hasura DDN instance with a webhook."
+sidebar_label: Admin and Unauthenticated Requests
 sidebar_position: 3
 keywords:
   - hasura webhook mode
@@ -13,7 +14,7 @@ keywords:
   - hasura user-role
 ---
 
-# Special Roles
+# Admin and Unauthenticated Requests
 
 Hasura DDN projects enable an `admin` role by default which has access to all Models and Types in your supergraph.
 
@@ -48,7 +49,7 @@ a few things.
 ### Step 1. Create the claims
 
 In your authentication server, you can provide a response that identifies the user's role as `public`. This can be any
-name you wish, so long as it's not a role (such as `admin`) that already exists.
+role name you wish, so long as it's not a role (such as `admin`) that already exists.
 
 ```json title="Example response from your webhook to Hasura DDN"
 HTTP/1.1 200 OK
@@ -120,14 +121,11 @@ definition:
 Once you've updated your metadata files, you can rebuild your supergraph and test it locally.
 
 ```bash title="For example, from the root of your project, run:"
-ddn supergraph build local \
-  --supergraph supergraph.yaml \
-  --env-file .env
+ddn supergraph build local
 ```
 
 ### Step 5. Make an unauthenticated request
 
-In [basic examples](auth/webhook/webhook-mode.mdx#update-authconfig), we're using the `BearerAuthorization` method. As
-such, as we can make a request to our Hasura DDN instance by including a header with the key-value of
-`Authorization: Bearer <our-encoded-token-with-the-public-claims>`. For testing, you can pass this value in the Hasura
-DDN console's header section.
+Now you can make an unauthenticated request to your API. The request response body will include
+`{"x-hasura-role": "public"}` and as such the engine will limit access to the fields that are returned to the ones
+specified in the `TypePermissions` for that role.
