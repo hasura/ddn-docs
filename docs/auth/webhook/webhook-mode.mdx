@@ -127,18 +127,89 @@ Content-Type: application/json
 
 ## Step 3. Define permissions
 
-{/* TODO: Write this section */}
+Let's add some example `TypePermissions` so that an admin role can access all fields in the Orders type, but we restrict
+a user role from accessing the `deliveryDate` field.
+
+```bash title="Example TypePermissions for Orders type"
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Orders
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - deliveryDate
+          - id
+          - isReviewed
+          - productId
+          - status
+          - updatedAt
+          - userId
+  # highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - createdAt
+          - id
+          - isReviewed
+          - productId
+          - status
+          - updatedAt
+          - userId
+  # highlight-end
+```
+
+Let's also add some example `ModelPermissions` so that an admin role can access all rows in the Orders model, but a user
+role can only access rows where the userId field matches the user id session variable in the JWT.
+
+```bash title="Example ModelPermissions for Orders model"
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Orders
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+# highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: userId
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+# highlight-end
+```
 
 ## Step 4. Rebuild your supergraph
 
 ```bash title="For example, from the root of your project, run:"
-ddn supergraph build local \
-  --supergraph supergraph.yaml \
-  --env-file .env
+ddn supergraph build local
 ```
 
 ## Step 5. Make an authenticated request
 
-In the example above, we're using the `BearerAuthorization` method. As such, as we can make a request to our Hasura DDN
-instance by including a header with the key-value of `Authorization: Bearer <our-encoded-token>`. For testing, you can
-pass this value in the Hasura DDN console's header section.
+Here we're making a request to our Hasura DDN instance which will be validated by our webhook which returns a payload of
+session variables.
+
+```json title="Example response from our webhook to Hasura DDN"
+{
+  "x-hasura-user-id": "7cf0a66c-65b7-11ed-b904-fb49f034fbbb",
+  "x-hasura-role": "user"
+}
+```
+
+If we run a query for Orders, we can see that we only get the orders which this user has made and are not able to access
+the deliveryDate field.
+
+<Thumbnail
+  src="/img/auth/console-auth-webhook-query-permissions-results.pngg"
+  alt="Hasura console authentication using JWT"
+/>

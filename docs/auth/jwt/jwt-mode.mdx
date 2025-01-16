@@ -104,7 +104,7 @@ available roles is limited to `user` and `admin`. Additionally, we're passing a 
 can be used with [permissions](/supergraph-modeling/permissions.mdx) when executing queries.
 [Read more about the default claims here](/auth/jwt/jwt-configuration.mdx#hasura-jwt-format).
 
-```json
+```json title="Example JWT payload"
 {
   "iat": 1735916718,
   "exp": 1796916677,
@@ -135,7 +135,84 @@ vulnerability**. Learn how to set this [here](supergraph-modeling/auth-config.md
 
 ### Step 3. Add permissions to an object in your supergraph
 
-{/* TODO: Add permissions to an object in your supergraph */}
+Let's add some example `TypePermissions` so that an admin role can access all fields in the Orders type, but we restrict
+a user role from accessing the `deliveryDate` field.
+
+```bash title="Example TypePermissions for Orders type"
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: Orders
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - createdAt
+          - deliveryDate
+          - id
+          - isReviewed
+          - productId
+          - status
+          - updatedAt
+          - userId
+  # highlight-start
+    - role: user
+      output:
+        allowedFields:
+          - createdAt
+          - id
+          - isReviewed
+          - productId
+          - status
+          - updatedAt
+          - userId
+  # highlight-end
+```
+
+Let's also add some example `ModelPermissions` so that an admin role can access all rows in the Orders model, but a user
+role can only access rows where the userId field matches the user id session variable in the JWT.
+
+```bash title="Example ModelPermissions for Orders model"
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: Orders
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+# highlight-start
+    - role: user
+      select:
+        filter:
+          fieldComparison:
+            field: userId
+            operator: _eq
+            value:
+              sessionVariable: x-hasura-user-id
+# highlight-end
+```
+
+:::info Example JWT payload
+
+For these examples we'll set the payload of the JWT to specify a `user` role and a UUID for the user id.
+
+```json title="Example JWT payload which we will send to the Hasura Engine"
+{
+  "iat": 1735916718,
+  "exp": 1796916677,
+  "claims.jwt.hasura.io": {
+    "x-hasura-default-role": "user",
+    "x-hasura-allowed-roles": ["user"],
+    "x-hasura-user-id": "7cf0a66c-65b7-11ed-b904-fb49f034fbbb"
+  }
+}
+```
+
+:::
 
 ### Step 4. Rebuild your supergraph
 
@@ -154,13 +231,15 @@ pass this value in the Hasura DDN console's header section.
 
 <Thumbnail src="/img/auth/console-auth-tab-default-jwt.png" alt="Hasura console authentication using JWT" />
 
+If we run a query for Orders, we can see that we only get the orders which this user has made and are not able to access
+the deliveryDate field.
+
+<Thumbnail
+  src="/img/auth/console-auth-query-permissions-results.png"
+  alt="Hasura console query permissions results using JWT"
+/>
+
 ## Next steps
 
 If you're looking for step-by-step help to get started with common authentication providers, check
 [this section](/auth/jwt/tutorials/index.mdx) of tutorials.
-
-{/* TODO: Rewrite this section */} **Authentication is only part of the puzzle!** Hasura DDN empowers you to easily
-write your access-control rules, commonly known as authorization, using declarative metadata. You can use the values
-passed in your JWTs to then limit which [models](/supergraph-modeling/permissions.mdx#modelpermissions-modelpermissions)
-and [types](/supergraph-modeling/permissions.mdx#typepermissions-typepermissions) a user has access to with each
-request.
