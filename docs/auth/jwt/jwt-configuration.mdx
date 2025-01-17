@@ -150,53 +150,7 @@ publish the JWKs in the standard format as described [here](https://tools.ietf.o
 This is optional as you have the alternative of also providing the key (certificate, PEM-encoded public key) as a
 string - in the [`key`](#jwt-json-key) field along with the [`type`](#jwt-json-type).
 
-### Rotating JWKs
-
-Some providers rotate their JWKs (e.g. Firebase). If the provider sends any of the following with the response of the
-JWK, then the Hasura Engine will refresh the JWKs automatically.
-
-1. `no-cache`, `no-store` or `must-revalidate` in `Cache-Control` headers
-2. `max-age` or `s-maxage` in `Cache-Control` headers
-3. `Expires` header
-
-If the provider does not send the above, the JWKs are not refreshed.
-
-The following is the behavior in detail:
-
-### JWK procedure on startup
-
-1.  Hasura Engine will fetch the JWK and will -
-
-    1. first, try to parse `no-cache`, `no-store` or `must-revalidate` in a `Cache-Control` header.
-    2. second, try to parse an `max-age` or `s-maxage` directive in a `Cache-Control` header.
-    3. third, check if an `Expires` header is present (if `Cache-Control` is not present), and try to parse the value as
-       a timestamp.
-
-2.  If it is able to parse `max-age`, `s-maxage` or `Expires` successfully, then it will use that parsed time to refetch
-    the JWKs again.
-
-    If it is unable to parse those values, then it will not refresh the JWKs (it assumes that if the above headers are
-    not present, the provider doesn't rotate their JWKs). If the parsed time is less than a second, the JWKs will be
-    fetched once per minute regardless.
-
-    If `must-revalidate` and `max-age` are present, then it will refresh the JWK again after the time period specified
-    in `max-age` has passed.
-
-    However, if `max-age` is not specified or if `no-cache` or `no-store` are present, then it will refresh the JWKs
-    once every minute.
-
-### JWK procedure while running
-
-1.  While Hasura Engine is running with refreshing JWKs, in one refresh cycle it will -
-
-    1. first, try to parse an `max-age` or `s-maxage` directive in a `Cache-Control` header.
-    2. second, check if an `Expires` header is present (if `Cache-Control` is not present), and try to parse the value
-       as a timestamp.
-
-2.  If it is able to parse any of the above successfully, then it will use that parsed time to refetch the JWKs again.
-    If it is unable to parse any values, then it will sleep for one minute and then start another refresh cycle.
-
-#### JWK publisher URLs
+### JWK publisher URLs
 
 - Auth0 publishes their JWK url at: `https://<YOUR_AUTH0_DOMAIN>.auth0.com`.
 - Firebase publishes their JWK url at:
