@@ -57,21 +57,24 @@ definition:
       method: Post
 ```
 
-:::info GET vs POST
+### GET vs POST
+
+For a POST request, the headers received by the DDN engine on the query will be forwarded to the webhook in a JSON
+object in the body of the request under a `headers` key.
+
+For a GET request, the headers received by the DDN engine on the query will be forwarded to the webhook as actual
+headers on the request and the body will be empty.
 
 What we've provided above is a sample configuration as a POST request but it can be configured as a GET request. See the
 reference for `AuthHookConfig` [here](/supergraph-modeling/auth-config.mdx#authconfig-authhookconfig)
-
-:::
 
 ## Step 2. Shaping the webhook request and response
 
 ### Request
 
-Your webhook should accept either a GET or POST request. Below is an example of the request headers your webhook might
-process:
+Below is an example of the header object your webhook might receive in the body of a POST request:
 
-```json title="Example headers present in a POST request to your webhook endpoint"
+```json title="Example header object"
 {
   "headers": {
     "Authorization": "Bearer some-token",
@@ -80,7 +83,8 @@ process:
 }
 ```
 
-Headers are forwarded to the auth webhook from the client on each request received by the Hasura engine.
+Headers are forwarded to the auth webhook from the client on each request received by the Hasura engine either as
+headers for a GET request or as a JSON object in the body of a POST request under a `headers` key.
 
 In this example, we're passing an encoded JWT in the `Authorization` header, however webhook mode is flexible and you
 can pass any headers you wish.
