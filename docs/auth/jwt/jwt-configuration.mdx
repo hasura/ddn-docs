@@ -165,8 +165,6 @@ The following is the behavior in detail:
 
 ### JWK procedure on startup
 
-{/* TODO Toan check */}
-
 1.  Hasura Engine will fetch the JWK and will -
 
     1. first, try to parse `no-cache`, `no-store` or `must-revalidate` in a `Cache-Control` header.
@@ -591,13 +589,6 @@ needs to have the public key.
 }
 ```
 
-## Multiple JWT Secrets
-
-{/* TODO Toan check */}
-
-By providing a set of JWT secrets to GraphQL Engine on Cloud or Enterprise versions, you can set it up to authenticate
-using various JWT issuers. This configuration option allows for greater flexibility in authentication.
-
 ## Security considerations
 
 ### Setting audience check
@@ -642,12 +633,23 @@ Firebase publishes the JWKs at:
 
 If you are using Firebase and Hasura, use this config:
 
-```json
-{
-  "jwk_url": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
-  "audience": "<firebase-project-id>",
-  "issuer": "https://securetoken.google.com/<firebase-project-id>"
-}
+```yaml
+	kind: AuthConfig
+	version: v2
+	definition:
+	  mode:
+	    jwt:
+	      claimsConfig:
+	        namespace:
+	          claimsFormat: Json
+	          location: /claims.jwt.hasura.io
+	      tokenLocation:
+	        type: Header
+	        name: Authorization
+	      key:
+	        jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+	      issuer: https://securetoken.google.com/<firebase-project-id>
+	      audience: <firebase-project-id>
 ```
 
 ### Auth0 {#auth0-issues}
@@ -663,15 +665,3 @@ Clerk publishes their JWK under: `https://<YOUR_CLERK_FRONTEND_API>/.well-known/
 
 Refer to the [Clerk JWT tutorial](/auth/jwt/tutorials/integrations/4-clerk.mdx) to set up authenticated requests to
 Hasura with Clerk.
-
-## Generate a JWT Config for Auth0 or Firebase {#generating-jwt-config}
-
-{/* TODO Toan check */}
-
-The JWT Config to be used in env `HASURA_GRAPHQL_JWT_SECRET` or `--jwt-secret` flag can be generated using:
-[https://hasura.io/jwt-config](https://hasura.io/jwt-config).
-
-**Currently, the UI supports generating config for Auth0 and Firebase**.
-
-The config generated from this page can be directly pasted in yaml files and command line arguments as it takes care of
-escaping new lines.
