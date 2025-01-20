@@ -35,6 +35,30 @@ Hasura DDN resolves `local.hasura.dev` to your machine's `localhost`. This avoid
 `localhost` might point to your source's container instead of your local machine. To fix this, update any `localhost`
 references in your connection strings to `local.hasura.dev`.
 
+### My connector won't introspect my data source
+
+If you encounter an error like the following:
+
+```plaintext
+ERR Failed building the container: exit status 17
+```
+
+You'll likely see the following in the logs:
+
+```plaintext
+Failed to resolve source metadata for ghcr.io/hasura/<connector>: failed to authorize: failed to fetch oauth token: unexpected status from GET request to https://ghcr.io/token?scope=repository%3Ahasura%2F<connector>%3Apull&service=ghcr.io: 403 Forbidden
+```
+
+When this happens, your GitHub access token located in your Docker credentials store is likely out-of-date.
+
+To resolve this, generate a new PAT with `package` scope and run the following:
+
+```sh
+echo "<GH_PAT>" | docker login ghcr.io -u <YOUR_GITHUB_USERNAME> --password-stdin
+```
+
+Your terminal should return `Login Succeeded`.
+
 ### There's a port conflict for my connector
 
 Use `docker ps` to check for any running processes that would conflict with your source's container. If you find one,
@@ -53,6 +77,60 @@ the connector.
 
 Identify the connector's container and image; kill the container and delete the image. Then, re-run the
 `ddn run docker-start` command to rebuild the connector's image in addition to your other services.
+
+### My data source operations time out
+
+If a data source operation like `ddn introspect` hangs, eventually times out, and you encounter a log entry like the
+following:
+
+```plaintext
+INF Waiting for the Connector service to be healthy...
+```
+
+Follow these steps to resolve the issue:
+
+#### Step 1: Enable Debug Logging
+
+Add the `--log-level DEBUG` flag to your command to generate more detailed logs. If the debug logs include the following
+entry:
+
+```plaintext
+dial tcp: lookup local.hasura.dev: no such host
+```
+
+Then the issue is related to DNS resolution.
+
+#### Step 2: Diagnose the DNS Issue
+
+The most common cause of this DNS error is that your DHCP server is setting the Domain Search option. This is specified
+in [DHCP Option 119/RFC 3397](https://www.rfc-editor.org/rfc/rfc3397).
+
+#### Step 3: Resolve the DNS Issue
+
+To resolve this issue, you have two options:
+
+- **Disable the Domain Search Option**
+
+  Disabling this option in your DHCP server settings will prevent the DNS error. Consult your network administrator if
+  you are unsure how to make this change.
+
+- **Add a Static Hostname Entry**
+
+  If disabling the Domain Search option is not feasible, you can manually add a static entry to your hosts file. This
+  approach will override DNS lookup for the hostname `local.hasura.dev`.
+
+  **Windows:** Follow the instructions here to edit your hosts file.
+
+  **Linux/Unix/MacOS:** Add the following line to your `/etc/hosts` file:
+
+  ```plaintext
+  127.0.0.1 local.hasura.dev
+  ```
+
+  This entry maps the hostname `local.hasura.dev` to the IP address `127.0.0.1` and does not interfere with other
+  applications.
+
+By following these steps, you should be able to resolve the introspection hang or timeout issue with your data source.
 
 ## Get help
 
