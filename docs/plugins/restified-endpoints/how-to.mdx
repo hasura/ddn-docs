@@ -1,7 +1,7 @@
 ---
-sidebar_position: 5
-sidebar_label: RESTified Endpoints
-description: "Learn how to use the RESTified Endpoints plugin to add RESTified GraphQL endpoints to DDN."
+sidebar_position: 2
+sidebar_label: How to Configure the RESTified Endpoints Plugin
+description: "Learn how to configure the RESTified Endpoints plugin to add RESTified GraphQL endpoints to DDN."
 keywords:
   - hasura plugins
   - plugins
@@ -14,10 +14,13 @@ keywords:
 seoFrontMatterUpdated: false
 ---
 
-# RESTified GraphQL Endpoints
+# How to Configure the RESTified Endpoints Plugin
 
-The RESTified GraphQL endpoints plugin allows you to add RESTified GraphQL endpoints to DDN. This can be used to add
-custom REST endpoints to DDN that would execute specified GraphQL query on the DDN GraphQL API and return the response.
+## Introduction
+
+The [RESTified GraphQL endpoints plugin](https://github.com/hasura/engine-plugin-restified-endpoint) allows you to add
+RESTified GraphQL endpoints to DDN. This can be used to add custom REST endpoints to DDN that would execute specified
+GraphQL query on the DDN GraphQL API and return the response.
 
 :::info We're using Cloudflare Wrangler
 
@@ -69,12 +72,13 @@ definition:
     valueFromEnv: RESTIFIED_ENDPOINTS_URL
   config:
     match: "/v1/api/rest/*"
+    matchMethods: ["GET", "POST"]
     request:
       method: GET
       headers:
         forward:
-        - Authorization
-        - x-hasura-role
+          - Authorization
+          - x-hasura-role
         additional:
           hasura-m-auth:
             valueFromEnv: M_AUTH_KEY
@@ -82,15 +86,17 @@ definition:
         path: {}
         query: {}
         method: {}
+        body: {}
 ```
 
 :::tip URL Match
 
-The `match` field is used to match the regex to the request path. In this example, we're matching all requests to
-`/v1/api/rest/*`. You can change this to match any other path you wish.
+The `match` field is used to match the regex to the request path, while `matchMethods` specifies the HTTP methods to
+match. In this example, we're matching all `GET` and `POST` requests to `/v1/api/rest/*`. You can modify these to match
+any path and methods (GET/POST/PUT/PATCH/DELETE) you wish.
 
-Also, note that we can not use the pre-defined DDN endpoints (like `/graphql`, `/v1/explain`, `/healthz`, `/metrics`, etc.)
-in the `match` field.
+Also, note that we can not use the pre-defined DDN endpoints (like `/graphql`, `/v1/explain`, `/healthz`, `/metrics`,
+etc.) in the `match` field.
 
 :::
 
@@ -149,7 +155,8 @@ Start the console for the local supergraph.
 ddn console --local
 ```
 
-You can now test the plugin by making a request to the RESTified GraphQL endpoints defined in the plugin's configuration.
+You can now test the plugin by making a request to the RESTified GraphQL endpoints defined in the plugin's
+configuration.
 
 ## Step 5. Update the plugin config
 
@@ -174,11 +181,11 @@ export const Config = {
     ...,
     {
       path: "/v1/api/rest/users",
-      method: "GET",
+      methods: ["GET", "POST"],
       query: `
-        query MyQuery($limit: Int = 10, $offset: Int = 10) {
-          Album(limit: $limit, offset: $offset) {
-            Title
+        query MyQuery($limit: Int = 10, $offset: Int = 0) {
+          Users(limit: $limit, offset: $offset) {
+            Name
           }
         }
       `,
