@@ -26,6 +26,8 @@ RUN corepack enable && corepack prepare yarn@stable --activate && yarn set versi
 # Build static files
 RUN yarn build
 
+# Env vars are in the k8s manifest and ddn-docs secret
+
 EXPOSE 8080
 
 CMD ["yarn", "serve", "-p", "8080", "--host", "0.0.0.0"]
