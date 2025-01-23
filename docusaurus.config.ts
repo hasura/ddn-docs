@@ -77,8 +77,8 @@ const config: Config = {
     })(),
     hasuraVersion: 3,
     DEV_TOKEN: process.env.DEV_TOKEN,
-    openReplayIngestPoint: process.env.OPENREPLAY_INGEST_POINT,
-    openReplayProjectKey: process.env.OPENREPLAY_PROJECT_KEY,
+    openReplayIngestPoint: 'https://analytics-openreplay.hasura-app.io/ingest',
+    openReplayProjectKey: 'x5WnKn7RdPjizi93Vp5I',
   },
 
   presets: [
