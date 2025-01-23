@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-sidebar_label: Introduction
+sidebar_label: How plugins work
 description:
   "Explore the Engine Plugins. Understand the architecture of engine plugins and how they can be used to add new
   functionalities on top of DDN"
@@ -14,26 +14,65 @@ seoFrontMatterUpdated: false
 
 import Thumbnail from "@site/src/components/Thumbnail";
 
-# Introduction
+# How Plugins Work
 
-Hasura allows you to add HTTP hooks at various stages of the engine's execution. This enables you to enhance DDN by
-adding custom functionalities through your own code.
+## Introduction
 
-These plugins can be applied at the following steps:
+Engine plugins are HTTP servers that run alongside a Hasura DDN instance and can be written in any language capable of
+running an HTTP server.
+
+They are configured in DDN using metadata. The engine sends HTTP requests to the plugin at the specified execution step,
+the plugin processes the request, and then sends a response back to the engine, which continues execution based on the
+plugin's response.
+
+Plugins can be applied at the following steps:
 
 | Execution Step   | Description                                                                                                                                          | Example Usage                                                                |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | **Pre-Parse**    | The first step in the execution pipeline, where custom logic can be applied before the query is parsed and its internal representation is generated. | Add an allowlist layer to restrict access to specific queries and mutations. |
 | **Pre-Response** | The final step in the execution pipeline, where custom logic can be added after the query is executed but before the response is sent to the client. | Trigger Slack notifications after a mutation is executed.                    |
+| **Pre-Route**    | The first step in the routing pipeline, where custom logic can be applied to the requests on other than pre-defined endpoints.                       | Add a custom endpoint to DDN.                                                |
 
 ## Architecture
 
-<Thumbnail src="/img/plugins/architecture.jpg" alt="Engine architecture with plugins" width="1000px" />
+```mermaid
+---
+title: Engine Plugins Execution Pipeline
+---
+graph RL
+    Client[Client] -->|"Request (/graphql)"| Authentication
+    Authentication --> Query_Parsing_and_Planning["Query parsing and planning"]
+    Query_Parsing_and_Planning --> Execute_Query["Execute query"]
+    Execute_Query <-->|Fetch Data| Data_Connector["Data connector"]
+    Execute_Query --> Post_Processing["Post-processing"]
+    Post_Processing --> Pre_Response_Hooks["Pre-response hooks"]
+    Post_Processing -->|Response| Client
 
-Engine plugins are HTTP servers that run alongside DDN and can be written in any language capable of running an HTTP
-server. They are configured in DDN using DDN metadata. The engine sends HTTP requests to the plugin at the specified
-execution step, the plugin processes the request, and then sends a response back to the engine, which continues
-execution based on the plugin's response.
+    subgraph DDN Engine
+        Authentication
+        Query_Parsing_and_Planning
+        Execute_Query
+        Post_Processing
+    end
+
+    Pre_Parse_Hooks["Pre-parse hooks"] <--> Query_Parsing_and_Planning
+```
+
+```mermaid
+---
+title: Pre-route plugin
+---
+graph RL
+    Client[Client] -->|"Request (/*)"| Route_Handler["Route handler"]
+    Route_Handler -->|Response| Client
+
+    subgraph DDN Engine
+        Route_Handler
+    end
+
+    Pre_Route_Hooks["Pre-route hooks"] <-->|Handle Request| Route_Handler["Route handler"]
+
+```
 
 ## Plugin Configuration
 
@@ -41,9 +80,7 @@ Engine plugins are configured in DDN using metadata. The metadata specifies the 
 execution step at which the plugin should be called. The configuration also can control the request that is sent to the
 engine plugin.
 
-Here is an example of a plugin configuration in DDN metadata:
-
-```yaml
+```yaml title="Here is an example of a plugin configuration in DDN metadata:"
 kind: LifecyclePluginHook
 version: v1
 definition:
@@ -67,8 +104,8 @@ In this example, the plugin is configured to run at the `pre-parse` execution st
 `cloudflare allowlist`. The URL of the plugin is read from the `ALLOW_LIST_URL` environment variable. The plugin is
 configured to add a `hasura-m-auth` header to the request with the value `your-strong-m-auth-key`.
 
-Also, the request that is sent to the plugin is configured to have the query and variables from the incoming GraphQL
-request. It is also configured to have the session information from the incoming request.
+Additionally, the request sent to the plugin includes the query and variables from the incoming GraphQL request, as well
+as the session information from the incoming request.
 
 ## Pre-Parse Plugin
 
@@ -80,9 +117,7 @@ For pre-parse plugin configuration
 
 ### Pre-Parse Plugin Request
 
-A sample request that is sent to the `pre-parse` plugin is as follows:
-
-```json
+```json title="A sample request that is sent to the pre-parse plugin is as follows:"
 {
   "rawRequest": {
     "query": "query MyQuery { getAuthorById(author_id: 10) { first_name } }",
@@ -99,25 +134,29 @@ A sample request that is sent to the `pre-parse` plugin is as follows:
 }
 ```
 
-**Note**: The request sent to the plugin can be customized based on the plugin's
+:::info Customize the request
+
+The request sent to the plugin can be customized based on the plugin's
 [configuration](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreresponsepluginhookconfigrequest).
+
+:::
 
 ### Pre-Parse Plugin Response
 
-The `pre-parse` plugin can control the execution pipeline by returning a response to DDN. The response can be one of the
-following:
+The `pre-parse` plugin has the ability to control the execution pipeline by returning a specific response to DDN. The
+response determines whether execution continues, halts, or returns an error. The possible response types are:
 
-| Response Type    | HTTP Status Code | Response Body | Description                                                 |
-| ---------------- | ---------------- | ------------- | ----------------------------------------------------------- |
-| `Continue`       | `204`            | -             | Continue with the execution.                                |
-| `Response`       | `200`            | Response body | Stop the execution and return the response to the client.   |
-| `User Error`     | `400`            | Error object  | Stop the execution and return the error to the client.      |
-| `Internal Error` | `500`            | Error object  | Stop the execution and return internal error to the client. |
+| Response Type    | HTTP Status Code | Response Body | Description                                                                                    |
+| ---------------- | ---------------- | ------------- | ---------------------------------------------------------------------------------------------- |
+| `Continue`       | `204`            | None          | Execution continues without interruption.                                                      |
+| `Response`       | `200`            | Response body | Execution halts, and the provided response is returned to the client.                          |
+| `User Error`     | `400`            | Error object  | Execution halts, and the provided error is returned to the client as a user error.             |
+| `Internal Error` | `500`            | Error object  | Execution halts, and the provided error is returned to the client as an internal server error. |
 
 :::warning Response Validation
 
-The response from the plugin is not validated by DDN. It is the responsibility of the plugin to return a valid response
-based on the plugin's logic.
+DDN does not validate the plugin's response. It is the plugin's responsibility to ensure the response is valid and
+aligns with its intended logic.
 
 :::
 
@@ -135,76 +174,97 @@ The `pre-parse` plugin can be used to add a multitude of functionalities to DDN.
 
 ### Multiple Pre-Parse Plugins
 
-Multiple pre-parse plugins can be configured in DDN metadata. The plugins are executed in the order they are defined in
-the metadata.
+You can configure multiple pre-parse plugins in DDN metadata. These plugins execute in the order they are listed in the
+metadata configuration.
 
-Please note that if a plugin returns a `Response`, `User Error` or `Internal Error` response, the execution stops and
-the response is sent to the client. The subsequent plugins are not executed.
+If a plugin returns a `Response`, `User Error`, or `Internal Error`, the execution stops immediately, and the response
+is sent back to the client. Any plugins defined after that will not run.
 
-Let's take an example where the engine is confiured with two pre-parse plugins: `Pre-parse hook 1` and
-`Pre-parse hook 2`.
+Let’s consider an example where the engine uses two pre-parse plugins: `Pre-parse Hook 1` and `Pre-parse Hook 2`.
 
-<Thumbnail src="/img/plugins/multiple-pre-parse-plugins.jpg" alt="Multiple pre-parse plugins" width="750px" />
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Initial as "Initial Request"
+    participant "Pre-parse Hook 1"
+    participant "Pre-parse Hook 2"
+    participant "Query Parsing and Planning"
 
-In this example, the engine is configured with two pre-parse plugins. The engine sends the request to
-`Pre-parse hook 1`, which processes the request and sends a response. Now, depending on the response, the engine either
-continues with the execution or stops and sends the response to the client.
+    Client ->> Initial: Request to engine
+    Initial ->> "Pre-parse Hook 1": Request
+    "Pre-parse Hook 1" ->> Initial: Response
+    Initial ->> "Pre-parse Hook 2": Request
+    "Pre-parse Hook 2" ->> Initial: Response
+    Initial ->> "Query Parsing and Planning": Continue
+    "Query Parsing and Planning" ->> Client: Response
+```
+
+Here’s how the process works:
 
 #### Case 1: Continue
 
-If `Pre-parse hook 1` returns a `Continue` response (HTTP status code is 204), the engine sends the request to
-`Pre-parse hook 2`. The engine continues this process until all the pre-parse plugins are executed.
+If `Pre-parse Hook 1` returns a `Continue` response (HTTP status code 204), the engine proceeds to send the request to
+`Pre-parse Hook 2`. This continues until all configured pre-parse plugins have been executed.
 
 :::tip Continue response body
 
-The `Continue` response body is ignored by DDN. The plugin can return an empty response body.
+The `Continue` response body is ignored by DDN. Plugins returning a `Continue` response can safely leave the body empty.
 
 :::
 
-#### Case 2: Response/ User Error/ Internal Error
+#### Case 2: Response, User Error, or Internal Error
 
-If `Pre-parse hook 1` returns a `Response` response (HTTP status code is 200) or a `User Error` response (HTTP status
-code is 400) or an `Internal Error` response (HTTP status code is 500), the engine stops the execution and sends the
-response to the client. The subsequent `pre-parse` plugins are not executed.
+If `Pre-parse Hook 1` returns any of the following:
 
-<Thumbnail
-  src="/img/plugins/multiple-pre-parse-plugins-p1-response.jpg"
-  alt="Multiple pre-parse plugins with 1st plugin
-response being sent to the client"
-  width="750px"
-/>
+- `Response` (HTTP status code 200)
+- `User Error` (HTTP status code 400)
+- `Internal Error` (HTTP status code 500)
 
-:::note Will the subsequent pre-response plugins be executed?
+The engine stops further execution and sends the response to the client and other plugins will not be called.
 
-Yes, the subsequent `pre-response` plugins are executed even if the `pre-parse` plugins return a `Response`, `User Error` or
-`Internal Error` response.
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Initial as "Initial Request"
+    participant PreParseHook1 as "Pre-parse Hook 1"
+    participant PreParseHook2 as "Pre-parse Hook 2"
+    participant QueryParsingAndPlanning as "Query Parsing and Planning"
+
+    Client->>Initial: Send Request
+    Initial->>PreParseHook1: Forward to Pre-parse Hook 1
+    PreParseHook1-->>Initial: Response from Hook 1
+    Initial-->>Client: Return Response (Query not executed)
+```
+
+:::info Will subsequent pre-response plugins execute?
+
+Yes, even if a pre-parse plugin returns a `Response`, `User Error`, or `Internal Error`, the subsequent `pre-response`
+plugins will still execute.
 
 :::
 
-If all the pre-parse plugins return a `Continue` response (HTTP status code 204), the engine continues with the
-execution and sends the response generated by the engine to the client.
+If all pre-parse plugins return a `Continue` response (HTTP status code 204), the engine completes execution and sends
+its generated response to the client.
 
-:::note Can pre-parse plugins change the request?
+:::info Can pre-parse plugins modify the request?
 
-No, pre-parse plugins cannot modify the request in the execution pipeline. The plugins can only control the execution
-pipeline by returning appropriate responses.
+No, pre-parse plugins cannot alter the request itself. They only influence the execution pipeline by returning specific
+responses.
 
 :::
 
 ## Pre-Response Plugin
 
-The `pre-response` plugin is triggered at the final step in the execution pipeline after the query is executed. Use
-this step to add webhooks after the query is executed. Please note that the `pre-response` plugin cannot control or
-change the execution pipeline.
+The `pre-response` plugin is triggered at the final step in the execution pipeline after the query is executed. Use this
+step to add webhooks after the query is executed. Please note that the `pre-response` plugin cannot control or change
+the execution pipeline.
 
 For pre-response plugin configuration
 [click here](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreresponsepluginhook).
 
 ### Pre-Response Plugin Request
 
-A sample request that is sent to the `pre-response` plugin is as follows:
-
-```json
+```json title="A sample request that is sent to the pre-response plugin is as follows:"
 {
   "response": {
     "data": {
@@ -228,8 +288,12 @@ A sample request that is sent to the `pre-response` plugin is as follows:
 }
 ```
 
-**Note**: The request sent to the plugin can be customized based on the plugin's
+:::info Customize the request
+
+The request sent to the plugin can be customized based on the plugin's
 [configuration](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreresponsepluginhookconfigrequest).
+
+:::
 
 ### Pre-Response Plugin Response
 
@@ -237,24 +301,106 @@ The `pre-response` plugin cannot control the execution pipeline. The response fr
 
 ### Use Cases
 
-The `pre-response` plugin can be used to add a number of functionalities to DDN. Some use cases also make use of
-the pre-parse plugin. They are:
+The `pre-response` plugin can be used to add a number of functionalities to DDN. Some use cases also make use of the
+pre-parse plugin. They are:
 
 - **Slack Notifications**: Trigger Slack notifications after a query/mutation is executed.
 - **Cache Set**: Implement a cache set layer to store the response in the cache.
-- **Cache Invalidation**: Implement a cache invalidation layer to invalidate the cache based on the incoming request
-  and session information.
+- **Cache Invalidation**: Implement a cache invalidation layer to invalidate the cache based on the incoming request and
+  session information.
 - **Audit Logs**: Add audit logs to track the queries and mutations executed by the users.
 
 ### Multiple Pre-Response Plugins
 
-Multiple `pre-response` plugins can be configured in DDN metadata. The plugins are executed in parallel.
+Multiple `pre-response` plugins can be configured in DDN metadata.
 
-Let's take an example where the engine is configured with two `pre-response` plugins: `Pre-response hook 1` and
-`Pre-response hook 2`.
+The engine sends requests to all configured `pre-response` plugins in parallel. It does not wait for responses from the
+plugins and immediately sends the response generated by the engine to the client.
 
-<Thumbnail src="/img/plugins/multiple-pre-response-plugins.jpg" alt="Multiple pre-response plugins" width="750px" />
+## Pre-Route Plugin
 
-In this example, the engine is configured with two `pre-response` plugins. The engine sends the request to both the
-plugins in parallel. The engine does not wait for the response from the plugins and sends the response generated by the
-engine to the client.
+The `pre-route` plugin is triggered at the first step in the routing stage, before the request is routed to the handler.
+Use this step to add custom HTTP handlers to DDN. Please note that the pre-route plugin can only handle requests that do
+not match DDN's pre-defined endpoints (`/graphql`, `/v1/sql`, `/v1/rest`, `/v1/explain`, `/healthz` and `/metrics`).
+
+[See the reference here](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreroutepluginhook) for
+pre-route plugin metadata configuration.
+
+### Pre-Route Plugin Request
+
+A sample request that is sent to the `pre-route` plugin is as follows:
+
+```json
+{
+  "path": "/v1/rest/users/5",
+  "method": "POST",
+  "query": "limit=10&offset=0"
+  "body": {
+    "name_like": "%foo%"
+  }
+}
+```
+
+:::info Customize the request
+
+The request sent to the plugin can be customized based on the plugin's
+[configuration](supergraph-modeling/engine-plugins.mdx#lifecyclepluginhook-lifecyclepreroutepluginhookconfigrequest).
+
+:::
+
+### Pre-Route Plugin Response
+
+The `pre-route` plugin have absolute control over the execution pipeline for the configured path. The plugin can return
+any of the following responses to DDN:
+
+| Response Type    | HTTP Status Code | Response Body | Description                                                 |
+| ---------------- | ---------------- | ------------- | ----------------------------------------------------------- |
+| `Success`        | `200`            | Response body | Return the response to the client.                          |
+| `User Error`     | `400`            | Error object  | Stop the execution and return the error to the client.      |
+| `Internal Error` | `500`            | Error object  | Stop the execution and return internal error to the client. |
+
+### Use Cases
+
+The `pre-route` plugin can be used to add custom endpoints to DDN which are not part of the pre-defined DDN endpoints.
+Some use cases are:
+
+- **RESTified Endpoints**: Turn GraphQL queries into REST endpoints.
+- **Internal tools**: Add internal tools like graphql schema visualizers like graphql-voyager, Swagger UI for JSON API,
+  etc.
+
+### Multiple Pre-Route Plugins
+
+Multiple `pre-route` plugins can be configured in DDN metadata to handle requests to different paths. However, if more
+than one plugin matches the request path, the first plugin in the list is executed and the subsequent plugins are
+ignored.
+
+So, while defining multiple `pre-route` plugins, make sure that the more specific paths are defined first.
+
+Let's take an example where the engine is configured with two `pre-route` plugins: `Pre-route hook 1` (for path
+`/v1/api/users/admin`) and `Pre-route hook 2` (for path `/v1/api/users/*`). We want to handle the request to GET admin
+user details (a more specific path) using `Pre-route hook 1` and the request to GET user with an ID (a less specific
+path) using `Pre-route hook 2`. For this, we need to define the `Pre-route hook 1` first in the metadata.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant RouteHandler as "Route Handler"
+    participant PreRouteHook1 as "Pre-route Hook 1"
+    participant PreRouteHook2 as "Pre-route Hook 2"
+
+    Client->>RouteHandler: Send Request
+    alt Path matches /v1/api/users/admin
+        RouteHandler->>PreRouteHook1: Forward to Pre-route Hook 1
+        PreRouteHook1-->>RouteHandler: Response from Hook 1
+        RouteHandler-->>Client: Return Response
+    else Path matches /v1/api/users/*
+        RouteHandler->>PreRouteHook2: Forward to Pre-route Hook 2
+        PreRouteHook2-->>RouteHandler: Response from Hook 2
+        RouteHandler-->>Client: Return Response
+    end
+```
+
+In this example, the engine is configured with two `pre-route` plugins. The engine sends the request to either
+`Pre-route hook 1` or `Pre-route hook 2` based on the path. If the path matches `/v1/api/users/admin`, the engine sends
+the request to `Pre-route hook 1`. If the path matches `/v1/api/users/*`, the engine sends the request to
+`Pre-route hook 2`.

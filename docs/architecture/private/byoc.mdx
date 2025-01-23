@@ -37,7 +37,7 @@ requests. Even if the Control Plane becomes unavailable, the Data Plane continue
 
 :::
 
-<Thumbnail src="/img/deployment/hasura-ddn/private_ddn_byoc.png" alt="Private DDN Architecture BYOC " />
+<Thumbnail src="/img/deployment/private_ddn_byoc.png" alt="Private DDN Architecture BYOC " />
 
 ## Data Flow and security
 
@@ -69,7 +69,7 @@ The Data Plane running on your infrastructure communicates with the Control Plan
 5. BYOC Controller: The Control Plane interacts with the Kubernetes cluster to manage the Data Plane workloads.
 
 <Thumbnail
-  src="/img/deployment/hasura-ddn/private_ddn_byoc_detailed.png"
+  src="/img/deployment/private_ddn_byoc_detailed.png"
   alt="Detailed architecture diagram for Private DDN BYOC"
 />
 
@@ -83,7 +83,7 @@ To get started with BYOC, customers are required to have one of the following:
 
 ### Azure
 
-#### 1. Account details
+#### 1. Provide Required Information
 
 Get the following details from your
 [Azure Portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) and pass them along
@@ -92,11 +92,11 @@ to the Hasura team.
 - (Required) Subscription ID
 - (Required) Tenant ID
 - (Required) Resource Group Name
-  1. Create a resource group if you do not already have one
+  - Create a resource group if you do not already have one
 - (Required) Region to deploy
 - (Required) Availability zones to deploy
-- (Optional) Preferred VPC CIDR (/16)
-  1. f you have a specific CIDR in mind for the VPC setup, please pass it along.
+- (Optional) Preferred VPC CIDR for infrastructure (/16 - /19)
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along.
 
 #### 2. Create App Entities for BYOC
 
@@ -141,24 +141,67 @@ recommend setting an appropriate threshold in order to accommodate workers scali
 
 ### AWS
 
-#### 1. Account Details
+The setup involves creating an IAM role in the newly created AWS account; this role establishes a trust relationship
+with Hausra’s GCP service account which will be used to deploy and manage workloads necessary for Hasura DDN.
 
-- AWS Account ID
-- Preferred VPC CIDR (optional, if you have a specific CIDR for the VPC setup).
+#### 1. Create Trust Role
 
-#### 2. Create Role
+- Log in to your AWS Management Console.
+- Navigate to IAM > Roles and click Create Role.
+- Select Custom Trust Policy as the trusted entity type.
+- Add the following trust policy to the Trust Role:
 
-- Create an IAM role for Hasura with the following permissions:
-  - EC2 Full Access
-  - S3 Full Access
-  - IAM Full Access
+```bash
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "accounts.google.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "accounts.google.com:aud": [
+                        "102619491389607674002",
+                        "ddn-automation@hasura-ddn.iam.gserviceaccount.com"
+                    ],
+                    "accounts.google.com:oaud": "ddn-pulumi-cli",
+                    "accounts.google.com:sub": "102619491389607674002"
+                }
+            }
+        }
+    ]
+}
+```
 
-Share the IAM role with Hasura team.
+- Attach workload-specific permissions to this role. For example:
 
-#### 3. Networking
+```bash
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "*",
+            "Resource": "*"
+        }
+    ]
+}
+```
 
-- Ensure the VPC has appropriate routing and security group configurations to allow Data Plane traffic.
-- Provide CIDR ranges for ingress/egress rules to be applied during deployment.
+- Save the Trust Role and note its ARN (e.g., `arn:aws:iam::<AWS_ACCOUNT_ID>:role/TrustRole`).
+
+#### 2. Provide Required Information
+
+Share the following ARNs with the SaaS product team:
+
+- (Required) Trust Role ARN: `arn:aws:iam::<AWS_ACCOUNT_ID>:role/TrustRole`
+- (Optional) Preferred VPC CIDR for infrastructure (/16 CIDR)
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along.
+- (Optional) Preferred Zones
 
 ### GCP
 
@@ -171,9 +214,13 @@ Share the IAM role with Hasura team.
 
 - Give the following service account Owner access to the project: `ddn-automation@hasura-ddn.iam.gserviceaccount.com`
 
+#### 3. Provide Required Information
+
 - Pass along the following information to Hasura team:
-  - Project ID
-  - Preferred VPC CIDR (optional, if you have a specific CIDR in mind for the VPC setup).
+  - (Required) Project ID
+  - (Optional) Preferred VPC CIDR for infrastructure (/16 CIDR)
+    - If you have a specific CIDR in mind for the VPC setup, please pass it along.
+  - (Optional) Preferred Zones
 
 ## Upgrade Process
 
