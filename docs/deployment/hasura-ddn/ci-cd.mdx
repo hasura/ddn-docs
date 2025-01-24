@@ -4,43 +4,254 @@ title: CI/CD
 description: "Set up CI/CD for Hasura DDN projects using any CI/CD platform"
 ---
 
-# Generic CI/CD Setup
+# CI/CD
 
-Learn how to implement continuous integration and deployment for your Hasura DDN projects using any CI/CD platform.
+Because the DDN CLI plays the central role in controlling and managing metadata builds and connector deployments, it
+allows developers to create simple and effective CI/CD pipelines for managing projects, creating builds and promoting
+them to production.
 
-## Implementation Steps
+## Generic CI/CD Setup
 
-1. Setting up the build pipeline
-2. Configuring test environments
-3. Implementing deployment stages
-4. Setting up monitoring
+The user should follow the following generic implementation steps when setting up CI/CD for their Hasura DDN projects.
 
-## Best Practices
+1. Prepare a service account access token.
+2. Use a linux environment to run the DDN CLI.
+3. Install and login to the DDN CLI.
+4. Clone the repo with the DDN supergraph metadata.
+5. Make sure your context is set properly to reference the correct projects, subgraphs etc, or use the correct flags in
+   your DDN CLI commands.
+6. Run any DDN CLI commands required in the CI/CD workflow, eg: create a project build, apply a build to a project, etc.
 
-- Environment separation
-- Secret management
-- Rollback procedures
-- Performance monitoring
+### Step 1: Prepare a service account access token
 
-# GitHub Actions Setup
+See the [service account access token section](/collaboration/service-accounts.mdx) to learn how to create a service
+account access token.
 
-Learn how to implement continuous integration and deployment for your Hasura DDN projects using GitHub Actions.
+### Step 2: Use a linux environment to run the DDN CLI
 
-## Setup Guide
+Any service which can provide a linux-like environment will work, eg: GitHub Actions, GitLab CI, CircleCI, etc. Indeed,
+a windows or mac environment will work and run the DDN CLI but for CI/CD pipelines, we recommend using a linux
+environment for speed, availability and convenience.
 
-1. Workflow configuration
-2. Action setup
-3. Environment configuration
-4. Secrets management
+### Step 3: Install and login to the DDN CLI
 
-## Example Workflows
+```sh
+curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v4/get.sh | bash
+```
 
-- Basic deployment workflow
-- Multi-environment setup
-- Advanced deployment patterns
+:::info curl
 
-## Best Practices
+Your environment should already have `curl` installed. If not, you can install it using your package manager. eg:
 
-- GitHub-specific optimizations
-- Action caching strategies
-- Security considerations
+```sh
+sudo apt update && sudo apt upgrade
+sudo apt install curl
+curl --version
+```
+
+:::
+
+### Step 4: Clone the repo with the DDN supergraph metadata
+
+Clone (or checkout) the repository that contains all of your DDN supergraph metadata. For example, if you have a public
+GitHub repository, run:
+
+```sh
+git clone https://github.com/<your-org>/<your-repo>.git
+```
+
+If your repository is private, you may need a
+[GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+or similar for your git provider to clone it.
+
+```
+git clone https://<PAT>@github.com/<your-org>/<your-private-repo>.git
+```
+
+### Step 5: Make sure your context is set properly to reference the correct projects, subgraphs etc, or use the correct flags in your DDN CLI commands
+
+You can set your context using the `ddn context set-current-context <context-name>` command. Read more about
+[contexts](/deployment/hasura-ddn/context-and-environments.mdx).
+
+You can also of course use specific flags in your DDN CLI commands eg: `--project`, `--supergraph`,
+`--base-supergraph-version`, `--log-level`, `--out` etc.
+
+### Step 6: Run any DDN CLI commands required in the CI/CD workflow
+
+You can now run any DDN CLI commands required in the CI/CD workflow. You will likely be creating builds and applying
+them to projects.
+
+```sh
+ddn supergraph build create mysupergraph
+```
+
+```sh
+ddn supergraph build apply mysupergraph
+```
+
+## GitHub Actions Setup
+
+We have a GitHub Action that you can use to deploy your Hasura DDN projects.
+[See here](https://github.com/hasura/ddn-deployment).
+
+1. Create a service account access token.
+2. Add the service account access token as a secret in your repository.
+3. Configure the GitHub Action with the steps you require for your CI/CD pipeline.
+
+{/* TODO Automate this inclusion in docs */}
+
+### Hasura Access Token
+
+A Hasura Personal Access or Service Account Access Token is required to authenticate with Hasura Cloud. See the
+[service account access token section](/collaboration/service-accounts.mdx) to learn how to create a service account
+access token.
+
+```bash
+HASURA_TOKEN: <your-hasura-pat>
+```
+
+### GitHub Action Usage
+
+In any workflow, add the following steps to automate the deployment of your Hasura project to Hasura DDN:
+
+```yaml
+name: Hasura DDN Build
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hasura DDN Build
+        uses: hasura/ddn-deployment@2.3.0
+        with:
+          hasura-pat: ${{ secrets.HASURA_TOKEN }}
+```
+
+### Examples
+
+#### Automatic Builds on Every Commit on a branch and PRs to main branch
+
+Imagine you have a branch called `main` that you use to create a DDN build. You can use the following workflow:
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+      - release/*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install and Login to DDN CLI
+        uses: hasura/ddn-deployment@2.3.0
+        with:
+          hasura-pat: ${{ secrets.HASURA_TOKEN }}
+
+      - name: Deploy PG connector and update the connector link
+        run:
+          ddn connector build create --connector app/connector/mypg/connector.cloud.yaml --target-supergraph
+          supergraph.cloud.yaml --target-connector-link mypg --project ${{ secrets.HASURA_PROJECT }}
+
+      - name: Deploy mongodb connector and update the connector link
+        run:
+          ddn connector build create --connector app/connector/my_mongo/connector.cloud.yaml --target-supergraph
+          supergraph.cloud.yaml --target-connector-link my_mongo --project ${{ secrets.HASURA_PROJECT }}
+
+      - name: Build and deploy TS functions and update the connector link
+        run:
+          ddn connector build create --connector app/connector/myts/connector.cloud.yaml --target-supergraph
+          supergraph.cloud.yaml --target-connector-link myts --project ${{ secrets.HASURA_PROJECT }}
+
+      - name: Build supergraph
+        run:
+          ddn supergraph build create --supergraph ./supergraph.cloud.yaml --project ${{ secrets.HASURA_PROJECT }}
+          --description "Build for commit ${{ github.sha }}"
+```
+
+#### Automatic deployments + comment with build details on the PR
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install and Login to DDN CLI
+        uses: hasura/ddn-deployment@2.3.0
+        with:
+          hasura-pat: ${{ secrets.HASURA_TOKEN }}
+
+      - name: Deploy PG connector and update the connector link
+        run:
+          ddn connector build create --connector app/connector/mypg/connector.cloud.yaml --target-supergraph
+          supergraph.cloud.yaml --target-connector-link mypg --project ${{ secrets.HASURA_PROJECT }}
+
+      - name: Deploy mongodb connector and update the connector link
+        run:
+          ddn connector build create --connector app/connector/my_mongo/connector.cloud.yaml --target-supergraph
+          supergraph.cloud.yaml --target-connector-link my_mongo --project ${{ secrets.HASURA_PROJECT }}
+
+      - name: Build and deploy TS functions and update the connector link
+        run:
+          ddn connector build create --connector app/connector/myts/connector.cloud.yaml --target-supergraph
+          supergraph.cloud.yaml --target-connector-link myts --project ${{ secrets.HASURA_PROJECT }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Build supergraph
+        run:
+          ddn supergraph build create --supergraph ./supergraph.cloud.yaml --project ${{ secrets.HASURA_PROJECT }}
+          --description "Build for commit ${{ github.sha }}" --out=json > build_output.json
+
+      - name: Extract URLs from JSON
+        id: extract_urls
+        run: |
+          BUILD_URL=$(jq -r '.build_url' build_output.json)
+          CONSOLE_URL=$(jq -r '.console_url' build_output.json)
+          echo "build_url=$BUILD_URL" >> $GITHUB_ENV
+          echo "console_url=$CONSOLE_URL" >> $GITHUB_ENV
+
+      - name: Add PR comment with build details
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const buildUrl = process.env.build_url;
+            const consoleUrl = process.env.console_url;
+            const prNumber = context.payload.pull_request.number;
+            const commitId = context.sha;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Supergraph build was successful! 🎉\n\n**Build URL:** [${buildUrl}](${buildUrl})\n**Console URL:** [${consoleUrl}](${consoleUrl})\n**Commit ID:** ${commitId}`
+            });
+```
