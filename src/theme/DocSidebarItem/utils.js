@@ -124,6 +124,9 @@ export function addIconsToLabel(label, className) {
     case 'deployment':
       icons = <Deployment style={iconStyle} />;
       break;
+    case 'private-ddn':
+      icons = <Deployment style={iconStyle} />;
+      break;
     case 'upgrade':
       icons = <Upgrade style={iconStyle} />;
       break;
