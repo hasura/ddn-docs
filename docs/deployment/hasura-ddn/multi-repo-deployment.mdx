@@ -14,8 +14,8 @@ For larger teams and larger projects, it can make sense to have multiple reposit
 In this setup, one or more subgraphs are defined in each repository and depending on the role of the user, can be built
 and applied to the supergraph independently.
 
-You can read up on [collaboration](/collaboration/index.mdx) and [federation](/federation/overview.mdx) in the relevant
-sections.
+You can seem more about setting up [collaboration](/collaboration/index.mdx) and [federation](/federation/overview.mdx)
+in the relevant sections.
 
 Deployment with a multi-repository setup is effectively the same as
 [deploying from a single repository](/deployment/hasura-ddn/index.mdx), but with the considerations of managing your
@@ -38,15 +38,41 @@ Only available on [DDN Advanced projects](https://hasura.io/pricing/ddn).
 
 ### Supergraph and all subgraphs
 
-Once your context is set to the shared project, only an `Owner` or an `Admin` can build and apply the supergraph
-including all subgraphs.
+Once your [context is set to the shared project](/deployment/hasura-ddn/context-and-environments.mdx), an `Owner` or an
+`Admin` role can build and apply the supergraph including all subgraphs.
 
-Even though all subgraphs are not in the same repo, with the `ddn supergraph build create` command
+Even though all subgraphs are not in the same repo, the `ddn supergraph build create` command will build the supergraph
+including all subgraphs which are on DDN cloud.
 
-### Supergraph and a single subgraph
+As always, `ddn supergraph build apply <supergraph-build-version>` will make it the active API build.
 
-Build... Apply...
+`Subgraph Admin` and `Subgraph Developer` cannot build or apply supergraphs.
+
+### Supergraph and specific subgraphs
+
+An `Owner` or an `Admin` role can build and apply new supergraph and specify subgraphs to be built and applied.
+
+```bash title="Build a supergraph with specific subgraphs"
+ddn supergraph build create --subgraph-version <subgraph_name:subgraph_version> --subgraph-version <subgraph_name:subgraph_version>  --base-supergraph-version <supergraph_version>
+```
+
+You can also list the available builds of subgraphs to use with:
+
+```bash
+ddn subgraph build get
+```
+
+See more about incremental builds [here](/deployment/hasura-ddn/incremental-builds.mdx).
 
 ### A single subgraph
 
-Build... Apply...
+An `Owner`, `Admin`, `Subgraph Admin` and `Subgraph Developer` role can build a single subgraph. All except
+`Subgraph Developer` can apply a single subgraph.
+
+```bash title="Build a single subgraph"
+ddn subgraph build create --subgraph-version <subgraph_name:subgraph_version> --base-supergraph-version <supergraph_version>
+```
+
+```bash title="Apply a single subgraph. Unavailable for Subgraph Developer role"
+ddn subgraph build apply --subgraph-version <subgraph_name:subgraph_version>
+```
