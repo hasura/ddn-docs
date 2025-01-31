@@ -1,0 +1,153 @@
+---
+sidebar_position: 1
+sidebar_label: Create a Data Plane
+description: "Learn how to create a private Data Plane."
+keywords:
+  - hasura ddn
+  - private ddn
+  - dedicated vpc
+  - enterprise ddn
+  - create private ddn
+seoFrontMatterUpdated: false
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Create a Data Plane
+
+## Introduction
+
+A [Data Plane](/architecture/overview.mdx#data-plane) in Hasura provides dedicated infrastructure for running your
+GraphQL workloads. This guide walks you through the process of creating a new Data Plane for
+[dedicated Private DDN](/architecture/private/dedicated.mdx).
+
+:::info Prerequisite
+
+To create a Data Plane in Private DDN, you'll need an Enterprise contract. Reach out to sales
+[here](https://hasura.io/contact-us) to get started.
+
+:::
+
+## How to create a new Data Plane on Dedicated Private DDN
+
+### Step 1. Create a new Data Plane
+
+Navigate to the `Private DDN` section in your [Hasura console](https://console.hasura.io).
+
+<Thumbnail src="/img/data-plane/private-ddn.png" alt="Data Plane Management" width="1000px" />
+
+<br></br>
+
+Click the `Create Data Plane` button.
+
+<Thumbnail src="/img/data-plane/pending-provision-data-planes.png" alt="Data Plane Creation Pending" width="1000px" />
+
+### Step 2. Complete the Data Plane Configuration Form
+
+- **Name:** Enter a descriptive name using only letters and spaces, between 4-30 characters. This will be used to
+  identify your Data Plane.
+- **Domain:** This field is automatically generated from your Data Plane name. This is the base domain for the GraphQL
+  API on this Data Plane.
+- **Cloud Provider:** Select your preferred cloud provider. Currently available options: `AWS`.
+- **Region:** Select the geographical region for your Data Plane.
+- **Zones:** Select availability zones. For AWS, use AZ IDs (e.g., use1-az1, use1-az2) instead of AZ names (us-east-1a,
+  us-east-1b) for your Data Plane. The maximum number of zones available to select depends on your Hasura Private DDN
+  Subscription.
+
+<details>
+  <summary>How to get AZ IDs for AWS?</summary>
+
+**Availability Zone (AZ) IDs** are unique identifiers for AWS Availability Zones within a region. Using AZ IDs ensures
+consistency across different AWS accounts and optimizes performance by aligning your Data Plane with your database's
+physical location.
+
+**Why Use AZ IDs Instead of AZ Names?**
+
+- **Consistency:** AZ IDs are consistent across all AWS accounts, whereas AZ Names can differ.
+- **Performance:** Deploying resources in the same physical AZ reduces latency.
+- **Cost Efficiency:** Avoids cross-zone network costs by ensuring resources are within the same AZ.
+
+Note: When selecting AZ IDs, ensure they correspond to the AZs where your database resides to maintain low latency and
+avoid cross-zone network costs. It is recommended to choose at least two AZs for higher availability and fault
+tolerance.
+
+[Read more about AWS AZ IDs on AWS Docs](https://docs.aws.amazon.com/ram/latest/userguide/working-with-az-ids.html)
+
+**Steps to Obtain AZ IDs**
+
+You can obtain AZ IDs using either the **AWS CLI** or the **AWS Console**.
+
+**1. Using AWS CLI:**
+
+Run the following command, replacing `<region>` with your desired region:
+
+    ```bash
+
+    aws ec2 describe-availability-zones \
+    --region <region> \
+      --output table \
+      --query "AvailabilityZones[?State=='available'] | [].{ZoneName: ZoneName, ZoneId: ZoneId}"
+      ```
+      Example output for us-east-1:
+
+      ```
+      -----------------------------
+      | DescribeAvailabilityZones |
+      +-----------+---------------+
+      | ZoneId | ZoneName         |
+      +-----------+---------------+
+      | use1-az1 | us-east-1a     |
+      | use1-az2 | us-east-1b     |
+      | use1-az3 | us-east-1c     |
+      +-----------+---------------+
+      ```
+
+
+      **2. Using AWS Console:**
+
+      - Log in to the AWS Console.
+      - Navigate to the EC2 service.
+      - Select your desired region from the top-right corner dropdown.
+      - On the EC2 Dashboard page, locate the "Service health" section.
+      - Under "Service health", find the "Zones" subsection. This section lists the Availability Zones along with their
+      corresponding Zone IDs.
+
+</details>
+- **VPC CIDR:** A /16 CIDR block that defines the IP address range for your Data Plane's Virtual Private Cloud (VPC). Default value: 10.0.0.0/16.
+- **Kubernetes Service CIDR:** A /16-/20 CIDR block used for Kubernetes service cluster IP addresses in your Data Plane. This CIDR range is used internally by Kubernetes to assign IP addresses to services running in the cluster. Default value: 172.20.0.0/16.
+
+:::warning Important When choosing your VPC CIDR and Kubernetes Service CIDR:
+
+- Consider your current and future network topology, ensuring these CIDR ranges don't conflict with existing network
+  routes or address spaces, especially for VPC peering or VPN connections.
+- Consult with your network administrator if you're unsure about potential conflicts.
+- Remember that VPC CIDR and Kubernetes Service CIDR cannot be modified once the Data Plane has been created. :::
+
+<Thumbnail src="/img/data-plane/vpc-form.png" alt="Data Plane Creation Form" width="800px" />
+
+### Step 3. Create and Monitor your Data Plane
+
+Click the `Create` button after filling out all required fields. The creation process will begin, and you'll see your
+Data Plane listed with a `Creating` status. The creation process typically takes 60 minutes to complete.
+
+<Thumbnail src="/img/data-plane/data-plane-page.png" alt="Data Plane Page" width="1000px" />
+
+<br></br>
+
+Click on the `Creating` button in the status column to see detailed progress.
+
+<Thumbnail src="/img/data-plane/provisioning-status-modal.png" alt="Data Plane Creating Status" width="100px" />
+
+## After Creation
+
+Once your data plane is successfully created and the status updates to Active, you and your team can begin
+[creating projects](/private-ddn/create-a-project-on-a-data-plane.mdx) on your Data Plane. To access more information
+about a specific Data Plane, simply click on its name within the Data Planes table. This action will navigate you to a
+detailed view page of the selected Data Plane, as illustrated below.
+
+<Thumbnail src="/img/data-plane/data-plane-detail.png" alt="Data Plane Detail" width="1000px" />
+
+## Next steps
+
+Now that you've created a Data Plane on dedicated Private DDN,
+[learn how to add collaborators](/private-ddn/data-plane-collaboration.mdx) so they can create projects.
