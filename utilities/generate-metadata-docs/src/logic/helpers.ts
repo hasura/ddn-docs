@@ -60,7 +60,7 @@ export function generatePageMarkdown(fileName: string, metadataObjectTitles: str
     }
   });
 
-  updatePageMarkdown(`../../docs/supergraph-modeling/${fileName}.mdx`, pageMarkdown);
+  updatePageMarkdown(`../../docs/reference/metadata-reference/${fileName}.mdx`, pageMarkdown);
 }
 
 export function generateSchemaObjectMarkdown(
