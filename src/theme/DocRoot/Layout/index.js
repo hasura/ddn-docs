@@ -40,7 +40,7 @@ export default function DocRootLayout({ children }) {
   }, [isBrowser, hasInitialized]);
 
   useEffect(() => {
-    if (isBrowser && hasInitializedOpenReplay) {
+    if (isBrowser && hasInitializedOpenReplay && window.location.hostname !== 'localhost') {
       startOpenReplayTracking();
     }
   }, [hasInitializedOpenReplay]);
