@@ -71,7 +71,7 @@ definition:
   url:
     valueFromEnv: RESTIFIED_ENDPOINTS_URL
   config:
-    match: "/v1/api/rest/*"
+    matchPath: "/v1/api/rest/*"
     matchMethods: ["GET", "POST"]
     request:
       method: GET
@@ -79,6 +79,7 @@ definition:
         forward:
           - Authorization
           - x-hasura-role
+          - x-hasura-ddn-token
         additional:
           hasura-m-auth:
             valueFromEnv: M_AUTH_KEY
@@ -87,6 +88,11 @@ definition:
         query: {}
         method: {}
         body: {}
+    response:
+      headers:
+        additional:
+          content-type:
+            value: application/json
 ```
 
 :::tip URL Match
@@ -167,7 +173,6 @@ Update the `src/config.ts` file with the RESTified GraphQL endpoints that you wa
 ```typescript
 export const Config = {
   graphqlServer: {
-    url: "http://localhost:3000/graphql",
     headers: {
       additional: {
         "Content-Type": "application/json",
@@ -218,10 +223,14 @@ In `restified-endpoints-plugin` directory, update the `wrangler.toml` file with 
 [vars]
 OTEL_EXPORTER_OTLP_ENDPOINT = "https://gateway.otlp.hasura.io:443/v1/traces"
 OTEL_EXPORTER_PAT = "<PAT>"
+GRAPHQL_SERVER_URL = "<DDN_GRAPHQL_SERVER_URL>"
 ```
 
 Replace `<PAT>` with the Personal Access Token (PAT) for the Hasura Cloud account. You can display this using the
 `ddn auth print-pat` command.
+
+Replace `<DDN_GRAPHQL_SERVER_URL>` with the URL of your DDN GraphQL server. You can find this in the DDN console under
+the `Settings > Project Summary` section.
 
 ## Step 7. Deploy the plugin
 
@@ -249,5 +258,10 @@ Create a new supergraph build on Hasura DDN to check your work in the cloud.
 ```bash
 ddn supergraph build create
 ```
+
+## Step 9. Apply the build
+
+Apply the build to make it the default one served by your Hasura DDN project endpoint. You can do this from the DDN
+console by choosing the build from the `Builds` tab and clicking `Apply Build`.
 
 The engine will execute the plugin for each requests to the RESTified GraphQL endpoints you defined.
