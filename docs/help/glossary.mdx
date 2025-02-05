@@ -87,9 +87,26 @@ complex team communication. [Learn more](https://hasura.io/supergraph).
 
 ## Subgraphs
 
-A subgraph enables a team to bring the data domain they own into the supergraph. Subgraphs have a permission model, and
-an independent software development life cycle, and can be developed, tested, and built independently. The supergraph
-guarantees the integrity of subgraph composition. A subgraph is analogous to a microservice owned by a particular team.
+A subgraph represents a self-contained module of metadata and its accompanying data connector(s) which encapsulates a
+specific data domain. Subgraphs have a permission model, and an independent software development life cycle, and can be
+developed, tested, and built independently. The supergraph guarantees the integrity of subgraph composition.
+
+Subgraphs can be managed in their own isolated repositories and built completely independently of each other. Fields
+exposed to the full supergraph can be prefixed to prevent schema conflicts. Data can be interlinked between subgraphs
+using relationships, even between subgraphs in separate repositories.
+
+A subgraph is analogous to a microservice owned by a particular team.
+
+## Globals subgraph
+
+When running the `ddn supergraph init` command, a `globals` subgraph is created by default for your convenience. This
+subgraph is intended to hold global configuration objects for the supergraph, such as API configuration and auth
+settings.
+
+These configuration objects are `AuthConfig`, `CompatibilityConfig` and `GraphqlConfig` as well as the `subgraph.yaml`
+configuration file which defines the globals subgraph itself.
+
+These objects are located by default in the `globals` subgraph, but can be moved to any other subgraph if needed.
 
 ## Hasura Metadata
 
@@ -133,9 +150,17 @@ web service endpoints that a connector needs to implement.
 
 ## Native Data Connectors
 
-Data connector agents that integrate Hasura with various external data sources and services and are based on the native
-data connector specification. Native data connectors can be either official Hasura connectors, verified by Hasura or a
-non-verified connector. [Learn more](/data-sources/overview.mdx).
+Data connectors are specialized agents that connect subgraphs to data sources, enabling communication in the data
+source's native language.
+
+They integrate Hasura with various external data sources and services based on the native data connector specification.
+
+Each subgraph can have multiple data connectors, and the same data source can be connected to different subgraphs via
+separate connector instances - allowing teams to work with the same source from different domain perspectives.
+
+Data connectors are available for a wide variety of sources including databases, business logic functions, REST APIs,
+and GraphQL APIs. They can be official Hasura-verified connectors or custom-built connectors to integrate with other
+data sources. [Learn more](/data-sources/overview.mdx).
 
 ## Push-Down Capabilities
 
@@ -168,13 +193,30 @@ back some type of result. It directly maps to the native data connector object's
 
 ## Relationships
 
-A metadata object in Hasura DDN that defines the relationship between two models or between a model and a command. This
-facilitates data interconnection. [Learn more](/reference/metadata-reference/relationships.mdx).
+A metadata object in Hasura DDN that defines the relationship between two models or between a model and a command.
 
-## Permissions
+Defining a [relationship](/reference/metadata-reference/relationships.mdx) allows you to make queries across linked
+information within and between subgraphs.
 
-A metadata object in Hasura DDN that defines the access control or authorization rules on models and commands.
-[Learn more](/reference/metadata-reference/permissions.mdx).
+When working with relationships across subgraphs in other repositories, there are some differences to be aware of. Find
+out more about cross-repo relationships [here](/data-modeling/relationship.mdx#cross-repo-relationships).
+
+As always when authoring metadata, the
+[Hasura VS Code extension](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura) can assist with
+auto-complete and validation.
+
+## Authorization Permissions
+
+Authentication is managed at the supergraph level in Hasura DDN as defined by the `AuthConfig` object and cannot be
+customized at the subgraph level.
+
+Authorization however, which is a metadata object in Hasura DDN that defines the access control or authorization rules
+on models and commands. [Learn more](/reference/metadata-reference/permissions.mdx), is managed at the subgraph level in
+Hasura DDN. This means that the permissions for models and commands are defined within the context of those objects in
+their respective subgraphs, and do not affect other subgraphs.
+
+Authorization rules in one subgraph can also be defined to reference data in a foreign subgraph even if that subgraph is
+in another repository.
 
 ## Global ID
 
@@ -191,7 +233,7 @@ querying capabilities.
 Each collection is defined by its name, any collection arguments (need to parametrize the collections), the object type
 (a collection of fields) of its rows, and some additional metadata related to constraints.
 
-Tracking a collection results in the creation of a ‘model’ object in Hasura metadata.
+Tracking a collection results in the creation of a 'model' object in Hasura metadata.
 [Learn more](https://hasura.github.io/ndc-spec/specification/schema/collections.html).
 
 ## Function
