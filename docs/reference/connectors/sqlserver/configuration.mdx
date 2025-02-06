@@ -122,120 +122,11 @@ Consult the [json schema reference][Configuration JSON Schema] for details.
 
 ### `nativeQueries`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Property: JDBC Properties
-
-This is a JSON object containing key-value pairs of additional properties to be passed to the JDBC driver. For example,
-with MySQL to enable running multiple statements in a given query:
-
-```json
-{
-  "jdbcProperties": { "allowMultiQueries": "true" }
-}
-```
-
-### Property: Schemas
-
-This is an optional array of schema names to include in the introspection process. If not provided, all schemas will be
-included.
-
-Example:
-
-```json
-{
-  "schemas": ["public", "other_schema"]
-}
-```
-
-### Property: Tables
-
-This is an array of table definitions, generated automatically during introspection.
-
-Example:
-
-```json
-{
-  "tableName": "Album",
-  "tableType": "TABLE",
-  "description": "",
-  "columns": [
-    {
-      "name": "AlbumId",
-      "description": "",
-      "type": "int",
-      "numeric_scale": 0,
-      "nullable": false,
-      "auto_increment": true,
-      "is_primarykey": true
-    },
-    {
-      "name": "Title",
-      "description": "",
-      "type": "varchar",
-      "numeric_scale": null,
-      "nullable": false,
-      "auto_increment": false,
-      "is_primarykey": false
-    },
-    {
-      "name": "ArtistId",
-      "description": "",
-      "type": "int",
-      "numeric_scale": 0,
-      "nullable": false,
-      "auto_increment": false,
-      "is_primarykey": false
-    }
-  ],
-  "pks": ["AlbumId"],
-  "fks": {
-    "FK_AlbumArtistId": {
-      "foreign_collection": "Artist",
-      "column_mapping": {
-        "ArtistId": "ArtistId"
-      }
-    }
-  }
-}
-```
-
-### Property: Functions
-
-This is an array of function definitions.
-
-Example:
-
-```json
-{
-  "function_catalog": "public",
-  "function_schema": "public",
-  "function_name": "add",
-  "argument_signature": "(N NUMBER, M NUMBER)",
-  "data_type": "TABLE (N NUMBER, M NUMBER)",
-  "comment": "Adds two numbers"
-}
-```
-
-### Property: Native Queries
-
 This is a JSON object containing key-value pairs of Native Queries to be used in the data connector.
 
 Two types of Native Queries are supported: **Inline** and **Parameterized**.
+
+TODO: check if the info is correct
 
 Example:
 
@@ -299,6 +190,121 @@ Example:
   }
 ```
 
+### `nativeMutations`
+
+This is a JSON object containing key-value pairs of Native Mutations to be used in the data connector.
+
+Examle and extra info TODO
+
+### `aggregateFunctions`
+
+The `aggregateFunctions` field captures the aggregate funtions associated with the scalar types present in the data connector schema.
+
+The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
+input argument appear in the metadata.
+
+**Example**
+
+```yaml
+"aggregateFunctions": 
+  {
+    "bigint": {
+      "APPROX_COUNT_DISTINCT": {
+        "returnType": "bigint"
+      },
+      "AVG": {
+        "returnType": "bigint"
+      },
+      "COUNT": {
+        "returnType": "int"
+      },
+      "COUNT_BIG": {
+        "returnType": "bigint"
+      },
+      "MAX": {
+        "returnType": "bigint"
+      },
+      "MIN": {
+        "returnType": "bigint"
+      },
+      "STDEV": {
+        "returnType": "float"
+      },
+      "STDEVP": {
+        "returnType": "float"
+      },
+      "SUM": {
+        "returnType": "bigint"
+      },
+      "VAR": {
+        "returnType": "float"
+      },
+      "VARP": {
+        "returnType": "float"
+      }
+    }
+  }
+```
+
+### `comparisonOperators`
+
+The `comparisonOperators` field captures the comparision operators associated with the scalar types present in the data connector schema.
+
+The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
+input argument appear in the metadata.
+
+**Example**
+
+```yaml
+"comparisonOperators": 
+  {
+    "bigint": {
+      "_eq": {
+        "operatorName": "=",
+        "argumentType": "bigint",
+        "operatorKind": "equal"
+      },
+      "_gt": {
+        "operatorName": ">",
+        "argumentType": "bigint",
+        "operatorKind": "custom"
+      },
+      "_gte": {
+        "operatorName": ">=",
+        "argumentType": "bigint",
+        "operatorKind": "custom"
+      },
+      "_in": {
+        "operatorName": "IN",
+        "argumentType": "bigint",
+        "operatorKind": "in"
+      },
+      "_lt": {
+        "operatorName": "<",
+        "argumentType": "bigint",
+        "operatorKind": "custom"
+      },
+      "_lte": {
+        "operatorName": "<=",
+        "argumentType": "bigint",
+        "operatorKind": "custom"
+      },
+      "_neq": {
+        "operatorName": "!=",
+        "argumentType": "bigint",
+        "operatorKind": "custom"
+      }
+    }
+  }
+```
+
+A comparison operator is any function that takes two arguments and returns a `bool` value. An operator is recorded under
+the scalar type declaration of its first argument.
+
+### `storedProcedures`
+
+TODO
+
 ## Updating with introspection
 
 Whenever the schema of your database changes you will need to update your data connector configuration accordingly to
@@ -306,6 +312,6 @@ reflect those changes.
 
 Running `update` in a configuration directory will do the following:
 
-- Connect to the database with the specified `jdbcUrl`, and then overwrite all data in the `tables` field
+- Connect to the database with the specified `mssql_connection_string`, and then overwrite all data in the `tables` field
 
 - Fill in default values for any fields absent from the configuration
