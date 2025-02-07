@@ -49,8 +49,6 @@ The `connectionUri` field indicates the uri of the database which the connector 
 either as a literal value, or sourced from an environment variable (to help with sound credentials storage for
 instance).
 
-The SQL Server database URL should follow the [MSSQL connection URI form][libpq: Connection Strings]
-
 **Examples:**
 
 ```yaml
@@ -110,8 +108,7 @@ Consult the [json schema reference][Configuration JSON Schema] for details.
               {
                 "foreignTable": "Artist",
                 "columnMapping": {
-                    // Column of this table : Column of the referenced table
-                    "ArtistId": "ArtistId"
+                    "ArtistId": "ArtistId" // Column of this table : Column of the referenced table
                 }
               },
           },
@@ -122,11 +119,10 @@ Consult the [json schema reference][Configuration JSON Schema] for details.
 
 ### `nativeQueries`
 
+Native Queries collect user-specified SQL queries that that may become either queryable collections in the generated
+connector schema.
+
 This is a JSON object containing key-value pairs of Native Queries to be used in the data connector.
-
-Two types of Native Queries are supported: **Inline** and **Parameterized**.
-
-TODO: check if the info is correct
 
 Example:
 
@@ -188,13 +184,54 @@ Example:
     "description": null,
     "isProcedure": false
   }
+}
 ```
 
 ### `nativeMutations`
 
+Native Mutations collect user-specified SQL queries that that may become mutations in the generated connector schema.
+
 This is a JSON object containing key-value pairs of Native Mutations to be used in the data connector.
 
-Examle and extra info TODO
+```
+{
+  "nativeMutations": {
+    "insert_artist_and_return_id": {
+      "sql": "INSERT INTO [dbo].[Artist] (ArtistId, Name) OUTPUT inserted.*  VALUES ({{ArtistId}}, {{Name}})",
+      "columns": {
+        "ArtistId": {
+          "name": "ArtistId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "description": null,
+          "castAs": "varchar(100)"
+        }
+      },
+      "arguments": {
+        "ArtistId": {
+          "name": "ArtistId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "description": null
+        }
+      },
+      "description": null
+    }
+  }
+}
+```
 
 ### `aggregateFunctions`
 
@@ -303,7 +340,50 @@ the scalar type declaration of its first argument.
 
 ### `storedProcedures`
 
-TODO
+This is a JSON object containing key-value pairs of Stored Procedures to be used in the data connector.
+
+Example
+
+```
+{
+  "storedProcedures": {
+    "GetArtistsByName": {
+      "name": "GetArtistsByName",
+      "schema": "dbo",
+      "arguments": {
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "isOutput": false,
+          "description": null
+        }
+      },
+      "returns": {
+        "CustomerId": {
+          "name": "CustomerId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "Phone": {
+          "name": "Phone",
+          "type": "varchar",
+          "nullable": "nonNullable",
+          "description": null
+        },
+        "TotalPurchases": {
+          "name": "TotalPurchases",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
+        }
+      },
+      "description": null
+    }
+  }
+}
+```
 
 ## Updating with introspection
 
