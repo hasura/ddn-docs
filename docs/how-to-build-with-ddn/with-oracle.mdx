@@ -61,17 +61,58 @@ ddn connector init my_oracle -i
 From the dropdown, start typing `oracle` and hit enter to accept the default port. Then, provide the following
 values:
 
-**CJDBC URL**
+**JDBC URL**
 
 ```plaintext
-http://local.hasura.dev:8123
+jdbc:oracle:thin:@//127.0.0.53:1521/XE?user=SYS&password=mypassword
 ```
 
-**Schemas**
+For Schemas, hit enter to use the databse provided in the JDBC URL.
 
-```plaintext
-default_user
+### Step 4. Start the local Oracle container
+
+```sh title="Begin by creating a compose file for the ClickHouse service:"
+touch app/connector/my_oracle/compose.oracle.yaml
 ```
+
+```yaml title="Then, open the file and add the following:"
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21.3.0-slim
+    container_name: oracle-server
+    restart: always
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: mypassword
+      ORACLE_DATABASE: XE
+```
+
+```sh title="Run the container:"
+docker compose -f app/connector/my_oracle/compose.oracle.yaml up -d
+```
+
+```sh title="Use the SQL*PLUS shell to start the SQL prompt:"
+docker exec -it oracle-server sqlplus sys/mypassword@localhost:1521/XE as sysdba
+```
+
+```SQL title="Create a table in the databse:"
+CREATE TABLE users (user_id Number NOT NULL, name Varchar2(45) NOT NULL, age Number NOT NULL);
+```
+
+```SQL title="Then, seed the table:"
+INSERT ALL
+   INTO users (user_id, name, age) VALUES (1, 'Alice', 25)
+   INTO users (user_id, name, age) VALUES (2, 'Bob', 30)
+   INTO users (user_id, name, age) VALUES (3, 'Charlie', 35)
+SELECT 1 FROM DUAL;
+```
+
+```SQL title="You can verify this by running:"
+SELECT * FROM users;
+```
+
+You should see a list of users returned.
 
 ### Step 4. Introspect your Oracle database
 
@@ -89,7 +130,7 @@ ddn connector show-resources my_oracle
 ### Step 5. Add your model
 
 ```sh title="Now, track the table from your Oracle database as a model in your DDN metadata:"
-ddn models add my_oracle adminAlbum
+ddn models add my_oracle users
 ```
 
 Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
@@ -120,10 +161,10 @@ ddn console --local
 
 ```graphql title="In the GraphiQL explorer of the console, write this query:"
 query {
-  adminAlbum {
-    albumid
-    artistid
-    title
+  users {
+    userId
+    name
+    age
   }
 }
 ```
@@ -131,21 +172,21 @@ query {
 ```json title="You'll get the following response:"
 {
   "data": {
-    "adminAlbum": [
+    "users": [
       {
-        "albumid": 1,
-        "artistid": 1,
-        "title": "For Those About To Rock We Salute You"
+        "userId": 1,
+        "name": "Alice",
+        "age": 25
       },
       {
-        "albumid": 2,
-        "artistid": 2,
-        "title": "Balls to the Wall"
+        "userId": 2,
+        "name": "Bob",
+        "age": 30
       },
       {
-        "albumid": 3,
-        "artistid": 2,
-        "title": "Restless and Wild"
+        "userId": 3,
+        "name": "Charlie",
+        "age": 35
       }
     ]
   }
@@ -154,32 +195,26 @@ query {
 
 ### Step 9. Iterate on your Oracle schema
 
-```sh title="Let's add a new table for posts:"
-curl -u default_user:default_password -X POST \
-    --data "CREATE TABLE posts (
-        user_id UInt32,
-        post_id UInt32,
-        title String,
-        content String
-    ) ENGINE = MergeTree()
-    ORDER BY user_id;" \
-    http://localhost:8123
+```SQL title="Let's add a new table for posts:"
+CREATE TABLE posts (
+        user_id Number,
+        post_id Number,
+        title Varchar2(45),
+        content Varchar2(45)
+    );
 ```
 
-```sh title="Then, seed it:"
-curl -u default_user:default_password -X POST \
-    --data "INSERT INTO posts (user_id, post_id, title, content) VALUES
-    (1, 1, 'My First Post', 'This is Alice''s first post.'),
-    (1, 2, 'Another Post', 'Alice writes again!'),
-    (2, 3, 'Bob''s Post', 'Bob shares his thoughts.'),
-    (3, 4, 'Hello World', 'Charlie joins the conversation.');" \
-    http://localhost:8123
+```SQL title="Then, seed it:"
+INSERT ALL
+   INTO posts (user_id, post_id, title, content) VALUES (1, 1, 'My First Post', 'This is Alice''s first post.')
+   INTO posts (user_id, post_id, title, content) VALUES (1, 2, 'Another Post', 'Alice writes again!')
+   INTO posts (user_id, post_id, title, content) VALUES (2, 3, 'Bob''s Post', 'Bob shares his thoughts.')
+   INTO posts (user_id, post_id, title, content) VALUES (3, 4, 'Hello World', 'Charlie joins the conversation.')
+SELECT 1 FROM DUAL;
 ```
 
-```sh title="Finally, we can check the posts were generated:"
-curl -u default_user:default_password -X POST \
-    --data "SELECT * FROM posts;" \
-    http://localhost:8123
+```SQL title="Finally, we can check the posts were generated:"
+SELECT * FROM posts;
 ```
 
 ### Step 10. Refresh your metadata and rebuild your project
@@ -275,11 +310,11 @@ query GetPosts {
 kind: Relationship
 version: v1
 definition:
-  name: album
+  name: user
   sourceType: Posts
   target:
     model:
-      name: Album
+      name: Users
       relationshipType: Object
   mapping:
     - source:
@@ -287,7 +322,7 @@ definition:
           - fieldName: userId
       target:
         modelField:
-          - fieldName: albumid
+          - fieldName: userId
 ```
 
 :::tip LSP-Assisted authoring is available
@@ -317,10 +352,10 @@ query GetPosts {
     postId
     title
     content
-    album {
-      albumid
-      artistid
-      title
+    user {
+      userId
+      name
+      age
     }
   }
 }
@@ -335,9 +370,9 @@ query GetPosts {
         "title": "My First Post",
         "content": "This is Alice's first post.",
         "user": {
-          "albumid": 1,
-          "artistid": 1,
-          "title": "For Those About To Rock We Salute You"
+          "userId": 1,
+          "name": "Alice",
+          "age": 25
         }
       },
       {
@@ -345,9 +380,9 @@ query GetPosts {
         "title": "Another Post",
         "content": "Alice writes again!",
         "user": {
-          "albumid": 1,
-          "artistid": 1,
-          "title": "For Those About To Rock We Salute You"
+          "userId": 1,
+          "name": "Alice",
+          "age": 25
         }
       },
       {
@@ -355,9 +390,9 @@ query GetPosts {
         "title": "Bob's Post",
         "content": "Bob shares his thoughts.",
         "user": {
-          "albumid": 2,
-          "artistid": 2,
-          "title": "Balls to the Wall"
+          "userId": 2,
+          "name": "Bob",
+          "age": 30
         }
       },
       {
@@ -365,9 +400,9 @@ query GetPosts {
         "title": "Hello World",
         "content": "Charlie joins the conversation.",
         "user": {
-          "albumid": 3,
-          "artistid": 2,
-          "title": "Restless and Wild"
+          "userId": 3,
+          "name": "Charlie",
+          "age": 35
         }
       }
     ]
