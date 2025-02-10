@@ -1,41 +1,37 @@
 ---
-
 title: Connector Deployment Resource Limits
 sidebar_position: 5
 description:
-"Understand how to configure resource limits for connectors in Hasura DDN to optimize performance and cost. Learn about CPU, memory, and billing considerations."
+  "Understand how to configure resource limits for connectors in Hasura DDN to optimize performance and cost. Learn about CPU, memory, and deployment considerations."
 keywords:
-
-- hasura ddn
-- connector deployment
-- resource limits
-- cpu allocation
-- memory allocation
-- docker based connectors
-- billing plans
+  - connector deployment
+  - resource limits
+  - cpu allocation
+  - memory allocation
 seoFrontMatterUpdated: true
-
 ---
 
 # Connector Deployment Resource Limits
 
 ## Introduction
 
-Connectors in Hasura DDN can request specific resources for their deployment. These include memory and CPU allocation for Docker-based connectors. Understanding these limits ensures optimized performance and cost efficiency.
+Connectors in Hasura DDN can request specific resources for their deployment. These include memory and CPU allocation. Understanding these limits ensures optimized performance and cost efficiency.
 
 ## Default Resource Allocation
 
 By default, connectors have the following resource allocations:
 
-- **CPU**: 0.25 vCPU
-- **Memory**: 512MB RAM
+- **CPU**: 1 vCPU
+- **Memory**: 2GB RAM
 
 ## Custom Resource Limits
 
+Resource limits can only be modified for **Private DDN**. For **Public DDN**, the resource limits are fixed to **1 vCPU and 2GB RAM**, and cannot be downsized or upscaled.
+
 ### Public DDN
 
-- **Maximum CPU**: 1 vCPU
-- **Maximum RAM**: 2GB
+- **Fixed CPU**: 1 vCPU
+- **Fixed RAM**: 2GB
 - CPU and memory cannot be customized for Hasura-provided connectors.
 - The limit and request are always set to the same value.
 
@@ -47,7 +43,7 @@ By default, connectors have the following resource allocations:
 
 ## Defining Resource Limits in `connector.yaml`
 
-Resource limits can be set at both the top level and per region for Docker-based connectors.
+Resource limits can be set at both the top level and per region.
 
 ```yaml
 title: "Example connector.yaml configuration"
@@ -88,20 +84,9 @@ definition:
 
 This allows for fine-grained control over resource allocation based on deployment needs.
 
-## Billing Considerations
-
-Billing for resource usage is determined based on the requested resources rather than actual utilization.
-
-- **DDN Free / Base / Advanced Plans**
-- Third-party and code-based connectors are billed.
-- Hasura-provided connectors are free but have fixed resource allocations.
-- Future enhancements may include billing based on minimum instances.
-
 ## Deployment Considerations
 
 - If no region is specified for a connector, it is deployed to a random region.
 - The granularity for CPU allocation is **0.5 to 4 vCPUs** in increments of **0.5**.
-- Hasura DDN's resource allocation model follows AWS Fargate best practices.
 
 By optimizing resource configurations, connectors can achieve optimal performance while maintaining cost efficiency in Hasura DDN.
-
