@@ -37,14 +37,34 @@ Resource limits can only be modified for **Private DDN**. For **Public DDN**, th
 
 ### Private DDN
 
-- **Minimum CPU**: 1 vCPU
-- **Minimum RAM**: 2GB
-- The minimum and maximum values can be configured per customer.
+- **Default CPU**: 1 vCPU
+- **Default RAM**: 2GB
+- The defaults, minimum, and maximum allowed values can be configured per data plane.
 
 ## Memory and CPU Specifications
 
-- **Memory in bytes**: Memory can be defined in bytes using units such as `k` (kilobytes), `M` (megabytes), and `G` (gigabytes).
-- **Number of CPU cores**: CPU allocation is specified as a decimal value representing the number of vCPUs.
+Memory and CPU resources are specified using the same units as Kubernetes:
+
+- ### Memory Resource Units
+
+Limits and requests for memory are measured in bytes. Memory can be expressed as a plain integer or as a fixed-point number using one of the following quantity suffixes:
+
+- `E`, `P`, `T`, `G`, `M`, `k` (base-10 units)
+- `Ei`, `Pi`, `Ti`, `Gi`, `Mi`, `Ki` (power-of-two units)
+
+For example, the following values represent approximately the same amount of memory:
+
+- `128974848`, `129e6`, `129M`, `128974848000m`, `123Mi`
+
+> **Note:** Pay attention to the case of the suffixes. If you request `400m` of memory, this means `0.4` bytes, which is likely a mistake. Instead, you might intend to specify `400Mi` (400 mebibytes) or `400M` (400 megabytes).
+
+- ### CPU Resource Units
+
+Limits and requests for CPU resources are measured in CPU units. In Hasura DDN, `1` CPU unit is equivalent to `1` physical CPU core or `1` virtual core, depending on whether the node is a physical host or a virtual machine.
+
+Fractional requests are allowed. When a connector specifies `cpu: 0.5`, it is requesting half as much CPU time compared to `1.0` CPU. For CPU resource units, the quantity `0.1` is equivalent to `100m`, which can be read as "one hundred millicpu." Some refer to this as "one hundred millicores," and it is understood to mean the same thing.
+
+CPU resources are always specified as an absolute amount, never as a relative amount. For example, `500m` CPU represents the same amount of computing power whether the connector runs on a single-core, dual-core, or multi-core machine.
 
 ## Defining Resource Limits in `connector.yaml`
 
@@ -92,6 +112,5 @@ This allows for fine-grained control over resource allocation based on deploymen
 ## Deployment Considerations
 
 - If no region is specified for a connector, it is deployed to a random region.
-- The granularity for CPU allocation is **0.5 to 4 vCPUs** in increments of **0.5**.
 
 By optimizing resource configurations, connectors can achieve optimal performance while maintaining cost efficiency in Hasura DDN.
