@@ -17,7 +17,9 @@ WHERE
     age = {{ age }}
 ```
 
-Arguments are passed to the native query as variables surrounded by double curly braces `{{ }}`.
+Arguments are passed to the native query as variables surrounded by double curly braces `{{ }}`. This query will return
+a list of users sorted by name within their age group by using the PostgreSQL `RANK()` function using the `PARTITION BY`
+clause.
 
 ```sh title="Then, use the PostgreSQL connector's plugin to add the native query to your connector's configuration:"
 ddn connector plugin \
@@ -59,7 +61,58 @@ query UsersOfSameAge {
     id
     name
     age
-    orderWithinAge
+    rankWithinAge
   }
 }
 ```
+
+```json title="The response will be:"
+{
+  "data": {
+    "orderUsersOfSameAge": [
+      {
+        "age": 25,
+        "id": 1,
+        "name": "Alice",
+        "rankWithinAge": "1"
+      },
+      {
+        "age": 25,
+        "id": 4,
+        "name": "Dan",
+        "rankWithinAge": "2"
+      },
+      {
+        "age": 25,
+        "id": 5,
+        "name": "Erika",
+        "rankWithinAge": "3"
+      },
+      {
+        "age": 25,
+        "id": 6,
+        "name": "Fatima",
+        "rankWithinAge": "4"
+      },
+      {
+        "age": 25,
+        "id": 7,
+        "name": "Gabe",
+        "rankWithinAge": "5"
+      }
+    ]
+  }
+}
+```
+
+## Summary
+
+In this tutorial, we learned how to create a native query in a PostgreSQL connector. We added a native query to our
+PostgreSQL connector by creating a new file with a `.sql` extension in the `native_operations/queries` directory.
+
+We then used the `ddn connector plugin` command to add the native query to our connector's configuration.
+
+We then introspected our PostgreSQL instance to find the new native query and added it to our model.
+
+Finally, we built and served our supergraph API to see the new native query in action, which demonstrated how to rank
+users within age groups using PostgreSQL's window functions.
