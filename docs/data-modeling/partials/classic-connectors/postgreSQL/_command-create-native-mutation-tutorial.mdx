@@ -5,29 +5,30 @@ mkdir -p app/connector/my_pg/native_operations/mutations/
 ```
 
 ```sql title="Create a new file in your connector's directory:"
--- native_operations/queries/order_users_of_same_age.sql
-SELECT
-    id,
-    name,
-    age,
-    RANK() OVER (PARTITION BY age ORDER BY name ASC) AS rank_within_age
-FROM
-    users
-WHERE
-    age = {{ age }}
+-- native_operations/mutations/update_post_titles_by_age.sql
+UPDATE posts
+SET title = title || ' - age ' || {{ age }}
+FROM users
+WHERE posts.user_id = users.id
+    AND users.age = {{ age }}
+RETURNING
+    posts.id,
+    posts.title,
+    posts.user_id,
+    users.name,
+    users.age;
 ```
 
-Arguments are passed to the native query as variables surrounded by double curly braces `{{ }}`. This query will return
-a list of users sorted by name within their age group by using the PostgreSQL `RANK()` function using the `PARTITION BY`
-clause.
+Arguments are passed to the native mutation as variables surrounded by double curly braces `{{ }}`. This mutation will
+update the title of all posts for a given age by appending the age to the title.
 
 ```sh title="Then, use the PostgreSQL connector's plugin to add the native query to your connector's configuration:"
 ddn connector plugin \
   --connector app/connector/my_pg/connector.yaml \
   -- \
   native-operation create \
-  --operation-path native_operations/queries/order_users_of_same_age.sql \
-  --kind query
+  --operation-path native_operations/mutations/update_post_titles_by_age.sql \
+  --kind mutation
 ```
 
 ```sh title="Introspect your PostgreSQL instance:"
@@ -39,13 +40,7 @@ ddn connector show-resources my_pg
 ```
 
 ```sh title="Then, add your model:"
-ddn model add my_pg order_users_of_same_age
-```
-
-Let's add a few more users to make this native query example more interesting:
-
-```sql
-INSERT INTO users (name, age) VALUES ('Dan', 25), ('Erika', 25), ('Fatima', 25), ('Gabe', 25);
+ddn command add my_pg update_post_titles_by_age
 ```
 
 ```title="Build and serve your supergraph API:"
@@ -55,13 +50,14 @@ ddn run docker-start
 
 Now in your console you can run the following query to see the results:
 
-```graphql
-query UsersOfSameAge {
-  orderUsersOfSameAge(args: { age: 25 }) {
-    id
-    name
-    age
-    rankWithinAge
+```graphql title="Run the following mutation:"
+mutation UpdatePostTitlesByAge {
+  updatePostTitlesByAge(age: "25") {
+    affectedRows
+    returning {
+      id
+      title
+    }
   }
 }
 ```
@@ -69,50 +65,31 @@ query UsersOfSameAge {
 ```json title="The response will be:"
 {
   "data": {
-    "orderUsersOfSameAge": [
-      {
-        "age": 25,
-        "id": 1,
-        "name": "Alice",
-        "rankWithinAge": "1"
-      },
-      {
-        "age": 25,
-        "id": 4,
-        "name": "Dan",
-        "rankWithinAge": "2"
-      },
-      {
-        "age": 25,
-        "id": 5,
-        "name": "Erika",
-        "rankWithinAge": "3"
-      },
-      {
-        "age": 25,
-        "id": 6,
-        "name": "Fatima",
-        "rankWithinAge": "4"
-      },
-      {
-        "age": 25,
-        "id": 7,
-        "name": "Gabe",
-        "rankWithinAge": "5"
-      }
-    ]
+    "updatePostTitlesByAge": {
+      "affectedRows": 2,
+      "returning": [
+        {
+          "id": 1,
+          "title": "My First Post - age 25"
+        },
+        {
+          "id": 2,
+          "title": "Another Post - age 25"
+        }
+      ]
+    }
   }
 }
 ```
 
 ## Summary
 
-In this tutorial, we learned how to create a native query in a PostgreSQL connector. We added a native query to our
-PostgreSQL connector by creating a new file with a `.sql` extension in the `native_operations/queries` directory.
+In this tutorial, we learned how to create a native mutation in a PostgreSQL connector. We added a native mutation to
+our PostgreSQL connector by creating a new file with a `.sql` extension in the `native_operations/mutations` directory.
 
-We then used the `ddn connector plugin` command to add the native query to our connector's configuration.
+We then used the `ddn connector plugin` command to add the native mutation to our connector's configuration.
 
-We then introspected our PostgreSQL instance to find the new native query and added it to our model.
+We then introspected our PostgreSQL instance to find the new native mutation and added it to our model.
 
-Finally, we built and served our supergraph API to see the new native query in action, which demonstrated how to rank
-users within age groups using PostgreSQL's window functions.
+Finally, we built and served our supergraph API to see the new native mutation in action, which demonstrated how to
+update the title of all posts for a given age using PostgreSQL's `UPDATE` statement.
