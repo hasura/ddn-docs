@@ -7,7 +7,10 @@ mkdir -p app/connector/my_pg/native_operations/mutations/
 ```sql title="Create a new file in your connector's directory:"
 -- native_operations/mutations/update_post_titles_by_age.sql
 UPDATE posts
-SET title = title || ' - age ' || {{ age }}
+SET title = CASE
+    WHEN title ~ ' - age \d+$' THEN regexp_replace(title, ' - age \d+$', ' - age ' || {{ age }})
+    ELSE title || ' - age ' || {{ age }}
+END
 FROM users
 WHERE posts.user_id = users.id
     AND users.age = {{ age }}
