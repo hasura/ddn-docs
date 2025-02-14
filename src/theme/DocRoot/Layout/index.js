@@ -52,8 +52,8 @@ export default function DocRootLayout({ children }) {
 
     const getUser = async () => {
       try {
-        const user = await fetchUser();
-        // TODO: When the allowlist in Lux is updated, uncomment this and test on stage.hasura.io
+        // const user = await fetchUser();
+        // TODO: When the CORS domains in Lux are updated, uncomment this and test on stage.hasura.io
         // posthog.identify(user.data.users[0]?.id, { email: user.data.users[0]?.email });
       } catch (error) {
         console.error('Error fetching user:', error);
