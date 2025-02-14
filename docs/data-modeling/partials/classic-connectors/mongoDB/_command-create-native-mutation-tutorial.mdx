@@ -1,1 +1,57 @@
-Mongo
+```json title="Create a new native mutation file in your connector's directory:"
+// native_mutations/create_user.json
+{
+  "name": "createUser",
+  "description": "Create a new user with name and age",
+  "resultType": {
+    "object": "CreateUserResult"
+  },
+  "arguments": {
+    "name": {
+      "type": {
+        "scalar": "string"
+      }
+    },
+    "age": {
+      "type": {
+        "scalar": "int"
+      }
+    }
+  },
+  "objectTypes": {
+    "CreateUserResult": {
+      "fields": {
+        "ok": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "n": {
+          "type": {
+            "scalar": "int"
+          }
+        }
+      }
+    }
+  },
+  "command": {
+    "insert": "users",
+    "documents": [
+      {
+        "name": "{{ name }}",
+        "age": "{{ age }}",
+        "user_id": {
+          "$size": {
+            "$ifNull": [
+              {
+                "$objectToArray": "$$ROOT"
+              },
+              []
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
+```
