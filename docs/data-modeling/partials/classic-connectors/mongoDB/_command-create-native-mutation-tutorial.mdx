@@ -1,3 +1,11 @@
+Within your connector's directory, you can add a new file with a `.json` extension to define a native mutation.
+
+```sh title="Create a new directory to store your native mutations:"
+mkdir -p app/connector/my_mongo/native_operations/mutations/
+```
+
+Let's create a mutation that adds a new user to the database with a name and age.
+
 ```json title="Create a new native mutation file in your connector's directory:"
 // native_mutations/create_user.json
 {
@@ -55,3 +63,56 @@
   }
 }
 ```
+
+Arguments are passed to the native mutation as variables surrounded by double curly braces `{{ }}`.
+
+```sh title="Introspect your MongoDB instance:"
+ddn connector introspect my_mongo
+```
+
+```sh title="Show the found resources:"
+ddn connector show-resources my_mongo
+```
+
+```sh title="Then, add your model:"
+ddn command add my_mongo create_user
+```
+
+```title="Build and serve your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now in your console you can run the following query to see the results:
+
+```graphql title="Run the following mutation:"
+mutation CreateUser {
+  createUser(name: "John Doe", age: 30) {
+    ok
+    n
+  }
+}
+```
+
+```json title="The response will be:"
+{
+  "data": {
+    "createUser": {
+      "ok": 1,
+      "n": 1
+    }
+  }
+}
+```
+
+## Summary
+
+In this tutorial, we learned how to create a native mutation in a MongoDB connector. We added a native mutation to our
+MongoDB connector by creating a new file with a `.json` extension in the `native_operations/mutations` directory.
+
+We then used the `ddn connector plugin` command to add the native mutation to our connector's configuration.
+
+We then introspected our MongoDB instance to find the new native mutation and added it to our model.
+
+Finally, we built and served our supergraph API to see the new native mutation in action, which demonstrated how to
+create a new user document in MongoDB using the `insert` command.
