@@ -1,0 +1,35 @@
+The process of creating a native mutation for PostgreSQL is the following.
+
+Within your connector's directory, you can add a new file with a `.sql` extension to define a native mutation.
+
+Then, use the PostgreSQL connector's plugin to add the native query to your connector's configuration:
+
+```sh title="Then, use the PostgreSQL connector's plugin to add the native mutation to your connector's configuration:"
+ddn connector plugin \
+  --connector app/connector/<connector_name>/connector.yaml \
+  -- \
+  native-operation create \
+  --operation-path <path>/<to>/<your>/<native>/<mutation>/<mutation_name>.sql \
+  --kind mutation
+```
+
+```sh title="Introspect your PostgreSQL instance:"
+ddn connector introspect <connector_name>
+```
+
+```sh title="Show the found resources:"
+ddn connector show-resources <connector_name>
+```
+
+```sh title="Then, add your model:"
+ddn command add <connector_name> <mutation_name>
+```
+
+```title="Build and serve your supergraph API:"
+ddn supergraph build local
+ddn run docker-start
+```
+
+Now in your console you can run the mutation with GraphQL.
+
+See the tutorial for creating a native mutation in PostgreSQL [here](#via-native-mutation-tutorials).
