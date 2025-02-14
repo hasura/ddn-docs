@@ -4,7 +4,9 @@ Within your connector's directory, you can add a new file with a `.json` extensi
 mkdir -p app/connector/my_mongo/native_operations/mutations/
 ```
 
-Let's create a mutation that adds a new user to the database with a name and age.
+Let's create a [native mutation](/reference/connectors/mongodb/native-operations/native-mutations.mdx) that adds a new
+user to the database with a name and age using an
+[aggregation pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/).
 
 ```json title="Create a new native mutation file in your connector's directory:"
 // native_mutations/create_user.json
@@ -75,7 +77,7 @@ ddn connector show-resources my_mongo
 ```
 
 ```sh title="Then, add your model:"
-ddn command add my_mongo create_user
+ddn command add my_mongo createUser
 ```
 
 ```title="Build and serve your supergraph API:"
@@ -87,9 +89,9 @@ Now in your console you can run the following query to see the results:
 
 ```graphql title="Run the following mutation:"
 mutation CreateUser {
-  createUser(name: "John Doe", age: 30) {
-    ok
+  createUser(age: 25, name: "Peter") {
     n
+    ok
   }
 }
 ```
@@ -98,8 +100,8 @@ mutation CreateUser {
 {
   "data": {
     "createUser": {
-      "ok": 1,
-      "n": 1
+      "n": 1,
+      "ok": 1
     }
   }
 }
@@ -108,9 +110,7 @@ mutation CreateUser {
 ## Summary
 
 In this tutorial, we learned how to create a native mutation in a MongoDB connector. We added a native mutation to our
-MongoDB connector by creating a new file with a `.json` extension in the `native_operations/mutations` directory.
-
-We then used the `ddn connector plugin` command to add the native mutation to our connector's configuration.
+MongoDB connector by creating a new aggregation pipeline file in the `native_operations/mutations` directory.
 
 We then introspected our MongoDB instance to find the new native mutation and added it to our model.
 
