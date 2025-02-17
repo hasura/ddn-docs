@@ -45,19 +45,11 @@ CLI to add it to the connector configuration. For example:
    mkdir -p my_subgraph/connector/chinook_sqlserver/native_operations/mutations/
    ```
 
-2. Create a new SQL file `my_subgraph/connector/chinook_sqlserver/native_operations/mutations/insert_artist.sql` with the
+2. Create a new SQL file `my_subgraph/connector/chinook_sqlserver/native_operations/mutations/insert_artist_and_return_id.sql` with the
    following content:
 
    ```sql
-   INSERT INTO public."Artist" VALUES (
-     ( SELECT "ArtistId" + 1
-       FROM "Artist"
-       ORDER BY "ArtistId" DESC
-       LIMIT 1
-     ),
-     {{name}}
-   )
-   RETURNING *
+   INSERT INTO [dbo].[Artist] (ArtistId, Name) OUTPUT inserted.*  VALUES ({{ArtistId}}, {{Name}})
    ```
 
 3. Create a new entry in the ndc-sqlserver configuration:
@@ -80,15 +72,9 @@ artist's name:
 
 ```sql
 -- in update_artist_name.sql
-UPDATE public."Artist"
+UPDATE [dbo].[Artist]
 SET "Name" = {{new_name}}
-WHERE "ArtistId" = (
-  SELECT "ArtistId"
-  FROM public."Artist"
-  WHERE "Name" = {{current_name}}
-  LIMIT 1
-)
-RETURNING *;
+WHERE "ArtistId" = {{ArtistId}}
 ```
 
 :::
@@ -117,9 +103,12 @@ With the example above, you can then run the mutation in your GraphQL API like t
 
 ```graphql
 mutation {
-  insert_artist(name: "New Artist") {
-    ArtistId
-    Name
+  insert_artist_and_return_id(ArtistId: 1, Name: "Bob") {
+    returning {
+      ArtistId
+      Name
+    }
+    affected_rows
   }
 }
 ```
