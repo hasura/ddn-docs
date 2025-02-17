@@ -23,7 +23,7 @@ Example JSON Web Token (JWT) payload configuration definition:
 
 ```yaml title="globals/metadata/auth-config.hml"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -135,12 +135,13 @@ your auth provider.
 
 ### claimsConfig
 
-You can specify where the engine should look for the claims within the decoded token either with one of `namespace` and `locations` options.
+You can specify where the engine should look for the claims within the decoded token either with one of `namespace` and
+`locations` options.
 
 #### namespace {#jwt-claims-config-namespace}
 
-The `namespace` option is used when all of the Hasura claims are present in a single object within the decoded JWT. 
-Our example uses `claims.jwt.hasura.io` in the [Example Decoded Payload](#example-decoded-payload).
+The `namespace` option is used when all of the Hasura claims are present in a single object within the decoded JWT. Our
+example uses `claims.jwt.hasura.io` in the [Example Decoded Payload](#example-decoded-payload).
 
 ```yaml
 claimsConfig:
@@ -149,9 +150,11 @@ claimsConfig:
     location: /claims.jwt.hasura.io
 ```
 
-The `location` field indicates the location of the namespace object that uses [RFC 6901 JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) string syntax.
+The `location` field indicates the location of the namespace object that uses
+[RFC 6901 JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) string syntax.
 
-The `claimsFormat` field indicates whether the Hasura-specific claims are a regular JSON object or a stringified JSON. The following possible values are allowed: `Json`, `StringifiedJson`.
+The `claimsFormat` field indicates whether the Hasura-specific claims are a regular JSON object or a stringified JSON.
+The following possible values are allowed: `Json`, `StringifiedJson`.
 
 This is required because providers like AWS Cognito only allow strings in the JWT claims.
 [See #1176](https://github.com/hasura/graphql-engine/issues/1176).
@@ -190,12 +193,13 @@ If `claimsFormat` is `StringifiedJson` then the JWT claims should look like:
 
 #### locations {#jwt-claims-config-locations}
 
-This `locations` option can be used when Hasura claims are not all present in the single object, but individual claims are provided a JSON pointer within the decoded JWT. 
-In this option, you can indicate:
-- a literal value. 
+This `locations` option can be used when Hasura claims are not all present in the single object, but individual claims
+are provided a JSON pointer within the decoded JWT. In this option, you can indicate:
+
+- a literal value.
 - or a JSON pointer path for individual claims and an optional default value if the claim doesn't exist.
 
-`x-hasura-default-role` and `x-hasura-allowed-roles` claims are required. Other custom claims are optionally configured. 
+`x-hasura-default-role` and `x-hasura-allowed-roles` claims are required. Other custom claims are optionally configured.
 
 The literal values should be of type `String`, except for the `x-hasura-allowed-roles` claim which expects a string
 array.
@@ -221,12 +225,12 @@ The mapping for `x-hasura-allowed-roles`, `x-hasura-default-role` and `x-hasura-
 specified in the `locations` configuration as follows:
 
 ```yaml
-claimsConfig: 
+claimsConfig:
   locations:
-    x-hasura-default-role: 
+    x-hasura-default-role:
       path:
         path: /hasura/all_roles/0
-    x-hasura-allowed-roles: 
+    x-hasura-allowed-roles:
       path:
         path: /hasura/all_roles
     x-hasura-user-id:
@@ -249,12 +253,12 @@ claimsConfig:
 ```
 
 ```yaml
-claimsConfig: 
+claimsConfig:
   locations:
-    x-hasura-default-role: 
+    x-hasura-default-role:
       path:
         path: /hasura/all_roles/0
-    x-hasura-allowed-roles: 
+    x-hasura-allowed-roles:
       path:
         path: /hasura/all_roles
     x-hasura-user-id:
@@ -283,11 +287,11 @@ In the above case, since the `/user/id` doesn't exist in the JWT token, the defa
 The corresponding JWT config should be:
 
 ```yaml
-claimsConfig: 
+claimsConfig:
   locations:
-    x-hasura-default-role: 
+    x-hasura-default-role:
       literal: user
-    x-hasura-allowed-roles: 
+    x-hasura-allowed-roles:
       literal: ["user", "editor"]
     x-hasura-user-id:
       path:
@@ -299,7 +303,7 @@ value of the `x-hasura-user-id` is a JSON path to the value in the JWT token.
 
 ### tokenLocation
 
-Indicates the token location where request header to read the JWT from. 
+Indicates the token location where request header to read the JWT from.
 
 The following are the possible values:
 
@@ -308,7 +312,7 @@ The following are the possible values:
 In this mode, Hasura expects an `Authorization` header with a `Bearer` token.
 
 ```yaml
-tokenLocation: 
+tokenLocation:
   type: BearerAuthorization
 ```
 
@@ -324,7 +328,7 @@ In the cookie mode, Hasura will try to parse the cookie header with the given co
 should be the exact JWT.
 
 ```yaml
-tokenLocation: 
+tokenLocation:
   type: Cookie
   name: cookie_name
 ```
@@ -340,7 +344,7 @@ Cookie: cookie_name=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
 In the custom header mode, Hasura expects a `header_name` header with the exact JWT token value.
 
 ```yaml
-tokenLocation: 
+tokenLocation:
   type: Header
   name: header_name
 ```
@@ -353,12 +357,12 @@ header_name: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI...
 
 ### key {#jwt-json-key}
 
-This field specifies the JWT key configuration according to which the incoming JWT will be decoded. 
-You can configure either a `fixed` algorithm key or a remote JWK URL.
+This field specifies the JWT key configuration according to which the incoming JWT will be decoded. You can configure
+either a `fixed` algorithm key or a remote JWK URL.
 
 #### fixed {#jwt-json-key-fixed}
 
-In this option, you must indicate a JWT key and its algorithm so the engine can decode and verify the JWT token. 
+In this option, you must indicate a JWT key and its algorithm so the engine can decode and verify the JWT token.
 
 ```yaml
 key:
@@ -369,10 +373,10 @@ key:
       # valueFromEnv: AUTH_JWT_KEY
 ```
 
-The `algorithm` field specifies the cryptographic signing algorithm which is used to sign the JWTs. Valid values are: `HS256`, `HS384`,
-`HS512`, `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `PS256`, `PS384`, `PS512`, `EdDSA`.
+The `algorithm` field specifies the cryptographic signing algorithm which is used to sign the JWTs. Valid values are:
+`HS256`, `HS384`, `HS512`, `RS256`, `RS384`, `RS512`, `ES256`, `ES384`, `PS256`, `PS384`, `PS512`, `EdDSA`.
 
-The `key` field can be a literal value or an environment variable name. 
+The `key` field can be a literal value or an environment variable name.
 
 - In the case of a symmetric key (i.e. a HMAC-based key), just the key as is. (e.g. -"abcdef..."). The key must be long
   enough for the chosen algorithm, (e.g. for HS256 it must be at least 32 characters long).
@@ -391,7 +395,7 @@ For example:
   `https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com`.
 
 ```yaml
-key: 
+key:
   jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
 ```
 
@@ -414,9 +418,9 @@ Examples:
 
 ```yaml
 kind: AuthConfig
-version: v2
-definition: 
-  mode: 
+version: v3
+definition:
+  mode:
     jwt:
       # ...
       audience: ["myapp-1234", "myapp-6789"]
@@ -447,9 +451,9 @@ Examples:
 
 ```yaml
 kind: AuthConfig
-version: v2
-definition: 
-  mode: 
+version: v3
+definition:
+  mode:
     jwt:
       # ...
       issuer: https://my-auth-server.com
@@ -476,7 +480,7 @@ will look like:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -504,7 +508,7 @@ have the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -518,14 +522,17 @@ definition:
         fixed:
           algorithm: RS512
           key:
-            value: '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END PUBLIC KEY-----\n'
+            value:
+              '-----BEGIN PUBLIC
+              KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDdlatRjRjogo3WojgGHFHYLugd\nUWAY9iR3fy4arWNA1KoS8kVw33cJibXr8bvwUAUparCwlvdbH6dvEOfou0/gCFQs\nHUfQrSDv+MuSUMAe8jzKE4qW+jK+xQU9a03GUnKHkkle+Q0pX/g6jXZ7r1/xAK5D\no2kQ+X5xK9cipRgEKwIDAQAB\n-----END
+              PUBLIC KEY-----\n'
 ```
 
 **Example 2**: public key as X509 certificate:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -539,14 +546,17 @@ definition:
         fixed:
           algorithm: RS512
           key:
-            value: '-----BEGIN CERTIFICATE-----\nMIIDHDCCAgSgAwIBAgIINw9gva8BPPIwDQYJKoZIhvcNAQEFBQAwMTEvMC0GA1UE\nAxMmc2VjdXJldG9rZW4uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wHhcNMTgQt7dIsMTIU9k1SUrFviZOGnmHWtIAw\nmtYBcM9I0f9/ka45JIRp5Y1NKpAMFSShs7Wv0m1JS1kXQHdJsPSmjmDKcwnBe3R/\nTU3foRRywR/3AJRM15FNjTqvUm7TeaW16LkkRoECAwEAAaM4MDYwDAYDVR0TAQH/\nBAIwADAOBgNVHQ8BAf8EBAMCB4AwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwIwDQYJ\nKoZIhvcNAQEFBQADggEBADfY2DEmc2gb8/pqMNWHYq/nTYfJPpK4VA9A0lFTNeoq\nzmnbGwhKj24X+Nw8trsvkrKxHvCI1alDgBaCyzjGGvgOrh8X0wLtymp1yj6PWwee\nR2ZPdUaB62TCzO0iRv7W6o39ey+mU/FyYRtxF0ecxG2a0KNsIyFkciXUAeC5UVDo\nBNp678/SDDx9Ltuxc6h56a/hpBGf9Yzhr0RvYy3DmjBs6eopiGFmjnOKNxQrZ5t2\n339JWR+yiGEAtoHqk/fINMf1An6Rung1xYowrm4guhCIVi5unAvQ89fq0I6mzPg6\nLhTpeP0o+mVYrBmtYVpDpv0e71cfYowSJCCkod/9YbY=\n-----END CERTIFICATE-----'
+            value:
+              '-----BEGIN
+              CERTIFICATE-----\nMIIDHDCCAgSgAwIBAgIINw9gva8BPPIwDQYJKoZIhvcNAQEFBQAwMTEvMC0GA1UE\nAxMmc2VjdXJldG9rZW4uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wHhcNMTgQt7dIsMTIU9k1SUrFviZOGnmHWtIAw\nmtYBcM9I0f9/ka45JIRp5Y1NKpAMFSShs7Wv0m1JS1kXQHdJsPSmjmDKcwnBe3R/\nTU3foRRywR/3AJRM15FNjTqvUm7TeaW16LkkRoECAwEAAaM4MDYwDAYDVR0TAQH/\nBAIwADAOBgNVHQ8BAf8EBAMCB4AwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwIwDQYJ\nKoZIhvcNAQEFBQADggEBADfY2DEmc2gb8/pqMNWHYq/nTYfJPpK4VA9A0lFTNeoq\nzmnbGwhKj24X+Nw8trsvkrKxHvCI1alDgBaCyzjGGvgOrh8X0wLtymp1yj6PWwee\nR2ZPdUaB62TCzO0iRv7W6o39ey+mU/FyYRtxF0ecxG2a0KNsIyFkciXUAeC5UVDo\nBNp678/SDDx9Ltuxc6h56a/hpBGf9Yzhr0RvYy3DmjBs6eopiGFmjnOKNxQrZ5t2\n339JWR+yiGEAtoHqk/fINMf1An6Rung1xYowrm4guhCIVi5unAvQ89fq0I6mzPg6\nLhTpeP0o+mVYrBmtYVpDpv0e71cfYowSJCCkod/9YbY=\n-----END
+              CERTIFICATE-----'
 ```
 
 **Example 3**: public key published as JWKs:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -569,7 +579,7 @@ the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -583,14 +593,16 @@ definition:
         fixed:
           algorithm: Ed25519
           key:
-            value: '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAG9I+toAAJicilbPt36tiC4wi7E1Dp9rMmfnwdKyVXi0=\n-----END PUBLIC KEY-----'
+            value:
+              '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAG9I+toAAJicilbPt36tiC4wi7E1Dp9rMmfnwdKyVXi0=\n-----END PUBLIC
+              KEY-----'
 ```
 
 **Example 2**: public key as X509 certificate:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -604,7 +616,10 @@ definition:
         fixed:
           algorithm: Ed25519
           key:
-            value: '-----BEGIN CERTIFICATE REQUEST-----\nMIIBAzCBtgIBADAnMQswCQYDVQQGEwJERTEYMBYGA1UEAwwPd3d3LmV4YW1wbGUu\nY29tMCowBQYDK2VwAyEA/9DV/InajW02Q0tC/tyr9mCSbSnNP1txICXVJrTGKDSg\nXDBaBgkqhkiG9w0BCQ4xTTBLMAsGA1UdDwQEAwIEMDATBgNVHSUEDDAKBggrBgEF\nBQcDATAnBgNVHREEIDAegg93d3cuZXhhbXBsZS5jb22CC2V4YW1wbGUuY29tMAUG\nAytlcANBAKbTqnTyPcf4ZkVuq2tC108pBGY19VgyoI+PP2wD2KaRz4QAO7Bjd+7S\nljyJoN83UDdtdtgb7aFgb611gx9W4go=\n-----END CERTIFICATE REQUEST-----'
+            value:
+              '-----BEGIN CERTIFICATE
+              REQUEST-----\nMIIBAzCBtgIBADAnMQswCQYDVQQGEwJERTEYMBYGA1UEAwwPd3d3LmV4YW1wbGUu\nY29tMCowBQYDK2VwAyEA/9DV/InajW02Q0tC/tyr9mCSbSnNP1txICXVJrTGKDSg\nXDBaBgkqhkiG9w0BCQ4xTTBLMAsGA1UdDwQEAwIEMDATBgNVHSUEDDAKBggrBgEF\nBQcDATAnBgNVHREEIDAegg93d3cuZXhhbXBsZS5jb22CC2V4YW1wbGUuY29tMAUG\nAytlcANBAKbTqnTyPcf4ZkVuq2tC108pBGY19VgyoI+PP2wD2KaRz4QAO7Bjd+7S\nljyJoN83UDdtdtgb7aFgb611gx9W4go=\n-----END
+              CERTIFICATE REQUEST-----'
 ```
 
 #### EC based
@@ -616,7 +631,7 @@ needs to have the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -630,15 +645,17 @@ definition:
         fixed:
           algorithm: ES256
           key:
-            value: '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEVs/o5+uQbTjL3chynL4wXgUg2R9\nq9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==\n-----END PUBLIC KEY-----'
+            value:
+              '-----BEGIN PUBLIC
+              KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEVs/o5+uQbTjL3chynL4wXgUg2R9\nq9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==\n-----END
+              PUBLIC KEY-----'
 ```
 
 **Example 2**: public key as X509 certificate:
 
-
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -652,14 +669,17 @@ definition:
         fixed:
           algorithm: ES256
           key:
-            value: '"-----BEGIN CERTIFICATE-----\nMIIBbjCCARWgAwIBAgIUGn02F6Y6s88dDGmIfwiNxWxDjhswCgYIKoZIzj0EAwIw\nDTELMAkGA1UEBhMCSU4wHhcNMjMwNTI0MTAzNTI4WhcNMjgwNTIyMTAzNTI4WjAN\nMQswCQYDVQQGEwJJTjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBFbP6OfrkG0\n4y93Icpy+MF4FINkfavVFPCOZhKL1H/OkGe5DgSIycKp8w9aJmoHhB1sB3QTugfn\nRWm5nU/TzsajUzBRMB0GA1UdDgQWBBSaqFjzps1qG+x2DPISjaXTWsTOdDAfBgNV\nHSMEGDAWgBSaqFjzps1qG+x2DPISjaXTWsTOdDAPBgNVHRMBAf8EBTADAQH/MAoG\nCCqGSM49BAMCA0cAMEQCIBDHHWa/uLAVdGFEk82auTmw995+MsRwv52VXLw2Z+ji\nAiAXzOWIcGN8p25uhUN/7v9gEcADGIS4yUiv8gsn/Jk2ow==\n-----END CERTIFICATE-----'
+            value:
+              '"-----BEGIN
+              CERTIFICATE-----\nMIIBbjCCARWgAwIBAgIUGn02F6Y6s88dDGmIfwiNxWxDjhswCgYIKoZIzj0EAwIw\nDTELMAkGA1UEBhMCSU4wHhcNMjMwNTI0MTAzNTI4WhcNMjgwNTIyMTAzNTI4WjAN\nMQswCQYDVQQGEwJJTjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBFbP6OfrkG0\n4y93Icpy+MF4FINkfavVFPCOZhKL1H/OkGe5DgSIycKp8w9aJmoHhB1sB3QTugfn\nRWm5nU/TzsajUzBRMB0GA1UdDgQWBBSaqFjzps1qG+x2DPISjaXTWsTOdDAfBgNV\nHSMEGDAWgBSaqFjzps1qG+x2DPISjaXTWsTOdDAPBgNVHRMBAf8EBTADAQH/MAoG\nCCqGSM49BAMCA0cAMEQCIBDHHWa/uLAVdGFEk82auTmw995+MsRwv52VXLw2Z+ji\nAiAXzOWIcGN8p25uhUN/7v9gEcADGIS4yUiv8gsn/Jk2ow==\n-----END
+              CERTIFICATE-----'
 ```
 
 **Example 3**: public key published as JWKs:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -719,7 +739,7 @@ If you are using Firebase and Hasura, use this config:
 
 ```yaml
 	kind: AuthConfig
-	version: v2
+	version: v3
 	definition:
 	  mode:
 	    jwt:
