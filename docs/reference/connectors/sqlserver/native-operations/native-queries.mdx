@@ -23,55 +23,57 @@ Query is specified in the [Native Operation syntax](/reference/connectors/sqlser
 
 ## Create a Native Query
 
-To create a new Native Query, create a new SQL file inside the connector configuration directory, then use the `ddn` CLI
-to add it to the connector configuration. For example:
+Native queries can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json`.
+Here's an example configuration:
 
-1. Create a new directory structure under the connector configuration:
-
-   ```sh
-   mkdir -p my_subgraph/connector/chinook_sqlserver/native_operations/queries/
-   ```
-
-2. Create a new SQL file `my_subgraph/connector/chinook_sqlserver/native_operations/queries/artist_by_name_between.sql` with
-   the following content:
-
-   ```sql
-   SELECT *
+```json
+{
+    "nativeQueries": {
+      "selectArtist": {
+        "sql": "SELECT *
    FROM [dbo].[Artist]
    WHERE "Name" LIKE '%' || {{name}} || '%'
      AND "ArtistId" > {{lower_bound}}
-     AND "ArtistId" < {{upper_bound}}
-   ```
-
-3. Create a new entry in the connector configuration:
-
-   ```sh
-   ddn connector plugin --connector my_subgraph/connector/chinook_sqlserver/connector.yaml -- \
-     native-operation create --operation-path native_operations/queries/artist_by_name_between.sql --kind query
-   ```
-
-4. Update your metadata to track the new native query:
-
-   ```sh
-   $ ddn connector-link update chinook_sqlserver --add-all-resources
-   ```
-
-## List Native Operations
-
-To list the existing Native Operations for a specific connector, use the `list` command. For example:
-
-```sh
-ddn connector plugin --connector my_subgraph/connector/chinook_sqlserver/connector.yaml -- \
-  native-operation list
-```
-
-## Delete a Native Query
-
-A Native Query can be deleted with the `delete` command. For example:
-
-```sh
-ddn connector plugin --connector my_subgraph/connector/chinook_sqlserver/connector.yaml -- \
-  native-operation delete --name artist_by_name_between --kind query
+     AND "ArtistId" < {{upper_bound}}",
+        "columns": {
+          "ArtistId": {
+            "name": "ArtistId",
+            "type": "int",
+            "nullable": "nonNullable",
+            "description": null
+          },
+          "Name": {
+            "name": "Name",
+            "type": "varchar",
+            "nullable": "nullable",
+            "description": null,
+            "castAs": "varchar(100)"
+          }
+        },
+        "arguments": {
+          "lower_bound": {
+            "name": "lower_bound",
+            "type": "int",
+            "nullable": "nonNullable",
+            "description": null
+          },
+          "upper_bound": {
+            "name": "upper_bound",
+            "type": "varchar",
+            "nullable": "nullable",
+            "description": null
+          },
+          "Name": {
+            "name": "name",
+            "type": "varchar",
+            "nullable": "nullable",
+            "description": null
+          }
+        },
+        "description": null
+      }
+    }
+}
 ```
 
 ### Usage
