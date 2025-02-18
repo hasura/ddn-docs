@@ -18,7 +18,9 @@ import Thumbnail from "@site/src/components/Thumbnail";
 
 ## Introduction
 
-DDN workspace is a development environment for working with Private DDN in your browser, without having to install DDN CLI and its dependencies on your local machine. It has a familiar VS Code like UI, runs on your data plane and has all the dependencies required to work with DDN pre-installed. 
+DDN Workspace provides a browser-based development environment for working with Private DDN, eliminating the need to
+install DDN CLI and its dependencies locally. It features a familiar VS Code-like UI, runs directly on your data plane,
+and includes all necessary dependencies required to work with DDN pre-installed.
 
 This guide will walk you through the steps for using DDN workspace to develop your API on a Data Plane in
 [Private Hasura DDN](/private-ddn/overview.mdx). Before proceeding, you'll first need to be
@@ -26,57 +28,66 @@ This guide will walk you through the steps for using DDN workspace to develop yo
 
 :::info Prerequisite
 
-To provision a new workspace in Private DDN, please reach out to us 
-[here](https://hasura.io/contact-us).
+To provision a new workspace in Private DDN, please reach out to us [here](https://hasura.io/contact-us).
 
 :::
 
-The recommendation is to have a workspace dedicated per developer working on Private DDN API development. Once the workspace has been provisioned, it can be launched from the [Private DDN page](https://console.hasura.io/data-plane).
+We recommend a dedicated workspace for each developer working on Private DDN API development. Once the workspace has
+been provisioned, it can be launched from the [Private DDN page](https://console.hasura.io/data-plane).
 
 ## Advantages
 
-- Get started with just your browser. No need to install DDN CLI and its dependencies (e.g. Docker Engine) on your local machine.
-- Network connectivity - As the workspace is running on your data plane, it has access to all the data sources and services available in the data plane network. No need to setup complex VPN/network policies to access your DBs from your local machine.
-- Collaboration - Multiple developers can work on the same project simultaneously in the same workspace, if needed.
-
+- Get started with just your browser. No need to install DDN CLI and its dependencies (e.g. Docker Engine) on your local
+  machine.
+- Network connectivity - Since the workspace runs on your data plane, it has direct access to all data sources and
+  services within the data plane network. There is no need to set up complex VPN/network policies to access your DBs
+  from your local machine.
+- Collaboration - Multiple developers can work on the same project simultaneously within the same workspace, if needed.
 
 ## Step 1. Launch a workspace
 
-- To launch a workspace, click on the `Launch Workspace` button on the Private DDN. The list of all the Private DDN accessible to you are available [here](https://console.hasura.io/data-plane). This will open a new tab in your browser with the workspace UI.
+- To launch a workspace, click on the `Launch Workspace` button on the Private DDN. You can find a list of all available
+  Private DDN instances here. This will open a new tab in your browser with the workspace UI.
 
-- Click on the `Copy Password` button to copy the password to your clipboard. Use this password to login to the workspace.
+- Click on the `Copy Password` button to copy the password to your clipboard. Use this password to login to the
+  workspace.
 
 <Thumbnail src="/img/data-plane/launch-workspace.png" alt="Launch DDN workspace" width="1000px" />
 
-## Step 2. Authenticate the CLI
+## Step 2. Authenticate the DDN CLI
 
-Once logged in, you will be greeted with the familiar VS Code UI. You can do everything you would do in your local machine (install extensions, customize key bindings and themes, etc.), but in the browser.
+Once logged in, you will be greeted with the familiar VS Code UI. You can perform all typical development tasks, such as
+installing extensions, customizing key bindings, and applying themes—all within your browser.
 
-Bring up the terminal using the shortcut `Ctrl` + `` ` ``. Run the following command to authenticate the CLI with a service account token. Follow [these](/project-configuration/project-management/service-accounts/#how-to-create-service-account) steps to create a service account token.
+Bring up the terminal using the shortcut `Ctrl` + `` ` ``.
+
+Run the command below to authenticate the CLI with a service account token. If you don't have a token, follow
+[these](/project-configuration/project-management/service-accounts/#how-to-create-service-account) steps to generate
+one.
 
 ```bash
 ddn auth login --access-token <service-account-token>
 ```
+
 ## Step 3. Scaffold out a new local project
 
 ```sh title="Next, create a new local project:"
 ddn supergraph init my-project && cd my-project
 ```
 
-Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
-running `ls` in your terminal, or by opening the directory in the VS Code editor interface.
+After navigating into the directory, you will see the project structure scaffolded for you. You can view the project
+structure by running `ls` in the terminal or by exploring it in the VS Code interface.
 
 ## Step 4. Add a data source
 
-The command below will launch a wizard via the DDN CLI which will assist you in adding a data connector. You can learn
-more about adding sources via data connectors [here](/data-sources/connect-to-a-source.mdx).
+The command below launches a wizard in the DDN CLI to guide you through adding a data connector. You can learn more
+about adding sources via data connectors [here](/data-sources/connect-to-a-source.mdx).
 
 ```sh title="Add a data source using the CLI:"
 ddn connector init <connector_name> -i
 ```
 
-This will provision the necessary files using your configuration for connecting a data source to your supergraph
-API.
+This will provision the necessary files using your configuration for connecting a data source to your supergraph API.
 
 :::info Organize your data into subgraphs
 
@@ -98,18 +109,19 @@ ddn command add <connector_name> '*'
 ddn relationship add <connector_name> '*'
 ```
 
-You'll see metadata files generated for each entity in your data source. You can learn more
+Metadata files will be generated for each entity in your data source. You can learn more
 [here](/data-modeling/overview.mdx).
 
 :::info Note
 
-`ddn supergraph build local`, `ddn run docker-start` and `ddn console --local` are not supported in DDN workspace. Once the metadata is generated, create a cloud project and deploy your supergraph to your Private DDN to query the API.
+`ddn supergraph build local`, `ddn run docker-start` and `ddn console --local` are not supported in DDN workspace. Once
+the metadata is generated, create a cloud project and deploy your supergraph to your Private DDN to query the API.
 
 :::
 
 ## Step 6. Create a project on your Data Plane
 
-You'll create a new project using the DDN CLI and by passing two flags: the `data-plane-id` and the `plan`.
+Create a new project using the DDN CLI, specifying the `data-plane-id` and the `plan` as flags.
 
 :::info Get Data Plane ID
 
@@ -143,12 +155,16 @@ When this process is complete, the CLI will return a link to the hosted API wher
 
 ## Step 8. Exporting your metadata
 
-You can export the metadata to your local machine by right clicking on the `Explorer` pane and selecting on the `Download` option. This will download the entire directory containing all the files in your workspace to your local machine. Workspace also has `git` pre-installed, so you can configure it and push your changes to a remote repository as well. 
+To export metadata, right-click the Explorer pane and select `Download`. This will download the entire workspace
+directory to your local machine. Since Git is pre-installed in the workspace, you can also configure it and push changes
+directly to a remote repository.
 
 <Thumbnail src="/img/data-plane/export-metadata.png" alt="Export metadata" width="1000px" />
 
 ## Logout
 
-To logout from the workspace, choose on the `Sign out of code-server` option by clicking on the Menu button on the top left corner. This will close the workspace and you will be redirected to the Workspace login page. The state of your local project will be preserved and you can login again to continue working on it.
+To log out of the workspace, click the Menu button in the top-left corner and select `Sign out of code-server`. This
+will close the workspace and you will be redirected to the workspace login page. The state of your local project will be
+preserved and you can login again to continue working on it.
 
 <Thumbnail src="/img/data-plane/workspace-logout.png" alt="Logout from workspace" width="1000px" />
