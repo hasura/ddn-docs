@@ -2,34 +2,65 @@ For example if you have a [native mutation](/reference/connectors/mongodb/native
 inserts a user you can modify it to include a second field on new documents.
 
 ```json title="Edit the existing native mutation in your connector's directory:"
-// native_mutations/insert_user.json
+// native_mutations/create_user.json
 {
-  "name": "insertUser",
-  "description": "Inserts a user record into the database",
-
-  "arguments": {
-    "name": { "type": { "scalar": "string" } },
-    "role": { "type": { "nullable": { "scalar": "string" } } } // add an argument
-  },
-
+  "name": "createUser",
+  "description": "Create a new user with name and age",
   "resultType": {
-    "object": "InsertUser"
+    "object": "CreateUserResult"
+  },
+  "arguments": {
+    "name": {
+      "type": {
+        "scalar": "string"
+      }
+    },
+    "age": {
+      "type": {
+        "scalar": "int"
+      }
+    },
+    "role": {
+      "type": {
+        "nullable": {
+          "scalar": "string"
+        }
+      }
+    } // add an argument
   },
   "objectTypes": {
-    "InsertUser": {
+    "CreateUserResult": {
       "fields": {
-        "ok": { "type": { "scalar": "double" } },
-        "n": { "type": { "scalar": "int" } }
+        "ok": {
+          "type": {
+            "scalar": "int"
+          }
+        },
+        "n": {
+          "type": {
+            "scalar": "int"
+          }
+        }
       }
     }
   },
-
   "command": {
     "insert": "users",
     "documents": [
       {
         "name": "{{ name }}",
-        "role": "{{ role }}" // include a field with the value of the new argument
+        "age": "{{ age }}",
+        "role": "{{ role }}",
+        "user_id": {
+          "$size": {
+            "$ifNull": [
+              {
+                "$objectToArray": "$$ROOT"
+              },
+              []
+            ]
+          }
+        }
       }
     ]
   }
