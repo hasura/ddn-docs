@@ -1,0 +1,395 @@
+---
+sidebar_position: 2
+sidebar_label: BYOC
+description: "Run Hasura DDN Private Data Plane in your own cloud account, get all managed Data Plane benefits"
+keywords:
+  - hasura ddn
+  - enterprise ddn
+  - private ddn
+  - byoc
+  - bring your own cloud
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# Bring Your Own Cloud (BYOC): Create a Data Plane
+
+## Introduction
+
+Private DDN BYOC allows you to deploy the Data Plane component in your own cloud environment. This approach is useful if
+you have specific requirements or constraints which prevent you from using the dedicated Data Plane on Hasura's cloud.
+
+BYOC is currently supported on AWS, GCP and Azure.
+
+If you would like access to Private DDN BYOC, please [contact sales](https://hasura.io/contact-us).
+
+## Onboarding Process
+
+To get started with BYOC, customers are required to have one of the following:
+
+- A dedicated project on Google Cloud
+- A dedicated AWS Account
+- A dedicated Resource Group on Microsoft Azure
+
+### Azure
+
+#### 1. Provide Required Information
+
+Get the following details from your
+[Azure Portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) and pass them along
+to the Hasura team.
+
+- (Required) Subscription ID
+- (Required) Tenant ID
+- (Required) Resource Group Name
+  - Create a resource group if you do not already have one
+- (Required) Region to deploy
+- (Required) Availability zones to deploy
+- (Optional) Preferred VPC CIDR for infrastructure (/16 - /19)
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along.
+
+#### 2. Create App Entities for BYOC
+
+##### For infra provisioning:
+
+- Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:  
+   `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=4f7f1f59-f0b0-4adb-8603-2afacc50552b&response_type=code`
+- Then open the URL in your browser to create the app entity named **PrivateDdnInfra** in your Azure account.
+  1.  If you encounter a redirect error ("No reply address is registered for the application") after clicking on
+      Approve, ignore this. The actual app will still be created behind the scenes successfully.
+
+##### For workload provisioning:
+
+- Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:  
+   `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=ce413986-b5c3-4e49-b45e-093f07776c14&response_type=code`
+- Then open the URL in your browser to create the app entity named **ArgoCDDeployer** in your Azure account.
+  1.  If you encounter a redirect error ("No reply address is registered for the application) after clicking on Approve,
+      ignore this. The actual app will still be created behind the scenes successfully.
+
+#### 3. Grant Required Roles
+
+Assign the following roles at the resource group level:
+
+- For `PrivateDdnInfra`:
+  - Contributor
+  - Role Based Access Control (RBAC) Administrator
+    1. Allow user to assign all roles except the roles you select
+    2. Configure the constrained roles by adding Owner to exclude roles
+- For `ArgoCDDeployer`:
+  - Azure Kubernetes Service RBAC Cluster Admin
+
+#### 4. Additional requirements
+
+- Register the `EnableAPIServerVnetIntegrationPreview` feature flag using the az feature register command:
+  1. `az feature register --namespace "Microsoft.ContainerService" --name "EnableAPIServerVnetIntegrationPreview"`
+
+Hasura provisioning requires that various node pools be created in order to support DDN workloads. Hasura will be
+provisioning 2 vCPU/8GB RAM instance types for this purpose (Using x64 VM Architecture). We therefore require that CPU
+related quotas are set accordingly by the customer on a desired instance family type in order to allow Hasura the
+ability to provision nodes without any issues. A base configuration of worker nodes will consume 20 vCPU. We however
+recommend setting an appropriate threshold in order to accommodate workers scaling up and down.
+
+### AWS
+
+The setup involves creating an IAM role in the newly created AWS account; this role establishes a trust relationship
+with Hasura’s GCP service account which will be used to deploy and manage workloads necessary for Hasura DDN.
+
+#### Pre-requisites
+
+- Dedicated AWS Account with administrative access
+- AWS Account enabled with desired region where data plane will be provisioned under
+- AWS CLI installed and configured
+- AWS_REGION environment variable set to your desired region (e.g., `export AWS_REGION=us-east-1`)
+
+#### IAM Permissions (For Cloudformation Stack)
+
+- Template creates:
+  - An IAM Role named `HasuraCloudBYOC`
+  - Associated policies for managing EKS clusters and related AWS resources
+  - Trust relationship with Hasura Cloud's management role
+
+#### Security considerations
+
+- The role has least-privilege permissions required for Hasura Cloud operations
+- All resources created by this role will be tagged with `Created-By: HasuraCloud`
+- The role can only be assumed by Hasura Cloud's management role with a specific external ID
+
+#### Setup instructions
+
+- Download the following and save it as `cloudformation.yaml`
+
+<details>
+
+<summary>cloudformation.yaml</summary>
+```bash
+Resources:
+  BootstrapRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: HasuraCloudBYOC
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: arn:aws:iam::760537944023:role/PulumiDDNCli
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: hasura-cloud
+  BootstrapPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: HasuraCloudBYOC
+      Roles:
+        - !Ref BootstrapRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:DescribeAddresses
+              - ec2:DescribeAddressesAttribute
+              - ec2:DescribeAvailabilityZones
+              - ec2:DescribeInternetGateways
+              - ec2:DescribeNatGateways
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeRegions
+              - ec2:DescribeRouteTables
+              - ec2:DescribeSecurityGroupRules
+              - ec2:DescribeSecurityGroups
+              - ec2:DescribeSubnets
+              - ec2:DescribeTags
+              - ec2:DescribeVpcAttribute
+              - ec2:DescribeVpcs
+              - eks:DeleteAddon
+              - eks:DescribeAddon
+              - eks:DescribeCluster
+              - eks:DescribeNodegroup
+              - eks:ListClusters
+              - iam:GetRole
+              - iam:GetServiceLinkedRoleDeletionStatus
+              - sqs:GetQueueAttributes
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - ec2:AllocateAddress
+              - ec2:AssociateAddress
+              - ec2:AssociateRouteTable
+              - ec2:CreateInternetGateway
+              - ec2:CreateNatGateway
+              - ec2:CreateRoute
+              - ec2:CreateRouteTable
+              - ec2:CreateSubnet
+              - ec2:CreateTags
+              - ec2:CreateVpc
+              - eks:CreateCluster
+              - eks:CreateNodegroup
+              - globalaccelerator:CreateAccelerator
+              - globalaccelerator:CreateEndpointGroup
+              - globalaccelerator:CreateListener
+              - globalaccelerator:TagResource
+              - sqs:CreateQueue
+              - sqs:TagQueue
+              - acm:RequestCertificate
+              - events:PutRule
+              - events:TagResource
+              - iam:CreateOpenIDConnectProvider
+              - iam:TagOpenIDConnectProvider
+            Resource: '*'
+            Condition:
+              StringEquals:
+                aws:RequestTag/Created-By: HasuraCloud
+          - Effect: Allow
+            Action:
+              - ec2:CreateTags
+            Resource:
+              - !Sub arn:aws:ec2:*:${AWS::AccountId}:security-group/*
+            Condition:
+              StringEquals:
+                aws:RequestTag/karpenter.sh/discovery: dataplane
+          - Effect: Allow
+            Action:
+              - ec2:DeleteTags
+            Resource:
+              - !Sub arn:aws:ec2:*:${AWS::AccountId}:security-group/*
+            Condition:
+              StringEquals:
+                aws:ResourceTag/karpenter.sh/discovery: dataplane
+          - Effect: Allow
+            Action:
+              - eks:AssociateAccessPolicy
+              - eks:DisassociateAccessPolicy
+            Resource:
+              - !Sub arn:aws:eks:*:${AWS::AccountId}:access-entry/dataplane/*
+          - Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:CreateInstanceProfile
+              - iam:CreatePolicy
+              - iam:CreateRole
+              - iam:DeleteInstanceProfile
+              - iam:DeleteOpenIDConnectProvider
+              - iam:DeletePolicy
+              - iam:DeleteRole
+              - iam:DeleteServiceLinkedRole
+              - iam:DetachRolePolicy
+              - iam:GetInstanceProfile
+              - iam:GetOpenIDConnectProvider
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRolePolicy
+              - iam:ListAttachedRolePolicies
+              - iam:ListInstanceProfilesForRole
+              - iam:ListOpenIDConnectProviderTags
+              - iam:ListPolicyVersions
+              - iam:ListRolePolicies
+              - iam:PassRole
+              - iam:PutRolePolicy
+              - iam:RemoveRoleFromInstanceProfile
+              - iam:TagInstanceProfile
+              - iam:TagOpenIDConnectProvider
+              - iam:TagPolicy
+              - iam:TagRole
+            Resource:
+              # Roles
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/KarpenterNodeRole
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/eksClusterRole-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/lb-controller-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/autoscaler-controller-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/global-accelerator-operator-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/karpenter-controller-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/HasuraWorkloadAutomationRole-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/vpc-cni-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/ebsCsiDriverRole-*
+              # Instance Profiles
+              - !Sub arn:aws:iam::${AWS::AccountId}:instance-profile/dataplane_*
+              # Policies
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/lb-controller-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/autoscaler-controller-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/global-accelerator-operator-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/karpenter-controller-*
+              # OIDC Providers
+              - !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/oidc.eks.*
+              # Service Roles
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource: '*'
+            Condition:
+              StringEquals:
+                iam:AWSServiceName:
+                  - spot.amazonaws.com
+                  - globalaccelerator.amazonaws.com
+                  - eks.amazonaws.com
+                  - eks-nodegroup.amazonaws.com
+          - Effect: Allow
+            Action:
+              - eks:*
+              - globalaccelerator:*
+              - sqs:*
+              - acm:*
+              - events:*
+            Resource: '*'
+            Condition:
+              StringEquals:
+                aws:ResourceTag/Created-By: HasuraCloud
+          - Effect: Allow
+            Action:
+              - ec2:*
+            Resource: '*'
+            Condition:
+              StringEquals:
+                ec2:ResourceTag/Created-By: HasuraCloud
+
+Outputs:
+  RoleArn:
+    Description: "ARN of the HasuraCloudBYOC IAM Role"
+    Value: !GetAtt BootstrapRole.Arn
+```
+</details>
+
+- Check if the stack already exists, by running the following:
+
+```bash
+aws cloudformation describe-stacks --stack-name hasura-cloud-byoc
+```
+
+  - If you see an error `Stack with id hasura-cloud-byoc does not exist`, proceed with:
+
+  ```bash
+  # Create new stack
+  aws cloudformation create-stack \
+  --stack-name hasura-cloud-byoc \
+  --template-body file://cloudformation.yaml \
+  --capabilities CAPABILITY_NAMED_IAM
+
+  # Wait for creation to complete
+  aws cloudformation wait stack-create-complete \
+  --stack-name hasura-cloud-byoc
+  ```
+
+  - Otherwise (If stack exists), proceed with:
+
+  ```bash
+  # Update existing stack
+  aws cloudformation update-stack \
+  --stack-name hasura-cloud-byoc \
+  --template-body file://cloudformation.yaml \
+  --capabilities CAPABILITY_NAMED_IAM
+
+  # Wait for update to complete
+  aws cloudformation wait stack-update-complete \
+  --stack-name hasura-cloud-byoc
+  ```
+- Monitor execution of your Cloudformation stack via:
+
+```bash
+aws cloudformation describe-stacks \
+  --stack-name hasura-cloud-byoc \
+  --query 'Stacks[0].StackStatus'
+```
+
+- Once execution completes, retrieve the `Role ARN` by running the following:
+
+```bash
+aws cloudformation describe-stacks \
+  --stack-name hasura-cloud-byoc \
+  --query 'Stacks[0].Outputs[?OutputKey==`RoleArn`].OutputValue' \
+  --output text
+```
+
+#### Provide Required Information
+
+Share the following with the Hasura team:
+
+- (Required) Role ARN (From output above)
+- (Required) AWS Region
+- (Optional) Preferred Availability Zones
+  - If you have specific zones which you'd like to use, please pass it along.  Otherwise, Hasura will assign accordingly.
+- (Optional) VPC CIDR (/16 CIDR)
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along.  If not specified, Hasura will assign 10.0.0.0/16.
+  - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
+- (Optional) Kubernetes Service CIDR (/16-20 CIDR)
+  - A /16-/20 CIDR block used for Kubernetes service cluster IP addresses in your Data Plane. If not specified, Hasura will assign 172.20.0.0/16.
+  - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
+
+### GCP
+
+#### 1. Create a New GCP Project
+
+- Log in to your Google Cloud Console.
+- Create a new project specifically for the Data Plane deployment.
+
+#### 2. Grant Access
+
+- Give the following service account Owner access to the project: `ddn-automation@hasura-ddn.iam.gserviceaccount.com`
+
+#### 3. Provide Required Information
+
+- Pass along the following information to Hasura team:
+  - (Required) Project ID
+  - (Optional) Preferred VPC CIDR for infrastructure (/16 CIDR)
+    - If you have a specific CIDR in mind for the VPC setup, please pass it along.
+  - (Optional) Preferred Zones
