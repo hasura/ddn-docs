@@ -23,7 +23,7 @@ BYOC is currently supported on AWS, GCP and Azure.
 
 If you would like access to Private DDN BYOC, please [contact sales](https://hasura.io/contact-us).
 
-## Onboarding Process
+## 📌 Onboarding Process
 
 To get started with BYOC, customers are required to have one of the following:
 
@@ -31,26 +31,17 @@ To get started with BYOC, customers are required to have one of the following:
 - A dedicated AWS Account
 - A dedicated Resource Group on Microsoft Azure
 
+## Instructions
+
 ### Azure
 
-#### 1. Provide Required Information
+##### Pre-requisites
 
-Get the following details from your
-[Azure Portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) and pass them along
-to the Hasura team.
+A dedicated resource group.  If you do not have one, create it.
 
-- (Required) Subscription ID
-- (Required) Tenant ID
-- (Required) Resource Group Name
-  - Create a resource group if you do not already have one
-- (Required) Region to deploy
-- (Required) Availability zones to deploy
-- (Optional) Preferred VPC CIDR for infrastructure (/16 - /19)
-  - If you have a specific CIDR in mind for the VPC setup, please pass it along.
+##### Create App Entities for BYOC
 
-#### 2. Create App Entities for BYOC
-
-##### For infra provisioning:
+###### For infra provisioning:
 
 - Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:  
    `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=4f7f1f59-f0b0-4adb-8603-2afacc50552b&response_type=code`
@@ -58,7 +49,7 @@ to the Hasura team.
   1.  If you encounter a redirect error ("No reply address is registered for the application") after clicking on
       Approve, ignore this. The actual app will still be created behind the scenes successfully.
 
-##### For workload provisioning:
+###### For workload provisioning:
 
 - Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:  
    `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=ce413986-b5c3-4e49-b45e-093f07776c14&response_type=code`
@@ -66,7 +57,7 @@ to the Hasura team.
   1.  If you encounter a redirect error ("No reply address is registered for the application) after clicking on Approve,
       ignore this. The actual app will still be created behind the scenes successfully.
 
-#### 3. Grant Required Roles
+#### Grant Required Roles
 
 Assign the following roles at the resource group level:
 
@@ -78,43 +69,59 @@ Assign the following roles at the resource group level:
 - For `ArgoCDDeployer`:
   - Azure Kubernetes Service RBAC Cluster Admin
 
-#### 4. Additional requirements
+#### Additional requirements
 
-- Register the `EnableAPIServerVnetIntegrationPreview` feature flag using the az feature register command:
-  1. `az feature register --namespace "Microsoft.ContainerService" --name "EnableAPIServerVnetIntegrationPreview"`
-
-Hasura provisioning requires that various node pools be created in order to support DDN workloads. Hasura will be
+- Register the `EnableAPIServerVnetIntegrationPreview` feature flag using the az feature register command: `az feature register --namespace "Microsoft.ContainerService" --name "EnableAPIServerVnetIntegrationPreview"`
+- Hasura provisioning requires that various node pools be created in order to support DDN workloads. Hasura will be
 provisioning 2 vCPU/8GB RAM instance types for this purpose (Using x64 VM Architecture). We therefore require that CPU
 related quotas are set accordingly by the customer on a desired instance family type in order to allow Hasura the
 ability to provision nodes without any issues. A base configuration of worker nodes will consume 20 vCPU. We however
 recommend setting an appropriate threshold in order to accommodate workers scaling up and down.
+
+#### Provide Required Information
+
+Get the following details from your
+[Azure Portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) and pass them along
+to the Hasura team.
+
+- (Required) Subscription ID
+- (Required) Tenant ID
+- (Required) Resource Group Name
+- (Required) Azure Region
+- (Optional) Preferred Availability Zones
+  - If you have specific zones which you'd like to use, please pass it along.  Otherwise, Hasura will assign accordingly.
+- (Optional) VPC CIDR (/16-/19 CIDR)
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along.  If not specified, Hasura will assign 10.0.0.0/16.
+  - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
+
+***
 
 ### AWS
 
 The setup involves creating an IAM role in the newly created AWS account; this role establishes a trust relationship
 with Hasura’s GCP service account which will be used to deploy and manage workloads necessary for Hasura DDN.
 
-#### Pre-requisites
+##### Pre-requisites
 
 - Dedicated AWS Account with administrative access
 - AWS Account enabled with desired region where data plane will be provisioned under
 - AWS CLI installed and configured
-- AWS_REGION environment variable set to your desired region (e.g., `export AWS_REGION=us-east-1`)
+- `AWS_REGION` environment variable set to your desired region (e.g., `export AWS_REGION=us-east-1`)
 
-#### IAM Permissions (For Cloudformation Stack)
+##### IAM Permissions (For Cloudformation Stack)
 
 - Template creates:
   - An IAM Role named `HasuraCloudBYOC`
   - Associated policies for managing EKS clusters and related AWS resources
   - Trust relationship with Hasura Cloud's management role
 
-#### Security considerations
+##### Security considerations
 
 - The role has least-privilege permissions required for Hasura Cloud operations
 - All resources created by this role will be tagged with `Created-By: HasuraCloud`
 - The role can only be assumed by Hasura Cloud's management role with a specific external ID
 
-#### Setup instructions
+##### Setup instructions
 
 - Download the following and save it as `cloudformation.yaml`
 
@@ -360,7 +367,7 @@ aws cloudformation describe-stacks \
   --output text
 ```
 
-#### Provide Required Information
+##### Provide Required Information
 
 Share the following with the Hasura team:
 
@@ -375,21 +382,94 @@ Share the following with the Hasura team:
   - A /16-/20 CIDR block used for Kubernetes service cluster IP addresses in your Data Plane. If not specified, Hasura will assign 172.20.0.0/16.
   - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
 
+***
+
 ### GCP
 
-#### 1. Create a New GCP Project
+The setup involves enabling APIs & creating IAM policy bindings; The IAM policy bindings establish a trust relationship
+with Hasura’s GCP service account which will be used to deploy and manage workloads necessary for Hasura DDN.
 
-- Log in to your Google Cloud Console.
-- Create a new project specifically for the Data Plane deployment.
+##### Pre-requisites
 
-#### 2. Grant Access
+- Dedicated GCP Project
 
-- Give the following service account Owner access to the project: `ddn-automation@hasura-ddn.iam.gserviceaccount.com`
+##### Setup instructions
 
-#### 3. Provide Required Information
+- Enable APIs within GCP project:
 
-- Pass along the following information to Hasura team:
-  - (Required) Project ID
-  - (Optional) Preferred VPC CIDR for infrastructure (/16 CIDR)
-    - If you have a specific CIDR in mind for the VPC setup, please pass it along.
-  - (Optional) Preferred Zones
+```bash
+gcloud services enable \
+  compute.googleapis.com \
+  dns.googleapis.com \
+  gkehub.googleapis.com \
+  multiclusterservicediscovery.googleapis.com \
+  trafficdirector.googleapis.com \
+  multiclusteringress.googleapis.com \
+  container.googleapis.com \
+  certificatemanager.googleapis.com --project ${GCP_PROJECT_ID}
+```
+
+- Create following IAM Policy bindings for Hasura's `ddn-automation` service account:
+
+<details>
+
+<summary>IAM Policy bindings</summary>
+```bash
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/compute.networkAdmin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/dns.admin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/gkehub.editor
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/logging.configWriter
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/container.clusterAdmin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/monitoring.metricsScopesAdmin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/certificatemanager.editor
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member='serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com' \
+  --role='roles/resourcemanager.projectIamAdmin' \
+  --condition='^:^title=Restrict IAM Granting for ddn-automation:description=Restrict ddn-automation to granting specific roles to specific members:expression=api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/container.defaultNodeServiceAccount"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/container.admin"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/compute.networkViewer"])'
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/container.admin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/iam.serviceAccountAdmin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/iam.workloadIdentityPoolAdmin
+```
+</details>
+
+##### Provide Required Information
+
+Share the following with the Hasura team:
+
+- (Required) Project ID
+- (Required) GCP Region
+- (Optional) Preferred Availability Zones
+  - If you have specific zones which you'd like to use, please pass it along.  Otherwise, Hasura will assign accordingly.
+- (Optional) VPC CIDR (/16 CIDR)
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along.  If not specified, Hasura will assign 10.0.0.0/16.
+  - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
