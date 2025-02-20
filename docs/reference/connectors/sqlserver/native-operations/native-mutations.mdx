@@ -14,13 +14,13 @@ seoFrontMatterUpdated: false
 
 ## Introduction
 
-Native Mutations allow you to run custom SQL queries on your SQL Server database that can be exposed via the Hasura
+Native mutations allow you to run custom SQL queries on your SQL Server database that can be exposed via the Hasura
 GraphQL engine and modify the database state.
 
 :::danger Permissions not yet supported
 
-Native Mutations do not yet support permissions. This means that any user with access to the GraphQL API can execute
-Native Mutations. Ensure that you have appropriate security measures in place to prevent unauthorized access. An update
+Native mutations do not yet support permissions. This means that any user with access to the GraphQL API can execute
+Native mutations. Ensure that you have appropriate security measures in place to prevent unauthorized access. An update
 on this feature will be provided in an upcoming release.
 
 :::
@@ -30,10 +30,9 @@ on this feature will be provided in an upcoming release.
 A Native Mutation is a single SQL statement that returns results and can take arguments, and might modify the database.
 The SQL structure of a Native Mutation is specified in the
 [Native Operation syntax](/reference/connectors/sqlserver/native-operations/syntax.mdx) page, but require an important
-tweak:
-
-The SQL query should be such that rows should be returned in the response of the query. This can be done by including the
-OUTPUT clause in the queries, more on OUTPUT clauses can be found [here](https://learn.microsoft.com/en-us/sql/t-sql/queries/output-clause-transact-sql?view=sql-server-ver16).
+tweak. The SQL query should be such that rows should be returned in the response of the query. This can be done by
+including the `OUTPUT` clause in the queries, more on `OUTPUT` clauses can be found
+[here](https://learn.microsoft.com/en-us/sql/t-sql/queries/output-clause-transact-sql?view=sql-server-ver16).
 
 ## Create a Native Mutation
 
@@ -42,49 +41,48 @@ Here's an example configuration:
 
 ```json
 {
-    "nativeMutations": {
-      "insert_artist_and_return_id": {
-        "sql": "INSERT INTO [dbo].[Artist] (ArtistId, Name) OUTPUT inserted.*  VALUES ({{ArtistId}}, {{Name}})",
-        "columns": {
-          "ArtistId": {
-            "name": "ArtistId",
-            "type": "int",
-            "nullable": "nonNullable",
-            "description": null
-          },
-          "Name": {
-            "name": "Name",
-            "type": "varchar",
-            "nullable": "nullable",
-            "description": null,
-            "castAs": "varchar(100)"
-          }
+  "nativeMutations": {
+    "insert_artist_and_return_id": {
+      "sql": "INSERT INTO [dbo].[Artist] (ArtistId, Name) OUTPUT inserted.*  VALUES ({{ArtistId}}, {{Name}})",
+      "columns": {
+        "ArtistId": {
+          "name": "ArtistId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
         },
-        "arguments": {
-          "ArtistId": {
-            "name": "ArtistId",
-            "type": "int",
-            "nullable": "nonNullable",
-            "description": null
-          },
-          "Name": {
-            "name": "Name",
-            "type": "varchar",
-            "nullable": "nullable",
-            "description": null
-          }
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "description": null,
+          "castAs": "varchar(100)"
+        }
+      },
+      "arguments": {
+        "ArtistId": {
+          "name": "ArtistId",
+          "type": "int",
+          "nullable": "nonNullable",
+          "description": null
         },
-        "description": null
-      }
+        "Name": {
+          "name": "Name",
+          "type": "varchar",
+          "nullable": "nullable",
+          "description": null
+        }
+      },
+      "description": null
     }
+  }
 }
 ```
 
-
 :::tip Other operations
 
-You can also create bespoke mutations for updates and deletes. As an example, this mutation can be used to update an
-artist's name:
+You can also create mutations for updates and deletes. As an example, this mutation can be used to update an artist's
+name:
 
 ```sql
 -- in update_artist_name.sql
