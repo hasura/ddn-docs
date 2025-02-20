@@ -27,103 +27,29 @@ If you would like access to Private DDN BYOC, please [contact sales](https://has
 
 To get started with BYOC, customers are required to have one of the following:
 
-- A dedicated project on Google Cloud
 - A dedicated AWS Account
+- A dedicated project on Google Cloud
 - A dedicated Resource Group on Microsoft Azure
 
 ## Instructions
 
-### Azure
-
-##### Pre-requisites
-
-A dedicated resource group.  If you do not have one, create it.
-
-##### Create App Entities for BYOC
-
-###### For infra provisioning:
-
-- Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:  
-   `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=4f7f1f59-f0b0-4adb-8603-2afacc50552b&response_type=code`
-- Then open the URL in your browser to create the app entity named **PrivateDdnInfra** in your Azure account.
-  1.  If you encounter a redirect error ("No reply address is registered for the application") after clicking on
-      Approve, ignore this. The actual app will still be created behind the scenes successfully.
-
-###### For workload provisioning:
-
-- Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:  
-   `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=ce413986-b5c3-4e49-b45e-093f07776c14&response_type=code`
-- Then open the URL in your browser to create the app entity named **ArgoCDDeployer** in your Azure account.
-  1.  If you encounter a redirect error ("No reply address is registered for the application) after clicking on Approve,
-      ignore this. The actual app will still be created behind the scenes successfully.
-
-#### Grant Required Roles
-
-Assign the following roles at the resource group level:
-
-- For `PrivateDdnInfra`:
-  - Contributor
-  - Role Based Access Control (RBAC) Administrator
-    1. Allow user to assign all roles except the roles you select
-    2. Configure the constrained roles by adding Owner to exclude roles
-- For `ArgoCDDeployer`:
-  - Azure Kubernetes Service RBAC Cluster Admin
-
-#### Additional requirements
-
-- Register the `EnableAPIServerVnetIntegrationPreview` feature flag using the az feature register command: `az feature register --namespace "Microsoft.ContainerService" --name "EnableAPIServerVnetIntegrationPreview"`
-- Hasura provisioning requires that various node pools be created in order to support DDN workloads. Hasura will be
-provisioning 2 vCPU/8GB RAM instance types for this purpose (Using x64 VM Architecture). We therefore require that CPU
-related quotas are set accordingly by the customer on a desired instance family type in order to allow Hasura the
-ability to provision nodes without any issues. A base configuration of worker nodes will consume 20 vCPU. We however
-recommend setting an appropriate threshold in order to accommodate workers scaling up and down.
-
-#### Provide Required Information
-
-Get the following details from your
-[Azure Portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) and pass them along
-to the Hasura team.
-
-- (Required) Subscription ID
-- (Required) Tenant ID
-- (Required) Resource Group Name
-- (Required) Azure Region
-- (Optional) Preferred Availability Zones
-  - If you have specific zones which you'd like to use, please pass it along.  Otherwise, Hasura will assign accordingly.
-- (Optional) VPC CIDR (/16-/19 CIDR)
-  - If you have a specific CIDR in mind for the VPC setup, please pass it along.  If not specified, Hasura will assign 10.0.0.0/16.
-  - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
-
-***
-
 ### AWS
 
-The setup involves creating an IAM role in the newly created AWS account; this role establishes a trust relationship
-with Hasura’s GCP service account which will be used to deploy and manage workloads necessary for Hasura DDN.
+The setup involves creating an IAM role in your AWS account that establishes a trust relationship with Hasura's AWS automation role (PulumiDDNCli). This role will be used to deploy and manage workloads necessary for Hasura DDN.
 
 ##### Pre-requisites
 
 - Dedicated AWS Account with administrative access
-- AWS Account enabled with desired region where data plane will be provisioned under
 - AWS CLI installed and configured
 - `AWS_REGION` environment variable set to your desired region (e.g., `export AWS_REGION=us-east-1`)
+- Ensure the AWS region where you plan to deploy is enabled in your account
+  ```bash
+  aws account get-regions --region-opt-status-contains ENABLED --query 'Regions[*].RegionName'
+  ```
 
-##### IAM Permissions (For Cloudformation Stack)
+##### Setup Instructions
 
-- Template creates:
-  - An IAM Role named `HasuraCloudBYOC`
-  - Associated policies for managing EKS clusters and related AWS resources
-  - Trust relationship with Hasura Cloud's management role
-
-##### Security considerations
-
-- The role has least-privilege permissions required for Hasura Cloud operations
-- All resources created by this role will be tagged with `Created-By: HasuraCloud`
-- The role can only be assumed by Hasura Cloud's management role with a specific external ID
-
-##### Setup instructions
-
-- Download the following and save it as `cloudformation.yaml`
+1. Copy the following template and save it as `cloudformation.yaml`
 
 <details>
 
@@ -317,66 +243,73 @@ Outputs:
 ```
 </details>
 
-- Check if the stack already exists, by running the following:
+2. Deploy the CloudFormation stack:
 
-```bash
-aws cloudformation describe-stacks --stack-name hasura-cloud-byoc
-```
+   First, check if the stack already exists:
+   ```bash
+   aws cloudformation describe-stacks --stack-name hasura-cloud-byoc
+   ```
 
-  - If you see an error `Stack with id hasura-cloud-byoc does not exist`, proceed with:
+   Then, based on the result:
+   - If you see an error "Stack with id hasura-cloud-byoc does not exist":
+     ```bash
+     # Create new stack
+     aws cloudformation create-stack \
+       --stack-name hasura-cloud-byoc \
+       --template-body file://cloudformation.yaml \
+       --capabilities CAPABILITY_NAMED_IAM
 
-  ```bash
-  # Create new stack
-  aws cloudformation create-stack \
-  --stack-name hasura-cloud-byoc \
-  --template-body file://cloudformation.yaml \
-  --capabilities CAPABILITY_NAMED_IAM
+     # Wait for creation to complete
+     aws cloudformation wait stack-create-complete \
+       --stack-name hasura-cloud-byoc
+     ```
 
-  # Wait for creation to complete
-  aws cloudformation wait stack-create-complete \
-  --stack-name hasura-cloud-byoc
-  ```
+   - If the stack exists:
+     ```bash
+     # Update existing stack
+     aws cloudformation update-stack \
+       --stack-name hasura-cloud-byoc \
+       --template-body file://cloudformation.yaml \
+       --capabilities CAPABILITY_NAMED_IAM
 
-  - Otherwise (If stack exists), proceed with:
+     # Wait for update to complete
+     aws cloudformation wait stack-update-complete \
+       --stack-name hasura-cloud-byoc
+     ```
 
-  ```bash
-  # Update existing stack
-  aws cloudformation update-stack \
-  --stack-name hasura-cloud-byoc \
-  --template-body file://cloudformation.yaml \
-  --capabilities CAPABILITY_NAMED_IAM
+3. Monitor stack status:
+   ```bash
+   aws cloudformation describe-stacks \
+     --stack-name hasura-cloud-byoc \
+     --query 'Stacks[0].StackStatus'
+   ```
 
-  # Wait for update to complete
-  aws cloudformation wait stack-update-complete \
-  --stack-name hasura-cloud-byoc
-  ```
-- Monitor execution of your Cloudformation stack via:
+4. Once complete, retrieve the Role ARN:
+   ```bash
+   aws cloudformation describe-stacks \
+     --stack-name hasura-cloud-byoc \
+     --query 'Stacks[0].Outputs[?OutputKey==`RoleArn`].OutputValue' \
+     --output text
+   ```
 
-```bash
-aws cloudformation describe-stacks \
-  --stack-name hasura-cloud-byoc \
-  --query 'Stacks[0].StackStatus'
-```
-
-- Once execution completes, retrieve the `Role ARN` by running the following:
-
-```bash
-aws cloudformation describe-stacks \
-  --stack-name hasura-cloud-byoc \
-  --query 'Stacks[0].Outputs[?OutputKey==`RoleArn`].OutputValue' \
-  --output text
-```
-
-##### Provide Required Information
+##### Required Information
 
 Share the following with the Hasura team:
 
 - (Required) Role ARN (From output above)
 - (Required) AWS Region
 - (Optional) Preferred Availability Zones
-  - If you have specific zones which you'd like to use, please pass it along.  Otherwise, Hasura will assign accordingly.
+  - Use AZ IDs (e.g., use1-az1, use1-az2) instead of AZ names (us-east-1a, us-east-1b)
+  - You can get the AZ IDs by running:
+    ```bash
+    aws ec2 describe-availability-zones \
+    --region <region> \
+    --output table \
+    --query "AvailabilityZones[?State=='available'] | [].{ZoneName: ZoneName, ZoneId: ZoneId}"
+    ```
+  - If you have specific zones which you'd like to use, please pass it along. Otherwise, Hasura will assign accordingly.
 - (Optional) VPC CIDR (/16 CIDR)
-  - If you have a specific CIDR in mind for the VPC setup, please pass it along.  If not specified, Hasura will assign 10.0.0.0/16.
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along. If not specified, Hasura will assign 10.0.0.0/16.
   - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
 - (Optional) Kubernetes Service CIDR (/16-20 CIDR)
   - A /16-/20 CIDR block used for Kubernetes service cluster IP addresses in your Data Plane. If not specified, Hasura will assign 172.20.0.0/16.
@@ -471,5 +404,68 @@ Share the following with the Hasura team:
 - (Optional) Preferred Availability Zones
   - If you have specific zones which you'd like to use, please pass it along.  Otherwise, Hasura will assign accordingly.
 - (Optional) VPC CIDR (/16 CIDR)
+  - If you have a specific CIDR in mind for the VPC setup, please pass it along.  If not specified, Hasura will assign 10.0.0.0/16.
+  - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
+
+***
+
+### Azure
+
+##### Pre-requisites
+
+A dedicated resource group.  If you do not have one, create it.
+
+##### Create App Entities for BYOC
+
+###### For infra provisioning:
+
+- Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:
+   `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=4f7f1f59-f0b0-4adb-8603-2afacc50552b&response_type=code`
+- Then open the URL in your browser to create the app entity named **PrivateDdnInfra** in your Azure account.
+  1.  If you encounter a redirect error ("No reply address is registered for the application") after clicking on
+      Approve, ignore this. The actual app will still be created behind the scenes successfully.
+
+###### For workload provisioning:
+
+- Replace `$(customer_tenant_id)` with your Azure Tenant ID in the URL below:
+   `https://login.microsoftonline.com/$(customer_tenant_id)/oauth2/authorize?client_id=ce413986-b5c3-4e49-b45e-093f07776c14&response_type=code`
+- Then open the URL in your browser to create the app entity named **ArgoCDDeployer** in your Azure account.
+  1.  If you encounter a redirect error ("No reply address is registered for the application) after clicking on Approve,
+      ignore this. The actual app will still be created behind the scenes successfully.
+
+#### Grant Required Roles
+
+Assign the following roles at the resource group level:
+
+- For `PrivateDdnInfra`:
+  - Contributor
+  - Role Based Access Control (RBAC) Administrator
+    1. Allow user to assign all roles except the roles you select
+    2. Configure the constrained roles by adding Owner to exclude roles
+- For `ArgoCDDeployer`:
+  - Azure Kubernetes Service RBAC Cluster Admin
+
+#### Additional requirements
+
+- Register the `EnableAPIServerVnetIntegrationPreview` feature flag using the az feature register command: `az feature register --namespace "Microsoft.ContainerService" --name "EnableAPIServerVnetIntegrationPreview"`
+- Hasura provisioning requires that various node pools be created in order to support DDN workloads. Hasura will be
+provisioning 2 vCPU/8GB RAM instance types for this purpose (Using x64 VM Architecture). We therefore require that CPU
+related quotas are set accordingly by the customer on a desired instance family type in order to allow Hasura the
+ability to provision nodes without any issues. A base configuration of worker nodes will consume 20 vCPU. We however
+recommend setting an appropriate threshold in order to accommodate workers scaling up and down.
+
+#### Provide Required Information
+
+Get the following details from your
+[Azure Portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) and pass them along
+to the Hasura team.
+
+- (Required) Subscription ID
+- (Required) Tenant ID
+- (Required) Resource Group Name
+- (Required) Azure Region
+- (Optional) Preferred Availability Zones
+  - If you have specific zones which you'd like to use, please pass it along.  Otherwise, Hasura will assign accordingly.
+- (Optional) VPC CIDR (/16-/19 CIDR)
   - If you have a specific CIDR in mind for the VPC setup, please pass it along.  If not specified, Hasura will assign 10.0.0.0/16.
   - Note: If you are planning to use VPC Peering, this CIDR should not conflict with any networks on your side.
