@@ -59,7 +59,8 @@
                                 "2025-01-07",
                                 "2025-01-25",
                                 "2025-02-04",
-                                "2025-02-08"
+                                "2025-02-08",
+                                "2025-02-20"
                               ]
                             },
                             {
@@ -700,6 +701,340 @@
                           "properties": {
                             "mode": {
                               "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/0/properties/definition/properties/mode"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "title": "AuthConfig3",
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["AuthConfig"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v3"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV3",
+                          "title": "AuthConfigV3",
+                          "description": "Definition of the authentication configuration v3, used by the API server.",
+                          "type": "object",
+                          "required": ["mode"],
+                          "properties": {
+                            "mode": {
+                              "$id": "https://hasura.io/jsonschemas/metadata/AuthModeConfigV3",
+                              "title": "AuthModeConfigV3",
+                              "description": "The configuration for the authentication mode to use - webhook, JWT or NoAuth.",
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "required": ["webhook"],
+                                  "properties": {
+                                    "webhook": {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/AuthHookConfigV3",
+                                      "title": "AuthHookConfigV3",
+                                      "description": "The configuration of the authentication webhook.",
+                                      "examples": [
+                                        {
+                                          "method": "GET",
+                                          "url": {
+                                            "value": "http://auth_hook:3050/validate-request"
+                                          },
+                                          "customHeadersConfig": {
+                                            "headers": {
+                                              "forward": ["Authorization"],
+                                              "additional": {
+                                                "user-agent": "hasura-ddn"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "oneOf": [
+                                        {
+                                          "title": "AuthHookConfigV3GET",
+                                          "description": "The configuration of the GET authentication webhook.",
+                                          "examples": [
+                                            {
+                                              "url": {
+                                                "value": "http://auth_hook:3050/validate-request"
+                                              },
+                                              "customHeadersConfig": {
+                                                "headers": {
+                                                  "forward": ["Authorization"],
+                                                  "additional": {
+                                                    "user-agent": "hasura-ddn"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ],
+                                          "type": "object",
+                                          "required": ["method", "url"],
+                                          "properties": {
+                                            "method": {
+                                              "type": "string",
+                                              "enum": ["GET"]
+                                            },
+                                            "url": {
+                                              "description": "The URL of the GET authentication webhook.",
+                                              "allOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                                }
+                                              ]
+                                            },
+                                            "customHeadersConfig": {
+                                              "description": "The configuration for the headers to be sent to the GET auth hook.",
+                                              "default": null,
+                                              "anyOf": [
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/AuthHookConfigV3GETHeaders",
+                                                  "title": "AuthHookConfigV3GETHeaders",
+                                                  "description": "The configuration for the headers to be sent to the GET auth hook.",
+                                                  "examples": [
+                                                    {
+                                                      "headers": {
+                                                        "forward": ["Authorization"],
+                                                        "additional": {
+                                                          "user-agent": "hasura-ddn"
+                                                        }
+                                                      }
+                                                    }
+                                                  ],
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "headers": {
+                                                      "default": null,
+                                                      "anyOf": [
+                                                        {
+                                                          "$id": "https://hasura.io/jsonschemas/metadata/AuthHookConfigV3Headers",
+                                                          "title": "AuthHookConfigV3Headers",
+                                                          "description": "The configuration for the headers to be sent to the auth hook.",
+                                                          "examples": [
+                                                            {
+                                                              "forward": ["Authorization"],
+                                                              "additional": {
+                                                                "user-agent": "hasura-ddn"
+                                                              }
+                                                            }
+                                                          ],
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "forward": {
+                                                              "description": "The headers to be forwarded from the client request.",
+                                                              "default": "*",
+                                                              "allOf": [
+                                                                {
+                                                                  "$id": "https://hasura.io/jsonschemas/metadata/AllOrList_for_String",
+                                                                  "title": "AllOrList",
+                                                                  "description": "A list of items or a wildcard.",
+                                                                  "examples": ["*"],
+                                                                  "anyOf": [
+                                                                    {
+                                                                      "$id": "https://hasura.io/jsonschemas/metadata/All",
+                                                                      "title": "All",
+                                                                      "description": "Wildcard: match all items",
+                                                                      "type": "string",
+                                                                      "enum": ["*"]
+                                                                    },
+                                                                    {
+                                                                      "type": "array",
+                                                                      "items": {
+                                                                        "type": "string"
+                                                                      }
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            "additional": {
+                                                              "title": "AdditionalHeaders",
+                                                              "description": "The additional headers to be sent to the auth hook.",
+                                                              "default": {},
+                                                              "type": "object",
+                                                              "additionalProperties": {
+                                                                "type": "string"
+                                                              }
+                                                            }
+                                                          },
+                                                          "additionalProperties": false
+                                                        },
+                                                        {
+                                                          "type": "null"
+                                                        }
+                                                      ]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "title": "AuthHookConfigV3POST",
+                                          "description": "The configuration of the POST authentication webhook.",
+                                          "examples": [
+                                            {
+                                              "url": {
+                                                "value": "http://auth_hook:3050/validate-request"
+                                              },
+                                              "customHeadersConfig": {
+                                                "headers": {
+                                                  "forward": "*",
+                                                  "additional": {
+                                                    "user-agent": "hasura-ddn"
+                                                  }
+                                                },
+                                                "body": {
+                                                  "headers": {
+                                                    "forward": ["Authorization"],
+                                                    "additional": {}
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ],
+                                          "type": "object",
+                                          "required": ["method", "url"],
+                                          "properties": {
+                                            "method": {
+                                              "type": "string",
+                                              "enum": ["POST"]
+                                            },
+                                            "url": {
+                                              "description": "The URL of the POST authentication webhook.",
+                                              "allOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                                }
+                                              ]
+                                            },
+                                            "customHeadersConfig": {
+                                              "description": "The configuration for the headers to be sent to the POST auth hook.",
+                                              "default": null,
+                                              "anyOf": [
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/AuthHookConfigV3POSTHeaders",
+                                                  "title": "AuthHookConfigV3POSTHeaders",
+                                                  "description": "The configuration for the headers and body to be sent to the POST auth hook.",
+                                                  "examples": [
+                                                    {
+                                                      "headers": {
+                                                        "forward": "*",
+                                                        "additional": {
+                                                          "user-agent": "hasura-ddn"
+                                                        }
+                                                      },
+                                                      "body": {
+                                                        "headers": {
+                                                          "forward": ["Authorization"],
+                                                          "additional": {}
+                                                        }
+                                                      }
+                                                    }
+                                                  ],
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "headers": {
+                                                      "description": "The configuration for the headers to be sent to the POST auth hook.",
+                                                      "default": null,
+                                                      "anyOf": [
+                                                        {
+                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/2/properties/definition/properties/mode/oneOf/0/properties/webhook/oneOf/0/properties/customHeadersConfig/anyOf/0/properties/headers/anyOf/0"
+                                                        },
+                                                        {
+                                                          "type": "null"
+                                                        }
+                                                      ]
+                                                    },
+                                                    "body": {
+                                                      "description": "The configuration for the body to be sent to the POST auth hook.",
+                                                      "default": null,
+                                                      "anyOf": [
+                                                        {
+                                                          "$id": "https://hasura.io/jsonschemas/metadata/AuthHookConfigV3Body",
+                                                          "title": "AuthHookConfigV3Body",
+                                                          "description": "The configuration for the body to be sent to the POST auth hook.",
+                                                          "examples": [
+                                                            {
+                                                              "headers": {
+                                                                "forward": ["Authorization"],
+                                                                "additional": {}
+                                                              }
+                                                            }
+                                                          ],
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "headers": {
+                                                              "description": "The configuration for the headers to be sent as part of the body to the POST auth hook.",
+                                                              "default": null,
+                                                              "anyOf": [
+                                                                {
+                                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/2/properties/definition/properties/mode/oneOf/0/properties/webhook/oneOf/0/properties/customHeadersConfig/anyOf/0/properties/headers/anyOf/0"
+                                                                },
+                                                                {
+                                                                  "type": "null"
+                                                                }
+                                                              ]
+                                                            }
+                                                          },
+                                                          "additionalProperties": false
+                                                        },
+                                                        {
+                                                          "type": "null"
+                                                        }
+                                                      ]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "required": ["jwt"],
+                                  "properties": {
+                                    "jwt": {
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/0/properties/definition/properties/mode/oneOf/1/properties/jwt"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "required": ["noAuth"],
+                                  "properties": {
+                                    "noAuth": {
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/0/properties/definition/properties/mode/oneOf/2/properties/noAuth"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              ]
                             }
                           },
                           "additionalProperties": false
@@ -4042,7 +4377,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelV1",
-                          "title": "Model1",
+                          "title": "ModelV1",
                           "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.",
                           "type": "object",
                           "required": ["name", "objectType", "orderableFields"],
@@ -4537,7 +4872,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelV2",
-                          "title": "Model2",
+                          "title": "ModelV2",
                           "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md.",
                           "type": "object",
                           "required": ["name", "objectType"],
