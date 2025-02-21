@@ -50,7 +50,7 @@ started. Check the reference table for more information on each field.
 
 ```yaml title="An AuthConfig for noAuth mode:"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     noAuth:
@@ -67,7 +67,7 @@ definition:
 
 ```yaml title="An AuthConfig for JWT mode:"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -94,18 +94,30 @@ definition:
 
 ```yaml title="An AuthConfig for Webhook mode:"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     webhook:
-      url: http://auth_hook:3050/validate-request
-      method: Post
+      url:
+        value: http://auth_hook:3050/validate-request
+      method: POST
+      customHeadersConfig:
+        body:
+          headers:
+            forward:
+              - authorization
+              - content-type
+        headers:
+          additional:
+            user-agent: "Hasura DDN"
+
 ```
 
-| **Field** | **Description**                                                                           | **Reference**                                |
-| --------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `url`     | The URL of the authentication webhook that will be called to validate authentication.     | [AuthHookConfig](#authconfig-authhookconfig) |
-| `method`  | The HTTP method (`Get` or `Post`) that will be used to make the request to the auth hook. | [AuthHookMethod](#authconfig-authhookmethod) |
+| **Field** | **Description**                                                                                                                                                                       | **Reference**                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `url`     | The URL of the authentication webhook that will be called to validate authentication. This can be a static URL or an environment variable.                                            | [EnvironmentValue](#authconfig-environmentvalue)                       |
+| `method`  | The HTTP method (`GET` or `POST`) that will be used to make the request to the auth hook.                                                                                             | [AuthHookConfigV3](#authconfig-authhookconfigv3)                       |
+| `customHeadersConfig` | Configuration for the headers and body to be sent to the auth hook. This can be used to forward headers from the client request or add additional headers to the request. | [AuthHookConfigV3POSTHeaders](#authconfig-authhookconfigv3postheaders) |
 
 ---
 
