@@ -1,0 +1,90 @@
+---
+sidebar_position: 3
+sidebar_label: Native Queries
+description:
+  "Native Queries allow you to run custom SQL queries on your SQL Server database. This page explains how to configure
+  Native Queries in Hasura."
+keywords:
+  - native queries
+seoFrontMatterUpdated: false
+---
+
+# Native Queries
+
+## Introduction
+
+Native queries allow you to run custom SQL queries on your SQL Server database. These allow you to run queries that are
+not supported as standard by Hasura's GraphQL engine.
+
+## Structure
+
+A native query is a single SQL statement that returns results and can take arguments. The SQL structure of a Native
+Query is specified in the [Native Operation syntax](/reference/connectors/sqlserver/native-operations/syntax.mdx) page.
+
+## Create a native query
+
+Native queries can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json`. Here's
+an example configuration:
+
+```json
+{
+    "nativeQueries": {
+      "selectArtist": {
+        "sql": "SELECT *
+          FROM [dbo].[Artist]
+          WHERE "Name" LIKE '%' || {{name}} || '%'
+          AND "ArtistId" > {{lower_bound}}
+          AND "ArtistId" < {{upper_bound}}",
+        "columns": {
+          "ArtistId": {
+            "name": "ArtistId",
+            "type": "int",
+            "nullable": "nonNullable",
+            "description": null
+          },
+          "Name": {
+            "name": "Name",
+            "type": "varchar",
+            "nullable": "nullable",
+            "description": null,
+            "castAs": "varchar(100)"
+          }
+        },
+        "arguments": {
+          "lower_bound": {
+            "name": "lower_bound",
+            "type": "int",
+            "nullable": "nonNullable",
+            "description": null
+          },
+          "upper_bound": {
+            "name": "upper_bound",
+            "type": "varchar",
+            "nullable": "nullable",
+            "description": null
+          },
+          "Name": {
+            "name": "name",
+            "type": "varchar",
+            "nullable": "nullable",
+            "description": null
+          }
+        },
+        "description": null
+      }
+    }
+}
+```
+
+### Usage
+
+With the example above, you can then use the query in your GraphQL API like this:
+
+```graphql
+query {
+  artist_by_name_between(name: "Black", lower_bound: 10, upper_bound: 50) {
+    ArtistId
+    Name
+  }
+}
+```
