@@ -69,8 +69,8 @@ definition:
         body:
           headers:
             forward:
-              - Authorization
-              - Content-Type
+              - authorization
+              - content-type
         headers:
           additional:
             user-agent:
@@ -90,9 +90,9 @@ For a GET request, the headers received by the DDN engine on the query can be fo
 on the request and the body will be empty.
 
 What we've provided above is a sample configuration as a POST request but it can be configured as a GET request. See the
-reference for `AuthHookConfig` [here](/reference/metadata-reference/auth-config.mdx#authconfig-authhookconfig). For the
-sample configuration above, the webhook will receive the `Authorization` and `Content-Type` headers in the body of the
-request:
+reference for `AuthHookConfig` [here](/reference/metadata-reference/auth-config.mdx#authconfig-authhookconfigv3). For
+the sample configuration above, the webhook will receive the `Authorization` and `Content-Type` headers in the body of
+the request:
 
 ```json title="Example body of a POST request"
 {
@@ -109,7 +109,7 @@ Also, the webhook will receive the `user-agent` header as an actual header on th
 
 You can use environment variables to dynamically and securely add the webhook URL to your AuthConfig. You can add these
 values to your root-level `.env` and then map them in the `globals` subgraph.yaml file. Alternatively, you can include
-raw strings here using `value` instead of `valueFromEnv` and passing the keys.
+raw strings here using `value` instead of `valueFromEnv`.
 
 :::
 
@@ -137,17 +137,29 @@ You can configure the headers that are sent to the webhook in the optional `cust
 not provided, the default behavior is to forward all headers (after filtering out commonly used headers) received by the
 DDN engine on the query to the webhook.
 
-```yaml title="Ignored headers"
-Accept Accept-Datetime Accept-Encoding Accept-Language Cache-Control Connection Content-Length Content-MD5 Content-Type
-DNT Host Origin Referer User-Agent
+```yaml title="Ignored headers list"
+Accept
+Accept-Datetime
+Accept-Encoding
+Accept-Language
+Cache-Control
+Connection
+Content-Length
+Content-MD5
+Content-Type
+DNT
+Host
+Origin
+Referer
+User-Agent
 ```
 
 When using `customHeadersConfig`, you can explicitly forward any headers, including those that are ignored by default.
 This gives you full control over which headers are sent to the webhook.
 
 It is recommended to use the `customHeadersConfig` field to configure only the headers that are required by the webhook
-and not forward any other headers. This will help in reducing the size of the request body and improve the performance
-of the webhook.
+and not forward any other headers. This will help in reducing the size of the request and improve the performance of the
+webhook.
 
 :::
 
@@ -156,7 +168,7 @@ can pass any headers you wish.
 
 :::tip Forward all headers
 
-If you want to forward all headers received by the DDN engine on the query to the webhook, you can set `forward: *`.
+If you want to forward all headers received by the DDN engine on the query to the webhook, you can set `forward: "*"`.
 This will forward all headers received by the DDN engine on the query to the webhook, excluding the ignored headers.
 
 :::
