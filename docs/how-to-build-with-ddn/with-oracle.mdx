@@ -64,7 +64,7 @@ values:
 **JDBC URL**
 
 ```plaintext
-jdbc:oracle:thin:@//127.0.0.53:1521/XE?user=SYS&password=mypassword
+jdbc:oracle:thin:@local.hasura.dev:1521/XEPDB1?user=example&password=mypassword
 ```
 
 For Schemas, hit enter to use the database provided in the JDBC URL.
@@ -85,7 +85,9 @@ services:
       - "1521:1521"
     environment:
       ORACLE_PASSWORD: mypassword
-      ORACLE_DATABASE: XE
+      APP_USER: example
+      APP_USER_PASSWORD: mypassword
+      TARGET_PDB: XEPDB1
 ```
 
 ```sh title="Run the container:"
@@ -93,7 +95,7 @@ docker compose -f app/connector/my_oracle/compose.oracle.yaml up -d
 ```
 
 ```sh title="Use the SQL*PLUS shell to start the SQL prompt:"
-docker exec -it oracle-server sqlplus sys/mypassword@localhost:1521/XE as sysdba
+docker exec -it oracle-server sqlplus example/mypassword@local.hasura.dev:1521/XEPDB1
 ```
 
 ```SQL title="Create a table in the databse:"
@@ -130,7 +132,7 @@ ddn connector show-resources my_oracle
 ### Step 5. Add your model
 
 ```sh title="Now, track the table from your Oracle database as a model in your DDN metadata:"
-ddn models add my_oracle users
+ddn models add my_oracle "EXAMPLE.USERS"
 ```
 
 Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
@@ -161,7 +163,7 @@ ddn console --local
 
 ```graphql title="In the GraphiQL explorer of the console, write this query:"
 query {
-  users {
+  exampleUsers {
     userId
     name
     age
@@ -172,7 +174,7 @@ query {
 ```json title="You'll get the following response:"
 {
   "data": {
-    "users": [
+    "exampleUsers": [
       {
         "userId": 1,
         "name": "Alice",
@@ -238,7 +240,7 @@ In `app/connector/my_oracle/configuration.json`, you'll see schema updated to in
 #### Step 10.2. Update your metadata
 
 ```sh title="Add the posts model:"
-ddn model add my_oracle posts
+ddn model add my_oracle "EXAMPLE.POSTS"
 ```
 
 #### Step 10.3. Kill your services
@@ -261,7 +263,7 @@ ddn run docker-start
 
 ```graphql title="Head back to your console and query the posts model:"
 query GetPosts {
-  posts {
+  examplePosts {
     userId
     postId
     title
@@ -273,7 +275,7 @@ query GetPosts {
 ```json title="You'll get a response like this:"
 {
   "data": {
-    "posts": [
+    "examplePosts": [
       {
         "userId": 1,
         "postId": 1,
@@ -311,10 +313,10 @@ kind: Relationship
 version: v1
 definition:
   name: user
-  sourceType: Posts
+  sourceType: ExamplePosts
   target:
     model:
-      name: Users
+      name: ExampleUsers
       relationshipType: Object
   mapping:
     - source:
@@ -348,7 +350,7 @@ ddn run docker-start
 
 ```graphql title="Now, execute a nested query using your relationship:"
 query GetPosts {
-  posts {
+  examplePosts {
     postId
     title
     content
@@ -364,7 +366,7 @@ query GetPosts {
 ```json title="Which should return a result like this:"
 {
   "data": {
-    "posts": [
+    "examplePosts": [
       {
         "postId": 1,
         "title": "My First Post",
