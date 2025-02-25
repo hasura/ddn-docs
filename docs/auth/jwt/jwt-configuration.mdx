@@ -23,7 +23,7 @@ Example JSON Web Token (JWT) payload configuration definition:
 
 ```yaml title="globals/metadata/auth-config.hml"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -395,6 +395,9 @@ key:
   jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
 ```
 
+The JWTs must be signed by the JWK published at the given URL. They can be signed by any algorithm that is compatible
+with the key (eg. `RS256`, `RS384`, `RS512` algorithms require a JWK with an RSA key).
+
 DDN does not currently support rotating JWKs.
 
 ### audience
@@ -414,7 +417,7 @@ Examples:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition: 
   mode: 
     jwt:
@@ -447,7 +450,7 @@ Examples:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition: 
   mode: 
     jwt:
@@ -476,7 +479,7 @@ will look like:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -504,7 +507,7 @@ have the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -525,7 +528,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -546,7 +549,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -569,7 +572,7 @@ the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -590,7 +593,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -616,7 +619,7 @@ needs to have the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -635,10 +638,9 @@ definition:
 
 **Example 2**: public key as X509 certificate:
 
-
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -659,7 +661,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -718,22 +720,22 @@ Firebase publishes the JWKs at:
 If you are using Firebase and Hasura, use this config:
 
 ```yaml
-	kind: AuthConfig
-	version: v2
-	definition:
-	  mode:
-	    jwt:
-	      claimsConfig:
-	        namespace:
-	          claimsFormat: Json
-	          location: /claims.jwt.hasura.io
-	      tokenLocation:
-	        type: Header
-	        name: Authorization
-	      key:
-	        jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
-	      issuer: https://securetoken.google.com/<firebase-project-id>
-	      audience: <firebase-project-id>
+kind: AuthConfig
+version: v3
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: Header
+        name: Authorization
+      key:
+        jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+      issuer: https://securetoken.google.com/<firebase-project-id>
+      audience: <firebase-project-id>
 ```
 
 ### Auth0 {#auth0-issues}
