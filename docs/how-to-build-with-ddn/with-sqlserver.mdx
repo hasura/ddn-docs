@@ -58,8 +58,6 @@ running `ls` in your terminal, or by opening the directory in your preferred edi
 ```sh title="In your project directory, run:"
 ddn connector init my_sqlserver -i
 
-sudo docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password!" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
-
 ```
 
 From the dropdown, start typing `sqlserver` and hit enter to accept the default port. Then, provide the following
@@ -68,33 +66,48 @@ values:
 **Connection string**
 
 ```plaintext
-Server=127.0.0.1,1433;Database=master;Uid=sa;Password=Password!;
+Server=127.0.0.1,1433;Database=master;Uid=sa;Password=Password123;
 ```
 
 ### Step 4. Start the local SQL Server container
 
 ```sh title="Start a SQL Server instance"
-sudo docker pull mcr.microsoft.com/mssql/server:2019-latest
-sudo docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password!" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
+docker pull mcr.microsoft.com/mssql/server:2019-latest
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password123" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
 ```
 
 ```sh title="Use the mssql-tools shell to start the SQL prompt:"
-sudo docker exec -it sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong!Passw0rd'
+docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Password123' -d 'master'
 ```
 
+:::note
+
+Add the flag `-C` is to apply the `trust server certificate` set to true. This shoud only be used for local database and not on production databases.
+
+:::
+
 ```SQL title="Create a table in the database:"
-CREATE TABLE users (user_id int NOT NULL, name varchar(50) NOT NULL, age int NOT NULL);
+CREATE TABLE users (user_id int, name varchar(255), age int);
+GO
 ```
 
 ```SQL title="Then, seed the table:"
 INSERT INTO users (user_id, name, age) VALUES (1, 'Alice', 25), (2, 'Bob', 30), (3, 'Charlie', 35);
+GO
 ```
 
 ```SQL title="You can verify this by running:"
 SELECT * FROM users;
+GO
 ```
 
 You should see a list of users returned.
+
+:::tip
+
+Application such as [Microsoft Azure Studio](https://azure.microsoft.com/en-us/products/data-studio) can also be used to seed the database
+
+:::
 
 ### Step 5. Introspect your SQL Server database
 
@@ -184,6 +197,7 @@ CREATE TABLE posts (
   title varchar(255),
   content varchar(255)
 );
+GO
 ```
 
 ```sh title="Then, seed it:"
@@ -192,10 +206,12 @@ INSERT INTO posts (user_id, post_id, title, content) VALUES
   (1, 2, 'Another Post', 'Alice writes again!'),
   (2, 3, 'Bob''s Post', 'Bob shares his thoughts.'),
   (3, 4, 'Hello World', 'Charlie joins the conversation.');
+GO
 ```
 
 ```sh title="Finally, we can check the posts were generated:"
 SELECT * FROM posts;
+GO
 ```
 
 ### Step 11. Refresh your metadata and rebuild your project
