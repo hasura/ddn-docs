@@ -1,5 +1,6 @@
 import siteConfig from '@generated/docusaurus.config';
 import Tracker from '@openreplay/tracker';
+import Cookies from 'js-cookie';
 
 const OPENREPLAY_SESSION_COOKIE = 'openReplaySessionHash';
 const OPENREPLAY_INGEST_POINT = siteConfig.customFields.openReplayIngestPoint as string;
@@ -12,31 +13,48 @@ export const initOpenReplay = async () => {
   tracker = new Tracker({
     projectKey: OPENREPLAY_PROJECT_KEY,
     ingestPoint: OPENREPLAY_INGEST_POINT,
-    __DISABLE_SECURE_MODE: true,
   });
 };
 
 export const startOpenReplayTracking = (userId?: string) => {
   if (tracker) {
-    const cookies = document.cookie.split('; ');
-    const cookie = cookies.find(c => c.startsWith(`${OPENREPLAY_SESSION_COOKIE}=`));
-    const existingSessionHash = cookie ? cookie.split('=')[1] : null;
+    const existingSessionHash = Cookies.get(OPENREPLAY_SESSION_COOKIE);
 
     if (existingSessionHash) {
       // Resume existing session
-      tracker.start({ sessionHash: existingSessionHash });
+      tracker.start({
+        sessionHash: existingSessionHash,
+        userID: userId,
+        metadata: {
+          domain: window.location.hostname,
+        },
+      });
     } else {
       // Start a new session
-      tracker.start();
+      tracker.start({
+        userID: userId,
+        metadata: {
+          domain: window.location.hostname,
+        },
+      });
       const newSessionHash = tracker.getSessionToken();
       if (newSessionHash) {
-        document.cookie = `${OPENREPLAY_SESSION_COOKIE}=${newSessionHash};`;
+        setCookie(OPENREPLAY_SESSION_COOKIE, newSessionHash);
       }
     }
-
-    // Set the user ID in both cases
-    tracker.setUserID(userId);
   } else {
     console.warn('OpenReplay tracker is not initialized');
   }
 };
+
+function setCookie(name: string, value: string) {
+  const inTenMinutes = new Date(new Date().getTime() + 10 * 60 * 1000);
+
+  return Cookies.set(name, value, {
+    expires: inTenMinutes,
+    path: '/',
+    domain: '.hasura.io',
+    sameSite: 'Lax',
+    secure: true,
+  });
+}
