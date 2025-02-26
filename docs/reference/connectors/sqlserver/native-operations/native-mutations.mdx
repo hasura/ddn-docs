@@ -2,11 +2,13 @@
 sidebar_position: 3
 sidebar_label: Native Mutations
 description:
-  "Native Mutations allow you to run custom SQL queries on your SQL Server database. This page explains how to configure
-  Native Mutations in Hasura."
+  "Native Mutations allow you to execute custom SQL statements that modify data in your SQL Server database through
+  Hasura's GraphQL API."
 keywords:
   - native operations
   - custom mutations
+  - sql server
+  - data modification
 seoFrontMatterUpdated: false
 ---
 
@@ -14,36 +16,56 @@ seoFrontMatterUpdated: false
 
 ## Introduction
 
-Native mutations allow you to run custom SQL queries on your SQL Server database that can be exposed via the Hasura
-GraphQL engine and modify the database state.
+Native mutations allow you to execute custom SQL statements that modify data in your SQL Server database through
+Hasura's GraphQL API. This enables you to:
+
+- Insert, update, or delete data using custom SQL logic
+- Return modified records in the response
+- Implement complex data modifications beyond standard GraphQL mutations
+- Execute multiple related data changes in a single operation
 
 :::danger Permissions not yet supported
 
-Native mutations do not yet support permissions. This means that any user with access to the GraphQL API can execute
-Native mutations. Ensure that you have appropriate security measures in place to prevent unauthorized access. An update
-on this feature will be provided in an upcoming release.
+Native mutations do not yet support permissions. Any user with access to the GraphQL API can execute native mutations.
+Ensure you have appropriate security measures in place to prevent unauthorized access. Permission support will be added
+in an upcoming release.
 
 :::
 
 ## Structure
 
-A Native Mutation is a single SQL statement that returns results and can take arguments, and might modify the database.
-The SQL structure of a Native Mutation is specified in the
-[Native Operation syntax](/reference/connectors/sqlserver/native-operations/syntax.mdx) page, but require an important
-tweak. The SQL query should be such that rows should be returned in the response of the query. This can be done by
-including the `OUTPUT` clause in the queries, more on `OUTPUT` clauses can be found
-[here](https://learn.microsoft.com/en-us/sql/t-sql/queries/output-clause-transact-sql?view=sql-server-ver16).
+A native mutation consists of a single SQL statement that can:
 
-## Create a Native Mutation
+- Modify data in the database (INSERT, UPDATE, DELETE)
+- Accept input arguments
+- Return result rows
 
-Native mutations can be defined by adding them to the `metadata.nativeMutations` section of the `configuration.json`.
-Here's an example configuration:
+The SQL syntax follows the
+[Native Operation syntax guidelines](/reference/connectors/sqlserver/native-operations/syntax.mdx), with one key
+requirement: **The statement must return result rows using the `OUTPUT` clause**.
+
+### Using the OUTPUT Clause
+
+The `OUTPUT` clause allows you to return data from the modified rows. For example:
+
+```sql
+INSERT INTO [dbo].[Artist] (ArtistId, Name)
+OUTPUT inserted.*  -- Returns all columns from inserted rows
+VALUES ({{ArtistId}}, {{Name}})
+```
+
+Learn more about the `OUTPUT` clause in the
+[SQL Server documentation](https://learn.microsoft.com/en-us/sql/t-sql/queries/output-clause-transact-sql?view=sql-server-ver16).
+
+## Configuration
+
+Native mutations are defined in the `metadata.nativeMutations` section of your `configuration.json`. Here's an example:
 
 ```json
 {
   "nativeMutations": {
     "insert_artist_and_return_id": {
-      "sql": "INSERT INTO [dbo].[Artist] (ArtistId, Name) OUTPUT inserted.*  VALUES ({{ArtistId}}, {{Name}})",
+      "sql": "INSERT INTO [dbo].[Artist] (ArtistId, Name) OUTPUT inserted.* VALUES ({{ArtistId}}, {{Name}})",
       "columns": {
         "ArtistId": {
           "name": "ArtistId",
@@ -73,29 +95,36 @@ Here's an example configuration:
           "description": null
         }
       },
-      "description": null
+      "description": "Inserts a new artist and returns their ID and name"
     }
   }
 }
 ```
 
-:::tip Other operations
+### Example Operations
 
-You can also create mutations for updates and deletes. As an example, this mutation can be used to update an artist's
-name:
+Here are some common mutation patterns:
+
+**Update Operation:**
 
 ```sql
--- in update_artist_name.sql
 UPDATE [dbo].[Artist]
-SET "Name" = {{new_name}}
-WHERE "ArtistId" = {{ArtistId}}
+SET Name = {{new_name}}
+OUTPUT inserted.*
+WHERE ArtistId = {{artist_id}}
 ```
 
-:::
+**Delete Operation:**
+
+```sql
+DELETE FROM [dbo].[Artist]
+OUTPUT deleted.*
+WHERE ArtistId = {{artist_id}}
+```
 
 ## Usage
 
-With the example above, you can then run the mutation in your GraphQL API like this:
+Once configured, you can execute the mutation through your GraphQL API:
 
 ```graphql
 mutation {
@@ -105,6 +134,24 @@ mutation {
       Name
     }
     affected_rows
+  }
+}
+```
+
+The response will include both the returned data and the number of affected rows:
+
+```json
+{
+  "data": {
+    "insert_artist_and_return_id": {
+      "returning": [
+        {
+          "ArtistId": 1,
+          "Name": "Bob"
+        }
+      ],
+      "affected_rows": 1
+    }
   }
 }
 ```

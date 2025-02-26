@@ -6,6 +6,9 @@ description:
   Native Queries in Hasura."
 keywords:
   - native queries
+  - custom sql
+  - sql server
+  - read operations
 seoFrontMatterUpdated: false
 ---
 
@@ -13,18 +16,24 @@ seoFrontMatterUpdated: false
 
 ## Introduction
 
-Native queries allow you to run custom SQL queries on your SQL Server database. These allow you to run queries that are
-not supported as standard by Hasura's GraphQL engine.
+Native queries allow you to run custom SQL queries on your SQL Server database through Hasura's GraphQL API. This
+enables you to:
+
+- Execute complex SQL queries beyond Hasura's standard GraphQL operations
+- Perform custom data aggregations and transformations
+- Access advanced SQL Server features
 
 ## Structure
 
-A native query is a single SQL statement that returns results and can take arguments. The SQL structure of a Native
-Query is specified in the [Native Operation syntax](/reference/connectors/sqlserver/native-operations/syntax.mdx) page.
+A native query consists of a single SQL SELECT statement that:
 
-## Create a native query
+- Returns a result set
+- Can accept input arguments
+- Must follow the [Native Operation syntax guidelines](/reference/connectors/sqlserver/native-operations/syntax.mdx)
 
-Native queries can be defined by adding them to the `metadata.nativeQueries` section of the `configuration.json`. Here's
-an example configuration:
+## Configuration
+
+Native queries are defined in the `metadata.nativeQueries` section of your `configuration.json`. Here's an example:
 
 ```json
 {
@@ -76,9 +85,9 @@ an example configuration:
 }
 ```
 
-### Usage
+## Usage
 
-With the example above, you can then use the query in your GraphQL API like this:
+Once configured, you can execute the native query through your GraphQL API:
 
 ```graphql
 query {
@@ -88,3 +97,30 @@ query {
   }
 }
 ```
+
+The response will include the matching records:
+
+```json
+{
+  "data": {
+    "artist_by_name_between": [
+      {
+        "ArtistId": 15,
+        "Name": "Black Label Society"
+      },
+      {
+        "ArtistId": 27,
+        "Name": "Black Sabbath"
+      }
+    ]
+  }
+}
+```
+
+## Best Practices
+
+1. Use meaningful names for your native queries that describe their purpose
+2. Include descriptions for queries, columns, and arguments to improve API documentation
+3. Validate and sanitize input arguments to prevent SQL injection
+4. Consider performance implications for complex queries
+5. Use appropriate column types and cast specifications
