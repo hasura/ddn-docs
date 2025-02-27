@@ -50,7 +50,7 @@ started. Check the reference table for more information on each field.
 
 ```yaml title="An AuthConfig for noAuth mode:"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     noAuth:
@@ -67,7 +67,7 @@ definition:
 
 ```yaml title="An AuthConfig for JWT mode:"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -94,36 +94,297 @@ definition:
 
 ```yaml title="An AuthConfig for Webhook mode:"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     webhook:
-      url: http://auth_hook:3050/validate-request
-      method: Post
+      url:
+        value: http://auth_hook:3050/validate-request
+      method: POST
+      customHeadersConfig:
+        body:
+          headers:
+            forward:
+              - authorization
+              - content-type
+        headers:
+          additional:
+            user-agent: "Hasura DDN"
+
 ```
 
-| **Field** | **Description**                                                                           | **Reference**                                |
-| --------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `url`     | The URL of the authentication webhook that will be called to validate authentication.     | [AuthHookConfig](#authconfig-authhookconfig) |
-| `method`  | The HTTP method (`Get` or `Post`) that will be used to make the request to the auth hook. | [AuthHookMethod](#authconfig-authhookmethod) |
+| **Field** | **Description**                                                                                                                                                                       | **Reference**                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `url`     | The URL of the authentication webhook that will be called to validate authentication. This can be a static URL or an environment variable.                                            | [EnvironmentValue](#authconfig-environmentvalue)                       |
+| `method`  | The HTTP method (`GET` or `POST`) that will be used to make the request to the auth hook.                                                                                             | [AuthHookConfigV3](#authconfig-authhookconfigv3)                       |
+| `customHeadersConfig` | Configuration for the headers and body to be sent to the auth hook. This can be used to forward headers from the client request or add additional headers to the request. | [AuthHookConfigV3POSTHeaders](#authconfig-authhookconfigv3postheaders) |
 
 ---
 
 ## Metadata structure
 
-
 #### AuthConfig {#authconfig-authconfig}
 
 Definition of the authentication configuration used by the API server.
+
+**One of the following values:**
+
+| Value                                    | Description                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| [AuthConfigV1](#authconfig-authconfigv1) | Definition of the authentication configuration v1, used by the API server. |
+| [AuthConfigV2](#authconfig-authconfigv2) | Definition of the authentication configuration v2, used by the API server. |
+| [AuthConfigV3](#authconfig-authconfigv3) | Definition of the authentication configuration v3, used by the API server.                                                                           |
+
+#### AuthConfigV3 {#authconfig-authconfigv3}
+
+| Key          | Value                                    | Required | Description                                                                |
+| ------------ | ---------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `kind`       | `AuthConfig`                             | true     |                                                                            |
+| `version`    | `v3`                                     | true     |                                                                            |
+| `definition` | [AuthConfigV3](#authconfig-authconfigv3) | true     | Definition of the authentication configuration v3, used by the API server. |
+
+#### AuthConfigV2 {#authconfig-authconfigv2}
+
+Definition of the authentication configuration v2, used by the API server.
+
+| Key          | Value                                    | Required | Description                                                                |
+| ------------ | ---------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `kind`       | `AuthConfig`                             | true     |                                                                            |
+| `version`    | `v2`                                     | true     |                                                                            |
+| `definition` | [AuthConfigV2](#authconfig-authconfigv2) | true     | Definition of the authentication configuration v2, used by the API server. |
+
+#### AuthConfigV1 {#authconfig-authconfigv1}
+
+Definition of the authentication configuration v1, used by the API server.
+
+| Key          | Value                                    | Required | Description                                                                |
+| ------------ | ---------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `kind`       | `AuthConfig`                             | true     |                                                                            |
+| `version`    | `v1`                                     | true     |                                                                            |
+| `definition` | [AuthConfigV1](#authconfig-authconfigv1) | true     | Definition of the authentication configuration v1, used by the API server. |
+
+
+
+
+#### AuthConfigV3 {#authconfig-authconfigv3}
+
+Definition of the authentication configuration v3, used by the API server.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `mode` | [AuthModeConfigV3](#authconfig-authmodeconfigv3) | true | The configuration for the authentication mode to use - webhook, JWT or NoAuth. |
+
+
+
+#### AuthModeConfigV3 {#authconfig-authmodeconfigv3}
+
+The configuration for the authentication mode to use - webhook, JWT or NoAuth.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `webhook` | [AuthHookConfigV3](#authconfig-authhookconfigv3) | false | The configuration of the authentication webhook. |
+| `jwt` | [JWTConfig](#authconfig-jwtconfig) | false |  |
+| `noAuth` | [NoAuthConfig](#authconfig-noauthconfig) | false |  |
+
+
+
+#### AuthHookConfigV3 {#authconfig-authhookconfigv3}
+
+The configuration of the authentication webhook.
 
 
 **One of the following values:**
 
 | Value | Description |
 |-----|-----|
-| [AuthConfig1](#authconfig-authconfig1) | Definition of the authentication configuration v1, used by the API server. |
-| [AuthConfig2](#authconfig-authconfig2) | Definition of the authentication configuration v2, used by the API server. |
+| [AuthHookConfigV3GET](#authconfig-authhookconfigv3get) | The configuration of the GET authentication webhook. |
+| [AuthHookConfigV3POST](#authconfig-authhookconfigv3post) | The configuration of the POST authentication webhook. |
 
+ **Example:**
+
+```yaml
+method: GET
+url:
+  value: http://auth_hook:3050/validate-request
+customHeadersConfig:
+  headers:
+    forward:
+      - Authorization
+    additional:
+      user-agent: hasura-ddn
+```
+
+
+#### AuthHookConfigV3POST {#authconfig-authhookconfigv3post}
+
+The configuration of the POST authentication webhook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `method` | `POST` | true |  |
+| `url` | [EnvironmentValue](#authconfig-environmentvalue) | true | The URL of the POST authentication webhook. |
+| `customHeadersConfig` | [AuthHookConfigV3POSTHeaders](#authconfig-authhookconfigv3postheaders) / null | false | The configuration for the headers to be sent to the POST auth hook. |
+
+ **Example:**
+
+```yaml
+url:
+  value: http://auth_hook:3050/validate-request
+customHeadersConfig:
+  headers:
+    forward: '*'
+    additional:
+      user-agent: hasura-ddn
+  body:
+    headers:
+      forward:
+        - Authorization
+      additional: {}
+```
+
+
+#### AuthHookConfigV3POSTHeaders {#authconfig-authhookconfigv3postheaders}
+
+The configuration for the headers and body to be sent to the POST auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `headers` | [AuthHookConfigV3Headers](#authconfig-authhookconfigv3headers) / null | false | The configuration for the headers to be sent to the POST auth hook. |
+| `body` | [AuthHookConfigV3Body](#authconfig-authhookconfigv3body) / null | false | The configuration for the body to be sent to the POST auth hook. |
+
+ **Example:**
+
+```yaml
+headers:
+  forward: '*'
+  additional:
+    user-agent: hasura-ddn
+body:
+  headers:
+    forward:
+      - Authorization
+    additional: {}
+```
+
+
+#### AuthHookConfigV3Body {#authconfig-authhookconfigv3body}
+
+The configuration for the body to be sent to the POST auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `headers` | [AuthHookConfigV3Headers](#authconfig-authhookconfigv3headers) / null | false | The configuration for the headers to be sent as part of the body to the POST auth hook. |
+
+ **Example:**
+
+```yaml
+headers:
+  forward:
+    - Authorization
+  additional: {}
+```
+
+
+#### AuthHookConfigV3GET {#authconfig-authhookconfigv3get}
+
+The configuration of the GET authentication webhook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `method` | `GET` | true |  |
+| `url` | [EnvironmentValue](#authconfig-environmentvalue) | true | The URL of the GET authentication webhook. |
+| `customHeadersConfig` | [AuthHookConfigV3GETHeaders](#authconfig-authhookconfigv3getheaders) / null | false | The configuration for the headers to be sent to the GET auth hook. |
+
+ **Example:**
+
+```yaml
+url:
+  value: http://auth_hook:3050/validate-request
+customHeadersConfig:
+  headers:
+    forward:
+      - Authorization
+    additional:
+      user-agent: hasura-ddn
+```
+
+
+#### AuthHookConfigV3GETHeaders {#authconfig-authhookconfigv3getheaders}
+
+The configuration for the headers to be sent to the GET auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `headers` | [AuthHookConfigV3Headers](#authconfig-authhookconfigv3headers) / null | false |  |
+
+ **Example:**
+
+```yaml
+headers:
+  forward:
+    - Authorization
+  additional:
+    user-agent: hasura-ddn
+```
+
+
+#### AuthHookConfigV3Headers {#authconfig-authhookconfigv3headers}
+
+The configuration for the headers to be sent to the auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `forward` | [AllOrList](#authconfig-allorlist) | false | The headers to be forwarded from the client request. |
+| `additional` | [AdditionalHeaders](#authconfig-additionalheaders) | false | The additional headers to be sent to the auth hook. |
+
+ **Example:**
+
+```yaml
+forward:
+  - Authorization
+additional:
+  user-agent: hasura-ddn
+```
+
+
+#### AdditionalHeaders {#authconfig-additionalheaders}
+
+The additional headers to be sent to the auth hook.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `<customKey>` | string | false |  |
+
+
+
+#### AllOrList {#authconfig-allorlist}
+
+A list of items or a wildcard.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [All](#authconfig-all) | Wildcard: match all items |
+| [string] |  |
+
+ **Example:**
+
+```yaml
+'*'
+```
+
+
+#### All {#authconfig-all}
+
+Wildcard: match all items
+
+
+**Value:** `*`
 
 
 #### AuthConfig2 {#authconfig-authconfig2}
