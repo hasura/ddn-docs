@@ -2,10 +2,11 @@
 sidebar_position: 2
 sidebar_label: Configuration
 description:
-  "Reference documentation for the setup process for the Hasura SQL Server connector, including connection URI details, and
-  native queries."
+  "Reference documentation for the setup process for the Hasura SQL Server connector, including connection URI details,
+  and native queries."
 keywords:
   - sqlserver
+  - connector
   - configuration
 ---
 
@@ -13,14 +14,19 @@ keywords:
 
 ## Introduction
 
-The configuration is a metadata object that lists all the database entities — such as tables — that the data connector
-has to know about in order to serve queries. It never changes during the lifetime of the data connector service
-instance. When your database schema changes you will have to update the configuration accordingly, see
-[updating with introspection](#updating-with-introspection).
+The configuration defines how the Hasura SQL Server connector interacts with your database. It specifies:
 
-## Structure
+- Database connection details
+- Tables and views to expose
+- Custom queries and mutations
+- Available functions and procedures
 
-The configuration object is a JSON object with the following fields:
+The configuration remains static during the connector's runtime. When your database schema changes, you'll need to
+update the configuration through [introspection](#updating-with-introspection).
+
+## Configuration Structure
+
+The configuration is a JSON object with the following structure:
 
 ```json
 {
@@ -58,6 +64,7 @@ instance).
 ```yaml
 "connectionUri": { "variable": "CONNECTION_URI" }
 ```
+
 ## Property: Metadata
 
 The metadata section collects declarations of all the database entities that are known to the data connector.
@@ -76,12 +83,12 @@ Consult the [json schema reference][Configuration JSON Schema] for details.
     "Album": // Exposed collection name
       {
          "schemaName": "dbo",
-        "tableName": "Album", // The actual name of the table in the database 
+        "tableName": "Album", // The actual name of the table in the database
         "columns":
           {
             "AlbumId": // The exposed field name
               {
-                "name": "AlbumId", // The actual name of the column in the table 
+                "name": "AlbumId", // The actual name of the column in the table
                 "type": "int",
                 "nullable": "nonNullable",
                 "description": null,
@@ -235,7 +242,8 @@ This is a JSON object containing key-value pairs of Native Mutations to be used 
 
 ### `aggregateFunctions`
 
-The `aggregateFunctions` field captures the aggregate funtions associated with the scalar types present in the data connector schema.
+The `aggregateFunctions` field captures the aggregate funtions associated with the scalar types present in the data
+connector schema.
 
 The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
 input argument appear in the metadata.
@@ -243,49 +251,29 @@ input argument appear in the metadata.
 **Example**
 
 ```yaml
-"aggregateFunctions": 
+"aggregateFunctions":
   {
-    "bigint": {
-      "APPROX_COUNT_DISTINCT": {
-        "returnType": "bigint"
+    "bigint":
+      {
+        "APPROX_COUNT_DISTINCT": { "returnType": "bigint" },
+        "AVG": { "returnType": "bigint" },
+        "COUNT": { "returnType": "int" },
+        "COUNT_BIG": { "returnType": "bigint" },
+        "MAX": { "returnType": "bigint" },
+        "MIN": { "returnType": "bigint" },
+        "STDEV": { "returnType": "float" },
+        "STDEVP": { "returnType": "float" },
+        "SUM": { "returnType": "bigint" },
+        "VAR": { "returnType": "float" },
+        "VARP": { "returnType": "float" },
       },
-      "AVG": {
-        "returnType": "bigint"
-      },
-      "COUNT": {
-        "returnType": "int"
-      },
-      "COUNT_BIG": {
-        "returnType": "bigint"
-      },
-      "MAX": {
-        "returnType": "bigint"
-      },
-      "MIN": {
-        "returnType": "bigint"
-      },
-      "STDEV": {
-        "returnType": "float"
-      },
-      "STDEVP": {
-        "returnType": "float"
-      },
-      "SUM": {
-        "returnType": "bigint"
-      },
-      "VAR": {
-        "returnType": "float"
-      },
-      "VARP": {
-        "returnType": "float"
-      }
-    }
   }
 ```
 
 ### `comparisonOperators`
 
-The `comparisonOperators` field captures the comparision operators associated with the scalar types present in the data connector schema.
+The `comparisonOperators` field captures the comparision operators associated with the scalar types present in the data
+connector schema.
 
 The introspection process will attempt to ensure that only relevant types that actually appear in collection fields or
 input argument appear in the metadata.
@@ -293,45 +281,18 @@ input argument appear in the metadata.
 **Example**
 
 ```yaml
-"comparisonOperators": 
+"comparisonOperators":
   {
-    "bigint": {
-      "_eq": {
-        "operatorName": "=",
-        "argumentType": "bigint",
-        "operatorKind": "equal"
+    "bigint":
+      {
+        "_eq": { "operatorName": "=", "argumentType": "bigint", "operatorKind": "equal" },
+        "_gt": { "operatorName": ">", "argumentType": "bigint", "operatorKind": "custom" },
+        "_gte": { "operatorName": ">=", "argumentType": "bigint", "operatorKind": "custom" },
+        "_in": { "operatorName": "IN", "argumentType": "bigint", "operatorKind": "in" },
+        "_lt": { "operatorName": "<", "argumentType": "bigint", "operatorKind": "custom" },
+        "_lte": { "operatorName": "<=", "argumentType": "bigint", "operatorKind": "custom" },
+        "_neq": { "operatorName": "!=", "argumentType": "bigint", "operatorKind": "custom" },
       },
-      "_gt": {
-        "operatorName": ">",
-        "argumentType": "bigint",
-        "operatorKind": "custom"
-      },
-      "_gte": {
-        "operatorName": ">=",
-        "argumentType": "bigint",
-        "operatorKind": "custom"
-      },
-      "_in": {
-        "operatorName": "IN",
-        "argumentType": "bigint",
-        "operatorKind": "in"
-      },
-      "_lt": {
-        "operatorName": "<",
-        "argumentType": "bigint",
-        "operatorKind": "custom"
-      },
-      "_lte": {
-        "operatorName": "<=",
-        "argumentType": "bigint",
-        "operatorKind": "custom"
-      },
-      "_neq": {
-        "operatorName": "!=",
-        "argumentType": "bigint",
-        "operatorKind": "custom"
-      }
-    }
   }
 ```
 
@@ -392,6 +353,7 @@ reflect those changes.
 
 Running `update` in a configuration directory will do the following:
 
-- Connect to the database with the specified `mssql_connection_string`, and then overwrite all data in the `tables` field
+- Connect to the database with the specified `mssql_connection_string`, and then overwrite all data in the `tables`
+  field
 
 - Fill in default values for any fields absent from the configuration
