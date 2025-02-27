@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4
-sidebar_label: "Commands modify data"
-description: "Commands allow you to modify data in your data source."
+sidebar_label: "Commands act on data"
+description: "Commands allow you to act on data in your data source."
 toc_max_heading_level: 4
 keywords:
   - command
@@ -36,7 +36,7 @@ import CommandUpdatePostgreSQL from "@site/docs/data-modeling/partials/classic-c
 ## Introduction
 
 In DDN, commands represent operations in your API that can be executed such as those which modify data in your data
-sources, (inserts, updates, deletes), or custom business logic operations.
+sources, (inserts, updates, deletes), or that perform complex read operations or execute custom business logic.
 
 ## Lifecycle
 
@@ -59,6 +59,9 @@ that point.
 
 ### From a source operation
 
+Some data connectors support the ability to introspect your data source to discover the commands that can be added to
+your supergraph automatically.
+
 ```bash title="Introspect your data source:"
 ddn connector introspect <connector_name>
 ```
@@ -79,7 +82,16 @@ ddn command add <connector_link_name> "*"
 
 This will add commands with their accompanying metadata definitions to your metadata.
 
-### Via native mutation {#via-native-mutation-how-to}
+### Via native operations {#via-native-operations-how-to}
+
+Some data connectors support the ability to add commands via native operations so that you can add any operation that is
+not supported by the automatic introspection process.
+
+For classic database connectors this will be native query code for that source. This can be for example a more complex
+read operation or to run some custom business logic. These can be exposed as queries or mutations in the GraphQL API.
+
+For Lambda connectors this will be a function (read-only) or procedure (mutation or other side-effects) that also be
+exposed as a query or mutation in the GraphQL API.
 
 <Tabs groupId="source-preference" className="api-tabs">
   <TabItem value="PostgreSQL" label="PostgreSQL">
@@ -90,6 +102,15 @@ This will add commands with their accompanying metadata definitions to your meta
   </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse">
     <CommandCreateClickHouseNativeMutationHowTo />
+  </TabItem>
+  <TabItem value="TypeScript" label="Node.js TypeScript">
+    Typescript
+  </TabItem>
+  <TabItem value="Python" label="Python">
+    Python
+  </TabItem>
+  <TabItem value="Go" label="Go">
+    Go
   </TabItem>
 </Tabs>
 
@@ -146,18 +167,9 @@ To modify data, you first need to create a command that maps to a specific opera
   <TabItem value="ClickHouse" label="ClickHouse">
     <CommandCreateClickHouse />
   </TabItem>
-  <TabItem value="TypeScript" label="Node.js TypeScript">
-    <CommandCreateLambdaTypescript />
-  </TabItem>
-  <TabItem value="Python" label="Python">
-    <CommandCreateLambdaPython />
-  </TabItem>
-  <TabItem value="Go" label="Go">
-    <CommandCreateLambdaGo />
-  </TabItem>
 </Tabs>
 
-#### Via native mutation {#via-native-mutation-tutorials}
+#### Via native operations {#via-native-operations-tutorials}
 
 <Tabs groupId="source-preference" className="api-tabs">
   <TabItem value="PostgreSQL" label="PostgreSQL">
@@ -168,6 +180,15 @@ To modify data, you first need to create a command that maps to a specific opera
   </TabItem>
   <TabItem value="ClickHouse" label="ClickHouse">
     <CommandCreateClickHouseNativeMutationTutorial />
+  </TabItem>
+  <TabItem value="TypeScript" label="Node.js TypeScript">
+    <CommandCreateLambdaTypescript />
+  </TabItem>
+  <TabItem value="Python" label="Python">
+    <CommandCreateLambdaPython />
+  </TabItem>
+  <TabItem value="Go" label="Go">
+    <CommandCreateLambdaGo />
   </TabItem>
 </Tabs>
 
