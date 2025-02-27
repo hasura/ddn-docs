@@ -66,8 +66,25 @@ values:
 **Connection string**
 
 ```plaintext
-Server=127.0.0.1,1433;Database=master;Uid=sa;Password=Password123;
+Server=<host>,<port>;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
 ```
+
+:::note
+
+If the database is created using the local docker setup, it needs to be hosted on cloud using applicarions such as
+ngrok. For example,
+
+```plaintext
+Server=0.tcp.in.ngrok.io,16543;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
+```
+
+:::
+
+:::note
+
+`TrustServerCertificate=true` should only be added for local databases.
+
+:::
 
 ### Step 4. Start the local SQL Server container
 
@@ -76,36 +93,50 @@ docker pull mcr.microsoft.com/mssql/server:2019-latest
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password123" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
 ```
 
-```sh title="Use the mssql-tools shell to start the SQL prompt:"
-docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Password123' -d 'master'
+Download [Visual Studio Code](https://code.visualstudio.com/) and install the
+[SQL Server extension](https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql) in it.
+
+```plaintext title="Connect to the database using the connection string:"
+Server=localhost,1433;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
 ```
-
-:::note
-
-Add the flag `-C` is to apply the `trust server certificate` set to true. This shoud only be used for local database and not on production databases.
-
-:::
 
 ```SQL title="Create a table in the database:"
 CREATE TABLE users (user_id int, name varchar(255), age int);
-GO
 ```
 
 ```SQL title="Then, seed the table:"
 INSERT INTO users (user_id, name, age) VALUES (1, 'Alice', 25), (2, 'Bob', 30), (3, 'Charlie', 35);
-GO
 ```
 
 ```SQL title="You can verify this by running:"
 SELECT * FROM users;
-GO
 ```
 
 You should see a list of users returned.
 
 :::tip
 
-Application such as [Microsoft Azure Studio](https://azure.microsoft.com/en-us/products/data-studio) can also be used to seed the database
+Alternativey, other applications and tools can also be used to seed the database, such as
+
+1. [Microsoft Azure Studio](https://azure.microsoft.com/en-us/products/data-studio)
+2. `mssql-tools` shell to start the SQL prompt:
+
+   ```sh
+   docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Password123' -d 'master' -C
+   ```
+
+   :::note
+
+   1. The flag `-C` is used to apply the `trust server certificate` set to true. This should only be used for local
+      database and not on production databases.
+   2. Each SQL statement in the mssql-tools interactive shell needs a `GO` statement at the end for the SQL statement to
+      process. For example,
+      ```
+      SELECT * FROM users;
+      GO
+      ```
+
+   :::
 
 :::
 
@@ -197,7 +228,6 @@ CREATE TABLE posts (
   title varchar(255),
   content varchar(255)
 );
-GO
 ```
 
 ```sh title="Then, seed it:"
@@ -206,12 +236,10 @@ INSERT INTO posts (user_id, post_id, title, content) VALUES
   (1, 2, 'Another Post', 'Alice writes again!'),
   (2, 3, 'Bob''s Post', 'Bob shares his thoughts.'),
   (3, 4, 'Hello World', 'Charlie joins the conversation.');
-GO
 ```
 
 ```sh title="Finally, we can check the posts were generated:"
 SELECT * FROM posts;
-GO
 ```
 
 ### Step 11. Refresh your metadata and rebuild your project
@@ -229,8 +257,8 @@ modifying, or dropping tables.
 ddn connector introspect my_sqlserver
 ```
 
-In `app/connector/my_sqlserver/configuration.json`, you'll see schema updated to include operations for the `posts` table. In
-`app/metadata/my_sqlserver.hml`, you'll see `posts` present in the metadata as well.
+In `app/connector/my_sqlserver/configuration.json`, you'll see schema updated to include operations for the `posts`
+table. In `app/metadata/my_sqlserver.hml`, you'll see `posts` present in the metadata as well.
 
 #### Step 11.2. Update your metadata
 
