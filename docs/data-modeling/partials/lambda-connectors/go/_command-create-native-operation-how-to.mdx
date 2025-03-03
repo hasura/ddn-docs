@@ -1,0 +1,74 @@
+You can run whatever arbitrary code you want in your Go connector and expose it as a GraphQL mutation or query in your
+supergraph API.
+
+```sh title="Initialize a new connector and select hasura/go from the list:"
+ddn connector init my_go -i
+```
+
+```go title="Replace the functions.go contents with your own custom code:"
+package main
+
+import (
+	"context"
+	"github.com/hasura/ndc-go-lambda-sdk/sdk"
+)
+
+type User struct {
+	Name string
+	Age  int
+}
+
+func myCustomCode(ctx context.Context, user *User) (*string, error) {
+	// Do something with the input
+	result := "Hello " + user.Name
+	return &result, nil
+}
+
+func main() {
+	connector := sdk.Connector{}
+	sdk.RegisterFunction(&connector, sdk.FunctionInfo{
+		Name:        "myCustomCode",
+		Description: "Sample function that greets a user",
+		ReadOnly:    true,
+	}, myCustomCode)
+	sdk.StartServer(connector)
+}
+```
+
+By setting `ReadOnly: true` in the `FunctionInfo` struct, we are indicating that this function is to be exposed as an
+NDC function which will ultimately show up as a GraphQL query. Setting `ReadOnly: false` will expose the function as an
+NDC procedure which will be a GraphQL mutation.
+
+```bash title="Introspect the connector:"
+ddn connector introspect my_go
+```
+
+```bash title="Track the function:"
+ddn command add my_go myCustomCode
+```
+
+```bash title="Create a new build:"
+ddn supergraph build local
+```
+
+```bash title="Start your services:"
+ddn run docker-start
+```
+
+```bash title="Open your development console:"
+ddn console --local
+```
+
+```graphql title="You can now query your native operation:"
+query MyCustomCode {
+  myCustomCode(user: { name: "John", age: 30 })
+}
+```
+
+```json title="You will see a response like this:"
+{
+  "data": {
+    "myCustomCode": "Hello John"
+  }
+}
+```
