@@ -24,7 +24,7 @@ export default function DocRootLayout({ children }) {
     if (isBrowser && !hasInitialized) {
       (async () => {
         try {
-          await initOpenReplay();
+          // await initOpenReplay();
           setHasInitializedOpenReplay(true);
         } catch (error) {
           console.error('Failed to initialize OpenReplay:', error);
