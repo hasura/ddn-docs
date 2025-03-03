@@ -7,7 +7,6 @@ on:
 jobs:
   check-approval:
     runs-on: ubuntu-latest
-    # Ensure the job only runs if the PR was merged and contains relevant changes
     if: github.event.pull_request.merged == true
     steps:
       - name: Checkout repository
@@ -20,78 +19,79 @@ jobs:
         id: grab-renamed
         run: |
           if git diff --name-status ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- docs/ | grep -E 'R|D'; then
-            echo "diff-status=true" >> "$GITHUB_OUTPUT"
-            diff_files=$(git diff --name-status ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- docs/ | grep -E 'R|D')
-            diff_files=$(echo "$diff_files" | sed 's|.mdx|/|g' | sed 's|docs/||g')
-            echo "$diff_files" | tr " " "\n" > diff_files.txt
+          # output variable to pass to the next step that sets the diff-status to true
+          echo "diff-status=true" >> "$GITHUB_OUTPUT"
 
-            set +e
-            while IFS= read -r line; do
-              OLD=$(echo "$line" | awk '{print $2}')
-              NEW=$(echo "$line" | awk '{print $3}')
-              if [ -z "$NEW" ]; then
-                NEW="OG-FILE-WAS-DELETED-REPLACE-ME-WITH-NEW-LOCATION"
-              fi
-              read -r -d '' TEMPLATE << EOM
-              # TEST ME: https://stage.hasura.io/docs/3.0/$OLD
-              location = /docs/3.0/$OLD {
-                  return 301 https://\$host/docs/3.0/$NEW;
-              }
-              EOM
-              echo "$TEMPLATE" >> nginx.txt
-            done < diff_files.txt
-            set -e
-            echo "NGINX<<EOF" >> "$GITHUB_ENV"
-            cat nginx.txt >> "$GITHUB_ENV"
-            echo "EOF" >> "$GITHUB_ENV"
+          # diff work and parsing the paths to get them in the right shape
+          diff_files=$(git diff --name-status ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- docs/ | grep -E 'R|D')
+          diff_files=$(echo "$diff_files" | sed 's|.mdx|/|g')
+          diff_files=$(echo "$diff_files" | sed 's|docs/||g')
+          # print the diff so each line is a new line in diff_files.txt
+          echo "$diff_files" | tr " " "\n" > diff_files.txt
+
+          # grab the filenames and plug them into our nginx template
+          set +e
+          while IFS= read -r line; do
+          OLD=$(echo "$line" | awk '{print $2}')
+          NEW=$(echo "$line" | awk '{print $3}')
+          if [ -z "$NEW" ]; then
+            NEW="OG-FILE-WAS-DELETED-REPLACE-ME-WITH-NEW-LOCATION"
+          fi
+          read -r -d '' TEMPLATE << EOM
+          # TEST ME: https://stage.hasura.io/docs/3.0/$OLD
+          location = /docs/3.0/$OLD {
+              return 301 https://\$host/docs/3.0/$NEW;
+          }
+          EOM
+          echo -e "\n$TEMPLATE\n" >> nginx.txt
+          echo "This is a redirect:\n\n $TEMPLATE"
+          done < diff_files.txt
+          set -e
+          echo "NGINX<<EOF" >> "$GITHUB_ENV"
+          cat nginx.txt >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
           else
-            echo "diff-status=false" >> "$GITHUB_OUTPUT"
+          echo "diff-status=false" >> "$GITHUB_OUTPUT"
           fi
 
-    # Skip the entire job if no relevant files were changed
-    if: steps.grab-renamed.outputs.diff-status == 'true'
-    steps:
       - name: Checkout the hasura.io repository
-        run: |
-          git clone --depth=1 https://github.com/hasura/hasura.io.git
-          cd hasura.io
-          git fetch --prune --unshallow
-          git checkout master
-          git pull origin master
+        if: steps.grab-renamed.outputs.diff-status == 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: hasura/hasura.io
+          path: hasura.io
+          token: ${{ secrets.DOCS_GITHUB_TOKEN }}
 
       - name: Create new branch and update redirects
+        if: steps.grab-renamed.outputs.diff-status == 'true'
         run: |
           cd hasura.io
           PR_NUMBER=${{ github.event.pull_request.number }}
           PR_TITLE="${{ github.event.pull_request.title }}"
           BRANCH_NAME="docs-redirects-${PR_NUMBER}"
 
-          git checkout -b $BRANCH_NAME
           REDIRECTS_FILE="redirects/paths/docs.conf"
           TIMESTAMP=$(date +"%d/%m/%Y")
 
-          # Append comment and redirects
           cat <<EOF >> $REDIRECTS_FILE
+
           ##################################################################
-          # $PR_TITLE - PR #$PR_NUMBER - $TIMESTAMP
+          # PR #$PR_NUMBER - $TIMESTAMP
           ##################################################################
           $NGINX
           EOF
 
-          git add $REDIRECTS_FILE
-          git commit -m "Redirects: DDN-DOCS-PR-$PR_NUMBER"
-          git push origin $BRANCH_NAME
+      - name: create pull request
+        uses: peter-evans/create-pull-request@v5.0.2
+        with:
+          path: hasura.io
+          token: ${{ secrets.DOCS_GITHUB_TOKEN }}
+          author: hasura-bot <build@hasura.io>
+          commit-message: 'Redirects: DDN DOCS PR#${{ github.event.pull_request.number }}'
+          branch: docs-redirects-${{ github.event.pull_request.number }}
+          base: master
+          title: 'Redirects: DDN Docs PR#${{ github.event.pull_request.number }}'
+          body: |
+            This PR adds _templated_ redirects for the merged docs PR hasura/ddn-docs#${{ github.event.pull_request.number }}.
 
-      - name: Open PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd hasura.io
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          PR_TITLE="${{ github.event.pull_request.title }}"
-
-          gh pr create \
-            --base master \
-            --head "docs-redirects-${PR_NUMBER}" \
-            --title "Redirects: DDN DOCS PR-${PR_NUMBER}" \
-            --body "This PR adds _templated_ redirects for the merged docs PR hasura/ddn-docs#${PR_NUMBER}. \n\n Modify, review, and merge as needed."
+            Modify, review, and merge as needed.
