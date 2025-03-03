@@ -57,6 +57,29 @@ are run in the appropriate subgraph.
 
 ## Relationships across subgraphs
 
+Relationships across subgraphs work in nearly the exact same way as relationships within a single subgraph; the only
+caveat is to add the `subgraph` name of the target type.
+
+```yaml title="In the example below, we're creating a simple relationship between models, with the target model belonging to the billing subgraph:" {8}
+kind: Relationship
+version: v1
+definition:
+  name: orders
+  sourceType: Users
+  target:
+    model:
+      subgraph: billing
+      name: Orders
+      relationshipType: Array
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: id
+      target:
+        modelField:
+          - fieldName: userId
+```
+
 ### Single-repo relationships
 
 In a single-repo setup, relationships are straightforward to manage. All subgraphs are in the same repository and the
