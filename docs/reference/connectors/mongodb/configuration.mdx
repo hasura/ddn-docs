@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 sidebar_label: Configuration
 description:
   "Reference documentation for the setup process for the Hasura MongoDB connector, including connection URI details, and
@@ -34,6 +34,9 @@ configuration file along with explanations of its components:
     "sampleSize": 100,
     "noValidatorSchema": false,
     "allSchemaNullable": true
+  },
+  "serializationOptions": {
+    "extendedJsonMode": "relaxed"
   }
 }
 ```
@@ -59,6 +62,12 @@ The `.configuration_metadata` file is a blank file with no content. It's used by
 `configuration.json` file has been modified. Essentially, its presence alone serves as an indicator that the
 configuration file has been updated since the last check. This simple mechanism helps the system keep track of changes
 to the configuration without storing any actual timestamps or data.
+
+#### `serializationOptions`
+
+Unlike other data, fields with the configured type `extendedJSON` are converted to JSON using a format defined by
+MongoDB called Extended JSON. This format has two formats: `canonical` and `relaxed`. The setting `extendedJsonMode`
+determines which format the connector will use. See [Extended JSON](./extended-json.mdx).
 
 ### Schema
 
@@ -115,7 +124,8 @@ The `name` property specifies the name which gets exposed to Hasura metadata/too
 
 #### Collections
 
-The `collections` property contains definitions of the collection name in your database and the object type it returns:
+The `collections` property contains definitions of the collection name in your database and the object type that
+describes the type of each document in that collection:
 
 ```json
 {
@@ -129,80 +139,8 @@ The `collections` property contains definitions of the collection name in your d
 
 #### Object types
 
-The `objectTypes` property defines the returned object types. Object types contain `fields` that specify either scalar
-or other structural object types.
-
-```json
-{
-  "objectTypes": {
-    "users": {
-      "fields": {
-        "_id": {
-          "type": {
-            "scalar": "objectId"
-          }
-        },
-        "email": {
-          "type": {
-            "scalar": "string"
-          }
-        },
-        "name": {
-          "type": {
-            "scalar": "string"
-          }
-        },
-        "password": {
-          "type": {
-            "scalar": "string"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### Type Examples
-
-```json
-{ "type": { "scalar": "string" } }
-```
-
-```json
-{ "type": "extended_json" }
-```
-
-```json
-{ "type": { "arrayOf": { "scalar": "string" } } }
-```
-
-```json
-{ "type": { "object": "TypeName" } }
-```
-
-```json
-{ "type": { "nullable": { "scalar": "string" } } }
-```
-
-#### Scalar Types
-
-- `double`: Represents a floating point number.
-- `string`: Represents a sequence of characters.
-- `bool`: Represents a boolean value, true or false.
-- `int`: Represents an integer.
-- `long`: Represents a longer form of integer.
-- `decimal`: Represents a large decimal number.
-- `date`: Represents a date, stored as a string in ISO format.
-- `timestamp`: Represents a Unix timestamp.
-- `objectId`: Represents an object identifier.
-
-#### Structural Types
-
-- `object`: Represents a BSON document or an embedded document. Users can define their own nested object types,
-  specifying the structure of these objects as required by their applications.
-- `arrayOf`: Represents an array of elements, with each element being a type specified after `arrayOf`. For instance,
-  `{"arrayOf" : "string"}` means an array of strings.
+The `objectTypes` property defines the document object type. Object types contain `fields` where each field specifies
+a `type` and an optional `description`. See [Type Expressions](./type-expressions.mdx#object-types).
 
 ### Native queries
 
