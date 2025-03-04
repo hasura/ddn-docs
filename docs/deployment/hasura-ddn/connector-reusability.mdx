@@ -1,0 +1,161 @@
+---
+sidebar_position: 3
+description: "Reuse connectors across multiple subgraphs or multiple projects"
+---
+
+# Connector Reusability
+
+## Introduction
+
+Hasura DDN allows you to reuse the same connector deployment across multiple subgraphs, and even across multiple
+projects. This pattern offers several advantages, especially in scenarios where you have multiple teams or applications
+needing access to the same underlying data source, and also want to benefit from the performance advantage of having the
+data connectors deployed as close to their data source as possible.
+
+## Benefits of Connector Reusability
+
+- **Reduced Redundancy:** Avoid deploying the same connector multiple times, saving resources and simplifying
+  management.
+- **Centralized Configuration:** Manage the connector's configuration (like connection strings, credentials, etc.) in a
+  single place. Changes only need to be made once.
+- **Improved Performance:** A single connector instance can handle requests from multiple subgraphs, potentially leading
+  to better connection pooling and resource utilization.
+- **Simplified Deployment:** Deploy and update the connector independently of the subgraphs that use it.
+- **Location Optimisation:** You can locate the connector as close to the data source as possible, this can
+  significantly improve performance and reduce the costs and risks of egress.
+
+## How it Works
+
+The key to connector reusability is the `DataConnectorLink` metadata object. Instead of each subgraph deploying its own
+instance of a connector, different subgraphs (and even projects) can reference the same `DataConnectorLink`.
+
+1.  **Deploy the Connector:** You deploy a single instance of the data connector, ideally in a region close to your data
+    source.
+
+2.  **Create the `DataConnectorLink`:** You create a `DataConnectorLink` object that points to this deployed connector
+    instance. This object defines the connection details (URL, headers, etc.).
+
+3.  **Reference the `DataConnectorLink`:** Within each subgraph that needs access to the data source, you use the
+    `DataConnectorLink`'s `name` in the [Model](/reference/metadata-reference/models.mdx) and/or
+    [Command](/reference/metadata-reference/commands.mdx) definitions.
+
+## Example Scenario
+
+Let's say you have a PostgreSQL database hosted in `us-east-1`. You have two teams: a "Products" team and a "Reviews"
+team. Both teams need to access data from this database. Instead of deploying two separate PostgreSQL connectors, you
+can deploy a single connector in `us-east-1` (close to the database) and reuse it across both subgraphs.
+
+### Step 1: Deploy the Connector and Create the `DataConnectorLink`
+
+1.  **Deploy the Connector:** Deploy a single instance of the `hasura/postgres` connector, for example in the
+    `us-east-1` region. Let's say the deployment results in the following read and write URLs:
+
+    ```
+    Read URL:  https://my-postgres-connector-read.us-east-1.nhost.run
+    Write URL: https://my-postgres-connector-write.us-east-1.nhost.run
+    ```
+
+    We'll need these values in the next step.
+
+2.  **Create the `DataConnectorLink`:** Create a `DataConnectorLink` metadata object, that references the deployed
+    connector in your first team's subgraph directory (eg: `products/metadata`). Let's call it `postgres_db.hml`.
+
+```yaml title="products/metadata/postgres_db.hml"
+kind: DataConnectorLink
+version: v1
+definition:
+  name: postgres_db
+  url:
+    readWriteUrls:
+      read:
+        value: https://my-postgres-connector-read.us-east-1.nhost.run
+      write:
+        value: https://my-postgres-connector-write.us-east-1.nhost.run
+  headers: {}
+  schema: {} # We'll populate this later with the introspection step
+```
+
+We leave the `schema` field empty here, it will be filled later by the introspection step.
+
+### Step 2: Introspect
+
+In this example, we will be using the "Products" team's CLI, where the `postgres_db` connector is defined, but you can
+just as easily also use the "Reviews" CLI.
+
+```sh title="From within the 'products' local project directory, run:"
+ddn connector introspect postgres_db
+```
+
+This will fill in the `schema` value in the `DataConnectorLink` object with the introspection result.
+
+### Step 3: Use the `DataConnectorLink` in the "Products" Subgraph
+
+Now, within the "Products" team's subgraph metadata, you can reference the shared `postgres_db` connector when defining
+models or commands:
+
+```yaml title="products/metadata/Products.hml"
+kind: Model
+version: v1
+definition:
+  name: Products
+  objectType: product
+  source:
+    dataConnectorName: postgres_db # Reference the DataConnectorLink name
+    collection: products # Name of the table/collection in PostgreSQL
+  # ... other model configurations ...
+```
+
+### Step 4: Use the `DataConnectorLink` in the "Reviews" Subgraph
+
+Similarly, the "Reviews" team can reuse the same `postgres_db` connector. First copy the introspected `postgres_db.hml`
+file, created in [Step 1](#step-1-deploy-the-connector-and-create-the-dataconnectorlink), to their local project.
+
+Then, within their metadata:
+
+```yaml title="reviews/metadata/Reviews.hml"
+kind: Model
+version: v1
+definition:
+  name: Reviews
+  objectType: review
+  source:
+    dataConnectorName: postgres_db # Reuse the same DataConnectorLink name
+    collection: reviews # Name of the table/collection in PostgreSQL
+  # ... other model configurations ...
+```
+
+### Step 5: Build and Deploy
+
+Both teams can now build and deploy their subgraphs. The subgraphs will use the same underlying connector instance to
+access the PostgreSQL database.
+
+### Step 6: Repeat for other Subgraphs (and Projects)
+
+You can repeat steps 3 and 4 for any other subgraphs that need access to the same PostgreSQL database. The
+`DataConnectorLink` object, with the connector's URL, can even be re-used across different Hasura DDN projects. Ensure
+that you provide the right [permissions](/reference/metadata-reference/permissions.mdx) for each role.
+
+## Considerations
+
+- **Security:** When reusing connectors, ensure that you have appropriate permissions and access control configured.
+  Each subgraph will have its own set of permissions, but they all operate through the same connector instance.
+
+- **Versioning:** If the connector's interface changes (e.g., a new version is released), you'll need to update the
+  `DataConnectorLink` object, and all subgraphs using it will be affected. Coordinate updates carefully.
+
+- **Regionality:** Deploying the connector in a region close to your database is crucial for performance. If different
+  subgraphs have different latency requirements, consider deploying separate connectors closer to their respective
+  consumers.
+
+- **Load Balancing:** If you anticipate high load from multiple subgraphs, consider whether a single connector instance
+  can handle the combined traffic. Hasura DDN's data connectors are designed to scale, but monitor usage and consider
+  deploying additional connector instances if needed.
+
+- **Central point of failure:** All subgraphs (and projects) using a single connector, will be impacted if this
+  connector is down.
+
+## Summary
+
+Connector reusability in Hasura DDN offers a powerful way to streamline data access and reduce operational overhead. By
+carefully planning your connector deployments and leveraging the `DataConnectorLink` object, you can create a more
+efficient and maintainable data architecture.
