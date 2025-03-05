@@ -6,45 +6,45 @@ ddn connector init my_go -i
 ```
 
 ```go title="Replace the functions.go contents with your own custom code:"
-package main
+package functions
 
 import (
 	"context"
-	"github.com/hasura/ndc-go-lambda-sdk/sdk"
+
+	"hasura-ndc.dev/ndc-go/types"
 )
 
-type User struct {
-	Name string
-	Age  int
+// InputArguments represents the input of the native operation.
+type InputArguments struct {
+	MyInput string `json:"myInput"`
 }
 
-func myCustomCode(ctx context.Context, user *User) (*string, error) {
+// OutputResult represents the output of the native operation.
+type OutputResult struct {
+	MyOutput string `json:"myOutput"`
+}
+
+// ProcedureCustomCode is a native operation that can be called from the API.
+func ProcedureCustomCode(ctx context.Context, state *types.State, arguments *InputArguments) (*OutputResult, error) {
 	// Do something with the input
-	result := "Hello " + user.Name
-	return &result, nil
-}
-
-func main() {
-	connector := sdk.Connector{}
-	sdk.RegisterFunction(&connector, sdk.FunctionInfo{
-		Name:        "myCustomCode",
-		Description: "Sample function that greets a user",
-		ReadOnly:    true,
-	}, myCustomCode)
-	sdk.StartServer(connector)
+	return &OutputResult{
+		MyOutput: "My output",
+	}, nil
 }
 ```
 
-By setting `ReadOnly: true` in the `FunctionInfo` struct, we are indicating that this function is to be exposed as an
-NDC function which will ultimately show up as a GraphQL query. Setting `ReadOnly: false` will expose the function as an
-NDC procedure which will be a GraphQL mutation.
+Using the prefix `Procedure` ensures ProcedureCustomCode() is exposed as a mutation in our API. Prefixing with
+`Function` identifies it as a function to be exposed as a query in your API.
+
+Both have typed input arguments and return strings, which the connector will use to generate the corresponding GraphQL
+schema.
 
 ```bash title="Introspect the connector:"
 ddn connector introspect my_go
 ```
 
 ```bash title="Track the function:"
-ddn command add my_go myCustomCode
+ddn command add my_go customCode
 ```
 
 ```bash title="Create a new build:"
@@ -61,14 +61,14 @@ ddn console --local
 
 ```graphql title="You can now query your native operation:"
 query MyCustomCode {
-  myCustomCode(user: { name: "John", age: 30 })
+  customCode(myInput: "My input")
 }
 ```
 
 ```json title="You will see a response like this:"
 {
   "data": {
-    "myCustomCode": "Hello John"
+    "myCustomCode": "My output"
   }
 }
 ```
