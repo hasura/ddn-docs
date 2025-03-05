@@ -1,0 +1,193 @@
+---
+description: "Learn how to include related resources in your queries using Hasura's JSON:API implementation"
+title: Including Relationships
+sidebar_label: Relationships
+keywords:
+  - hasura
+  - json:api
+  - relationships
+  - includes
+sidebar_position: 3
+---
+
+# Including Relationships
+
+## Introduction
+
+JSON:API allows you to include [related resources](https://jsonapi.org/format/#fetching-includes) in a single request
+using the `include` parameter. This reduces the number of API calls needed to fetch related data.
+
+## Request Format
+
+```http
+GET /v1/rest/<subgraph-name>/<model-name>?include=<relationship-paths>
+```
+
+Where:
+
+- `subgraph-name`: Name of your subgraph
+- `model-name`: Name of your model
+- `relationship-paths`: Command-separated list of relationship paths, where each path is a dot-separated list of
+  relationship names. For example:
+  - Single: `posts`
+  - Nested: `posts.comments`
+  - Multiple: `posts,profile`
+  - Combined: `posts.comments,profile.settings`
+
+## Examples
+
+### Single Relationship
+
+Fetch all users and their posts.
+
+Request:
+
+```http
+GET /v1/rest/default/Users?include=posts
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "type": "User",
+      "id": "1",
+      "attributes": {
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      "relationships": {
+        "posts": {
+          "data": [
+            { "type": "Post", "id": "1" },
+            { "type": "Post", "id": "2" }
+          ]
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "Post",
+      "id": "1",
+      "attributes": {
+        "title": "First Post",
+        "content": "Hello world!"
+      }
+    },
+    {
+      "type": "Post",
+      "id": "2",
+      "attributes": {
+        "title": "Second Post",
+        "content": "Another post"
+      }
+    }
+  ]
+}
+```
+
+### Nested Relationships
+
+Fetch all users and their posts and comments.
+
+Request:
+
+```http
+GET /v1/rest/default/Users?include=posts.comments
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "type": "User",
+      "id": "1",
+      "attributes": {
+        "name": "John Doe"
+      },
+      "relationships": {
+        "posts": {
+          "data": [{ "type": "Post", "id": "1" }]
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "Post",
+      "id": "1",
+      "attributes": {
+        "title": "First Post"
+      },
+      "relationships": {
+        "comments": {
+          "data": [{ "type": "Comment", "id": "1" }]
+        }
+      }
+    },
+    {
+      "type": "Comment",
+      "id": "1",
+      "attributes": {
+        "text": "Great post!"
+      }
+    }
+  ]
+}
+```
+
+### Multiple Relationships
+
+Fetch all users and their posts and profile.
+
+Request:
+
+```http
+GET /v1/rest/default/Users?include=posts,profile
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "type": "User",
+      "id": "1",
+      "attributes": {
+        "name": "John Doe"
+      },
+      "relationships": {
+        "posts": {
+          "data": [{ "type": "Post", "id": "1" }]
+        },
+        "profile": {
+          "data": { "type": "Profile", "id": "1" }
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "Post",
+      "id": "1",
+      "attributes": {
+        "title": "First Post"
+      }
+    },
+    {
+      "type": "Profile",
+      "id": "1",
+      "attributes": {
+        "bio": "Software developer",
+        "location": "San Francisco"
+      }
+    }
+  ]
+}
+```

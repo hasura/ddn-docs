@@ -1,0 +1,183 @@
+---
+description: "Learn how to filter query results using Hasura's JSON:API implementation"
+title: Filtering
+sidebar_label: Filtering
+keywords:
+  - hasura
+  - json:api
+  - filters
+  - query parameters
+sidebar_position: 2
+---
+
+# Filtering
+
+## Introduction
+
+Filtering allows you to retrieve specific resources that match certain criteria. The JSON:API implementation in Hasura
+provides a flexible filtering system using the `filter` query parameter.
+
+## Request Format
+
+```http
+GET /v1/rest/<subgraph-name>/<model-name>?filter=<expression>
+```
+
+Where:
+
+- `subgraph-name`: Name of your subgraph
+- `model-name`: Name of your model
+- `expression`: Filter expression in JSON format
+
+### Filter Syntax
+
+The filter expression must be a valid JSON object containing field comparisons using supported operators.
+
+#### Field Comparison
+
+Field comparisons are expressed as JSON objects where:
+
+- The outer key is the field name
+- The inner object contains an operator and value pair
+- Operators are prefixed with `$` (e.g., `$eq`, `$gt`)
+
+Example structure:
+
+```json
+{
+  "field_name": {
+    "$operator": value
+  }
+}
+```
+
+Comparison operators available depend on the field type's scalar
+[`BooleanExpressionType`](reference/metadata-reference/boolean-expressions/#booleanexpressiontype-booleanexpressiontype)
+definition.
+
+#### Logical Operators
+
+To combine multiple conditions, use logical operators:
+
+- `$and`: All conditions must be true
+- `$or`: Any condition must be true
+
+The logical operators accept an array of conditions:
+
+```json
+{
+  "$and | $or": [
+    filter_expression_object,
+    filter_expression_object
+  ]
+}
+```
+
+## Examples
+
+### Field comparison
+
+Request:
+
+```http
+GET /v1/rest/default/Articles?filter={"rating":{"$eq":5}}
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Getting Started with JSON:API",
+        "rating": 5,
+        "published": true
+      }
+    },
+    {
+      "type": "Article",
+      "id": "3",
+      "attributes": {
+        "title": "Advanced Filtering",
+        "rating": 5,
+        "published": true
+      }
+    }
+  ]
+}
+```
+
+### Logical AND operator
+
+Request:
+
+```http
+GET /v1/rest/default/Articles?filter={"$and":[{"rating":{"$gte":4}},{"published":{"$eq":true}}]}
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Featured Article",
+        "rating": 4.5,
+        "published": true
+      }
+    }
+  ]
+}
+```
+
+### Logical OR operator
+
+Request:
+
+```http
+GET /v1/rest/default/Articles?filter={"$or":[{"rating":{"$eq":5}},{"featured":{"$eq":true}}]}
+```
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "type": "Article",
+      "id": "1",
+      "attributes": {
+        "title": "Top Article",
+        "rating": 5,
+        "featured": false
+      }
+    },
+    {
+      "type": "Article",
+      "id": "2",
+      "attributes": {
+        "title": "Featured Content",
+        "rating": 4,
+        "featured": true
+      }
+    }
+  ]
+}
+```
+
+## Error Cases
+
+Common error scenarios include:
+
+1. Invalid JSON syntax in filter expression
+2. Missing operator prefix ($)
+3. Using operators not defined in the field's boolean expression type
+4. Invalid field references
+5. Using logical operators when not enabled in the boolean expression type
+6. Malformed logical expressions
