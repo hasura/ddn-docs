@@ -41,9 +41,9 @@ Session variable keys are case-insensitive. Values are case-sensitive.
 
 ## Step 1. Update your AuthConfig {#update-authconfig}
 
-Hasura utilizes an [AuthConfig](/supergraph-modeling/auth-config.mdx) object that allows you to define the configuration
-for your authentication service. In a standard setup the `auth-config.hml` file can be found in your `globals`
-directory.
+Hasura utilizes an [AuthConfig](/reference/metadata-reference/auth-config.mdx) object that allows you to define the
+configuration for your authentication service. In a standard setup the `auth-config.hml` file can be found in your
+`globals` directory.
 
 :::tip Hasura DDN VS Code extension
 
@@ -58,24 +58,59 @@ In the example below, we're demonstrating a sample authentication webhook.
 
 ```yaml title="globals/metadata/auth-config.hml"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     webhook:
-      url: http://auth_hook:3050/validate-request
-      method: Post
+      url:
+        valueFromEnv: AUTH_WEBHOOK_URL
+      method: POST
+      customHeadersConfig:
+        body:
+          headers:
+            forward:
+              - authorization
+              - content-type
+        headers:
+          additional:
+            user-agent: "Hasura DDN"
+```
+
+```yaml title="Example .env file"
+AUTH_WEBHOOK_URL=http://auth_hook:3050/validate-request
 ```
 
 ### GET vs POST
 
-For a POST request, the headers received by the DDN engine on the query will be forwarded to the webhook in a JSON
-object in the body of the request under a `headers` key.
+For a POST request, the headers received by the DDN engine on the query can be forwarded to the webhook in a JSON object
+in the body of the request under a `headers` key.
 
-For a GET request, the headers received by the DDN engine on the query will be forwarded to the webhook as actual
-headers on the request and the body will be empty.
+For a GET request, the headers received by the DDN engine on the query can be forwarded to the webhook as actual headers
+on the request and the body will be empty.
 
 What we've provided above is a sample configuration as a POST request but it can be configured as a GET request. See the
-reference for `AuthHookConfig` [here](/supergraph-modeling/auth-config.mdx#authconfig-authhookconfig)
+reference for `AuthHookConfig` [here](/reference/metadata-reference/auth-config.mdx#authconfig-authhookconfigv3). For
+the sample configuration above, the webhook will receive the `Authorization` and `Content-Type` headers in the body of
+the request:
+
+```json title="Example body of a POST request"
+{
+  "headers": {
+    "Authorization": "Bearer some-token",
+    "Content-Type": "application/json"
+  }
+}
+```
+
+Also, the webhook will receive the `user-agent` header as an actual header on the request.
+
+:::tip Environment variables
+
+You can use environment variables to dynamically and securely add the webhook URL to your AuthConfig. You can add these
+values to your root-level `.env` and then map them in the `globals` subgraph.yaml file. Alternatively, you can include
+raw strings here using `value` instead of `valueFromEnv`.
+
+:::
 
 ## Step 2. Shaping the webhook request and response
 
@@ -95,8 +130,47 @@ Below is an example of the header object your webhook might receive in the body 
 Headers are forwarded to the auth webhook from the client on each request received by the Hasura engine either as
 headers for a GET request or as a JSON object in the body of a POST request under a `headers` key.
 
+:::tip Custom Headers Configuration
+
+You can configure the headers that are sent to the webhook in the optional `customHeadersConfig` field. If the field is
+not provided, the default behavior is to forward all headers (after filtering out commonly used headers) received by the
+DDN engine on the query to the webhook.
+
+```yaml title="Ignored headers list"
+Accept
+Accept-Datetime
+Accept-Encoding
+Accept-Language
+Cache-Control
+Connection
+Content-Length
+Content-MD5
+Content-Type
+DNT
+Host
+Origin
+Referer
+User-Agent
+```
+
+When using `customHeadersConfig`, you can explicitly forward any headers, including those that are ignored by default.
+This gives you full control over which headers are sent to the webhook.
+
+It is recommended to use the `customHeadersConfig` field to configure only the headers that are required by the webhook
+and not forward any other headers. This will help in reducing the size of the request and improve the performance of the
+webhook.
+
+:::
+
 In this example, we're passing an encoded JWT in the `Authorization` header, however webhook mode is flexible and you
 can pass any headers you wish.
+
+:::tip Forward all headers
+
+If you want to forward all headers received by the DDN engine on the query to the webhook, you can set `forward: "*"`.
+This will forward all headers received by the DDN engine on the query to the webhook, excluding the ignored headers.
+
+:::
 
 ### Token Parsing
 
@@ -117,7 +191,7 @@ a `401` status code (for an invalid or missing token).
 
 You should respond with session variables beginning with `X-Hasura-*` in an object in the **body** of your response. The
 value of each session variable can be any JSON value. These will be available to your
-[permissions](/supergraph-modeling/permissions.mdx) in Hasura.
+[permissions](/reference/metadata-reference/permissions.mdx) in Hasura.
 
 You will, at least, need to set the `X-Hasura-Role` session variable to let the Hasura DDN know which role to use for
 this request. Unlike [JWT auth mode](auth/jwt/jwt-mode.mdx), you do not have to pass `X-Hasura-Allowed-Roles` or

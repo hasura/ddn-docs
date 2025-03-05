@@ -27,8 +27,14 @@ export default async function fetchUser() {
     const response = await fetch(url, {
       method: 'POST',
       headers: headers,
+      credentials: 'include',
+      mode: 'cors',
       body: JSON.stringify(body),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const data = await response.json();
     console.log(data);
