@@ -47,15 +47,15 @@ APP_MYPOSTGRES_WRITE_URL="https://my-postgres-connector-write.gcp-us-west2.nhost
 
 ### Step 2: Team two: initialize a new connector in their local project
 
-Team two, say the "Reviews" team, should initialize a new connector in their local project with the connection
-information to the data source.
+Team two, the "Reviews" team, should initialize a new connector in their local project with the connection information
+to the data source.
 
 ```sh
 ddn connector init -i
 ```
 
-This will create a new connector in the local project in the active subgraph with the connection information to the data
-source. They can then also introspect and add the models, commands and relationships which they need to their subgraph.
+This will create a new connector in the local project in the active subgraph. They can then also introspect and add the
+models, commands and relationships which they need to their subgraph.
 
 ```sh
 ddn connector introspect my_connector
@@ -73,15 +73,15 @@ ddn connector relationships add "*"
 
 ### Step 3: Team two: replace the connection information in the `.env.cloud` file
 
-Team two can then replace the connection information in the `.env.cloud` file with the values for the "Products" team's
-already deployed connector.
+The "Reviews" team can then replace the connection information in the `.env.cloud` file with the values for the
+"Products" team's already deployed connector.
 
 ```.env
 APP_MYPOSTGRES_READ_URL="https://my-postgres-connector-read.gcp-us-west2.nhost.run"
 APP_MYPOSTGRES_WRITE_URL="https://my-postgres-connector-write.gcp-us-west2.nhost.run"
 ```
 
-### Step 4: Team two: build the Supergraph and Deploy the Connector
+### Step 4: Team two: build the Supergraph without building the connector
 
 Team two can then build their supergraph without building the connector and deploy the connector to their DDN project.
 
@@ -96,25 +96,16 @@ You can repeat these steps for any other subgraphs that need access to the same 
 
 ## Considerations
 
-- **Security:** When reusing connectors, ensure that you have appropriate permissions and access control configured.
-  Each subgraph will have its own set of permissions, but they all operate through the same connector instance.
-
-- **Versioning:** If the connector's interface changes (e.g., a new version is released), you'll need to update the
-  `DataConnectorLink` object, and all subgraphs using it will be affected. Coordinate updates carefully.
+- **Versioning:** If the connector is updated you may need to update the metadata for all subgraphs that use it.
+  Coordinate updates carefully.
 
 - **Regionality:** Deploying the connector in a region close to your database is crucial for performance. If different
   subgraphs have different latency requirements, consider deploying separate connectors closer to their respective
   consumers.
-
-- **Load Balancing:** If you anticipate high load from multiple subgraphs, consider whether a single connector instance
-  can handle the combined traffic. Hasura DDN's data connectors are designed to scale, but monitor usage and consider
-  deploying additional connector instances if needed.
 
 - **Central point of failure:** All subgraphs (and projects) using a single connector, will be impacted if this
   connector is down.
 
 ## Summary
 
-Connector reusability in Hasura DDN offers a powerful way to streamline data access and reduce operational overhead. By
-carefully planning your connector deployments and leveraging the `DataConnectorLink` object, you can create a more
-efficient and maintainable data architecture.
+Connector reusability in Hasura DDN offers a way to reduce redundancy and simplify management of connector deployments.
