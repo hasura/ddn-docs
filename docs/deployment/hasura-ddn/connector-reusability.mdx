@@ -24,13 +24,8 @@ data connectors deployed as close to their data source as possible.
 
 ## How it Works
 
-If you copy across an existing `DataConnectorLink` metadata object and associated types, as well as the `.env` file
-containing the read/write URLs and other connection information for the connector, you can reuse the same connector
-across multiple subgraphs and even across multiple projects.
-
-Alternatively, if you have the connection URI for the data source you can also use the `ddn connector init -i` command
-to initialize the connector in the normal way with introspection. Then you can substitute the values in the `.env.cloud`
-file for the ones for the existing deployed connector without having to build and deploy a new connector.
+If you copy across the `.env.cloud` file containing the read/write URLs and other connection information for the
+connector, you can reuse the same connector across multiple subgraphs and even across multiple projects.
 
 ## Example Scenario
 
@@ -38,95 +33,66 @@ Let's say you have a PostgreSQL database hosted in `gcp-us-west2`. You have two 
 team. Both teams need to access data from this database. Instead of deploying two separate PostgreSQL connectors, you
 can deploy a single connector in `gcp-us-west2` (close to the database) and reuse it across both subgraphs.
 
-### Step 1: Build the Supergraph and Deploy the Connector
+### Step 1: Team one: build the Supergraph and Deploy the Connector
 
-1.  One team, say the "Products" team, first builds their supergraph and
-    [deploys an instance](/deployment/hasura-ddn/deploy-to-ddn.mdx) of the `hasura/postgres` connector, for example in
-    the `gcp-us-west2` region with [region routing](/deployment/hasura-ddn/region-routing.mdx). Let's say the deployment
-    results in the following read and write URLs:
+Team one, say the "Products" team, first builds their supergraph and
+[deploys an instance](/deployment/hasura-ddn/deploy-to-ddn.mdx) of the `hasura/postgres` connector, for example in the
+`gcp-us-west2` region with [region routing](/deployment/hasura-ddn/region-routing.mdx). Let's say the deployment results
+in the following read and write URLs:
 
-    ```.env
-    APP_MYPOSTGRES_READ_URL="https://my-postgres-connector-read.gcp-us-west2.nhost.run"
-    APP_MYPOSTGRES_WRITE_URL="https://my-postgres-connector-write.gcp-us-west2.nhost.run"
-    ```
-
-2.  **Create the `DataConnectorLink`:** Create a `DataConnectorLink` metadata object, that references the deployed
-    connector in your first team's subgraph directory (eg: `products/metadata`). Let's call it `postgres_db.hml`.
-
-```yaml title="products/metadata/postgres_db.hml"
-kind: DataConnectorLink
-version: v1
-definition:
-  name: postgres_db
-  url:
-    readWriteUrls:
-      read:
-        value: https://my-postgres-connector-read.gcp-us-west2.nhost.run
-      write:
-        value: https://my-postgres-connector-write.gcp-us-west2.nhost.run
-  headers: {}
-  schema: {} # We'll populate this later with the introspection step
+```.env
+APP_MYPOSTGRES_READ_URL="https://my-postgres-connector-read.gcp-us-west2.nhost.run"
+APP_MYPOSTGRES_WRITE_URL="https://my-postgres-connector-write.gcp-us-west2.nhost.run"
 ```
 
-We leave the `schema` field empty here, it will be filled later by the introspection step.
+### Step 2: Team two: initialize a new connector in their local project
 
-### Step 2: Introspect
+Team two, say the "Reviews" team, should initialize a new connector in their local project with the connection
+information to the data source.
 
-In this example, we will be using the "Products" team's CLI, where the `postgres_db` connector is defined, but you can
-just as easily also use the "Reviews" CLI.
-
-```sh title="From within the 'products' local project directory, run:"
-ddn connector introspect postgres_db
+```sh
+ddn connector init -i
 ```
 
-This will fill in the `schema` value in the `DataConnectorLink` object with the introspection result.
+This will create a new connector in the local project in the active subgraph with the connection information to the data
+source. They can then also introspect and add the models, commands and relationships which they need to their subgraph.
 
-### Step 3: Use the `DataConnectorLink` in the "Products" Subgraph
-
-Now, within the "Products" team's subgraph metadata, you can reference the shared `postgres_db` connector when defining
-models or commands:
-
-```yaml title="products/metadata/Products.hml"
-kind: Model
-version: v1
-definition:
-  name: Products
-  objectType: product
-  source:
-    dataConnectorName: postgres_db # Reference the DataConnectorLink name
-    collection: products # Name of the table/collection in PostgreSQL
-  # ... other model configurations ...
+```sh
+ddn connector introspect my_connector
 ```
 
-### Step 4: Use the `DataConnectorLink` in the "Reviews" Subgraph
-
-Similarly, the "Reviews" team can reuse the same `postgres_db` connector. First copy the introspected `postgres_db.hml`
-file, created in [Step 1](#step-1-deploy-the-connector-and-create-the-dataconnectorlink), to their local project.
-
-Then, within their metadata:
-
-```yaml title="reviews/metadata/Reviews.hml"
-kind: Model
-version: v1
-definition:
-  name: Reviews
-  objectType: review
-  source:
-    dataConnectorName: postgres_db # Reuse the same DataConnectorLink name
-    collection: reviews # Name of the table/collection in PostgreSQL
-  # ... other model configurations ...
+```sh
+ddn connector show-resources my_connector
 ```
 
-### Step 5: Build and Deploy
+```sh
+ddn connector models add "*"
+ddn connector commands add "*"
+ddn connector relationships add "*"
+```
 
-Both teams can now build and deploy their subgraphs. The subgraphs will use the same underlying connector instance to
-access the PostgreSQL database.
+### Step 3: Team two: replace the connection information in the `.env.cloud` file
 
-### Step 6: Repeat for other Subgraphs (and Projects)
+Team two can then replace the connection information in the `.env.cloud` file with the values for the "Products" team's
+already deployed connector.
 
-You can repeat steps 3 and 4 for any other subgraphs that need access to the same PostgreSQL database. The
-`DataConnectorLink` object, with the connector's URL, can even be re-used across different Hasura DDN projects. Ensure
-that you provide the right [permissions](/reference/metadata-reference/permissions.mdx) for each role.
+```.env
+APP_MYPOSTGRES_READ_URL="https://my-postgres-connector-read.gcp-us-west2.nhost.run"
+APP_MYPOSTGRES_WRITE_URL="https://my-postgres-connector-write.gcp-us-west2.nhost.run"
+```
+
+### Step 4: Team two: build the Supergraph and Deploy the Connector
+
+Team two can then build their supergraph without building the connector and deploy the connector to their DDN project.
+
+```sh
+ddn project init
+ddn supergraph build create --no-build-connectors
+```
+
+### Step 5: Repeat for other Subgraphs (and Projects)
+
+You can repeat these steps for any other subgraphs that need access to the same PostgreSQL database.
 
 ## Considerations
 
