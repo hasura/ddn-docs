@@ -58,10 +58,13 @@ ddn connector init my_snowflake -i
 ```
 
 ```plaintext title="The CLI will ask you for a connection string in the JDBC URL format, e.g.:"
-jdbc:snowflake://<account-identifier.<region>.snowflakecomputing.com?user=YOUR_USERNAME&&password=YOUR_PASSWORD&db=YOUR_DATABASE&warehouse=YOUR_WAREHOUSE&schema=YOUR_SCHEMA&role=YOUR_ROLE
+jdbc:snowflake://<account-identifier.<region>.snowflakecomputing.com?user=YOUR_USERNAME&password=YOUR_PASSWORD&db=YOUR_DATABASE&warehouse=YOUR_WAREHOUSE&schema=YOUR_SCHEMA&role=YOUR_ROLE
 ```
 
-:::info More information on JDBC URLs
+:::info Generating Snowflake JDBC URLs
+
+From Snowflake's UI, you can click on the account menu in the Snowflake control panel and then select
+`Connect a tool to Snowflake` to get a generated JDBC string from the `Connector/Drivers` tab
 
 To learn more about Snowflake's conventions for JDBC URLs, see their
 [docs](https://docs.snowflake.com/developer-guide/jdbc/jdbc-configure#jdbc-driver-connection-string).
@@ -89,13 +92,13 @@ INSERT INTO users (name, age) VALUES ('Bob', 30);
 INSERT INTO users (name, age) VALUES ('Charlie', 35);
 ```
 
-You can verify this worked by using Adminer to query all records from the `users` table:
+You can verify this worked by using the worksheet to query all records from the `users` table:
 
 ```sql
 SELECT * FROM users;
 ```
 
-### Step 6. Introspect your Snowflake database
+### Step 5. Introspect your Snowflake database
 
 ```sh title="Next, use the CLI to introspect your Snowflake database:"
 ddn connector introspect my_snowflake
@@ -108,7 +111,7 @@ After running this, you should see a representation of your database's schema in
 ddn connector show-resources my_snowflake
 ```
 
-### Step 7. Add your model
+### Step 6. Add your model
 
 ```sh title="Now, track the table from your Snowflake database as a model in your DDN metadata:"
 ddn model add my_snowflake DOCS.PUBLIC.USERS
@@ -118,7 +121,7 @@ Open the `app/metadata` directory and you'll find a newly-generated file: `DocsP
 this Hasura Metadata Language file to represent the `users` table from Snowflake in your API as a
 [model](/reference/metadata-reference/models.mdx).
 
-### Step 8. Create a new build
+### Step 7. Create a new build
 
 ```sh title="To create a local build, run:"
 ddn supergraph build local
@@ -126,7 +129,7 @@ ddn supergraph build local
 
 The build is stored as a set of JSON files in `engine/build`.
 
-### Step 9. Start your local services
+### Step 8. Start your local services
 
 ```sh title="Start your local Hasura DDN Engine and Snowflake connector:"
 ddn run docker-start
@@ -134,7 +137,7 @@ ddn run docker-start
 
 Your terminal will be taken over by logs for the different services.
 
-### Step 10. Run your first query
+### Step 9. Run your first query
 
 ```sh title="In a new terminal tab, open your local console:"
 ddn console --local
@@ -174,7 +177,7 @@ query {
 }
 ```
 
-### Step 11. Iterate on your Snowflake schema
+### Step 10. Iterate on your Snowflake schema
 
 ```sql title="Add a new table for posts:"
 CREATE TABLE posts (
@@ -207,7 +210,7 @@ JOIN
 
 You should see a list of posts returned with the author's information joined from the `users` table
 
-### Step 12. Refresh your metadata and rebuild your project
+### Step 11. Refresh your metadata and rebuild your project
 
 :::tip
 
@@ -216,7 +219,7 @@ modifying, or dropping tables.
 
 :::
 
-#### Step 12.1. Re-introspect your data source
+#### Step 11.1. Re-introspect your data source
 
 ```sh title="Run the introspection command again:"
 ddn connector introspect my_snowflake
@@ -225,25 +228,25 @@ ddn connector introspect my_snowflake
 In `app/connector/my_snowflake/configuration.json`, you'll see schema updated to include operations for the `posts`
 table. In `app/metadata/my_snowflake.hml`, you'll see `DOCS.PUBLIC.POSTS` present in the metadata as well.
 
-#### Step 12.2. Update your metadata
+#### Step 11.2. Update your metadata
 
 ```sh title="Add the posts model:"
 ddn model add my_snowflake "DOCS.PUBLIC.POSTS"
 ```
 
-#### Step 12.3. Create a new build
+#### Step 11.3. Create a new build
 
 ```sh title="Next, create a new build:"
 ddn supergraph build local
 ```
 
-#### Step 12.4. Restart your services
+#### Step 11.4. Restart your services
 
-```sh title="Bring down the servies by pressing CTRL+C and start them back up:"
+```sh title="Bring down the services by pressing CTRL+C and start them back up:"
 ddn run docker-start
 ```
 
-### Step 13. Query your new build
+### Step 12. Query your new build
 
 ```graphql title="Head back to your console and query the posts model:"
 query GetPosts {
