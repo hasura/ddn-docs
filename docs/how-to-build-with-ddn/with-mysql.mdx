@@ -1,36 +1,34 @@
 ---
-sidebar_position: 3
-sidebar_label: With PostgreSQL
-description: "Learn the basics of Hasura DDN and how to get started with a Postgres database."
+sidebar_position: 6
+sidebar_label: With MySQL
+description: "Learn the basics of Hasura DDN and how to get started with a MySQL database."
 keywords:
   - hasura ddn
   - graphql api
   - getting started
   - guide
-  - postgres
+  - mysql
 ---
 
 import Prereqs from "@site/docs/_prereqs.mdx";
 
-# Get Started with Hasura DDN and PostgreSQL
+# Get Started with Hasura DDN and MySQL
 
 ## Overview
 
 This tutorial takes about twenty minutes to complete. You'll learn how to:
 
 - Set up a new Hasura DDN project
-- Connect it to a PostgreSQL database
+- Connect it to a MySQL database
 - Generate Hasura metadata
 - Create a build
 - Run your first query
 - Create relationships
-- Mutate data
 
 Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
 
-This tutorial assumes you're starting from scratch; a PostgreSQL docker image ships with the data connector you'll use
-in just a bit to connect a locally-running database to Hasura, but you can easily follow the steps if you already have
-data seeded; Hasura will never modify your source schema.
+This tutorial assumes you're starting from scratch; you'll connect a locally-running MySQL instance to Hasura, but you
+can easily follow the steps if you already have data seeded. Hasura will never modify your source schema.
 
 <Prereqs />
 
@@ -54,47 +52,76 @@ ddn supergraph init my-project && cd my-project
 Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
 running `ls` in your terminal, or by opening the directory in your preferred editor.
 
-### Step 3. Initialize your PostgreSQL connector
+### Step 3. Initialize your MySQL connector
 
 ```sh title="In your project directory, run:"
-ddn connector init my_pg -i
+ddn connector init my_mysql -i
 ```
 
-From the dropdown, select `/hasura/postgres` (you can type to filter the list), then hit enter to accept the default of
-all the options.
-
-The CLI will output something similar to this:
+From the dropdown, select `/hasura/mysql` (you can type to filter the list). Then, enter the following JDBC URL:
 
 ```plaintext
-HINT To access the local Postgres database:
-- Run: docker compose -f app/connector/my_pg/compose.postgres-adminer.yaml up -d
-- Open Adminer in your browser at http://localhost:5143 and create tables
-- To connect to the database using other clients use postgresql://user:password@local.hasura.dev:8105/dev
+jdbc:mysql://user:password@local.hasura.dev:3306/mydb
 ```
 
-### Step 4. Start the local PostgreSQL container and Adminer
+### Step 4. Start the local MySQL container and Adminer
 
-```sh title="Use the hint from the CLI output:"
-docker compose -f app/connector/my_pg/compose.postgres-adminer.yaml up -d
+```sh title="Begin by creating a compose file for the MySQL service:"
+touch app/connector/my_mysql/compose.mysql.yaml
 ```
 
-Run `docker ps` to see on which port Adminer is running. Then, you can then navigate to the address below to access it:
+```yaml title="Then, open the file and add the following:"
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
 
-```plaintext
-http://localhost:<ADMINER_PORT>
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+
+volumes:
+  mysql-data:
 ```
 
-### Step 5. Create a table in your PostgreSQL database
+```sh title="Run the container:"
+docker compose -f app/connector/my_mysql/compose.mysql.yaml up -d
+```
+
+You can open Adminer by visiting: [`http://localhost:8080`](http://localhost:8080)
+
+You'll be prompted for the username, password, and database name. Use the values from the `compose.mysql.yaml` above.
+
+### Step 5. Create a table in your MySQL database
 
 ```sql title="Next, via Adminer select SQL command from the left-hand nav, then enter the following:"
---- Create the table
+-- Create the table
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
   age INT NOT NULL
 );
 
---- Insert some data
+-- Insert some data
 INSERT INTO users (name, age) VALUES ('Alice', 25);
 INSERT INTO users (name, age) VALUES ('Bob', 30);
 INSERT INTO users (name, age) VALUES ('Charlie', 35);
@@ -106,27 +133,27 @@ You can verify this worked by using Adminer to query all records from the `users
 SELECT * FROM users;
 ```
 
-### Step 6. Introspect your PostgreSQL database
+### Step 6. Introspect your MySQL database
 
-```sh title="Next, use the CLI to introspect your PostgreSQL database:"
-ddn connector introspect my_pg
+```sh title="Next, use the CLI to introspect your MySQL database:"
+ddn connector introspect my_mysql
 ```
 
 After running this, you should see a representation of your database's schema in the
-`app/connector/my_pg/configuration.json` file; you can view this using `cat` or open the file in your editor.
+`app/connector/my_mysql/configuration.json` file; you can view this using `cat` or open the file in your editor.
 
 ```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
-ddn connector show-resources my_pg
+ddn connector show-resources my_mysql
 ```
 
 ### Step 7. Add your model
 
-```sh title="Now, track the table from your PostgreSQL database as a model in your DDN metadata:"
-ddn models add my_pg users
+```sh title="Now, track the table from your MySQL database as a model in your DDN metadata:"
+ddn models add my_mysql "mydb.users"
 ```
 
-Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
-Metadata Language file to represent the `users` table from PostgreSQL in your API as a
+Open the `app/metadata` directory and you'll find a newly-generated file: `MydbUsers.hml`. The DDN CLI will use this
+Hasura Metadata Language file to represent the `users` table from MySQL in your API as a
 [model](/reference/metadata-reference/models.mdx).
 
 ### Step 8. Create a new build
@@ -139,7 +166,7 @@ The build is stored as a set of JSON files in `engine/build`.
 
 ### Step 9. Start your local services
 
-```sh title="Start your local Hasura DDN Engine and PostgreSQL connector:"
+```sh title="Start your local Hasura DDN Engine and MySQL connector:"
 ddn run docker-start
 ```
 
@@ -153,7 +180,7 @@ ddn console --local
 
 ```graphql title="In the GraphiQL explorer of the console, write this query:"
 query {
-  users {
+  mydbUsers {
     id
     name
     age
@@ -164,7 +191,7 @@ query {
 ```json title="You'll get the following response:"
 {
   "data": {
-    "users": [
+    "mydbUsers": [
       {
         "id": 1,
         "name": "Alice",
@@ -185,23 +212,24 @@ query {
 }
 ```
 
-### Step 11. Iterate on your PostgreSQL schema
+### Step 11. Iterate on your MySQL schema
 
-```sql title="Via Adminer, add a new table and insert some data to your PostgreSQL database:"
+```sql title="Via Adminer, add a new table and insert some data to your MySQL database:"
 -- Create the posts table
 CREATE TABLE posts (
-  id SERIAL PRIMARY KEY,
-  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
   content TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Insert some seed data
 INSERT INTO posts (user_id, title, content) VALUES
-  (1, 'My First Post', 'This is Alice''s first post.'),
+  (1, 'My First Post', 'This is Alice\'s first post.'),
   (1, 'Another Post', 'Alice writes again!'),
-  (2, 'Bob''s Post', 'Bob shares his thoughts.'),
+  (2, 'Bob\'s Post', 'Bob shares his thoughts.'),
   (3, 'Hello World', 'Charlie joins the conversation.');
 ```
 
@@ -232,17 +260,21 @@ modifying, or dropping tables.
 
 #### Step 12.1. Re-introspect your data source
 
-```sh title="Run the introspection command again:"
-ddn connector introspect my_pg
+```plaintext title="First, bring down your running services:"
+CTRL + C
 ```
 
-In `app/connector/my_pg/configuration.json`, you'll see schema updated to include operations for the `posts` table. In
-`app/metadata/my_pg.hml`, you'll see `posts` present in the metadata as well.
+```sh title="Run the introspection command again:"
+ddn connector introspect my_mysql
+```
+
+In `app/connector/my_mysql/configuration.json`, you'll see schema updated to include operations for the `posts` table.
+In `app/metadata/my_mysql.hml`, you'll see `mydb.posts` present in the metadata as well.
 
 #### Step 12.2. Update your metadata
 
 ```sh title="Add the posts model:"
-ddn model add my_pg "posts"
+ddn model add my_mysql "mydb.posts"
 ```
 
 #### Step 12.3. Create a new build
@@ -261,7 +293,7 @@ ddn run docker-start
 
 ```graphql title="Head back to your console and query the posts model:"
 query GetPosts {
-  posts {
+  mydbPosts {
     id
     title
     content
@@ -272,7 +304,7 @@ query GetPosts {
 ```json title="You'll get a response like this:"
 {
   "data": {
-    "posts": [
+    "mydbPosts": [
       {
         "id": 1,
         "title": "My First Post",
@@ -300,11 +332,11 @@ query GetPosts {
 
 ### Step 14. Create a relationship
 
-```sh title="Since there's already a foreign key on the posts table in PostgreSQL, we can easily add the relationship:"
-ddn relationship add my_pg "posts"
+```sh title="Since there's already a foreign key on the posts table in MySQL, we can easily add the relationship:"
+ddn relationship add my_mysql "mydb.posts"
 ```
 
-You'll see a new metadata object added to the `app/metadata/posts.hml` file of kind `Relationship` explaining the
+You'll see a new metadata object added to the `app/metadata/MydbPosts.hml` file of kind `Relationship` explaining the
 relationship between `posts` and `users`.
 
 ### Step 15. Rebuild your project
@@ -321,11 +353,11 @@ ddn run docker-start
 
 ```graphql title="Now, execute a nested query using your relationship:"
 query GetPosts {
-  posts {
+  mydbPosts {
     id
     title
     content
-    user {
+    mydbUser {
       id
       name
       age
@@ -337,12 +369,12 @@ query GetPosts {
 ```json title="Which should return a result like this:"
 {
   "data": {
-    "posts": [
+    "mydbPosts": [
       {
         "id": 1,
         "title": "My First Post",
         "content": "This is Alice's first post.",
-        "user": {
+        "mydbUser": {
           "id": 1,
           "name": "Alice",
           "age": 25
@@ -352,7 +384,7 @@ query GetPosts {
         "id": 2,
         "title": "Another Post",
         "content": "Alice writes again!",
-        "user": {
+        "mydbUser": {
           "id": 1,
           "name": "Alice",
           "age": 25
@@ -362,7 +394,7 @@ query GetPosts {
         "id": 3,
         "title": "Bob's Post",
         "content": "Bob shares his thoughts.",
-        "user": {
+        "mydbUser": {
           "id": 2,
           "name": "Bob",
           "age": 30
@@ -372,7 +404,7 @@ query GetPosts {
         "id": 4,
         "title": "Hello World",
         "content": "Charlie joins the conversation.",
-        "user": {
+        "mydbUser": {
           "id": 3,
           "name": "Charlie",
           "age": 35
@@ -383,66 +415,19 @@ query GetPosts {
 }
 ```
 
-### Step 17. Add all commands
-
-We'll track the available operations — for inserting, updating, and deleting — on our `users` and `posts` tables as
-commands.
-
-```sh title="Add all available commands:"
-ddn command add my_pg "*"
-```
-
-You'll see newly-generated metadata files in the `metadata` directory for your connector that represent insert, update,
-and delete operations.
-
-```sh title="As your metadata has changed, create a new build:"
-ddn supergraph build local
-```
-
-```sh title="Bring down the servies by pressing CTRL+C and start them back up:"
-ddn run docker-start
-```
-
-### Step 18. Insert new data
-
-```graphql title="Create a new post for Charlie:"
-mutation InsertSinglePost {
-  insertPosts(
-    objects: {
-      content: "I am an expert in Bird Law and I demand satisfcation."
-      title: "Charlie has more to say"
-      userId: "3"
-    }
-  ) {
-    returning {
-      id
-      title
-      content
-      user {
-        id
-        name
-      }
-    }
-  }
-}
-```
-
-You should see a response that returns your inserted data along with the `id` and `name` fields for the author.
-
 ## Next steps
 
-Congratulations on completing your first Hasura DDN project with PostgreSQL! 🎉
+Congratulations on completing your first Hasura DDN project with MySQL! 🎉
 
 Here's what you just accomplished:
 
-- You started with a fresh project and connected it to a local PostgreSQL database.
+- You started with a fresh project and connected it to a local MySQL database.
 - You set up metadata to represent your tables and relationships, which acts as the blueprint for your API.
 - Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
   GraphQL queries to fetch data.
 - Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
-- Finally, we looked at how to enable mutations and insert data using your new API.
 
 Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
 
-Take a look at our PostgreSQL docs to learn more about how to use Hasura DDN with PostgreSQL. Or, if you're ready, get
-started with adding [permissions](/auth/permissions/index.mdx) to control access to your API.
+Take a look at our MySQL docs to learn more about how to use Hasura DDN with MySQL. Or, if you're ready, get started
+with adding [permissions](/auth/permissions/index.mdx) to control access to your API.
