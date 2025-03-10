@@ -1,0 +1,453 @@
+---
+sidebar_position: 7
+sidebar_label: With MySQL
+description: "Learn the basics of Hasura DDN and how to get started with a MySQL database."
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - mysql
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and MySQL
+
+## Overview
+
+This tutorial takes about twenty minutes to complete. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to a MySQL database
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+- Create relationships
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you're starting from scratch; a MySQL docker image ships with the data connector you'll use in
+just a bit to connect a locally-running database to Hasura, but you can easily follow the steps if you already have data
+seeded; Hasura will never modify your source schema.
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Initialize your MySQL connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_mysql -i
+
+```
+
+From the dropdown, start typing `mysql` and hit enter to accept the default port. Then, provide the following values:
+
+**JDBC URL**
+
+```plaintext
+jdbc:mysql://<hostname>:<port>/<database-name>?user=<user-name>&password=<password>
+```
+
+### Step 4. Start the local MySQL container
+
+```sh title="Start a MySQL instance"
+docker pull mysql:latest
+docker run --name mysql \
+  -e MYSQL_ROOT_PASSWORD=RootPassword123 \
+  -e MYSQL_DATABASE=my_database \
+  -e MYSQL_USER=my_user \
+  -e MYSQL_PASSWORD=UserPassword123 \
+  -p 3306:3306 \
+  mysql:latest
+```
+
+```sh title="Use the mysql shell to start the SQL prompt:"
+docker exec -it mysql mysql -u my_user -p UserPassword123
+```
+
+```SQL title="Create a table in the database:"
+CREATE TABLE users (user_id int, name varchar(100), age int);
+```
+
+```SQL title="Then, seed the table:"
+INSERT INTO users (user_id, name, age) VALUES (1, 'Alice', 25), (2, 'Bob', 30), (3, 'Charlie', 35);
+```
+
+```SQL title="You can verify this by running:"
+SELECT * FROM users;
+```
+
+You should see a list of users returned.
+
+:::note
+
+If the database is running locally, then the database should be made accessible to the internet using tools like
+[ngrok](https://ngrok.com/downloads/linux)
+
+Once installed, run:
+
+```sh
+ngrok tcp 3306
+```
+
+The connection string for the above local database would look like:
+
+```plaintext
+jdbc:mysql://0.tcp.in.ngrok.io:17928/my_database?user=my_user&password=UserPassword123
+```
+
+The port and hostname would be different for each instance of ngrok run.
+
+:::
+
+### Step 5. Introspect your MySQL database
+
+```sh title="Next, use the CLI to introspect your MySQL database:"
+ddn connector introspect my_mysql
+```
+
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_mysql/configuration.json` file; you can view this using `cat` or open the file in your editor.
+
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources my_mysql
+```
+
+### Step 6. Add your model
+
+```sh title="Now, track the table from your MySQL database as a model in your DDN metadata:"
+ddn models add my_mysql users
+```
+
+:::tip
+
+To track all the available models in the dababase, run:
+
+```sh
+ddn models add my_mysql *
+```
+
+:::
+
+Open the `app/metadata` directory and you'll find a newly-generated file: `MyDatabaseUsers.hml`. The DDN CLI will use
+this Hasura Metadata Language file to represent the `users` table from MySQL in your API as a
+[model](/reference/metadata-reference/models.mdx).
+
+### Step 7. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 8. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and MySQL connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 9. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write this query:"
+query {
+  myDatabaseUsers {
+    userId
+    name
+    age
+  }
+}
+```
+
+```json title="You'll get the following response:"
+{
+  "data": {
+    "myDatabaseUsers": [
+      {
+        "userId": 1,
+        "name": "Alice",
+        "age": 25
+      },
+      {
+        "userId": 2,
+        "name": "Bob",
+        "age": 30
+      },
+      {
+        "userId": 3,
+        "name": "Charlie",
+        "age": 35
+      }
+    ]
+  }
+}
+```
+
+### Step 10. Iterate on your MySQL schema
+
+```sh title="Let's add a new table for posts:"
+CREATE TABLE posts (
+  user_id int,
+  post_id int,
+  title varchar(100),
+  content varchar(100)
+);
+```
+
+```sh title="Then, seed it:"
+INSERT INTO posts (user_id, post_id, title, content) VALUES
+  (1, 1, 'My First Post', 'This is Alice''s first post.'),
+  (1, 2, 'Another Post', 'Alice writes again!'),
+  (2, 3, 'Bob''s Post', 'Bob shares his thoughts.'),
+  (3, 4, 'Hello World', 'Charlie joins the conversation.');
+```
+
+```sh title="Finally, we can check the posts were generated:"
+SELECT * FROM posts;
+```
+
+### Step 11. Refresh your metadata and rebuild your project
+
+:::tip
+
+The following steps are necessary each time you make changes to your **source** schema. This includes, adding,
+modifying, or dropping tables.
+
+:::
+
+#### Step 11.1. Re-introspect your data source
+
+```sh title="Run the introspection command again:"
+ddn connector introspect my_mysql
+```
+
+In `app/connector/my_mysql/configuration.json`, you'll see schema updated to include operations for the `posts` table.
+In `app/metadata/my_mysql.hml`, you'll see `posts` present in the metadata as well.
+
+#### Step 11.2. Update your metadata
+
+```sh title="Add the posts model:"
+ddn model add my_mysql posts
+```
+
+#### Step 11.3. Kill your services
+
+Bring down the services by pressing `CTRL+C` in the terminal tab logging their activity.
+
+#### Step 11.4. Create a new build
+
+```sh title="Next, create a new build:"
+ddn supergraph build local
+```
+
+#### Step 11.5 Restart your services
+
+```sh title="Bring everything back up:"
+ddn run docker-start
+```
+
+### Step 12. Query your new build
+
+```graphql title="Head back to your console and query the posts model:"
+query GetPosts {
+  myDatabasePosts {
+    userId
+    postId
+    title
+    content
+  }
+}
+```
+
+```json title="You'll get a response like this:"
+{
+  "data": {
+    "myDatabasePosts": [
+      {
+        "userId": 1,
+        "postId": 1,
+        "title": "My First Post",
+        "content": "This is Alice's first post."
+      },
+      {
+        "userId": 1,
+        "postId": 2,
+        "title": "Another Post",
+        "content": "Alice writes again!"
+      },
+      {
+        "userId": 2,
+        "postId": 3,
+        "title": "Bob's Post",
+        "content": "Bob shares his thoughts."
+      },
+      {
+        "userId": 3,
+        "postId": 4,
+        "title": "Hello World",
+        "content": "Charlie joins the conversation."
+      }
+    ]
+  }
+}
+```
+
+### Step 13. Create a relationship
+
+```yaml title="Open the MyDatabasePosts.hml file and add the following to the end:"
+---
+kind: Relationship
+version: v1
+definition:
+  name: user
+  sourceType: MyDatabasePosts
+  target:
+    model:
+      name: MyDatabaseUsers
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: userId
+      target:
+        modelField:
+          - fieldName: userId
+```
+
+:::tip
+
+To add existing foriegn keys in the database, run:
+
+```sh
+ddn relationship add my_mysql *
+```
+
+:::
+
+:::tip LSP-Assisted authoring is available
+
+We've created an extension for VS Code that leverages LSP to make authoring these metadata objects easier. Check it out
+[here](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura).
+
+:::
+
+### Step 14. Rebuild your project
+
+Bring down the services by pressing `CTRL+C` in the terminal tab logging their activity.
+
+```sh title="As your metadata has changed, create a new build:"
+ddn supergraph build local
+```
+
+```sh title="Bring everything back up:"
+ddn run docker-start
+```
+
+### Step 15. Query using your relationship
+
+```graphql title="Now, execute a nested query using your relationship:"
+query GetPosts {
+  myDatabasePosts {
+    postId
+    title
+    content
+    user {
+      userId
+      name
+      age
+    }
+  }
+}
+```
+
+```json title="Which should return a result like this:"
+{
+  "data": {
+    "myDatabasePosts": [
+      {
+        "postId": 1,
+        "title": "My First Post",
+        "content": "This is Alice's first post.",
+        "user": {
+          "userId": 1,
+          "name": "Alice",
+          "age": 25
+        }
+      },
+      {
+        "postId": 2,
+        "title": "Another Post",
+        "content": "Alice writes again!",
+        "user": {
+          "userId": 1,
+          "name": "Alice",
+          "age": 25
+        }
+      },
+      {
+        "postId": 3,
+        "title": "Bob's Post",
+        "content": "Bob shares his thoughts.",
+        "user": {
+          "userId": 2,
+          "name": "Bob",
+          "age": 30
+        }
+      },
+      {
+        "postId": 4,
+        "title": "Hello World",
+        "content": "Charlie joins the conversation.",
+        "user": {
+          "userId": 3,
+          "name": "Charlie",
+          "age": 35
+        }
+      }
+    ]
+  }
+}
+```
+
+## Next steps
+
+Congratulations on completing your first Hasura DDN project with MySQL! 🎉
+
+Here's what you just accomplished:
+
+- You started with a fresh project and connected it to a local MySQL database.
+- You set up metadata to represent your tables and relationships, which acts as the blueprint for your API.
+- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
+  GraphQL queries to fetch data.
+- Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
+
+Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
+
+Take a look at our MySQL docs to learn more about how to use Hasura DDN with MySQL. Or, if you're ready, get started
+with adding [permissions](/reference/metadata-reference/permissions.mdx) to control access to your API.
