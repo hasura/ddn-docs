@@ -15,6 +15,7 @@ import Federation from '@site/static/icons/data_federation.svg';
 import GettingStarted from '@site/static/icons/home-smile.svg';
 import Glossary from '@site/static/icons/box.svg';
 import GraphQLAPI from '@site/static/icons/graphql-logo.svg';
+import JsonAPI from '@site/static/icons/jsonapi-logo-small.svg';
 import HasuraCLI from '@site/static/icons/terminal-square.svg';
 import Help from '@site/static/icons/features/hasura_policies.svg';
 import Introduction from '@site/static/icons/award-02.svg';
@@ -72,6 +73,9 @@ export function addIconsToLabel(label, className) {
       break;
     case 'graphQL-api-icon':
       icons = <GraphQLAPI style={iconStyle} />;
+      break;
+    case 'json-api-icon':
+      icons = <JsonAPI style={iconStyle} />;
       break;
     case 'ci-cd-icon':
       icons = <CiCd style={iconStyle} />;
