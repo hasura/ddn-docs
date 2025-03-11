@@ -37,52 +37,65 @@ Native queries are defined in the `metadata.nativeQueries` section of your `conf
 
 ```json
 {
-    "nativeQueries": {
-      "selectArtist": {
-        "sql": "SELECT *
-          FROM [dbo].[Artist]
-          WHERE "Name" LIKE '%' || {{name}} || '%'
-          AND "ArtistId" > {{lower_bound}}
-          AND "ArtistId" < {{upper_bound}}",
-        "columns": {
-          "ArtistId": {
-            "name": "ArtistId",
-            "type": "int",
-            "nullable": "nonNullable",
-            "description": null
-          },
-          "Name": {
-            "name": "Name",
-            "type": "varchar",
-            "nullable": "nullable",
-            "description": null,
-            "castAs": "varchar(100)"
-          }
-        },
-        "arguments": {
-          "lower_bound": {
-            "name": "lower_bound",
-            "type": "int",
-            "nullable": "nonNullable",
-            "description": null
-          },
-          "upper_bound": {
-            "name": "upper_bound",
-            "type": "varchar",
-            "nullable": "nullable",
-            "description": null
-          },
-          "Name": {
-            "name": "name",
-            "type": "varchar",
-            "nullable": "nullable",
-            "description": null
-          }
-        },
+  "selectArtistByNameBetween": {
+    "sql": "SELECT * FROM [dbo].[Artist] WHERE "Name" LIKE '%' + {{name}} + '%' AND "ArtistId" > {{lower_bound}} AND "ArtistId" < {{upper_bound}}",
+    "columns": {
+      "ArtistId": {
+        "name": "ArtistId",
+        "type": "int",
+        "nullable": "nonNullable",
+        "description": null
+      },
+      "Name": {
+        "name": "Name",
+        "type": "varchar",
+        "nullable": "nullable",
+        "description": null,
+        "castAs": "varchar(100)"
+      }
+    },
+    "arguments": {
+      "lower_bound": {
+        "name": "lower_bound",
+        "type": "int",
+        "nullable": "nonNullable",
+        "description": null
+      },
+      "upper_bound": {
+        "name": "upper_bound",
+        "type": "varchar",
+        "nullable": "nullable",
+        "description": null
+      },
+      "name": {
+        "name": "Name",
+        "type": "varchar",
+        "nullable": "nullable",
         "description": null
       }
-    }
+    },
+    "description": null
+  }
 }
+```
+
+## Connector metadata update
+
+If your data connector is running, run the following command to update your metadata to track the new native query:
+
+```sh
+ddn connector-link update my_mysql --add-all-resources
+```
+
+If you get a `connection refused` error, it means that your data connector is not running. You can either start the data
+connector and try again, or, run the following commands to update your metadata to track the new native query:
+
+```sh
+# start the connector and introspect your DB
+ddn connector introspect my_mysql
+
+# update your metadata to track the new native query
+ddn model add my_mysql "selectArtistByNameBetween"
 ```
 
 ## Usage
@@ -91,7 +104,7 @@ Once configured, you can execute the native query through your GraphQL API:
 
 ```graphql
 query {
-  artist_by_name_between(name: "Black", lower_bound: 10, upper_bound: 50) {
+  selectArtistByNameBetween(name: "Black", lower_bound: 10, upper_bound: 50) {
     ArtistId
     Name
   }
@@ -103,7 +116,7 @@ The response will include the matching records:
 ```json
 {
   "data": {
-    "artist_by_name_between": [
+    "selectArtistByNameBetween": [
       {
         "ArtistId": 15,
         "Name": "Black Label Society"
