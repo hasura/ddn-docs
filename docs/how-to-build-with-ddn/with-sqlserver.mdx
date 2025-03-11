@@ -66,21 +66,22 @@ values:
 **Connection string**
 
 ```plaintext
-Server=<hostname>,<port>;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
+Server=<hostname>,<port>;Database=master;Uid=sa;Password=Password123
 ```
 
 :::note
 
-If the database is created using the local docker setup, it needs to be hosted on cloud using applicarions such as
+If the database is running locally, then the database should be made accessible to the internet using tools like [ngrok](https://ngrok.com/downloads/linux)
 [ngrok](https://ngrok.com/downloads/linux). For example,
-
-```plaintext
-Server=0.tcp.in.ngrok.io,16543;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
-```
 
 ```sh title="after the installation, host the database using:"
 ngrok tcp 1433
 ```
+
+```plaintext
+Server=0.tcp.in.ngrok.io,16543;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
+```
+Note that the hostname and port may vary with each ngrok run.
 
 :::
 
@@ -120,7 +121,7 @@ You should see a list of users returned.
 
 :::tip
 
-Alternativey, other applications and tools can also be used to seed the database, such as
+Alternatively, other applications and tools can also be used to seed the database, such as
 
 1. [Microsoft Azure Studio](https://azure.microsoft.com/en-us/products/data-studio)
 2. `mssql-tools` shell to start the SQL prompt:
@@ -171,6 +172,16 @@ ddn models add my_sqlserver users
 Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
 Metadata Language file to represent the `users` table from SQL Server in your API as a
 [model](/reference/metadata-reference/models.mdx).
+
+:::tip
+
+To track all available models in the dababase, run:
+
+```sh
+ddn models add my_sqlserver *
+```
+
+:::
 
 ### Step 7. Create a new build
 
