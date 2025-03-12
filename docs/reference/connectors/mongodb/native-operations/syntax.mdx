@@ -213,7 +213,7 @@ Used for documentation purposes in the API.
 | ------------- | --------- |
 | `"arguments"` | No        |
 
-Used if you want to accept arguments in your API for your pipeline. Please refer to [Types](#types). Arguments are
+Used if you want to accept arguments in your API for your pipeline. Please refer to [Type Expressions](../type-expressions.mdx). Arguments are
 denoted in your [pipeline](#pipeline) code using `"{{ argument }}"`.
 
 **Example:**
@@ -239,7 +239,7 @@ denoted in your [pipeline](#pipeline) code using `"{{ argument }}"`.
 | `"resultDocumentType"` | Yes       |
 
 Represents the result type of your pipeline. This can refer to an existing object type from your schema or can be object
-types you write yourself following the structure of [Types](#types)
+types you write yourself following the structure of [Type Expressions](../type-expressions.mdx)
 
 A pipeline returns a stream of documents. `resultDocumentType` is the type of each individual document.
 
@@ -250,8 +250,7 @@ A pipeline returns a stream of documents. `resultDocumentType` is the type of ea
 | `"objectTypes"` | No        |
 
 If you need to return a type that is not already in your schema then you can write your own. Please refer to
-[Types](#types) on how to write your own object types. The only difference is those types need to be wrapped in a type
-name followed by fields.
+[Type Expressions](../type-expressions.mdx#object-types) on how to write your own object types.
 
 Object types from all configuration files occupy a shared namespace so it is important that object type names be unique
 within your configuration.
@@ -359,72 +358,6 @@ double quotes and double braces `"{{ argument }}"`. See example with arguments b
   }
 ]
 ```
-
-### Types
-
-Each field in a JSON object is defined with a key specifying the name of the field. Below the key, the "type" is
-specified, which can be a scalar or structural type, followed by the type name. Here are descriptions for each type:
-
-#### Scalar Types
-
-- **double**: Represents a floating point number.
-- **string**: Represents a sequence of characters.
-- **bool**: Represents a boolean value, true or false.
-- **int**: Represents an integer.
-- **long**: Represents a longer form of integer.
-- **decimal**: Represents a large decimal number.
-- **date**: Represents a date, stored as a string in ISO format.
-- **timestamp**: Represents a Unix timestamp.
-- **objectId**: Represents an object identifier.
-
-#### Structural Types
-
-- **object**: Represents a BSON document or an embedded document. Users can define their own nested object types,
-  specifying the structure of these objects as required by their applications.
-- **arrayOf**: Represents an array of elements, with each element being a type specified after "arrayOf". For instance,
-  "arrayOf": "string" means an array of strings.
-
-Examples:
-
-```json
-{
-  "age": {
-    "type": {
-      "scalar": "int"
-    }
-  },
-  "name": {
-    "type": {
-      "scalar": "string"
-    }
-  },
-  "preferences": {
-    "type": {
-      "object": "userPreferences"
-    }
-  },
-  "tags": {
-    "type": {
-      "arrayOf": "string"
-    }
-  },
-  "employment": {
-    "type": {
-      "object": "employmentDetails"
-    }
-  }
-}
-```
-
-**In this example:**
-
-- **age** is an integer.
-- **name** is a string.
-- **preferences** is a complex object defined elsewhere as userPreferences, indicating a structured type defined by the
-  user.
-- **tags** is an array consisting of strings.
-- **employment** is a user-defined object type employmentDetails, which would be specified in more detail elsewhere in
-  the documentation.
 
 [DDN: collections]: https://hasura.github.io/ndc-spec/specification/schema/collections.html
 [DDN: functions]: https://hasura.github.io/ndc-spec/specification/schema/functions.html
@@ -631,13 +564,13 @@ Used for documentation purposes in the API.
 `"resultType"`: **Required**
 
 Represents the result type of your command. This can refer to an existing object type from your schema or can be an
-object type you write in the native query file following the structure of [Types](#types)
+object type you write in the native query file following the structure described in [Type Expressions](../type-expressions.mdx).
 
 #### Arguments
 
 `"arguments"`: **Optional**
 
-Used if you want to accept arguments in your API for your command. Please refer to [Types](#types). Arguments are
+Used if you want to accept arguments in your API for your pipeline. Please refer to [Type Expressions](../type-expressions.mdx). Arguments are
 denoted in your [command](#command) code using `"{{ argument }}"`.
 
 **Example:**
@@ -662,8 +595,7 @@ denoted in your [command](#command) code using `"{{ argument }}"`.
 `"objectTypes"`: **Optional**
 
 If you need to return a type that is not already in your schema then you can write your own. Please refer to
-[Types](#types) on how to write your own object types. The only difference is those types need to be wrapped in a type
-name followed by fields.
+[Type Expressions](../type-expressions.mdx#object-types) on how to write your own object types.
 
 **Example:**
 
@@ -720,72 +652,4 @@ wrapped in double quotes and double braces `"{{ argument }}"`. See example below
 
 ```
 
-### Types
-
-Each field in a JSON object is defined with a key specifying the name of the field. Below the key, the "type" is
-specified, which can be a scalar or structural type, followed by the type name. Here are descriptions for each type:
-
-#### Scalar Types
-
-- **double**: Represents a floating point number.
-- **string**: Represents a sequence of characters.
-- **bool**: Represents a boolean value, true or false.
-- **int**: Represents an integer.
-- **long**: Represents a longer form of integer.
-- **decimal**: Represents a large decimal number.
-- **date**: Represents a date, stored as a string in ISO format.
-- **timestamp**: Represents a Unix timestamp.
-- **objectId**: Represents an object identifier.
-
-#### Structural Types
-
-- **object**: Represents a BSON document or an embedded document. Users can define their own nested object types,
-  specifying the structure of these objects as required by their applications.
-- **arrayOf**: Represents an array of elements, with each element being a type specified after "arrayOf". For instance,
-  "arrayOf": "string" means an array of strings.
-
-Examples:
-
-```json
-{
-  "age": {
-    "type": {
-      "scalar": "int"
-    }
-  },
-  "name": {
-    "type": {
-      "scalar": "string"
-    }
-  },
-  "preferences": {
-    "type": {
-      "object": "userPreferences"
-    }
-  },
-  "tags": {
-    "type": {
-      "arrayOf": "string"
-    }
-  },
-  "employment": {
-    "type": {
-      "object": "employmentDetails"
-    }
-  }
-}
-```
-
-**In this example:**
-
-- **age** is an integer.
-- **name** is a string.
-- **preferences** is a complex object defined elsewhere as userPreferences, indicating a structured type defined by the
-  user.
-- **tags** is an array consisting of strings.
-- **employment** is a user-defined object type employmentDetails, which would be specified in more detail elsewhere in
-  the documentation.
-
-[DDN: collections]: https://hasura.github.io/ndc-spec/specification/schema/collections.html
-[DDN: functions]: https://hasura.github.io/ndc-spec/specification/schema/functions.html
 [MongoDB: runCommand]: https://www.mongodb.com/docs/manual/reference/method/db.runCommand

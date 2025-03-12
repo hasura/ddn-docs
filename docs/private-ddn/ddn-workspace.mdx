@@ -54,9 +54,49 @@ been provisioned, it can be launched from the [Private DDN page](https://console
 
 <Thumbnail src="/img/data-plane/launch-workspace.png" alt="Launch DDN workspace" width="1000px" />
 
-## Step 2. Authenticate the DDN CLI
+## Step 2. Create a `<service-account-token>`
 
-Once logged in, you will be greeted with the familiar VS Code UI. You can perform all typical development tasks, such as
+:::info Prerequisite
+
+In order to perform a `ddn auth login --access-token <service-account-token>`, you need to have a project created in your data plane under which a `<service-account-token>` has been generated.
+If you have already done this, continue to the next step.  Otherwise, proceed with the steps below and ensure that you are executing this on your local machine since a browser login is required
+during this step.
+
+**Alternate Approach:**
+
+If you are unable to generate a `<service-account-token>`, you can instead create a Personal Access Token (PAT) by heading on over to [Hasura dashboard](https://cloud.hasura.io/account-settings/access-tokens)
+and creating a new access token there.
+
+:::
+
+:::info Get Data Plane ID
+
+You can find all the Data Planes you have access to on this page: https://console.hasura.io/data-plane
+
+:::
+
+:::info Available Plans
+
+- ddn_base
+- ddn_advanced
+
+Read more about plans [here](/reference/pricing.mdx)
+
+:::
+
+```sh title="Login & create project:"
+# Perform a ddn auth login using your personal Hasura Cloud account
+ddn auth login
+
+# Create a project
+ddn project create --data-plane-id <data-plane-id> --plan <plan-name>
+```
+
+Next, follow [these](/project-configuration/project-management/service-accounts/#how-to-create-service-account) steps to generate a `<service-account-token>`.
+
+## Step 3. Authenticate the DDN CLI
+
+Once you're logged into the DDN Workspace, you will be greeted with the familiar VS Code UI. You can perform all typical development tasks, such as
 installing extensions, customizing key bindings, and applying themes—all within your browser.
 
 Bring up the terminal using the shortcut `Ctrl` + `` ` ``.
@@ -69,7 +109,13 @@ one.
 ddn auth login --access-token <service-account-token>
 ```
 
-## Step 3. Scaffold out a new local project
+Alternatively, if you have opted to use a Personal Access Token (PAT), run the following command instead:
+
+```bash
+ddn auth login --pat <personal-account-token>
+```
+
+## Step 4. Scaffold out a new local project
 
 ```sh title="Next, create a new local project:"
 ddn supergraph init my-project && cd my-project
@@ -78,7 +124,15 @@ ddn supergraph init my-project && cd my-project
 After navigating into the directory, you will see the project structure scaffolded for you. You can view the project
 structure by running `ls` in the terminal or by exploring it in the VS Code interface.
 
-## Step 4. Add a data source
+## Step 5. Add a data source
+
+:::tip
+
+If you have established private connectivity to your data source, you will need to ensure that you are using a
+hostname/IP for your database which is specific to your private connectivity connection.
+This hostname/IP will be communicated to you by the Hasura team during the coordination of the private connectivity setup.
+
+:::
 
 The command below launches a wizard in the DDN CLI to guide you through adding a data connector. You can learn more
 about adding sources via data connectors [here](/data-sources/connect-to-a-source.mdx).
@@ -97,7 +151,7 @@ outcomes and allow for independent ownership and governance of data sources. Lea
 
 :::
 
-## Step 5. Generate your metadata
+## Step 6. Generate your metadata
 
 ```sh title="First, introspect your data source:"
 ddn connector introspect <connector_name>
@@ -119,41 +173,26 @@ the metadata is generated, create a cloud project and deploy your supergraph to 
 
 :::
 
-## Step 6. Create a project on your Data Plane
+## Step 7. Initiate against a project on your Data Plane
 
-Create a new project using the DDN CLI, specifying the `data-plane-id` and the `plan` as flags.
+:::info
 
-:::info Get Data Plane ID
-
-You can find all the Data Planes you have access to on this page: https://console.hasura.io/data-plane
-
+In this step, use the `<project-name>` from Step 2.
 :::
 
-:::info Available Plans
-
-- ddn_free
-- ddn_base
-- ddn_advanced
-
-Read more about plans [here](/reference/pricing.mdx)
-
-:::
-
-```sh title="Create a new project using your Data Plane ID and plan choice:"
-ddn project init --data-plane-id <data-plane-id> --plan <plan-name>
+```sh title="Initiate against an existing project on your data plane:"
+ddn project init --with-project <project-name>
 ```
 
-The CLI will return information about your newly created project.
+## Step 8. Build and deploy your supergraph
 
-## Step 7. Build and deploy your supergraph
-
-```sh title="build and deploy you supergraph:"
+```sh title="Build and deploy your supergraph:"
 ddn supergraph build create
 ```
 
 When this process is complete, the CLI will return a link to the hosted API where you can query your data.
 
-## Step 8. Exporting your metadata
+## Step 9. Exporting your metadata
 
 To export metadata, right-click the Explorer pane and select `Download`. This will download the entire workspace
 directory to your local machine. Since Git is pre-installed in the workspace, you can also configure it and push changes
