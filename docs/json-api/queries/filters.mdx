@@ -17,33 +17,31 @@ sidebar_position: 2
 Filtering allows you to retrieve specific resources that match certain criteria. The JSON:API implementation in Hasura
 provides a flexible filtering system using the `filter` query parameter.
 
-## Request Format
+## Request format
 
-```http
+```http title="Request models matching a certain expression:"
 GET /v1/rest/<subgraph-name>/<model-name>?filter=<expression>
 ```
 
-Where:
+| Parameter       | Description                       | Example                           |
+| --------------- | --------------------------------- | --------------------------------- |
+| `subgraph-name` | Name of your subgraph.            | `"default"`                       |
+| `model-name`    | Name of your model.               | `"Articles"`                      |
+| `expression`    | Filter expression in JSON format. | `{"author": {"$eq": "John Doe"}}` |
 
-- `subgraph-name`: Name of your subgraph
-- `model-name`: Name of your model
-- `expression`: Filter expression in JSON format
-
-### Filter Syntax
+### Filter syntax
 
 The filter expression must be a valid JSON object containing field comparisons using supported operators.
 
-#### Field Comparison
+#### Field comparison
 
 Field comparisons are expressed as JSON objects where:
 
 - The outer key is the field name
-- The inner object contains an operator and value pair
+- The inner object contains an operator-value pair
 - Operators are prefixed with `$` (e.g., `$eq`, `$gt`)
 
-Example structure:
-
-```json
+```json title="For example:"
 {
   "field_name": {
     "$operator": value
@@ -57,16 +55,16 @@ Check your
 [`BooleanExpressionType` configuration](reference/metadata-reference/boolean-expressions.mdx#booleanexpressiontype-booleanexpressiontype)
 to see which operators are enabled for each field type.
 
-#### Logical Operators
+#### Logical operators
 
 To combine multiple conditions, use logical operators:
 
-- `$and`: All conditions must be true
-- `$or`: Any condition must be true
+| Operator | Description                  | Example                                                          |
+| -------- | ---------------------------- | ---------------------------------------------------------------- |
+| `$and`   | All conditions must be true. | `{"$and": [filter_expression_object, filter_expression_object]}` |
+| `$or`    | Any condition must be true.  | `{"$or": [filter_expression_object, filter_expression_object]}`  |
 
-The logical operators accept an array of conditions:
-
-```json
+```json title="The logical operators accept an array of conditions:"
 {
   "$and | $or": [
     filter_expression_object,
@@ -79,15 +77,11 @@ The logical operators accept an array of conditions:
 
 ### Field comparison
 
-Request:
-
-```http
+```http title="Request:"
 GET /v1/rest/default/Articles?filter={"rating":{"$eq":5}}
 ```
 
-Response:
-
-```json
+```json title="Response:"
 {
   "data": [
     {
@@ -114,15 +108,11 @@ Response:
 
 ### Logical AND operator
 
-Request:
-
-```http
+```http title="Request:"
 GET /v1/rest/default/Articles?filter={"$and":[{"rating":{"$gte":4}},{"published":{"$eq":true}}]}
 ```
 
-Response:
-
-```json
+```json title="Response:"
 {
   "data": [
     {
@@ -140,15 +130,11 @@ Response:
 
 ### Logical OR operator
 
-Request:
-
-```http
+```http tite="Request:"
 GET /v1/rest/default/Articles?filter={"$or":[{"rating":{"$eq":5}},{"featured":{"$eq":true}}]}
 ```
 
-Response:
-
-```json
+```json title="Response:"
 {
   "data": [
     {
@@ -173,13 +159,17 @@ Response:
 }
 ```
 
-## Error Cases
+## Error cases
 
-Common error scenarios include:
+To troubleshoot errors, consider the following debugging steps:
 
-- Invalid JSON syntax in filter expression
-- Missing operator prefix ($)
-- Using operators not defined in the field's boolean expression type
-- Invalid field references
-- Using logical operators when not enabled in the boolean expression type
-- Malformed logical expressions
+- **Check JSON syntax**: Ensure that the filter expression is a valid JSON object. Use a JSON validator to confirm
+  correctness.
+- **Verify operator prefixes**: All operators must be prefixed with `$` (e.g., `$eq`, `$gte`).
+- **Confirm field existence**: Ensure that the field being filtered exists in the model and matches the expected data
+  type.
+- **Validate boolean expression type**: Review the
+  [`BooleanExpressionType` configuration](reference/metadata-reference/boolean-expressions.mdx#booleanexpressiontype-booleanexpressiontype)
+  to confirm that the used operators are allowed.
+- **Use logs and debugging tools**: Check Hasura's logs or enable request debugging to inspect how filters are being
+  processed.

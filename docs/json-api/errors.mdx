@@ -9,7 +9,6 @@ keywords:
   - json:api errors
   - internal errors
   - rest api errors
-seoFrontMatterUpdated: true
 ---
 
 # JSON:API Error Responses
@@ -20,11 +19,11 @@ When a request to the JSON:API endpoint fails, Hasura returns error responses th
 [JSON:API specification](https://jsonapi.org/format/#errors). Each error response includes appropriate HTTP status codes
 and a structured error document.
 
-## Error Format
+## Error format
 
-Error responses are returned as JSON objects containing an `errors` array. Each error object in the array includes:
+Error responses are returned as JSON objects containing an `errors` array.
 
-```json
+```json title="Each error object in the array a status code and message:"
 {
   "errors": [
     {
@@ -35,12 +34,15 @@ Error responses are returned as JSON objects containing an `errors` array. Each 
 }
 ```
 
-- `status`: The HTTP status code applicable to this error (as a string)
-- `detail`: A human-readable explanation of the error
+| Parameter | Description                                                  | Example          |
+| --------- | ------------------------------------------------------------ | ---------------- |
+| `status`  | The HTTP status code applicable to this error (as a string). | `"418"`          |
+| `detail`  | A human-readable explanation of the error.                   | `"I'm a teapot"` |
 
-## Common Status Codes
+## Common status codes
 
-The API uses standard HTTP status codes to indicate the type of error:
+The API uses [standard HTTP status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) to indicate the type
+of error:
 
 - `400 Bad Request`: Invalid request syntax or parameters
 - `401 Unauthorized`: Missing or invalid authentication
@@ -52,9 +54,7 @@ The API uses standard HTTP status codes to indicate the type of error:
 
 ### Request Errors
 
-Request errors occur when the client sends an invalid request. These include:
-
-```json
+```json title="Request errors occur when the client sends an invalid request. E.g.:"
 {
   "errors": [
     {
@@ -67,9 +67,7 @@ Request errors occur when the client sends an invalid request. These include:
 
 ### Permission Errors
 
-When a user attempts to access a resource without proper permissions:
-
-```json
+```json title="When a user attempts to access a resource without proper permissions:"
 {
   "errors": [
     {
@@ -82,9 +80,7 @@ When a user attempts to access a resource without proper permissions:
 
 ### Internal Errors
 
-For security reasons, internal errors return a generic message without exposing implementation details:
-
-```json
+```json title="For security reasons, internal errors return a generic message without exposing implementation details:"
 {
   "errors": [
     {
@@ -95,5 +91,9 @@ For security reasons, internal errors return a generic message without exposing 
 }
 ```
 
-:::note Error Tracing While error responses to clients are intentionally generic for security, detailed error
-information is available in the [request traces](/observability/built-in/traces.mdx) for debugging purposes. :::
+:::info Debugging Errors
+
+Error responses to clients are intentionally generic for security reasons. However, detailed error information is
+available in the [request traces](/observability/built-in/traces.mdx) for debugging purposes.
+
+:::
