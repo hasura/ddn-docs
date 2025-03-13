@@ -35,17 +35,82 @@ CompatibilityConfig `date`s prior to these dates will have these features disabl
 
 ##### Disallow procedure command relationships
 
-TODO
+A build error is now raised if a relationship is defined between an object type and a procedure command. Procedure
+commands cannot be used in relationships.
 
 #### 2025-03-11
 
-##### Validate object type data connector type mapping field types
+##### Validate object type field types in data connector type mappings
 
-TODO (also make a better title for this)
+A build error is now raised when there is a mismatch between the field types defined in an object type and the
+corresponding field types in the data connector type mapping. This ensures type safety and prevents runtime errors due
+to incompatible type mappings.
 
-##### Validate argument mapping types
+For example, if a PostgreSQL data connector defines a column as `INTEGER`, mapping it to an object type field defined as
+`String` would raise an error:
 
-TODO
+```json
+{
+  "kind": "ObjectType",
+  "version": "v1",
+  "definition": {
+    "name": "User",
+    "fields": [
+      {
+        "name": "age",
+        "type": "String!" // Error: PostgreSQL column is INTEGER but object type defines it as String
+      }
+    ],
+    "dataConnectorTypeMapping": [
+      {
+        "dataConnectorName": "postgres",
+        "dataConnectorObjectType": "users",
+        "fieldMapping": {
+          "age": {
+            "column": {
+              "name": "age"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+##### Validate argument type mappings
+
+A build error is now raised when argument mapping types are invalid or incompatible with their corresponding data
+connector types. This validation ensures that arguments passed to commands and models are properly typed and match the
+expected types in the data connector.
+
+For example, if a PostgreSQL function expects an `INTEGER` argument, mapping it to an argument defined as `String` would
+raise an error:
+
+```json
+{
+  "kind": "Command",
+  "version": "v1",
+  "definition": {
+    "name": "get_users_by_age",
+    "arguments": [
+      {
+        "name": "age",
+        "type": "String!" // Error: PostgreSQL function expects INTEGER but argument is defined as String
+      }
+    ],
+    "source": {
+      "dataConnectorName": "postgres",
+      "dataConnectorCommand": {
+        "function": "get_users_by_age"
+      },
+      "argumentMapping": {
+        "age": "age"
+      }
+    }
+  }
+}
+```
 
 ##### Disallow invalid headers in AuthConfig
 
@@ -65,15 +130,19 @@ This protects customers from accidentally misconfiguring their `audience` and ex
 
 ##### Require valid command output type
 
-TODO
+A build error is now raised when a command's output type references a type that doesn't exist in the metadata.
+Previously, invalid output types might have been allowed but could lead to runtime errors. This ensures that all
+commands have valid and well-defined output types that can be properly handled by the system.
 
 #### 2025-02-20
 
 ##### Disallow unknown values in arguments
 
-Previously if an argument preset was provided via a session variable, and contained unknown fields, the engine would ignore those fields and pass them on to the data connector.
+Previously if an argument preset was provided via a session variable, and contained unknown fields, the engine would
+ignore those fields and pass them on to the data connector.
 
-For an object type with `name` and `age` fields, an input like this will throw an error, saying that we don't know anything about the `not_in_our_object_type` field.
+For an object type with `name` and `age` fields, an input like this will throw an error, saying that we don't know
+anything about the `not_in_our_object_type` field.
 
 ```JSON
 {
@@ -85,7 +154,82 @@ For an object type with `name` and `age` fields, an input like this will throw a
 
 ##### Disallow recursive object types
 
-TODO
+A build error is now raised when object types contain infinite recursion through non-nullable fields. This prevents
+creating object type structures that could lead to infinite loops during query execution. For example:
+
+```json
+{
+  "kind": "ObjectType",
+  "version": "v1",
+  "definition": {
+    "name": "Person",
+    "fields": [
+      {
+        "name": "id",
+        "type": "Int!"
+      },
+      {
+        "name": "name",
+        "type": "String!"
+      },
+      {
+        "name": "bestFriend",
+        "type": "Friend!"  // Non-nullable reference to Friend type
+      }
+    ]
+  }
+},
+{
+  "kind": "ObjectType",
+  "version": "v1",
+  "definition": {
+    "name": "Friend",
+    "fields": [
+      {
+        "name": "id",
+        "type": "Int!"
+      },
+      {
+        "name": "name",
+        "type": "String!"
+      },
+      {
+        "name": "bestFriend",
+        "type": "Person!"  // Non-nullable reference back to Person type
+      }
+    ]
+  }
+}
+```
+
+This creates an infinite recursion because `Person` must have a `Friend`, who must have a `Person`, who must have a
+`Friend`, and so on infinitely. This is now disallowed. To fix this, make at least one of the references nullable:
+
+```json
+{
+  "kind": "ObjectType",
+  "version": "v1",
+  "definition": {
+    "name": "Person",
+    "fields": [
+      {
+        "name": "id",
+        "type": "Int!"
+      },
+      {
+        "name": "name",
+        "type": "String!"
+      },
+      {
+        "name": "bestFriend",
+        "type": "Friend" // Now nullable, breaking the infinite recursion
+      }
+    ]
+  }
+}
+```
+
+This ensures that all object type relationships have a clear termination point.
 
 #### 2025-02-08
 
