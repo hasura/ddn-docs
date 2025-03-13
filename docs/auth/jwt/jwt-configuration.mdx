@@ -23,7 +23,7 @@ Example JSON Web Token (JWT) payload configuration definition:
 
 ```yaml title="globals/metadata/auth-config.hml"
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -64,12 +64,12 @@ As a minimum, either the `claimsConfig`, `tokenLocation`, **and** `key` values *
 ## Example Encoded JWT
 
 ```text
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiaHR0cHM6Ly9oYXN1cmEuaW8vand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIiwiYWRtaW4iXSwieC1oYXN1cmEtdXNlci1pZCI6IjEyMyIsIngtaGFzdXJhLW9yZy1pZCI6IjQ1NiIsIngtaGFzdXJhLWN1c3RvbSI6ImN1c3RvbS12YWx1ZSJ9fQ.HL8jbe3FTkhiFckHsATMZVnAYtmYkI2TjnZ6pfFewcc
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiY2xhaW1zLmp3dC5oYXN1cmEuaW8iOnsieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsidXNlciIsImFkbWluIl0sIngtaGFzdXJhLXVzZXItaWQiOiIxMjMiLCJ4LWhhc3VyYS1vcmctaWQiOiI0NTYiLCJ4LWhhc3VyYS1jdXN0b20iOiJjdXN0b20tdmFsdWUifX0.5bwSMgxsyULY1uhCJxYd-sO35rCdznRCZ4YMLwDD5u8
 ```
 
 **Note:** `x-hasura-default-role` and `x-hasura-allowed-roles` are mandatory, while the rest of the claims are optional.
 
-[See here for the JWT debugger](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiaHR0cHM6Ly9oYXN1cmEuaW8vand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIiwiYWRtaW4iXSwieC1oYXN1cmEtdXNlci1pZCI6IjEyMyIsIngtaGFzdXJhLW9yZy1pZCI6IjQ1NiIsIngtaGFzdXJhLWN1c3RvbSI6ImN1c3RvbS12YWx1ZSJ9fQ.HL8jbe3FTkhiFckHsATMZVnAYtmYkI2TjnZ6pfFewcc)
+[See here for the JWT debugger](https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MzU5MTY3MTgsImV4cCI6MTc5NjkxNjY3NywiY2xhaW1zLmp3dC5oYXN1cmEuaW8iOnsieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsidXNlciIsImFkbWluIl0sIngtaGFzdXJhLXVzZXItaWQiOiIxMjMiLCJ4LWhhc3VyYS1vcmctaWQiOiI0NTYiLCJ4LWhhc3VyYS1jdXN0b20iOiJjdXN0b20tdmFsdWUifX0.5bwSMgxsyULY1uhCJxYd-sO35rCdznRCZ4YMLwDD5u8)
 of this example JWT token. The signature secret to verify this token with the HS256 algorithm is
 `ultra-secret-very-secret-super-secret-key`.
 
@@ -395,12 +395,15 @@ key:
   jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
 ```
 
+The JWTs must be signed by the JWK published at the given URL. They can be signed by any algorithm that is compatible
+with the key (eg. `RS256`, `RS384`, `RS512` algorithms require a JWK with an RSA key).
+
 DDN does not currently support rotating JWKs.
 
 ### audience
 
 This is an optional field. Certain providers might set a claim which indicates the intended audience for the JWT. This
-can be checked by setting this field.
+must be checked by setting this field.
 
 When this field is set, during the verification process of the JWT, the `aud` claim in the JWT will be checked to see
 whether it is equal to the `audience` field given in the configuration. If they are not equal then the JWT will be
@@ -408,13 +411,21 @@ rejected.
 
 See the [RFC](https://tools.ietf.org/html/rfc7519#section-4.1.3) for more details.
 
+:::warning
+
+If your [Compatibility Config date](/reference/metadata-reference/compatibility-config.mdx) is set to `2025-03-11` or
+newer, you _must_ set the `audience` field if your JWTs will contain an `aud` claim. If you do not, the JWT will be
+rejected as invalid and authentication will fail.
+
+:::
+
 This field must be a list of strings.
 
 Examples:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition: 
   mode: 
     jwt:
@@ -447,7 +458,7 @@ Examples:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition: 
   mode: 
     jwt:
@@ -476,7 +487,7 @@ will look like:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -504,7 +515,7 @@ have the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -525,7 +536,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -546,7 +557,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -569,7 +580,7 @@ the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -590,7 +601,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -616,7 +627,7 @@ needs to have the public key.
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -635,10 +646,9 @@ definition:
 
 **Example 2**: public key as X509 certificate:
 
-
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -659,7 +669,7 @@ definition:
 
 ```yaml
 kind: AuthConfig
-version: v2
+version: v3
 definition:
   mode:
     jwt:
@@ -718,22 +728,22 @@ Firebase publishes the JWKs at:
 If you are using Firebase and Hasura, use this config:
 
 ```yaml
-	kind: AuthConfig
-	version: v2
-	definition:
-	  mode:
-	    jwt:
-	      claimsConfig:
-	        namespace:
-	          claimsFormat: Json
-	          location: /claims.jwt.hasura.io
-	      tokenLocation:
-	        type: Header
-	        name: Authorization
-	      key:
-	        jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
-	      issuer: https://securetoken.google.com/<firebase-project-id>
-	      audience: <firebase-project-id>
+kind: AuthConfig
+version: v3
+definition:
+  mode:
+    jwt:
+      claimsConfig:
+        namespace:
+          claimsFormat: Json
+          location: /claims.jwt.hasura.io
+      tokenLocation:
+        type: Header
+        name: Authorization
+      key:
+        jwkFromUrl: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+      issuer: https://securetoken.google.com/<firebase-project-id>
+      audience: <firebase-project-id>
 ```
 
 ### Auth0 {#auth0-issues}
