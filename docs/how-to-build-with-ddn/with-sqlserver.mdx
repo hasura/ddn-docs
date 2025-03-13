@@ -71,8 +71,8 @@ Server=<hostname>,<port>;Database=master;Uid=sa;Password=Password123
 
 :::note
 
-If the database is running locally, then the database should be made accessible to the internet using tools like [ngrok](https://ngrok.com/downloads/linux)
-[ngrok](https://ngrok.com/downloads/linux). For example,
+If the database is running locally, then the database should be made accessible to the internet using tools like
+[ngrok](https://ngrok.com/downloads/linux) [ngrok](https://ngrok.com/downloads/linux). For example,
 
 ```sh title="after the installation, host the database using:"
 ngrok tcp 1433
@@ -81,6 +81,7 @@ ngrok tcp 1433
 ```plaintext
 Server=0.tcp.in.ngrok.io,16543;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
 ```
+
 Note that the hostname and port may vary with each ngrok run.
 
 :::
@@ -106,7 +107,7 @@ Server=localhost,1433;Database=master;Uid=sa;Password=Password123;TrustServerCer
 ```
 
 ```SQL title="Create a table in the database:"
-CREATE TABLE users (user_id int, name varchar(255), age int);
+CREATE TABLE users (user_id int primary key, name varchar(255), age int)
 ```
 
 ```SQL title="Then, seed the table:"
@@ -178,7 +179,7 @@ Metadata Language file to represent the `users` table from SQL Server in your AP
 To track all available models in the dababase, run:
 
 ```sh
-ddn models add my_sqlserver *
+ddn models add my_sqlserver "*"
 ```
 
 :::
@@ -244,9 +245,10 @@ query {
 ```sh title="Let's add a new table for posts:"
 CREATE TABLE posts (
   user_id int,
-  post_id int,
+  post_id int primary key,
   title varchar(255),
   content varchar(255)
+  FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 ```
 
@@ -259,7 +261,16 @@ INSERT INTO posts (user_id, post_id, title, content) VALUES
 ```
 
 ```sh title="Finally, we can check the posts were generated:"
-SELECT * FROM posts;
+-- Fetch all posts with user information
+SELECT
+  posts.post_id,
+  posts.title,
+  posts.content,
+  users.name AS author
+FROM
+  posts
+JOIN
+  users ON posts.user_id = users.user_id;
 ```
 
 ### Step 11. Refresh your metadata and rebuild your project
@@ -350,32 +361,12 @@ query GetPosts {
 
 ### Step 13. Create a relationship
 
-```yaml title="Open the Posts.hml file and add the following to the end:"
----
-kind: Relationship
-version: v1
-definition:
-  name: user
-  sourceType: Posts
-  target:
-    model:
-      name: Users
-      relationshipType: Object
-  mapping:
-    - source:
-        fieldPath:
-          - fieldName: userId
-      target:
-        modelField:
-          - fieldName: userId
+```sh title="Since there's already a foreign key on the posts table in SQL Server, we can easily add the relationship:"
+ddn relationship add my_sqlserver "posts"
 ```
 
-:::tip LSP-Assisted authoring is available
-
-We've created an extension for VS Code that leverages LSP to make authoring these metadata objects easier. Check it out
-[here](https://marketplace.visualstudio.com/items?itemName=HasuraHQ.hasura).
-
-:::
+You'll see a new metadata object added to the `app/metadata/posts.hml` file of kind `Relationship` explaining the
+relationship between `posts` and `users`.
 
 ### Step 14. Rebuild your project
 
