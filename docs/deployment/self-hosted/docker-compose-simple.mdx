@@ -1,9 +1,21 @@
 ---
+sidebar_position: 1
+sidebar_label: Docker Compose
+keywords:
+  - hasura ddn
+  - tutorial
+  - deploy
+  - deployment
+  - hosting
+  - self-hosted
 id: docker-compose-simple
 pagination_prev: deployment/self-hosted/index
+pagination_next: deployment/self-hosted/docker-containers
 ---
 
-# Simple Self-Hosting
+# Self-Host: Docker Compose
+
+## Introduction
 
 This guide will take you through hosting your supergraph API on a single cloud machine using Docker Compose. This
 approach is similar to running a local development setup in production.
@@ -18,7 +30,15 @@ approach is similar to running a local development setup in production.
 - A Hasura DDN project
 - Your supergraph project files
 
-## Step 1: Prepare your server
+:::info Don't yet have a project?
+
+You'll need to create a set of project metadata files using the [DDN CLI](/reference/cli/index.mdx). You can use the
+[Quickstart](/quickstart.mdx) docs or get started with a [particular connector](/how-to-build-with-ddn/overview.mdx). We
+recommend completing this set of steps on your host machine or via your own CI setup.
+
+:::
+
+## Step 1. Prepare your server
 
 Create your server with your cloud provider and SSH into it.
 
@@ -45,7 +65,7 @@ Create your server with your cloud provider and SSH into it.
    curl -L https://graphql-engine-cdn.hasura.io/ddn/cli/v4/get.sh | bash
    ```
 
-## Step 2: Get your supergraph files
+## Step 2. Get your supergraph files
 
 1. Copy your local supergraph project files to the server. From your local machine in your supergraph project directory
    run:
@@ -70,7 +90,7 @@ Create your server with your cloud provider and SSH into it.
    Note that the `.env` files are ignored by default in your `.gitignore` file so cloning will not include them. You
    will need to either copy them over manually or recreate them on the server.
 
-## Step 3: Authenticate the DDN CLI
+## Step 3. Authenticate the DDN CLI
 
 You will still need to authenticate the DDN CLI to your Hasura account. Because your headless server does not have a
 browser, you will need to use a personal access token.
@@ -89,13 +109,13 @@ ddn auth login --access-token <access-token>
 
 This will authenticate the DDN CLI with your Hasura account.
 
-## Step 4: Build your supergraph
+## Step 4. Build your supergraph
 
 ```bash
 ddn supergraph build local
 ```
 
-## Step 5: Check server network access
+## Step 5. Check server network access
 
 You will need to ensure that your server can be accessed from the internet over TCP on port `3280`. Use your cloud
 provider's network tools to set up access.
@@ -103,7 +123,7 @@ provider's network tools to set up access.
 For example, on DigitalOcean, you can create a firewall rule to allow inbound TCP traffic on port `3280` (or all ports)
 for all IPv4 sources.
 
-## Step 6: Start your services
+## Step 6. Start your services
 
 ```bash
 ddn run docker-start
@@ -118,7 +138,7 @@ Check the status of your containers with:
 docker ps
 ```
 
-## Step 7: Access your supergraph
+## Step 7. Access your supergraph
 
 Your supergraph API should now be running in production on your cloud server. Access it at
 `https://<your-domain-or-ip>:3280/graphql`
