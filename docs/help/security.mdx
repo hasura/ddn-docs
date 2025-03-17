@@ -59,18 +59,18 @@ Hasura DDN's control plane stores metadata related to your project's configurati
 - **HML (Hasura Metadata Language) files:** These files define the structure of your API, including data source
   information such as table names, column names, relationships, and permissions.
 - **Subgraph information:** Details about your project's subgraphs.
-- **User access information:** Data on which users have access to the supergraph and subgraphs.
+- **User access information:** RBAC rules and policies that determines supergraph and subgraph access for users.
 
 :::note
 
-Connection string information from connectors is not sent to or stored within Hasura's control plane.
+Connection string or data source credentials used by the connectors are managed as secrets.
 
 :::
 
 ### Data Retention
 
 Metadata is retained for as long as a build is available on the system. When a build is deleted, the associated metadata
-is also deleted.
+is also deleted. Read more about deleting builds [here](/reference/cli/commands/ddn_supergraph_build_delete.mdx).
 
 ## Access Control
 
@@ -182,8 +182,8 @@ definition:
 ### Metadata Immutability and Secret Protection
 
 Once a supergraph build is created, the metadata associated with that build, including any resolved values from
-environment variables, is immutable. Critically, **secrets incorporated into the build via environment variables are not
-directly exposed or retrievable from the built metadata once on the control plane**.
+environment variables, is immutable and encrypted at rest. Critically, **secrets incorporated into the build via
+environment variables are not directly exposed or retrievable from the built metadata once on the control plane**.
 
 You can retrieve a build using the `ddn supergraph build get <build-version>` command, however, this will not expose
 secrets. Hasura DDN's architecture ensures that the metadata build artifacts and the engine's GraphQL API do not expose
