@@ -1,0 +1,174 @@
+---
+sidebar_position: 7
+sidebar_label: With BigQuery
+description: "Learn how to connect and use Google BigQuery with Hasura DDN to create a real-time GraphQL API."
+keywords:
+  - hasura ddn
+  - graphql api
+  - getting started
+  - guide
+  - bigquery
+  - google bigquery
+---
+
+import Prereqs from "@site/docs/_prereqs.mdx";
+
+# Get Started with Hasura DDN and BigQuery
+
+## Overview
+
+This tutorial will guide you through setting up a Hasura DDN project with Google BigQuery. You'll learn how to:
+
+- Set up a new Hasura DDN project
+- Connect it to a BigQuery database
+- Configure authentication
+- Generate Hasura metadata
+- Create a build
+- Run your first query
+
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+
+This tutorial assumes you have:
+
+- A Google Cloud project with BigQuery enabled
+- A service account with appropriate permissions
+- The service account key file downloaded from Google Cloud Console
+
+<Prereqs />
+
+## Tutorial
+
+### Step 1. Authenticate your CLI
+
+```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+ddn auth login
+```
+
+This will launch a browser window prompting you to log in or sign up for Hasura DDN. After you log in, the CLI will
+acknowledge your login, giving you access to Hasura Cloud resources.
+
+### Step 2. Scaffold out a new local project
+
+```sh title="Next, create a new local project:"
+ddn supergraph init my-project && cd my-project
+```
+
+Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
+running `ls` in your terminal, or by opening the directory in your preferred editor.
+
+### Step 3. Initialize your BigQuery connector
+
+```sh title="In your project directory, run:"
+ddn connector init my_bigquery -i
+```
+
+From the dropdown, select `/hasura/bigquery` (you can type to filter the list), then hit enter to accept the default of
+all the options including the JDBC connection string which we will edit in the ext.
+
+### Step 4. Configure BigQuery Authentication
+
+1. Place your service account key file (e.g., `key.json`) in the connector folder:
+
+```sh title="Copy your service account key file to the connector directory:"
+cp /path/to/your/key.json app/connector/my_bigquery/key.json
+```
+
+2. Configure your JDBC connection string in the connector's environment variable `.env` file. The connection string
+   should follow this format:
+
+```plaintext
+APP_MYBIGQUERY_JDBC_JDBC_URL=jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=your-project-id;DefaultDataset=your-dataset;OAuthType=0;OAuthServiceAcctEmail=your-service-account-email;OAuthPvtKey=/etc/connector/key.json;
+```
+
+:::note Make sure to replace:
+
+- `your-project-id` with your Google Cloud project ID
+- `your-dataset` with your default BigQuery dataset
+- `your-service-account-email` with your service account email
+
+:::
+
+### Step 5. Introspect your BigQuery database
+
+```sh title="Use the CLI to introspect your BigQuery database:"
+ddn connector introspect mybigquery_jdbc
+```
+
+After running this, you should see a representation of your database's schema in the
+`app/connector/my_bigquery/configuration.json` file.
+
+```sh title="You can check which resources are available — and their status — at any point using the CLI:"
+ddn connector show-resources mybigquery_jdbc
+```
+
+### Step 6. Add your models
+
+```sh title="Track your BigQuery tables as models in your DDN metadata:"
+ddn models add mybigquery_jdbc your_table_name
+```
+
+Open the `app/metadata` directory and you'll find newly-generated files for each table you track. The DDN CLI uses these
+Hasura Metadata Language files to represent your BigQuery tables in your API as
+[models](/reference/metadata-reference/models.mdx).
+
+### Step 7. Create a new build
+
+```sh title="To create a local build, run:"
+ddn supergraph build local
+```
+
+The build is stored as a set of JSON files in `engine/build`.
+
+### Step 8. Start your local services
+
+```sh title="Start your local Hasura DDN Engine and BigQuery connector:"
+ddn run docker-start
+```
+
+Your terminal will be taken over by logs for the different services.
+
+### Step 9. Run your first query
+
+```sh title="In a new terminal tab, open your local console:"
+ddn console --local
+```
+
+```graphql title="In the GraphiQL explorer of the console, write a query for your table:"
+query {
+  your_table_name {
+    field1
+    field2
+    field3
+  }
+}
+```
+
+## Supported Features
+
+The BigQuery connector supports the following features:
+
+| Feature                         | Supported | Notes |
+| ------------------------------- | --------- | ----- |
+| Native Queries + Logical Models | ❌        |       |
+| Native Mutations                | ❌        |       |
+| Simple Object Query             | ✅        |       |
+| Filter / Search                 | ✅        |       |
+| Simple Aggregation              | ✅        |       |
+| Sort                            | ✅        |       |
+| Paginate                        | ✅        |       |
+| Table Relationships             | ❌        |       |
+| Views                           | ✅        |       |
+| Remote Relationships            | ✅        |       |
+| Custom Fields                   | ❌        |       |
+| Mutations                       | ❌        |       |
+| Distinct                        | ❌        |       |
+| Enums                           | ❌        |       |
+| Naming Conventions              | ❌        |       |
+| Default Values                  | ❌        |       |
+| User-defined Functions          | ❌        |       |
+
+## Additional Resources
+
+- [BigQuery Connector in Hasura Hub](https://hasura.io/connectors/bigquery-jdbc)
+- [BigQuery JDBC Driver Documentation](https://cloud.google.com/bigquery/docs/reference/odbc-jdbc-drivers#current_jdbc_driver)
+- [Hasura V3 Documentation](https://hasura.io/docs/3.0)
