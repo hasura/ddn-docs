@@ -1,0 +1,150 @@
+---
+sidebar_position: 1
+sidebar_label: Native Queries
+description:
+  "Native Queries allow you to run custom aggregation pipelines on your Oracle database. This allows you to run queries
+  that are not supported by Hasura's GraphQL engine. This page explains how to configure various types of Native Queries
+  in Hasura."
+keywords:
+  - Native Queries
+toc_max_heading_level: 4
+---
+
+# Native Queries
+
+## Introduction
+
+Native Queries allow you to run custom SQL queries on your Oracle database. These allow you to run queries that are not
+supported by Hasura's GraphQL engine as virtual tables in Oracle.
+
+Two types of native queries are supported in the Oracle connector: **Inline** and **Parameterized**.
+
+## Configuration
+
+The following fields should be specified for a Native Query entry:
+
+- `sql`: An object which contains the SQL expression to use for the Native Query and the parameters. These fields should
+  be added inside the object field `parts` (which is a list). For parameterized queries, another object should be added
+  alongside the SQL query that specifies the parameter. (E.g., for the SQL query
+  `SELECT * FROM CHINOOK.ARTIST WHERE ARTISTID = ` the parameter value is `ARTISTID`)
+- `columns`: The returning columns from the Native Query.
+- `arguments`: Names and types of arguments that can be passed to this Native Query. These are substituted for
+  parameters present in the SQL query and are required to have the same name as the parameter. (E.g., if the parameter
+  value is `ARTISTID`, then the argument name needs to be `ARTISTID` as well)
+- `description`: Information about the Native Query.
+- `isProcedure`: It is always `false` for native queries (`true` for native mutations, which is not supported yet)
+
+### Structure
+
+```JSON
+{
+  "native_query_name": {
+    "sql": {
+      "parts": [
+        {
+          "type": "text",
+          "value": "sql query"
+        },
+        {
+          "type": "parameter",
+          "value": "parameter_name"
+        }
+      ]
+    },
+    "columns": {
+      "column1_name": {
+        "type": "named",
+        "name": "column1_type"
+      },
+      "column2_name": {
+        "type": "nullable",
+        "underlying_type": {
+          "type": "named",
+          "name": "column2_type"
+        }
+      }
+    },
+    "arguments": {
+      "parameter_name": {
+        "description": null,
+        "type": {
+          "type": "named",
+          "name": "parameter_type"
+        }
+      }
+    },
+    "description": null,
+    "isProcedure": false
+  }
+}
+```
+
+#### Example: Inline native query
+
+```JSON
+{
+  "native_query_inline": {
+    "sql": {
+      "parts": [
+        {
+          "type": "text",
+          "value": "SELECT 1 AS result FROM DUAL"
+        }
+      ]
+    },
+    "columns": {
+      "result": {
+        "type": "named",
+        "name": "INT"
+      }
+    },
+    "arguments": {},
+    "description": ""
+  }
+}
+```
+
+#### Example: Parameterized native query
+
+```JSON
+{
+  "ArtistById_parameterized": {
+    "sql": {
+      "parts": [
+        {
+          "type": "text",
+          "value": "SELECT * FROM CHINOOK.ARTIST WHERE ARTISTID = "
+        },
+        {
+          "type": "parameter",
+          "value": "ARTISTID"
+        }
+      ]
+    },
+    "columns": {
+      "ARTISTID": {
+        "type": "named",
+        "name": "INT"
+      },
+      "NAME": {
+        "type": "nullable",
+        "underlying_type": {
+          "type": "named",
+          "name": "STRING"
+        }
+      }
+    },
+    "arguments": {
+      "ARTISTID": {
+        "description": null,
+        "type": {
+          "type": "named",
+          "name": "INT"
+        }
+      }
+    },
+    "description": null,
+    "isProcedure": false
+  }
+}
+```
