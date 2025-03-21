@@ -15,13 +15,13 @@ keywords:
 
 ## Introduction
 
-The [rate limit plugin](https://github.com/hasura/engine-plugin-rate-limit) adds the ability to limit the number of
+The [Rate Limit Plugin](https://github.com/hasura/engine-plugin-rate-limit) adds the ability to limit the number of
 requests that can be made to DDN in a given time period.
 
 ## Setting up for local development
 
-We can set up everything we need for local development through Docker. Add the following entries to your `compose.yaml`
-file:
+Add the following services to your root-level `compose.yaml` file (this is the one located at
+`<project-root>/compose.yaml`). Add these new services at the same level as your existing `services` entries:
 
 ```yaml
 redis:
@@ -52,8 +52,8 @@ rate-limit:
     - ./rate_limit_config:/app/plugin_config
 ```
 
-Here, we've added a Redis instance to our Docker Compose project, as well as an instance of the rate limit plugin. The
-rate limit plugin expects a config directory (which we've said here is saved in `./rate_limit_config`, though the path
+Here, we've added a Redis instance to our Docker Compose project, as well as an instance of the Rate Limit Plugin. The
+Rate Limit Plugin expects a config directory (which we've said here is saved in `./rate_limit_config`, though the path
 is up to you). Here's an example config directory:
 
 ```
@@ -121,9 +121,9 @@ The rate limiting configuration includes:
 
 ## Adding the plugin to your project
 
-Once we've configured the plugin, running `ddn run docker-start` should work happily. Now, we just need to configure
-Hasura to use the plugin. Add a new metadata file (say `rate-limit.hml`) to your `globals` subgraph's metadata
-directory:
+Once we've configured the plugin, running `ddn run docker-start` will start it and its necessary services along with our
+engine and any connectors. Now, we just need to configure Hasura to use the plugin. Add a new metadata file (say
+`rate-limit.hml`) to your `globals` subgraph's metadata directory:
 
 ```yaml
 kind: LifecyclePluginHook
@@ -165,13 +165,19 @@ ddn supergraph build local
 ddn run docker-start
 ```
 
-You can now test the rate limit plugin by making requests to your supergraph. You should see the rate limit plugin
-enforce the rate limit you've configured (10 requests per minute for all other roles and 11 requests per minute for the
-`user` role).
+You can now test the plugin by making requests to your supergraph. You should see the plugin enforce the rate limit
+you've configured (10 requests per minute for all other roles and 11 requests per minute for the `user` role).
 
 ## Deploying the plugin
 
-The connector can be deployed as a regular HTTP service, anywhere an Express server can be deployed. When deployed, make
+The plugin can be deployed as a regular HTTP service, anywhere an Express server can be deployed. When deployed, make
 sure to set the `RATE_LIMIT_PLUGIN_URL` and `RATE_LIMIT_PLUGIN_AUTH_TOKEN` to appropriate values in `.cloud.env`. Note
-that the plugin must be visible from your Hasura deployment: if hosting in the Hasura Cloud, the plugin must be publicly
-visible.
+that the plugin must be visible from your Hasura deployment: if you are hosting for the Hasura Cloud, the plugin must be
+publicly visible.
+
+:::info Your plugin must be reachable
+
+Since the rate limit plugin is a pre-parse plugin, it must be reachable from the Hasura deployment. If you are hosting
+for the Hasura Cloud, the plugin must be publicly visible.
+
+:::
