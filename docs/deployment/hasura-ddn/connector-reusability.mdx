@@ -1,0 +1,173 @@
+---
+sidebar_position: 3
+description: "Reuse connectors across multiple subgraphs or multiple projects"
+keywords:
+  - hasura
+  - ddn
+  - connector
+  - data connector
+  - native data connector
+  - reusable connector
+  - deployment
+  - reusability
+---
+
+# Connector Reusability
+
+## Introduction
+
+Hasura DDN allows you to reuse the same connector deployment across multiple subgraphs, and even across multiple
+projects. This pattern offers several advantages, especially in scenarios where you have multiple teams or applications
+needing access to the same underlying data source.
+
+## Benefits of connector reusability
+
+- **Reduced Redundancy:** Avoid deploying the same connector multiple times, saving resources and simplifying
+  management.
+- **Centralized Configuration:** Manage the connector's configuration (like connection strings, credentials, etc.) in a
+  single place. Changes only need to be made once.
+- **Simplified Deployment:** Deploy and update the connector independently of the subgraphs that use it.
+- **Location Optimization:** You can locate the connector as close to the data source as possible, which can
+  significantly improve performance.
+- **Decoupled Management:** By having a dedicated repository for connector deployment, you can manage connector updates
+  independently of the data domain teams' subgraph development.
+
+## How it works
+
+When you deploy a connector to Hasura DDN, it generates unique read and write URLs that are stored in your `.env.cloud`
+file. By sharing these URLs, you can reuse the same connector across multiple subgraphs and even across multiple
+projects. This means the connector only needs to be deployed once, and all subgraphs can reference the same deployed
+instance.
+
+## Example scenario
+
+Let's say you have a PostgreSQL database hosted in `gcp-us-west2`. You have two teams: a "Products" team and a "Reviews"
+team. Both teams need to access data from this database. Instead of deploying two separate PostgreSQL connectors, you
+can deploy a single connector in `gcp-us-west2` (close to the database) and reuse it across both subgraphs.
+
+### Step 1. Recommended: Create a dedicated connector repository
+
+First, create a new repository specifically for managing the connector deployment. This repository will be separate from
+any data domain team's repositories and supergraphs.
+
+```sh
+mkdir postgres-connector
+cd postgres-connector
+ddn supergraph init connector-project
+cd connector-project
+ddn connector init -i
+```
+
+After initializing the connector, you can introspect the database to understand its structure:
+
+```sh
+ddn connector introspect my_postgres
+ddn connector show-resources my_postgres
+```
+
+Determine where the connector should be deployed. If you are using public DDN you will need a project:
+
+```sh
+ddn project init
+```
+
+Next, build and deploy the connector to Hasura DDN:
+
+```sh
+ddn connector build create --connector ./app/connector/mypostgres/connector.yaml --target-env-file ./.env.cloud  --target-subgraph ./app/subgraph.yaml --target-connector-link mypostgres
+```
+
+The command will respond with the ID, read and write URLs and authorization header for the deployed connector, for
+example:
+
+```text
++--------------------------+------------------------------------------------------------------------------------------------------+
+| ConnectorBuild Id        | 340ec317-ac19-4e87-9bcc-2b8f348f9b0a                                                                 |
++--------------------------+------------------------------------------------------------------------------------------------------+
+| ConnectorBuild Read URL  | http://c7-bzh3anilpx.gcp.postgres.ndc.internal/deployment/340ec319-ac19-4e87-9bcc-2b8f348f9b0a-read  |
++--------------------------+------------------------------------------------------------------------------------------------------+
+| ConnectorBuild Write URL | http://c7-bzh3anilpx.gcp.postgres.ndc.internal/deployment/340ec319-ac19-4e87-9bcc-2b8f348f9b0a-write |
++--------------------------+------------------------------------------------------------------------------------------------------+
+| Authorization Header     | Bearer Q2ceb6OjFGGpkoWMkt2JsWHRjMpJ5lmDGpORwhVHgVg=                                                  |
++--------------------------+------------------------------------------------------------------------------------------------------+
+```
+
+The read and write URLs and authorization header will be written to the `.env.cloud` file.
+
+### Step 2. Data Domain Teams: Initialize their subgraphs
+
+Each data domain team (like "Products" or "Reviews") should initialize their own project and create a stub
+DataConnectorLink:
+
+```sh
+ddn supergraph init products-project
+cd products-project
+ddn connector-link add my_postgres
+```
+
+This creates a stub DataConnectorLink object in their project. They should then replace the schema object in the
+DataConnectorLink with the one from the connector deployment repository. The schema object contains the database
+structure and capabilities.
+
+### Step 3. Data Domain Teams: Use the deployed connector
+
+Each team should obtain two things from the connector repository:
+
+1. The schema object from the DataConnectorLink
+2. The read and write URLs from the `.env.cloud` file
+
+First, copy the schema object from the connector repository's DataConnectorLink into your team's DataConnectorLink.
+Then, add the connector URLs and authorization header to your team's `.env.cloud` file:
+
+```env
+APP_MYPOSTGRES_AUTHORIZATION_HEADER="Bearer <authorization-header>"
+APP_MYPOSTGRES_READ_URL="http://<build-id>.gcp.postgres.ndc.internal/deployment/<uuid>-read"
+APP_MYPOSTGRES_WRITE_URL="http://<build-id>.gcp.postgres.ndc.internal/deployment/<uuid>-write"
+```
+
+Now you can introspect and add the models, commands, and relationships which you need for your specific use case:
+
+```sh
+ddn connector show-resources my_postgres
+ddn connector models add "*"
+ddn connector commands add "*"
+ddn connector relationships add "*"
+```
+
+### Step 4. Data Domain Teams: Build and deploy their supergraphs
+
+Each team can then build their supergraph without rebuilding the connector and deploy it to their DDN project:
+
+```sh
+ddn supergraph build create --no-build-connectors
+```
+
+The `--no-build-connectors` flag is crucial here as it tells DDN to use the existing connector URLs rather than trying
+to deploy a new connector instance.
+
+### Step 5. Repeat for other subgraphs and projects
+
+These teams can repeat these steps for any other subgraphs or projects that need access to the same PostgreSQL database.
+
+## Considerations
+
+- **Versioning:** If the connector is updated you may need to update the metadata for all subgraphs that use it.
+  Coordinate updates carefully.
+
+- **Regionality:** Deploying the connector in a region close to your database is crucial for performance. If different
+  subgraphs have different latency requirements, consider deploying separate connectors closer to their respective
+  consumers.
+
+- **Central point of failure:** All subgraphs (and projects) using a single connector, will be impacted if this
+  connector is down.
+
+- **Independent Management:** Having a dedicated connector repository allows you to manage connector updates and
+  deployments independently of the data domain teams' development cycles.
+
+## Summary
+
+Connector reusability in Hasura DDN offers a way to reduce redundancy and simplify management of connector deployments.
+By using a dedicated repository for connector deployment, you can better manage connector updates and ensure consistent
+access across multiple teams and projects.
+
+For a list of all our available connectors, check out the [docs](/data-sources/overview.mdx).
