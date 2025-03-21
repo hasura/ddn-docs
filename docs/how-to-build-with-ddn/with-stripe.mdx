@@ -65,9 +65,9 @@ the options.
 
 You'll be prompted for an environment variable:
 
-| Variable                   | Description                                                                                                    | Example                               |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `STRIPE_BEARER_AUTH_TOKEN` | An auth token retrievable from your [API Keys dashboard in Stripe](https://dashboard.stripe.com/test/apikeys). | `sk_<test\|prod>_<unique_identifier>` |
+| Variable                   | Description                                                                                                                         | Example                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `STRIPE_BEARER_AUTH_TOKEN` | A **secret** key for your account, retrievable from your [API Keys dashboard in Stripe](https://dashboard.stripe.com/test/apikeys). | `sk_<test\|prod>_<unique_identifier>` |
 
 ### Step 4. Introspect your Stripe account
 
@@ -89,7 +89,7 @@ ddn connector show-resources my_stripe
 ### Step 5. Add your command
 
 ```sh title="Let's start by tracking the GetProducts endpoint from Stripe's API:"
-ddn command add my_stripe "GetProducts"
+ddn command add my_stripe GetProducts
 ```
 
 Open the `app/metadata` directory and you'll find a newly-generated file: `GetProducts.hml`. The DDN CLI will use this
@@ -164,7 +164,7 @@ query GET_ALL_PRODUCTS {
 ### Step 9. Add another command
 
 ```sh title="Add the GetCheckoutSessions command:"
-ddn command add my_stripe "GetCheckoutSessions"
+ddn command add my_stripe GetCheckoutSessions
 ```
 
 In `app/metadata` you'll find a newly-generated file: `GetCheckoutSessions.hml`. This will be used to expose customer
@@ -224,6 +224,17 @@ query GET_CHECKOUT_SESSIONS {
 }
 ```
 
+:::info create relationships to your own data
+
+You can create relationships between resources in your Stripe account and data living in other data sources.
+
+As an example, you may have a PostgreSQL database with a `users` model exposed and which contains an `email` field. This
+field can be used to create a [relationship](/reference/metadata-reference/relationships.mdx) between the `users` model
+and a `CheckoutSession` (or any other resource that utilizes a unique `email`) to return information across your sources
+in a single query.
+
+:::
+
 ## Next steps
 
 Congratulations on completing your first Hasura DDN project with Stripe! 🎉
@@ -238,6 +249,9 @@ Here's what you just accomplished:
 
 Now, you're equipped to connect and expose your data Stripe data to other data sources, empowering you to iterate and
 scale with confidence. Great work!
+
+The Stripe connector also supports mutations; you can create, update, or delete products; create new checkout sessions;
+refund payments; etc.
 
 Take a look at our Stripe docs to learn more about how to use Hasura DDN with Stripe. Or, if you're ready, get started
 with adding [permissions](/auth/permissions/index.mdx) to control access to your API.
