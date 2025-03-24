@@ -53,45 +53,6 @@ ddn supergraph init my-project && cd my-project
 Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
 running `ls` in your terminal, or by opening the directory in your preferred editor.
 
-### Step 3. Initialize your SQL Server connector
-
-```sh title="In your project directory, run:"
-ddn connector init my_sqlserver -i
-
-```
-
-From the dropdown, start typing `sqlserver` and hit enter to accept the default port. Then, provide the following
-values:
-
-**Connection string**
-
-```plaintext
-Server=<hostname>,<port>;Database=master;Uid=sa;Password=Password123
-```
-
-:::note
-
-If the database is running locally, then the database should be made accessible to the internet using tools like
-[ngrok](https://ngrok.com/downloads/linux) [ngrok](https://ngrok.com/downloads/linux). For example,
-
-```sh title="after the installation, host the database using:"
-ngrok tcp 1433
-```
-
-```plaintext
-Server=0.tcp.in.ngrok.io,16543;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
-```
-
-Note that the hostname and port may vary with each ngrok run.
-
-:::
-
-:::note
-
-`TrustServerCertificate=true` should only be added for local databases.
-
-:::
-
 ### Step 4. Start the local SQL Server container
 
 ```sh title="Start a SQL Server instance"
@@ -99,11 +60,39 @@ docker pull mcr.microsoft.com/mssql/server:2019-latest
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password123" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
 ```
 
-:::tip VS Code SQL Server Extension
+:::tip Connecting to SQL Server
 
-For an easy and conventient way to connect to your SQL Server database, download
-[Visual Studio Code](https://code.visualstudio.com/) and install the
-[SQL Server extension](https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql).
+There are a number of ways to connect to your SQL Server database. Choose the one that best suits your workflow.
+
+1. The [SQL Server extension](https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql) is available for
+   [Visual Studio Code](https://code.visualstudio.com/).
+
+2. [Azure Data Studio](https://azure.microsoft.com/en-us/products/data-studio) for MacOS, Linux, and Windows.
+
+3. The [Go SQLCMD CLI](https://github.com/microsoft/go-sqlcmd) connects to your SQL Server database from the command
+   line for Windows, MacOS, and Linux.
+
+4. `mssql-tools` CLI:
+
+   3.1. Install
+   [mssql-tools](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-setup-tools?view=sql-server-ver16&tabs=redhat-install)
+
+   3.2. Run the following in a bash shell:
+
+   ```sh
+   docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Password123' -d 'master' -C
+   ```
+
+   3.2.1 The flag `-C` is used to apply the `trust server certificate` set to true. This should only be used for local
+   database and not on production databases.
+
+   3.2.2 Each SQL statement in the `mssql-tools` interactive shell needs a `GO` statement at the end for the SQL
+   statement to process. For example,
+
+   ```
+   SELECT * FROM users;
+   GO
+   ```
 
 :::
 
@@ -112,7 +101,7 @@ Server=localhost,1433;Database=master;Uid=sa;Password=Password123;TrustServerCer
 ```
 
 ```SQL title="Create a table in the database:"
-CREATE TABLE users (user_id int primary key, name varchar(255), age int)
+CREATE TABLE users (user_id int primary key, name varchar(255), age int);
 ```
 
 ```SQL title="Then, seed the table:"
@@ -125,34 +114,27 @@ SELECT * FROM users;
 
 You should see a list of users returned.
 
-:::tip
+### Step 3. Initialize your SQL Server connector
 
-Alternatively, other applications and tools can also be used to seed the database, such as
+```sh title="In your project directory, run:"
+ddn connector init my_sqlserver -i
+```
 
-1. [Microsoft Azure Studio](https://azure.microsoft.com/en-us/products/data-studio)
-2. `mssql-tools` shell to start the SQL prompt:
+From the dropdown, start typing `sqlserver` and hit enter to accept the default port. Then, provide the following
+values:
 
-   a. Install
-   [mssql-tools](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-setup-tools?view=sql-server-ver16&tabs=redhat-install)
+**Connection string**
 
-   b. Run the following in a bash shell:
+The connection string format will be in the format
+`Server=<hostname>,<port>;Database=<database>;Uid=<username>;Password=<password>` and so is as follows:
 
-   ```sh
-   docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P 'Password123' -d 'master' -C
-   ```
+```plaintext
+Server=localhost,1433;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true
+```
 
-   :::note
+:::warning Certificate security
 
-   1. The flag `-C` is used to apply the `trust server certificate` set to true. This should only be used for local
-      database and not on production databases.
-   2. Each SQL statement in the mssql-tools interactive shell needs a `GO` statement at the end for the SQL statement to
-      process. For example,
-      ```
-      SELECT * FROM users;
-      GO
-      ```
-
-   :::
+`TrustServerCertificate=true` should only be added for local databases.
 
 :::
 
@@ -172,7 +154,7 @@ ddn connector show-resources my_sqlserver
 ### Step 6. Add your model
 
 ```sh title="Now, track the table from your SQL Server database as a model in your DDN metadata:"
-ddn models add my_sqlserver users
+ddn model add my_sqlserver users
 ```
 
 Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
@@ -184,7 +166,7 @@ Metadata Language file to represent the `users` table from SQL Server in your AP
 To track all available models in the dababase, run:
 
 ```sh
-ddn models add my_sqlserver "*"
+ddn model add my_sqlserver "*"
 ```
 
 :::
