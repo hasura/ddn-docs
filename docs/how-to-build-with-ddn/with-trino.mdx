@@ -1,25 +1,25 @@
 ---
-sidebar_position: 3
-sidebar_label: With DuckDB
-description: "Learn the basics of Hasura DDN and how to get started with a DuckDB database."
+sidebar_position: 12
+sidebar_label: With Trino
+description: "Learn the basics of Hasura DDN and how to get started with a Trino instance."
 keywords:
   - hasura ddn
   - graphql api
   - getting started
   - guide
-  - duckdb
+  - trino
 ---
 
 import Prereqs from "@site/docs/_prereqs.mdx";
 
-# Get Started with Hasura DDN and DuckDB
+# Get Started with Hasura DDN and Trino
 
 ## Overview
 
 This tutorial takes about twenty minutes to complete. You'll learn how to:
 
 - Set up a new Hasura DDN project
-- Connect it to a local DuckDB database
+- Connect it to a Trino instance, backed by a locally-running PostgreSQL database
 - Generate Hasura metadata
 - Create a build
 - Run your first query
@@ -27,8 +27,8 @@ This tutorial takes about twenty minutes to complete. You'll learn how to:
 
 Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
 
-This tutorial assumes you're starting from scratch; you'll connect a local DuckDB instance to Hasura, but you can easily
-follow the steps if you already have data seeded. Hasura will never modify your source schema.
+This tutorial assumes you're starting from scratch, but you can easily follow the steps if you already have data seeded;
+Hasura will never modify your source schema.
 
 <Prereqs />
 
@@ -52,82 +52,130 @@ ddn supergraph init my-project && cd my-project
 Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
 running `ls` in your terminal, or by opening the directory in your preferred editor.
 
-### Step 3. Initialize your DuckDB connector
+### Step 3. Initialize your Trino connector
 
 ```sh title="In your project directory, run:"
-ddn connector init my_duckdb -i
+ddn connector init my_trino -i
 ```
 
-From the dropdown, select `/hasura/duckdb` (you can type to filter the list). Then, enter the following file path:
+From the dropdown, select `hasura/trino` (you can type to filter the list). Then, enter the following JDBC URL:
 
 ```plaintext
-/etc/connector/data.duckdb
+jdbc:trino://local.hasura.dev:8080/postgres/public?user=myuser
 ```
 
-:::info Why this path?
+This will allow your connector to connect to the PostgreSQL instance integrated with the Trino server you'll run
+locally.
 
-When your DuckDB connector starts as a container, its directory in your project gets mounted. This will make the
-`data.duckdb` file accessible to the container and the connector. We'll create this file in the next step.
+### Step 4. Create the containers with Trino and PostgreSQL
 
-:::
+```sh title="Begin by creating a compose file for the Trino service:"
+touch app/connector/my_trino/compose.trino.yaml
+```
 
-### Step 4. Prepare an initial DuckDB file
+```yaml title="Then, open the file and add the following:"
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-:::info Install the DuckDB CLI
+  trino:
+    image: trinodb/trino:latest
+    container_name: trino
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    command: |
+      /bin/sh -c "
+      mkdir -p /etc/trino/catalog &&
+      echo 'connector.name=postgresql' > /etc/trino/catalog/postgres.properties &&
+      echo 'connection-url=jdbc:postgresql://postgres:5432/mydb' >> /etc/trino/catalog/postgres.properties &&
+      echo 'connection-user=myuser' >> /etc/trino/catalog/postgres.properties &&
+      echo 'connection-password=mypassword' >> /etc/trino/catalog/postgres.properties &&
+      /usr/lib/trino/bin/run-trino
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-You'll need the DuckDB CLI installed on your machine to prepare the database file. You can install it
-[here](https://duckdb.org/docs/installation/?version=stable&environment=cli&platform=macos&download_method=direct).
+volumes:
+  pgdata:
+```
 
-:::
+```sh title="Run the container:"
+docker compose -f app/connector/my_trino/compose.trino.yaml up -d
+```
 
-```sh itle="Next, from your project's root directory, using the DuckDB CLI run the following:"
-echo "
--- Create a sequence since DuckDB doesn't support auto-incrementing
-CREATE SEQUENCE users_id_seq;
--- Create the table using the sequence
+The Trino container will start; you can access the UI — which will give you general information about your clusters —
+here: [`http://localhost:8080/`](http://localhost:8080/).
+
+### Step 5. Create a table in your PostgreSQL database
+
+```sh title="Enter the PostgreSQL container:"
+docker exec -it postgres psql -U myuser -d mydb
+```
+
+```sql title="Then, create your first table and seed the database:"
+--- Create the table
 CREATE TABLE users (
-  id INTEGER PRIMARY KEY DEFAULT nextval('users_id_seq'),
-  name VARCHAR(255) NOT NULL,
-  age INTEGER NOT NULL
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  age INT NOT NULL
 );
--- Insert some data
+
+--- Insert some data
 INSERT INTO users (name, age) VALUES ('Alice', 25);
 INSERT INTO users (name, age) VALUES ('Bob', 30);
 INSERT INTO users (name, age) VALUES ('Charlie', 35);
-" | duckdb app/connector/my_duckdb/data.duckdb
 ```
 
-You can verify this worked by running the following command from the project's root to query all records from the
-`users` table:
+You can verify this worked by querying the users table directly in the psql session:
 
-```sh
-duckdb app/connector/my_duckdb/data.duckdb "SELECT * FROM users;"
+```sql
+SELECT * FROM users;
 ```
 
-### Step 5. Introspect your DuckDB database
+### Step 6. Introspect your Trino instance
 
-```sh title="Next, use the CLI to introspect your DuckDB database:"
-ddn connector introspect my_duckdb
+```sh title="Next, in a new tab, use the CLI to introspect your Trino database:"
+ddn connector introspect my_trino
 ```
 
 After running this, you should see a representation of your database's schema in the
-`app/connector/my_duckdb/config.json` file; you can view this using `cat` or open the file in your editor.
+`app/connector/my_trino/configuration.json` file; you can view this using `cat` or open the file in your editor.
 
 ```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
-ddn connector show-resources my_duckdb
+ddn connector show-resources my_trino
 ```
 
-### Step 6. Add your model
+### Step 7. Add your model
 
-```sh title="Now, track the table from your DuckDB database as a model in your DDN metadata:"
-ddn models add my_duckdb "users"
+```sh title="Now, track the table from Trino server as a model in your DDN metadata:"
+ddn model add my_trino users
 ```
 
 Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
-Metadata Language file to represent the `users` table from DuckDB in your API as a
+Metadata Language file to represent the `users` table from Trino in your API as a
 [model](/reference/metadata-reference/models.mdx).
 
-### Step 7. Create a new build
+### Step 8. Create a new build
 
 ```sh title="To create a local build, run:"
 ddn supergraph build local
@@ -135,15 +183,15 @@ ddn supergraph build local
 
 The build is stored as a set of JSON files in `engine/build`.
 
-### Step 8. Start your local services
+### Step 9. Start your local services
 
-```sh title="Start your local Hasura DDN Engine and DuckDB connector:"
+```sh title="Start your local Hasura DDN Engine and Trino connector:"
 ddn run docker-start
 ```
 
 Your terminal will be taken over by logs for the different services.
 
-### Step 9. Run your first query
+### Step 10. Run your first query
 
 ```sh title="In a new terminal tab, open your local console:"
 ddn console --local
@@ -183,33 +231,31 @@ query {
 }
 ```
 
-### Step 10. Iterate on your DuckDB schema
+### Step 11. Iterate on your Trino schema
 
-```sh title="From the root of the project, use the DuckDB CLI to add a new table and insert some data to your DuckDB database:"
-echo "
--- Create a sequence for posts
-CREATE SEQUENCE posts_id_seq;
+```sh title="Let's re-enter the PostgreSQL container:"
+docker exec -it postgres psql -U myuser -d mydb
+```
+
+```sql title="Then, add a new table for posts:"
 -- Create the posts table
 CREATE TABLE posts (
-  id INTEGER PRIMARY KEY DEFAULT nextval('posts_id_seq'),
-  user_id INTEGER NOT NULL,
-  title VARCHAR(255) NOT NULL,
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
   content TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 -- Insert some seed data
 INSERT INTO posts (user_id, title, content) VALUES
   (1, 'My First Post', 'This is Alice''s first post.'),
   (1, 'Another Post', 'Alice writes again!'),
   (2, 'Bob''s Post', 'Bob shares his thoughts.'),
   (3, 'Hello World', 'Charlie joins the conversation.');
-" | duckdb app/connector/my_duckdb/data.duckdb
 ```
 
-```sh title="Verify this by running the following command:"
-echo "
--- Fetch all posts with user information
+```sql title="To verify this, query the joined data:"
 SELECT
   posts.id AS post_id,
   posts.title,
@@ -220,12 +266,11 @@ FROM
   posts
 JOIN
   users ON posts.user_id = users.id;
-" | duckdb app/connector/my_duckdb/data.duckdb
 ```
 
 You should see a list of posts returned with the author's information joined from the `users` table
 
-### Step 11. Refresh your metadata and rebuild your project
+### Step 12. Refresh your metadata and rebuild your project
 
 :::tip
 
@@ -234,38 +279,34 @@ modifying, or dropping tables.
 
 :::
 
-#### Step 11.1. Re-introspect your data source
-
-```plaintext title="First, bring down your running services:"
-CTRL + C
-```
+#### Step 12.1. Re-introspect your data source
 
 ```sh title="Run the introspection command again:"
-ddn connector introspect my_duckdb
+ddn connector introspect my_trino
 ```
 
-In `app/connector/my_duckdb/config.json`, you'll see schema updated to include operations for the `posts` table. In
-`app/metadata/my_duckdb.hml`, you'll see `posts` present in the metadata as well.
+In `app/connector/my_trino/configuration.json`, you'll see schema updated to include operations for the `posts` table.
+In `app/metadata/my_trino.hml`, you'll see `DOCS.PUBLIC.POSTS` present in the metadata as well.
 
-#### Step 11.2. Update your metadata
+#### Step 12.2. Update your metadata
 
 ```sh title="Add the posts model:"
-ddn model add my_duckdb "posts"
+ddn model add my_trino posts
 ```
 
-#### Step 11.3. Create a new build
+#### Step 12.3. Create a new build
 
 ```sh title="Next, create a new build:"
 ddn supergraph build local
 ```
 
-#### Step 11.4. Restart your services
+#### Step 12.4. Restart your services
 
 ```sh title="Bring down the services by pressing CTRL+C and start them back up:"
 ddn run docker-start
 ```
 
-### Step 12. Query your new build
+### Step 13. Query your new build
 
 ```graphql title="Head back to your console and query the posts model:"
 query GetPosts {
@@ -306,7 +347,7 @@ query GetPosts {
 }
 ```
 
-### Step 13. Create a relationship
+### Step 14. Create a relationship
 
 ```yaml title="Find the Posts.hml file in your connector's metadata directory and add the following relationship object to the bottom:"
 ---
@@ -330,7 +371,7 @@ definition:
 
 This will create a relationship that maps the `userId` for any post to the `id` of a user, allowing for nested queries.
 
-### Step 14. Rebuild your project
+### Step 15. Rebuild your project
 
 ```sh title="As your metadata has changed, create a new build:"
 ddn supergraph build local
@@ -340,7 +381,7 @@ ddn supergraph build local
 ddn run docker-start
 ```
 
-### Step 15. Query using your relationship
+### Step 16. Query using your relationship
 
 ```graphql title="Now, execute a nested query using your relationship:"
 query GetPosts {
@@ -408,17 +449,17 @@ query GetPosts {
 
 ## Next steps
 
-Congratulations on completing your first Hasura DDN project with DuckDB! 🎉
+Congratulations on completing your first Hasura DDN project with Trino! 🎉
 
 Here's what you just accomplished:
 
-- You started with a fresh project and connected it to a local DuckDB database.
-- You set up metadata to represent your tables and relationships, which acts as the blueprint for your API.
+- You started with a fresh project and connected it to a local Trino instance.
+- You set up metadata to represent your tables, which acts as the blueprint for your API.
 - Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
   GraphQL queries to fetch data.
 - Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
 
 Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
 
-Take a look at our DuckDB docs to learn more about how to use Hasura DDN with DuckDB. Or, if you're ready, get started
-with adding [permissions](/auth/permissions/index.mdx) to control access to your API.
+Take a look at our Trino docs to learn more about how to use Hasura DDN with Trino. Or, if you're ready, get started
+with adding [permissions](/reference/metadata-reference/permissions.mdx) to control access to your API.
