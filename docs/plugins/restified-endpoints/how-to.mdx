@@ -101,7 +101,7 @@ The `matchPath` field is used to match the regex to the request path, while `mat
 match. In this example, we're matching all `GET` and `POST` requests to `/v1/api/rest/*`. You can modify these to match
 any path and methods (GET/POST/PUT/PATCH/DELETE) you wish.
 
-Also, note that we can not use the pre-defined DDN endpoints (like `/graphql`, `/v1/sql`, `/v1/rest`, `/v1/explain`,
+Also, note that we can not use the pre-defined DDN endpoints (like `/graphql`, `/v1/sql`, `/v1/jsonapi`, `/v1/explain`,
 `/healthz` and `/metrics`) in the `matchPath` field.
 
 Moreover, on DDN cloud, for security reasons, only the `/v1/api/rest/*` path is allowed for the pre-route plugin.
@@ -116,7 +116,7 @@ include raw strings here using `value` instead of `valueFromEnv` and passing the
 
 :::
 
-Next, update the `subgraph.yaml` file to include the metadata file and the environment variables.
+Next, update the `subgraph.yaml` file to include the environment variables.
 
 ```yaml
 kind: Subgraph
@@ -126,7 +126,6 @@ definition:
   ...
   includePaths:
     ...
-    - restified-endpoints.hml
   envMapping:
     RESTIFIED_ENDPOINTS_URL:
       fromEnv: RESTIFIED_ENDPOINTS_URL
@@ -234,8 +233,9 @@ the `Settings > Project Summary` section.
 
 ## Step 7. Deploy the plugin
 
-For your plugin to be reachable by your hosted supergraph, we'll need to deploy using Cloudflare Wrangler. The `deploy`
-command included in your plugin's `package.json` will do this automatically for you and return the hosted service's URL.
+For your plugin to be reachable by your hosted supergraph, we can deploy with any service that hosts HTTPS services.
+Here we will use Cloudflare Wrangler to deploy the plugin. The `deploy` command included in your plugin's `package.json`
+will do this automatically for you and return the hosted service's URL.
 
 **Note**: Please also update the `wrangler.toml` with your cloud PAT for the tracing to work.
 
@@ -259,9 +259,25 @@ Create a new supergraph build on Hasura DDN to check your work in the cloud.
 ddn supergraph build create
 ```
 
+:::info Cloud project required
+
+In order for this command to succeed, you'll need a cloud project paired with your local metadata. If you don't already
+have one, you can create one using the CLI.
+
+```sh title="From the root of the project directory, run:"
+ddn project init .
+```
+
+:::
+
 ## Step 9. Apply the build
 
 Apply the build to make it the default one served by your Hasura DDN project endpoint. You can do this from the DDN
 console by choosing the build from the `Builds` tab and clicking `Apply Build`.
 
 The engine will execute the plugin for each requests to the RESTified GraphQL endpoints you defined.
+
+```sh title="As in the earlier example, you can test this by navigating to the endpoint for any paths you've set up in your plugin's configuration:"
+# E.g., https://profound-applet-5420.ddn.hasura.app/v1/api/rest/users
+https://<your_Hasura_DDN_project_url_excluding_graphql>/v1/api/rest/<endpoint_path>
+```
