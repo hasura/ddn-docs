@@ -1,0 +1,383 @@
+---
+sidebar_position: 1
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura BigQuery connector, including connection URI details,
+  and native queries."
+keywords:
+  - bigquery
+  - configuration
+---
+
+# Configuration Reference for BigQuery
+
+## Introduction
+
+The configuration is a metadata object that lists all the BigQuery entities — such as tables, views, and materialized
+views — that the data connector needs to know about to serve queries effectively. This configuration remains static
+during the lifetime of the data connector service instance. When your BigQuery schema changes, you will need to update
+the configuration accordingly through the provided introspection process.
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "version": "v1",
+  "connection_uri": {
+    "value": "...",
+    "variable": "..."
+  },
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  },
+  "schemas": [],
+  "tables": [],
+  "functions": [],
+  "native_operations": {}
+}
+```
+
+### Property: version
+
+Specifies the version of the configuration format. Currently, only "v1" is supported.
+
+```json
+{
+  "version": "v1"
+}
+```
+
+### Property: connection_uri
+
+The connection URI for the BigQuery database. This is a required field that can be specified either as a direct string
+value or as a reference to an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "value": "jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=your-project-id;OAuthType=0;OAuthServiceAcctEmail=your-service-account-email;OAuthPvtKeyPath=/path/to/key.json;"
+  }
+}
+```
+
+Or using an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "variable": "BIGQUERY_JDBC_URL"
+  }
+}
+```
+
+### Property: connection_pool_settings
+
+Optional settings to configure the connection pool:
+
+```json
+{
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  }
+}
+```
+
+- `max_connections`: Maximum number of connections in the pool (default: 10)
+- `min_idle`: Minimum number of idle connections maintained in the pool (default: 1)
+- `connection_timeout`: Maximum time in milliseconds to wait for a connection from the pool (default: 30000)
+- `initialization_fail_timeout`: Maximum time in milliseconds to wait for the pool to be initialized (default: 30000)
+
+### Property: schemas
+
+An optional array of schema names to include in the introspection process. If not provided, all accessible schemas will
+be introspected.
+
+```json
+{
+  "schemas": ["mydataset1", "mydataset2"]
+}
+```
+
+### Property: tables
+
+An array of table definitions generated automatically during introspection. Each table definition includes metadata
+about the table structure, columns, primary keys, and foreign keys.
+
+Example:
+
+```json
+{
+  "tables": [
+    {
+      "name": "mydataset.customers",
+      "description": "Customer information table",
+      "category": "TABLE",
+      "columns": [
+        {
+          "name": "customer_id",
+          "description": "Unique customer identifier",
+          "type": {
+            "scalar_type": "INT64"
+          },
+          "nullable": false,
+          "auto_increment": false,
+          "is_primarykey": true
+        },
+        {
+          "name": "name",
+          "description": "Customer name",
+          "type": {
+            "scalar_type": "STRING"
+          },
+          "nullable": false,
+          "auto_increment": false
+        },
+        {
+          "name": "location",
+          "description": "Geographic location",
+          "type": {
+            "scalar_type": "GEOGRAPHY"
+          },
+          "nullable": true,
+          "auto_increment": false
+        },
+        {
+          "name": "tags",
+          "description": "Customer tags",
+          "type": {
+            "array_type": {
+              "scalar_type": "STRING"
+            }
+          },
+          "nullable": true,
+          "auto_increment": false
+        }
+      ],
+      "primary_keys": ["customer_id"],
+      "foreign_keys": {
+        "fk_customer_order": {
+          "column_mapping": {
+            "customer_id": "customer_id"
+          },
+          "foreign_collection": "mydataset.orders"
+        }
+      }
+    }
+  ]
+}
+```
+
+#### Column Types
+
+BigQuery supports several data types, which are represented in the configuration as follows:
+
+1. **Scalar Types**:
+
+   ```json
+   {
+     "scalar_type": "STRING"
+   }
+   ```
+
+   Supported scalar types include:
+
+   - `STRING`
+   - `INT64`
+   - `FLOAT64`
+   - `NUMERIC`
+   - `BIGNUMERIC`
+   - `BOOLEAN`
+   - `DATE`
+   - `DATETIME`
+   - `TIME`
+   - `TIMESTAMP`
+   - `BYTES`
+   - `GEOGRAPHY`
+   - `JSON`
+
+2. **Array Types**:
+
+   ```json
+   {
+     "array_type": {
+       "scalar_type": "STRING"
+     }
+   }
+   ```
+
+3. **Range Types**:
+
+   ```json
+   {
+     "range_type": "DATE"
+   }
+   ```
+
+   Supported range types:
+
+   - `DATE`
+   - `DATETIME`
+   - `TIMESTAMP`
+
+4. **Struct Types**:
+   ```json
+   {
+     "struct_type": {
+       "field1": { "scalar_type": "STRING" },
+       "field2": { "scalar_type": "INT64" }
+     }
+   }
+   ```
+
+### Property: functions
+
+This is an array of function definitions discovered during introspection. However, functions are not fully supported in
+the current version.
+
+```json
+{
+  "functions": [
+    {
+      "name": "mydataset.calculation_function",
+      "description": "Calculates values based on input parameters"
+    }
+  ]
+}
+```
+
+### Property: native_operations
+
+This is a map of native query and mutation operations that can be used to expose custom SQL queries and procedures
+through the data connector API.
+
+```json
+{
+  "native_operations": {
+    "get_customer_data": {
+      "queries": {
+        "get_customer_by_id": {
+          "sql": {
+            "value": "SELECT * FROM `mydataset.customers` WHERE customer_id = @customer_id"
+          },
+          "columns": {
+            "customer_id": {
+              "name": "customer_id",
+              "type": {
+                "scalar_type": "INT64"
+              },
+              "nullable": false,
+              "description": "Customer ID"
+            },
+            "name": {
+              "name": "name",
+              "type": {
+                "scalar_type": "STRING"
+              },
+              "nullable": false,
+              "description": "Customer name"
+            }
+          },
+          "arguments": {
+            "customer_id": {
+              "name": "customer_id",
+              "type": {
+                "scalar_type": "INT64"
+              },
+              "nullable": false,
+              "description": "Customer ID to filter by"
+            }
+          },
+          "description": "Retrieves customer data by ID"
+        }
+      }
+    },
+    "update_customer_data": {
+      "mutations": {
+        "update_customer_name": {
+          "sql": {
+            "value": "UPDATE `mydataset.customers` SET name = @new_name WHERE customer_id = @customer_id"
+          },
+          "columns": {},
+          "arguments": {
+            "customer_id": {
+              "name": "customer_id",
+              "type": {
+                "scalar_type": "INT64"
+              },
+              "nullable": false,
+              "description": "Customer ID to update"
+            },
+            "new_name": {
+              "name": "new_name",
+              "type": {
+                "scalar_type": "STRING"
+              },
+              "nullable": false,
+              "description": "New customer name"
+            }
+          },
+          "description": "Updates a customer's name"
+        }
+      }
+    }
+  }
+}
+```
+
+#### Native Operation SQL
+
+The SQL for native operations can be specified in two ways:
+
+1. **Inline SQL** (using the `value` property):
+
+   ```json
+   {
+     "sql": {
+       "value": "SELECT * FROM `mydataset.customers` WHERE customer_id = @customer_id"
+     }
+   }
+   ```
+
+2. **SQL from File** (using the `file` property):
+   ```json
+   {
+     "sql": {
+       "file": "queries/get_customer.sql"
+     }
+   }
+   ```
+
+## Updating with Introspection
+
+When your BigQuery schema changes, you'll need to update your data connector configuration to reflect those changes. The
+BigQuery connector provides an introspection process to automatically generate and update the configuration.
+
+The introspection process connects to BigQuery using the provided connection URI and:
+
+1. Discovers accessible datasets (schemas) and their tables/views
+2. Extracts column information, including data types, nullability, and constraints
+3. Identifies primary keys and foreign key relationships where possible
+4. Generates the complete configuration file with all required metadata
+
+To run the introspection process and update your configuration:
+
+1. Ensure you have the correct credentials and permissions to access the BigQuery project
+2. Run the introspection command, providing your connection details
+3. Review the generated configuration file for accuracy
+4. Apply the updated configuration to your data connector
+
+Note that BigQuery has some specific characteristics to consider:
+
+- BigQuery uses datasets as schema equivalents
+- Primary keys are not enforced by BigQuery but can be defined in the configuration
+- Foreign key relationships are not enforced by BigQuery but can be defined in the configuration
+- Certain BigQuery-specific types like GEOGRAPHY, STRUCT, and ARRAY are represented in a way that maintains
+  compatibility with the NDC protocol
