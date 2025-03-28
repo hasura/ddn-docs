@@ -25,41 +25,89 @@ GraphQL query on the DDN GraphQL API and return the response.
 This guide provides a step-by-step guide on how to configure and deploy the RESTified Endpoints Plugin for Hasura DDN
 using either of the two methods:
 
-1. [Using Cloudflare Wrangler](#using-cloudflare-wrangler)
-2. [Using docker image](#using-docker-image)
+1. [Using docker image](#using-docker-image)
+2. [Using Cloudflare Wrangler](#using-cloudflare-wrangler)
 
-## Using Cloudflare Wrangler
+## Using Docker Image
 
-In this example, we're using Cloudflare Wrangler to deploy our plugin as a Cloudflare Worker. You can get started with
-Wrangler [here](https://developers.cloudflare.com/workers/wrangler/install-and-update/).
+In this example, we're going to use a Docker image to configure the RESTified Endpoints Plugin for Hasura DDN. You can
+use similar configurations to deploy the plugin using kubernetes or any other container orchestration tool.
 
-### Step 1. Create a new plugin project
+### Step 1. Set up plugin for local development
 
-Create a new Cloudflare Worker project using the `create-cloudflare` command with the
-[`restified-endpoints` plugin template](https://github.com/hasura/engine-plugin-restified-endpoint):
+Add the following service to your root-level `docker-compose.yaml` file (this is the one located at
+`<project-root>/docker-compose.yaml`). Add this new service at the same level as your existing `services` entries:
 
-```bash
-npx create-cloudflare@latest restified-endpoints-plugin --template https://github.com/hasura/engine-plugin-restified-endpoint
+```yaml
+restified-endpoints:
+  build:
+    context: https://github.com/hasura/engine-plugin-restified-endpoint.git
+  ports:
+    - 8787:8787
+  environment:
+    - OTEL_EXPORTER_OTLP_ENDPOINT=https://gateway.otlp.hasura.io:443/v1/traces
+    - OTEL_EXPORTER_PAT=your-pat-here
+    - GRAPHQL_SERVER_URL=http://engine:3000
+    - HASURA_DDN_PLUGIN_CONFIG_PATH=plugin_config
+  volumes:
+    - ./restified-endpoints-config:/app/plugin_config
 ```
 
-This will create a new project with the required files and dependencies.
+Here, we're building the image from the `engine-plugin-restified-endpoint` repository. We're also forwarding the
+`plugin_config` directory to the container. This directory will contain the configuration for the plugin. Here is the
+structure of the `plugin_config` directory:
 
-### Step 2. Install dependencies
-
-Navigate to the new directory and install the dependencies.
-
-```bash
-cd restified-endpoints-plugin
-npm install
+```
+plugin_config/
+└── configuration.json
 ```
 
-Start the local development server.
+The `configuration.json` file is used to configure the plugin. Here's an example configuration:
 
-```bash
-npm start
+```json
+{
+  "graphqlServer": {
+    "headers": {
+      "additional": {
+        "Content-Type": "application/json"
+      },
+      "forward": ["X-Hasura-Role", "Authorization", "X-Hasura-ddn-token"]
+    }
+  },
+  "headers": {
+    "hasura-m-auth": "zZkhKqFjqXR4g5MZCsJUZCnhCcoPyZ"
+  },
+  "restifiedEndpoints": [
+    {
+      "path": "/v1/api/rest/artistbyname/:name",
+      "methods": ["GET", "POST"],
+      "query": "query artistByName($name: String!) { artist(where: {name: {_eq: $name}}) { name }}"
+    },
+    {
+      "path": "/v1/api/rest/artists",
+      "methods": ["GET", "POST"],
+      "query": "query artists($limit: Int = 10, $offset: Int = 0) { artist(limit: $limit, offset: $offset) { name } }"
+    }
+  ]
+}
 ```
 
-### Step 3. Add the plugin configuration
+The RESTified endpoints configuration includes:
+
+- `graphqlServer`: Configuration for the GraphQL server:
+  - `headers`: Configuration for the headers to be sent to the GraphQL server:
+    - `additional`: Additional headers to be sent to the GraphQL server.
+    - `forward`: Headers to be forwarded from the request to the GraphQL server.
+- `headers.hasura-m-auth`: The `hasura-m-auth` header is a custom header that is used to authenticate the requests to
+  the plugin. You can use any strong key here to authenticate the plugin. DDN will automatically add this header to the
+  requests to the plugin.
+- `restifiedEndpoints`: Configuration for the RESTified endpoints. Each endpoint includes:
+  - `path`: The path of the endpoint (this can include path parameters like `:name`, which is used in the query as
+    variables)
+  - `methods`: The HTTP methods supported by the endpoint.
+  - `query`: The GraphQL query to be executed when the endpoint is called.
+
+### Step 2. Add the plugin configuration
 
 We'll let the engine know about the plugin and to execute it as a pre-route plugin by creating a new metadata file. In
 your `global` subgraph's metadata directory, create a new file named `restified-endpoints.hml` and add the following
@@ -150,6 +198,71 @@ use any strong key here to authenticate the plugin. DDN will automatically add t
 plugin. Also, make sure to update the `src/config.ts` file (in step 5) with the same key.
 
 :::
+
+### Step 3. Run everything
+
+At this point, you can run the following command to build and start local development:
+
+```bash
+ddn supergraph build local
+ddn run docker-start
+```
+
+You can now test the plugin by making a request to the RESTified GraphQL endpoints defined in the plugin's
+configuration.
+
+If you want to make changes to the plugin configuration, you can update the `configuration.json` file and restart the
+docker services.
+
+### Step 4. Deploy the plugin
+
+The plugin can be deployed as a regular HTTP service using any container orchestration tool. When deployed, make sure to
+set the `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_PAT`, `GRAPHQL_SERVER_URL` and `HASURA_DDN_PLUGIN_CONFIG_PATH` to
+appropriate values in `.cloud.env`. Note that the plugin must be visible from your Hasura deployment: if you are hosting
+for the Hasura Cloud, the plugin must be publicly visible.
+
+:::info Your plugin must be reachable
+
+Since the rate limit plugin is a pre-parse plugin, it must be reachable from the Hasura deployment. If you are hosting
+for the Hasura Cloud, the plugin must be publicly visible.
+
+:::
+
+## Using Cloudflare Wrangler
+
+In this example, we're using Cloudflare Wrangler to deploy our plugin as a Cloudflare Worker. You can get started with
+Wrangler [here](https://developers.cloudflare.com/workers/wrangler/install-and-update/).
+
+### Step 1. Create a new plugin project
+
+Create a new Cloudflare Worker project using the `create-cloudflare` command with the
+[`restified-endpoints` plugin template](https://github.com/hasura/engine-plugin-restified-endpoint):
+
+```bash
+npx create-cloudflare@latest restified-endpoints-plugin --template https://github.com/hasura/engine-plugin-restified-endpoint
+```
+
+This will create a new project with the required files and dependencies.
+
+### Step 2. Install dependencies
+
+Navigate to the new directory and install the dependencies.
+
+```bash
+cd restified-endpoints-plugin
+npm install
+```
+
+Start the local development server.
+
+```bash
+npm start
+```
+
+### Step 3. Add the plugin configuration
+
+Follow the steps in the [docker image plugin configuration](#step-2-add-the-plugin-configuration) section to add the
+plugin configuration.
 
 ### Step 4. Create a new build for local development
 
@@ -284,116 +397,3 @@ The engine will execute the plugin for each requests to the RESTified GraphQL en
 # E.g., https://profound-applet-5420.ddn.hasura.app/v1/api/rest/users
 https://<your_Hasura_DDN_project_url_excluding_graphql>/v1/api/rest/<endpoint_path>
 ```
-
-## Using Docker Image
-
-In this example, we're going to use a Docker image to configure the RESTified Endpoints Plugin for Hasura DDN. You can
-use similar configurations to deploy the plugin using kubernetes or any other container orchestration tool.
-
-### Step 1. Set up plugin for local development
-
-Add the following service to your root-level `docker-compose.yaml` file (this is the one located at
-`<project-root>/docker-compose.yaml`). Add this new service at the same level as your existing `services` entries:
-
-```yaml
-restified-endpoints:
-  build:
-    context: https://github.com/hasura/engine-plugin-restified-endpoint.git
-  ports:
-    - 8787:8787
-  environment:
-    - OTEL_EXPORTER_OTLP_ENDPOINT=https://gateway.otlp.hasura.io:443/v1/traces
-    - OTEL_EXPORTER_PAT=your-pat-here
-    - GRAPHQL_SERVER_URL=http://engine:3000
-    - HASURA_DDN_PLUGIN_CONFIG_PATH=plugin_config
-  volumes:
-    - ./restified-endpoints-config:/app/plugin_config
-```
-
-Here, we're building the image from the `engine-plugin-restified-endpoint` repository. We're also forwarding the
-`plugin_config` directory to the container. This directory will contain the configuration for the plugin. Here is the
-structure of the `plugin_config` directory:
-
-```
-plugin_config/
-└── configuration.json
-```
-
-The `configuration.json` file is used to configure the plugin. Here's an example configuration:
-
-```json
-{
-  "graphqlServer": {
-    "headers": {
-      "additional": {
-        "Content-Type": "application/json"
-      },
-      "forward": ["X-Hasura-Role", "Authorization", "X-Hasura-ddn-token"]
-    }
-  },
-  "headers": {
-    "hasura-m-auth": "zZkhKqFjqXR4g5MZCsJUZCnhCcoPyZ"
-  },
-  "restifiedEndpoints": [
-    {
-      "path": "/v1/api/rest/artistbyname/:name",
-      "methods": ["GET", "POST"],
-      "query": "query artistByName($name: String!) { artist(where: {name: {_eq: $name}}) { name }}"
-    },
-    {
-      "path": "/v1/api/rest/artists",
-      "methods": ["GET", "POST"],
-      "query": "query artists($limit: Int = 10, $offset: Int = 0) { artist(limit: $limit, offset: $offset) { name } }"
-    }
-  ]
-}
-```
-
-The RESTified endpoints configuration includes:
-
-- `graphqlServer`: Configuration for the GraphQL server:
-  - `headers`: Configuration for the headers to be sent to the GraphQL server:
-    - `additional`: Additional headers to be sent to the GraphQL server.
-    - `forward`: Headers to be forwarded from the request to the GraphQL server.
-- `headers.hasura-m-auth`: The `hasura-m-auth` header is a custom header that is used to authenticate the requests to
-  the plugin. You can use any strong key here to authenticate the plugin. DDN will automatically add this header to the
-  requests to the plugin.
-- `restifiedEndpoints`: Configuration for the RESTified endpoints. Each endpoint includes:
-  - `path`: The path of the endpoint (this can include path parameters like `:name`, which is used in the query as
-    variables)
-  - `methods`: The HTTP methods supported by the endpoint.
-  - `query`: The GraphQL query to be executed when the endpoint is called.
-
-### Step 2. Add the plugin configuration
-
-Follow the steps in the [wrangler configuration](#step-3-add-the-plugin-configuration) section to add the plugin
-configuration.
-
-### Step 3. Run everything
-
-At this point, you can run the following command to build and start local development:
-
-```bash
-ddn supergraph build local
-ddn run docker-start
-```
-
-You can now test the plugin by making a request to the RESTified GraphQL endpoints defined in the plugin's
-configuration.
-
-If you want to make changes to the plugin configuration, you can update the `configuration.json` file and restart the
-docker services.
-
-### Step 4. Deploy the plugin
-
-The plugin can be deployed as a regular HTTP service using any container orchestration tool. When deployed, make sure to
-set the `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_PAT`, `GRAPHQL_SERVER_URL` and `HASURA_DDN_PLUGIN_CONFIG_PATH` to
-appropriate values in `.cloud.env`. Note that the plugin must be visible from your Hasura deployment: if you are hosting
-for the Hasura Cloud, the plugin must be publicly visible.
-
-:::info Your plugin must be reachable
-
-Since the rate limit plugin is a pre-parse plugin, it must be reachable from the Hasura deployment. If you are hosting
-for the Hasura Cloud, the plugin must be publicly visible.
-
-:::
