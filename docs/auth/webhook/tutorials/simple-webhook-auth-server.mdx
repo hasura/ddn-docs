@@ -134,12 +134,29 @@ The response should look like:
 }
 ```
 
-## Configuring Hasura DDN
+## Configuring DDN
 
-1. In your Hasura DDN project, go to the Authentication settings.
-2. Enable Webhook mode.
-3. Set the webhook URL to your server's endpoint (e.g., `http://localhost:3000/webhook`).
-4. Configure your permissions based on the variables returned by the webhook.
+You can configure DDN to use your webhook by updating the `auth-config.hml` file in your Hasura DDN project.
+
+```yaml title="globals/metadata/auth-config.hml"
+kind: AuthConfig
+version: v3
+definition:
+  mode:
+    webhook:
+      url:
+        valueFromEnv: AUTH_WEBHOOK_URL
+      method: POST
+      customHeadersConfig:
+        body:
+          headers:
+            forward:
+              - authorization
+              - content-type
+        headers:
+          additional:
+            user-agent: "Hasura DDN"
+```
 
 ## Next Steps
 
