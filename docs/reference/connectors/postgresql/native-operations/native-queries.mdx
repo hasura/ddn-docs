@@ -6,6 +6,17 @@ description:
   Native Queries in Hasura."
 keywords:
   - native queries
+  - postgres
+  - alloydb
+  - aws aurora
+  - azure
+  - cosmos
+  - citus
+  - cockroach
+  - gcp cloud sql
+  - neon
+  - timescale
+  - yugabyte
 seoFrontMatterUpdated: false
 ---
 
@@ -50,10 +61,21 @@ to add it to the connector configuration. For example:
      native-operation create --operation-path native_operations/queries/artist_by_name_between.sql --kind query
    ```
 
-4. Update your metadata to track the new native query:
+4. If your data connector is running, run the following command to update your metadata to track the new native query:
 
    ```sh
-   $ ddn connector-link update chinook_pg --add-all-resources
+   ddn connector-link update chinook_pg --add-all-resources
+   ```
+
+   If you get a `connection refused` error, it means that your data connector is not running. You can either start the
+   data connector and try again, or, run the following commands to update your metadata to track the new native query:
+
+   ```sh
+   # start the connector and introspect your DB
+   ddn connector introspect chinook_pg
+
+   # update your metadata to track the new native query
+   ddn model add chinook_pg "artist_by_name_between"
    ```
 
 ## List Native Operations

@@ -16,21 +16,31 @@ keywords:
   - context
 ---
 
-import Roles from "@site/docs/collaboration/_roles.mdx";
-import Permissions from "@site/docs/collaboration/_permissions.mdx";
+import Roles from "@site/docs/project-configuration/_roles.mdx";
+import Permissions from "@site/docs/project-configuration/_permissions.mdx";
 
 # How to Split Subgraphs across Repositories
 
 ## Introduction
 
 For larger teams and larger projects, it can make sense to split your subgraphs into multiple repositories contributing
-to the supergraph in the "parent" project.
+to the supergraph in the "parent" project. This approach enables teams to have independent software development
+lifecycles (SDLC) and CI/CD pipelines, providing better governance and control over their specific domains.
 
 In this setup, one or more subgraphs are defined in each repository and depending on the role of the user on the cloud
-project, can be built and applied to the supergraph independently.
+project, can be built and applied to the supergraph independently. Each subgraph typically represents a distinct data
+domain (e.g., users, orders, products) and can be managed by different teams.
 
-You can read more about [collaboration](/collaboration/index.mdx) and [federation](/federation/overview.mdx) in the
-relevant sections.
+:::tip Key Concepts
+
+- Supergraph and subgraph builds are immutable and have unique IDs
+- A subgraph must exist in the DDN project before inviting collaborators to it
+- Each subgraph is namespaced and internal metadata objects cannot conflict with other subgraphs
+- The GraphQL API is where subgraphs meet and conflicts can occur with root field and type names
+- [Subgraph prefixing](/project-configuration/subgraphs/subgraph-prefixing.mdx) can automatically remedy naming
+  conflicts
+
+:::
 
 Deployment with a multi-repository setup is effectively the same as
 [deploying from a single repository](/deployment/hasura-ddn/index.mdx), but with the considerations of managing your
@@ -218,6 +228,11 @@ This finalizes the integration, making the changes available to all collaborator
 ddn subgraph build apply <subgraph-build-version>
 ```
 
+:::tip Simplify multi-team workflows
+For more efficient collaboration across repositories, you can create and apply the supergraph build in a single command using
+`ddn supergraph build create --subgraph-version <subgraph-name:build-version> --base-supergraph-version <parent-build-id> --apply`
+:::
+
 ## Build Summary
 
 ### Supergraph and all subgraphs
@@ -259,6 +274,38 @@ ddn subgraph build create --subgraph-version <subgraph_name:subgraph_version> --
 
 ```bash title="Apply a single subgraph. Unavailable for Subgraph Developer role"
 ddn subgraph build apply --subgraph-version <subgraph_name:subgraph_version>
+```
+
+## Merging Existing Projects
+
+If you have two independently developed projects on Hasura DDN that you want to merge into a single project with
+independent subgraph development, follow these steps:
+
+1. Choose which project will be the main project and which will be the subgraph project
+2. In the main project, create a new subgraph placeholder:
+
+```sh
+ddn project subgraph create <subgraph-name>
+```
+
+3. Invite the subgraph project collaborators with appropriate permissions
+4. Once collaborators accept the invitation, they should set their project context:
+
+```sh
+ddn context set project <main-project-name>
+```
+
+5. Set up subgraph prefixes if needed to prevent naming conflicts
+6. Create a subgraph build on the main project:
+
+```sh
+ddn subgraph build create
+```
+
+7. The main project owner/admin can then apply the subgraph build:
+
+```sh
+ddn subgraph build apply <subgraph-build-version>
 ```
 
 ## Next steps
