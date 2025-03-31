@@ -10,6 +10,7 @@ keywords:
   - reusable connector
   - deployment
   - reusability
+  - private ddn
 ---
 
 # Connector Reusability
@@ -39,7 +40,7 @@ file. By sharing these URLs, you can reuse the same connector across multiple su
 projects. This means the connector only needs to be deployed once, and all subgraphs can reference the same deployed
 instance.
 
-## Example scenario
+## Example scenario: Public DDN
 
 Let's say you have a PostgreSQL database hosted in `gcp-us-west2`. You have two teams: a "Products" team and a "Reviews"
 team. Both teams need to access data from this database. Instead of deploying two separate PostgreSQL connectors, you
@@ -58,7 +59,8 @@ cd connector-project
 ddn connector init -i
 ```
 
-After initializing the connector, you can introspect the database to understand its structure:
+After [initializing the connector](/how-to-build-with-ddn/with-postgresql.mdx), you can introspect the database to
+understand its structure:
 
 ```sh
 ddn connector introspect my_postgres
@@ -111,10 +113,10 @@ structure and capabilities.
 
 ### Step 3. Data Domain Teams: Use the deployed connector
 
-Each team should obtain two things from the connector repository:
+Each team should obtain two things:
 
-1. The schema object from the DataConnectorLink
-2. The read and write URLs from the `.env.cloud` file
+1. The schema object from the DataConnectorLink from the connector repository
+2. The read and write URLs from the `.env.cloud` file from the team that deployed the connector
 
 First, copy the schema object from the connector repository's DataConnectorLink into your team's DataConnectorLink.
 Then, add the connector URLs and authorization header to your team's `.env.cloud` file:
@@ -149,6 +151,116 @@ to deploy a new connector instance.
 
 These teams can repeat these steps for any other subgraphs or projects that need access to the same PostgreSQL database.
 
+## Example scenario: Private DDN
+
+For Private DDN, the process differs slightly as you're working within a private data plane environment. This approach
+is ideal for Enterprise users who must maintain data sovereignty and security.
+
+### Step 1: Create a Service Account for secure connector access
+
+Before creating a reusable connector, you should create a Service Account that will be used to authenticate access to
+the connector:
+
+1. As a project owner or administrator, navigate to your project's console at
+   [https://console.hasura.io](https://console.hasura.io)
+2. Click `Settings` in the bottom-left corner
+3. Select `Service Accounts` from the `Project Settings` menu and click `New Service Account`
+4. Enter a name for the service account (for example, "postgres-connector-access")
+5. After creating the service account, copy the service account token and store it securely - you will need it later
+
+### Step 2: Create and deploy a connector on your Private Data Plane
+
+First, authenticate with your Private DDN either directly or using the DDN Workspace:
+
+```sh
+# If using direct CLI
+ddn auth login
+
+# If using a service account token (recommended for automation)
+ddn auth login --access-token <service-account-token>
+```
+
+Create a dedicated connector project and initialize your connector:
+
+```sh
+mkdir postgres-connector
+cd postgres-connector
+ddn supergraph init connector-project
+cd connector-project
+ddn connector init -i
+```
+
+After configuring your connector, create a project on your private data plane:
+
+```sh
+ddn project init --data-plane-id <data-plane-id> --plan <plan-name>
+```
+
+Next, build and deploy the connector:
+
+```sh
+ddn connector build create --connector ./app/connector/mypostgres/connector.yaml --target-env-file ./.env.cloud  --target-subgraph ./app/subgraph.yaml --target-connector-link mypostgres
+```
+
+The command will output the connector's read and write URLs and the authorization header, which will also be stored in
+your `.env.cloud` file.
+
+### Step 3: Teams share connector using Service Account Token
+
+To securely share the connector across teams and projects within your Private DDN, you should share:
+
+1. The schema object from the DataConnectorLink
+2. The read and write URLs from the `.env.cloud` file
+3. The Service Account Token (set as the authorization header)
+
+When a team wants to use the shared connector, they'll add the following to their `.env.cloud` file:
+
+```env
+# For a PostgreSQL connector named "mypostgres"
+APP_MYPOSTGRES_AUTHORIZATION_HEADER="Bearer <service-account-token>"
+APP_MYPOSTGRES_READ_URL="http://<build-id>.<private-data-plane-domain>/deployment/<uuid>-read"
+APP_MYPOSTGRES_WRITE_URL="http://<build-id>.<private-data-plane-domain>/deployment/<uuid>-write"
+```
+
+:::warning Security Note
+
+The Service Account Token should be treated as a secret. In production environments, use your organization's secrets
+management system to securely distribute and rotate this token as needed.
+
+:::
+
+### Step 4: Teams use the connector in their subgraphs
+
+Each team can initialize their own project on the same Private Data Plane:
+
+```sh
+ddn project init --data-plane-id <data-plane-id> --plan <plan-name>
+```
+
+Then create a connector link and configure it to use the shared connector:
+
+```sh
+ddn connector-link add my_postgres
+```
+
+They'll need to copy the schema object from the original connector repository's DataConnectorLink into their team's
+DataConnectorLink. Then they can customize the models, commands, and relationships for their specific use case:
+
+```sh
+ddn connector show-resources my_postgres
+ddn connector models add "*"
+ddn connector commands add "*"
+ddn connector relationships add "*"
+```
+
+### Step 5: Build and deploy subgraphs without rebuilding connectors
+
+Teams can then build their subgraphs without rebuilding the connector:
+
+```sh
+ddn supergraph build create --no-build-connectors
+```
+
 ## Considerations
 
 - **Versioning:** If the connector is updated you may need to update the metadata for all subgraphs that use it.
@@ -164,10 +276,17 @@ These teams can repeat these steps for any other subgraphs or projects that need
 - **Independent Management:** Having a dedicated connector repository allows you to manage connector updates and
   deployments independently of the data domain teams' development cycles.
 
+- **Service Account Security:** In Private DDN environments, regularly rotate your service account tokens and follow
+  your organization's security best practices for token management.
+
+- **Access Control:** In Private DDN, ensure that only authorized teams have access to the service account tokens needed
+  to access shared connectors.
+
 ## Summary
 
 Connector reusability in Hasura DDN offers a way to reduce redundancy and simplify management of connector deployments.
 By using a dedicated repository for connector deployment, you can better manage connector updates and ensure consistent
-access across multiple teams and projects.
+access across multiple teams and projects. For Private DDN users, this approach provides additional security benefits
+while still enabling efficient connector sharing.
 
 For a list of all our available connectors, check out the [docs](/data-sources/overview.mdx).
