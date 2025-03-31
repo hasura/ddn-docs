@@ -30,6 +30,16 @@ Additionally, we'll familiarize you with the steps and workflows necessary to it
 This tutorial assumes you're starting from scratch. We'll use an AWS instance of Oracle and connect it to Hasura, but
 you can easily follow the steps if you already have data seeded; Hasura will never modify your source schema.
 
+:::warning Oracle on Apple Silicon
+
+Oracle does not support Apple Silicon. If you are using an Apple Silicon Mac, you can use Colima to run Oracle.
+
+1. Install [Colima](https://github.com/abiosoft/colima#installation)
+2. Run `colima start --arch x86_64 --memory 4`
+3. Run the Docker commands below as normal
+
+:::
+
 <Prereqs />
 
 ## Tutorial
@@ -58,8 +68,7 @@ running `ls` in your terminal, or by opening the directory in your preferred edi
 ddn connector init my_oracle -i
 ```
 
-From the dropdown, start typing `oracle` and hit enter to accept the default port. Then, provide the following
-values:
+From the dropdown, start typing `oracle` and hit enter to accept the default port. Then, provide the following values:
 
 **JDBC URL**
 
@@ -71,27 +80,18 @@ For Schemas, hit enter to use the database provided in the JDBC URL.
 
 ### Step 4. Start the local Oracle container
 
-```sh title="Begin by creating a compose file for the Oracle service:"
-touch app/connector/my_oracle/compose.oracle.yaml
-```
+Run the following command to start the Oracle container:
 
-```yaml title="Then, open the file and add the following:"
-services:
-  oracle:
-    image: gvenzl/oracle-xe:21.3.0-slim
-    container_name: oracle-server
-    restart: always
-    ports:
-      - "1521:1521"
-    environment:
-      ORACLE_PASSWORD: mypassword
-      APP_USER: example
-      APP_USER_PASSWORD: mypassword
-      TARGET_PDB: XEPDB1
-```
-
-```sh title="Run the container:"
-docker compose -f app/connector/my_oracle/compose.oracle.yaml up -d
+```sh
+docker run -d \
+  --name oracle-server \
+  --restart always \
+  -p 1521:1521 \
+  -e ORACLE_PASSWORD=oraclepassword \
+  -e APP_USER=example \
+  -e APP_USER_PASSWORD=mypassword \
+  -e TARGET_PDB=XEPDB1 \
+  gvenzl/oracle-xe:21.3.0-slim
 ```
 
 ```sh title="Use the SQL*PLUS shell to start the SQL prompt:"
@@ -125,7 +125,7 @@ ddn connector introspect my_oracle
 After running this, you should see a representation of your database's schema in the
 `app/connector/my_oracle/configuration.json` file; you can view this using `cat` or open the file in your editor.
 
-```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
 ddn connector show-resources my_oracle
 ```
 
@@ -234,8 +234,8 @@ modifying, or dropping tables.
 ddn connector introspect my_oracle
 ```
 
-In `app/connector/my_oracle/configuration.json`, you'll see schema updated to include operations for the `posts` table. In
-`app/metadata/my_oracle.hml`, you'll see `posts` present in the metadata as well.
+In `app/connector/my_oracle/configuration.json`, you'll see schema updated to include operations for the `posts` table.
+In `app/metadata/my_oracle.hml`, you'll see `posts` present in the metadata as well.
 
 #### Step 11.2. Update your metadata
 
@@ -426,5 +426,5 @@ Here's what you just accomplished:
 
 Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
 
-Take a look at our Oracle docs to learn more about how to use Hasura DDN with Oracle. Or, if you're ready, get
-started with adding [permissions](/reference/metadata-reference/permissions.mdx) to control access to your API.
+Take a look at our Oracle docs to learn more about how to use Hasura DDN with Oracle. Or, if you're ready, get started
+with adding [permissions](/reference/metadata-reference/permissions.mdx) to control access to your API.
