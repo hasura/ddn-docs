@@ -67,6 +67,13 @@ Connection string or data source credentials used by the connectors are managed 
 
 :::
 
+### Metadata Immutability and Secret Protection
+
+Once a supergraph build is created, the metadata associated with that build, including any resolved values from
+environment variables, is immutable and encrypted using envelope encryption. This design allows Private DDNs to use
+their own master encryption keys for enhanced security. Critically, **secrets incorporated into the build via
+environment variables are not directly exposed or retrievable from the built metadata once on the control plane**.
+
 ### Data Retention
 
 Metadata is retained for as long as a build is available on the system. When a build is deleted, the associated metadata
@@ -113,7 +120,19 @@ layer of security. [Learn more](/private-ddn/overview.mdx).
 ## Access Tokens
 
 Hasura DDN provides two types of access tokens for supergraph management: Personal Access Tokens (PATs) and Service
-Account Tokens.
+Account Tokens. Service Account Tokens (as apposed to PATs) are recommended for interacting with the control plane,
+CI/CD pipelines and automated processes.
+
+### Service Account Tokens
+
+Service Account Tokens are designed for applications, services, or automated processes that need to interact with the
+Hasura DDN Control Plane.
+
+- **Usage:** Ideal for continuous integration and continuous deployment (CI/CD) pipelines, automated scripts, and
+  backend services.
+- **Security:** Associated with a project, not an individual user.
+- **Generation:** You can create new service accounts and manage tokens for existing ones via your project's
+  `Settings` > `Service Accounts` tab of the console.
 
 ### Personal Access Tokens (PATs)
 
@@ -126,17 +145,6 @@ tokens are tied to your user account and are ideal for development, testing, and
 - **Generation:** Create and manage PATs through your
   [account settings](https://cloud.hasura.io/account-settings/access-tokens) on the Hasura Cloud dashboard or via the
   DDN CLI with the `ddn auth login` command and `ddn auth print-pat` command.
-
-### Service Account Tokens
-
-Service Account Tokens are designed for applications, services, or automated processes that need to interact with the
-Hasura DDN Control Plane.
-
-- **Usage:** Ideal for continuous integration and continuous deployment (CI/CD) pipelines, automated scripts, and
-  backend services.
-- **Security:** Associated with a project, not an individual user.
-- **Generation:** You can create new service accounts and manage tokens for existing ones via your project's
-  `Settings` > `Service Accounts` tab of the console.
 
 ## Securely Managing Secrets
 
@@ -180,13 +188,6 @@ definition:
 
 5.  **Gitignore:** Ensure that your `.env` files, and any other files that might hold secrets, are added to your
     `.gitignore` file. This will prevent these files from being committed to version control.
-
-### Metadata Immutability and Secret Protection
-
-Once a supergraph build is created, the metadata associated with that build, including any resolved values from
-environment variables, is immutable and encrypted using envelope encryption. This design allows Private DDNs to use
-their own master encryption keys for enhanced security. Critically, **secrets incorporated into the build via
-environment variables are not directly exposed or retrievable from the built metadata once on the control plane**.
 
 ## Native Operations and Security
 
