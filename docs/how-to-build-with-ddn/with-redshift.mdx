@@ -64,7 +64,7 @@ called `hasura_demo` in your namespace. You can do so by clicking "Query data" i
 Create" button and select database. Select the appropriate cluster / workgroup, name the database `hasura_demo` and
 click "Create database".
 
-### Step 5. Create a table in your Redshift database
+### Step 4. Create a table in your Redshift database
 
 ```sql title="Connect to your Redshift database and create the users table:"
 --- Create the table
@@ -86,7 +86,7 @@ You can verify this worked by querying all records from the `users` table:
 SELECT * FROM users;
 ```
 
-### Step 6. Introspect your Redshift database
+### Step 5. Introspect your Redshift database
 
 ```sh title="Next, use the CLI to introspect your Redshift database:"
 ddn connector introspect my_redshift
@@ -99,17 +99,17 @@ After running this, you should see a representation of your database's schema in
 ddn connector show-resources my_redshift
 ```
 
-### Step 7. Add your model
+### Step 6. Add your model
 
 ```sh title="Now, track the table from your Redshift database as a model in your DDN metadata:"
-ddn models add my_redshift users
+ddn model add my_redshift users
 ```
 
 Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
 Metadata Language file to represent the `users` table from Redshift in your API as a
 [model](/reference/metadata-reference/models.mdx).
 
-### Step 8. Create a new build
+### Step 7. Create a new build
 
 ```sh title="To create a local build, run:"
 ddn supergraph build local
@@ -117,7 +117,7 @@ ddn supergraph build local
 
 The build is stored as a set of JSON files in `engine/build`.
 
-### Step 9. Start your local services
+### Step 8. Start your local services
 
 ```sh title="Start your local Hasura DDN Engine and Redshift connector:"
 ddn run docker-start
@@ -125,7 +125,7 @@ ddn run docker-start
 
 Your terminal will be taken over by logs for the different services.
 
-### Step 10. Run your first query
+### Step 9. Run your first query
 
 ```sh title="In a new terminal tab, open your local console:"
 ddn console --local
@@ -165,7 +165,7 @@ query {
 }
 ```
 
-### Step 11. Iterate on your Redshift schema
+### Step 10. Iterate on your Redshift schema
 
 ```sql title="Connect to your Redshift database and add a new table with some data:"
 -- Create the posts table
@@ -201,7 +201,7 @@ JOIN
 
 You should see a list of posts returned with the author's information joined from the `users` table
 
-### Step 12. Refresh your metadata and rebuild your project
+### Step 11. Refresh your metadata and rebuild your project
 
 :::tip
 
@@ -210,7 +210,7 @@ modifying, or dropping tables.
 
 :::
 
-#### Step 12.1. Re-introspect your data source
+#### Step 11.1. Re-introspect your data source
 
 ```sh title="Run the introspection command again:"
 ddn connector introspect my_redshift
@@ -219,25 +219,25 @@ ddn connector introspect my_redshift
 In `app/connector/my_redshift/configuration.json`, you'll see schema updated to include operations for the `posts`
 table. In `app/metadata/my_redshift.hml`, you'll see `posts` present in the metadata as well.
 
-#### Step 12.2. Update your metadata
+#### Step 11.2. Update your metadata
 
 ```sh title="Add the posts model:"
 ddn model add my_redshift "posts"
 ```
 
-#### Step 12.3. Create a new build
+#### Step 11.3. Create a new build
 
 ```sh title="Next, create a new build:"
 ddn supergraph build local
 ```
 
-#### Step 12.4. Restart your services
+#### Step 11.4. Restart your services
 
 ```sh title="Bring down the services by pressing CTRL+C and start them back up:"
 ddn run docker-start
 ```
 
-### Step 13. Query your new build
+### Step 12. Query your new build
 
 ```graphql title="Head back to your console and query the posts model:"
 query GetPosts {
@@ -278,7 +278,7 @@ query GetPosts {
 }
 ```
 
-### Step 14. Create a relationship
+### Step 13. Create a relationship
 
 ```sh title="Since there's already a foreign key on the posts table in Redshift, we can easily add the relationship:"
 ddn relationship add my_redshift "posts"
@@ -287,7 +287,7 @@ ddn relationship add my_redshift "posts"
 You'll see a new metadata object added to the `app/metadata/posts.hml` file of kind `Relationship` explaining the
 relationship between `posts` and `users`.
 
-### Step 15. Rebuild your project
+### Step 14. Rebuild your project
 
 ```sh title="As your metadata has changed, create a new build:"
 ddn supergraph build local
@@ -297,7 +297,7 @@ ddn supergraph build local
 ddn run docker-start
 ```
 
-### Step 16. Query using your relationship
+### Step 15. Query using your relationship
 
 ```graphql title="Now, execute a nested query using your relationship:"
 query GetPosts {
@@ -363,7 +363,7 @@ query GetPosts {
 }
 ```
 
-### Step 17. Add all commands
+### Step 16. Add all commands
 
 We'll track the available operations — for inserting, updating, and deleting — on our `users` and `posts` tables as
 commands.
@@ -383,7 +383,7 @@ ddn supergraph build local
 ddn run docker-start
 ```
 
-### Step 18. Insert new data
+### Step 17. Insert new data
 
 ```graphql title="Create a new post for Charlie:"
 mutation InsertSinglePost {
