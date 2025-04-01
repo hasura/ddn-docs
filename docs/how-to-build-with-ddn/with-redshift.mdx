@@ -64,77 +64,9 @@ called `hasura_demo` in your namespace. You can do so by clicking "Query data" i
 Create" button and select database. Select the appropriate cluster / workgroup, name the database `hasura_demo` and
 click "Create database".
 
-### Step 4. Seed your Redshift database
-
-Create a table with name `users` by using the query editor in the Redshift console. Make sure to select the
-`hasura_demo` database from the dropdown above the query editor.
-
-```SQL title="Create a table:"
-CREATE TABLE public.users (
-  id INT PRIMARY KEY,
-  name TEXT NOT NULL,
-  age INT NOT NULL
-);
-```
-
-```SQL title="Then, seed the table:"
-INSERT INTO public.users (id, name, age) VALUES (1, 'Alice', 25), (2, 'Bob', 30), (3, 'Charlie', 35);
-```
-
-### Step 5. Configure your Redshift connector
-
-1. Move your downloaded service account key file to your connector folder:
-
-```sh title="Copy your service account key file to the connector directory:"
-mv /path/to/your/key.json app/connector/my_redshift/key.json
-```
-
-2. Configure your JDBC connection string in the connector's environment variable `.env` file. The connection string
-   should follow this format:
-
-```plaintext
-APP_MY_REDSHIFT_JDBC_URL=jdbc:redshift://localhost:5439/hasura_demo;DatabaseName=hasura_demo;OAuthType=0;OAuthServiceAcctEmail=your-service-account-email;OAuthPvtKey=/etc/connector/your-key.json
-```
-
-In the connection string make sure to replace:
-
-- `your-database-name` with your Redshift database name
-- `your-service-account-email` with your IAM user's email
-- `your-key.json` must match the name of the file you placed in the connector folder
-
-### Step 6. Initialize your Redshift connector
-
-```sh title="In your project directory, run:"
-ddn connector init my_redshift -i
-```
-
-From the dropdown, select `/hasura/redshift` (you can type to filter the list), then hit enter to accept the default of
-all the options.
-
-The CLI will output something similar to this:
-
-```plaintext
-HINT To access the local Redshift database:
-- Run: docker compose -f app/connector/my_redshift/compose.redshift-adminer.yaml up -d
-- Open Adminer in your browser at http://localhost:5143 and create tables
-- To connect to the database using other clients use redshift://user:password@local.hasura.dev:8105/dev
-```
-
-### Step 4. Start the local Redshift container and Adminer
-
-```sh title="Use the hint from the CLI output:"
-docker compose -f app/connector/my_redshift/compose.redshift-adminer.yaml up -d
-```
-
-Run `docker ps` to see on which port Adminer is running. Then, you can then navigate to the address below to access it:
-
-```plaintext
-http://localhost:<ADMINER_PORT>
-```
-
 ### Step 5. Create a table in your Redshift database
 
-```sql title="Next, via Adminer select SQL command from the left-hand nav, then enter the following:"
+```sql title="Connect to your Redshift database and create the users table:"
 --- Create the table
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
@@ -148,7 +80,7 @@ INSERT INTO users (name, age) VALUES ('Bob', 30);
 INSERT INTO users (name, age) VALUES ('Charlie', 35);
 ```
 
-You can verify this worked by using Adminer to query all records from the `users` table:
+You can verify this worked by querying all records from the `users` table:
 
 ```sql
 SELECT * FROM users;
@@ -235,7 +167,7 @@ query {
 
 ### Step 11. Iterate on your Redshift schema
 
-```sql title="Via Adminer, add a new table and insert some data to your Redshift database:"
+```sql title="Connect to your Redshift database and add a new table with some data:"
 -- Create the posts table
 CREATE TABLE posts (
   id SERIAL PRIMARY KEY,
@@ -253,7 +185,7 @@ INSERT INTO posts (user_id, title, content) VALUES
   (3, 'Hello World', 'Charlie joins the conversation.');
 ```
 
-```sql title="Using Adminer, verify this by running the following query:"
+```sql title="Verify the data by running the following query:"
 -- Fetch all posts with user information
 SELECT
   posts.id AS post_id,
