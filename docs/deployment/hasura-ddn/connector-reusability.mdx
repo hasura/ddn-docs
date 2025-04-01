@@ -54,9 +54,8 @@ any data domain team's repositories and supergraphs.
 ```sh
 mkdir postgres-connector
 cd postgres-connector
-ddn supergraph init connector-project
-cd connector-project
-ddn connector init -i
+ddn supergraph init .
+ddn connector init my_postgres -i
 ```
 
 After [initializing the connector](/how-to-build-with-ddn/with-postgresql.mdx), you can introspect the database to
@@ -67,16 +66,34 @@ ddn connector introspect my_postgres
 ddn connector show-resources my_postgres
 ```
 
+Add any resources you need:
+
+```sh
+ddn model add my_postgres "*"
+ddn command add my_postgres "*"
+ddn relationship add my_postgres "*"
+```
+
 Determine where the connector should be deployed. If you are using public DDN you will need a project:
 
 ```sh
 ddn project init
 ```
 
+This will respond with a project ID and the subgraphs which were created. It will also create a `.env.cloud` file with
+some initial values.
+
+In this file, add a `HASURA_SERVICE_TOKEN_SECRET` environment variable with a random value. This will be used to secure
+and authenticate the connector when it is built and deployed.
+
+```env
+APP_MY_POSTGRES_HASURA_SERVICE_TOKEN_SECRET="fdAwGRXSTVAe-gSdTpRtxw=="
+```
+
 Next, build and deploy the connector to Hasura DDN:
 
 ```sh
-ddn connector build create --connector ./app/connector/mypostgres/connector.yaml --target-env-file ./.env.cloud  --target-subgraph ./app/subgraph.yaml --target-connector-link mypostgres
+ddn connector build create --connector ./app/connector/my_postgres/connector.yaml --target-env-file ./.env.cloud  --target-subgraph ./app/subgraph.yaml --target-connector-link my_postgres
 ```
 
 The command will respond with the ID, read and write URLs and authorization header for the deployed connector, for
@@ -84,19 +101,19 @@ example:
 
 ```text
 +--------------------------+------------------------------------------------------------------------------------------------------+
-| ConnectorBuild Id        | 340ec317-ac19-4e87-9bcc-2b8f348f9b0a                                                                 |
+| ConnectorBuild Id        | 240ec317-ac19-4e87-9bcc-2b8f348f9b0a                                                                 |
 +--------------------------+------------------------------------------------------------------------------------------------------+
-| ConnectorBuild Read URL  | http://c7-bzh3anilpx.gcp.postgres.ndc.internal/deployment/340ec319-ac19-4e87-9bcc-2b8f348f9b0a-read  |
+| ConnectorBuild Read URL  | http://c7-bzh3anilpx.gcp.postgres.ndc.internal/deployment/240ec317-ac19-4e87-9bcc-2b8f348f9b0a-read  |
 +--------------------------+------------------------------------------------------------------------------------------------------+
-| ConnectorBuild Write URL | http://c7-bzh3anilpx.gcp.postgres.ndc.internal/deployment/340ec319-ac19-4e87-9bcc-2b8f348f9b0a-write |
+| ConnectorBuild Write URL | http://c7-bzh3anilpx.gcp.postgres.ndc.internal/deployment/240ec317-ac19-4e87-9bcc-2b8f348f9b0a-write |
 +--------------------------+------------------------------------------------------------------------------------------------------+
-| Authorization Header     | Bearer Q2ceb6OjFGGpkoWMkt2JsWHRjMpJ5lmDGpORwhVHgVg=                                                  |
+| Authorization Header     | Bearer Q2ceb6OjFGGpkoWMkt2JsWHRjMpJ5lmEGpORwhVHgVg=                                                  |
 +--------------------------+------------------------------------------------------------------------------------------------------+
 ```
 
 The read and write URLs and authorization header will be written to the `.env.cloud` file.
 
-### Step 2. Data Domain Teams: Initialize their subgraphs
+### Step 2. Other Data Domain Teams: Initialize their subgraphs
 
 Each data domain team (like "Products" or "Reviews") should initialize their own project and create a stub
 DataConnectorLink:
@@ -104,36 +121,59 @@ DataConnectorLink:
 ```sh
 ddn supergraph init products-project
 cd products-project
-ddn connector-link add my_postgres
 ```
 
-This creates a stub DataConnectorLink object in their project. They should then replace the schema object in the
-DataConnectorLink with the one from the connector deployment repository. The schema object contains the database
-structure and capabilities.
+### Step 3. Other Data Domain Teams: Use the deployed connector
 
-### Step 3. Data Domain Teams: Use the deployed connector
+It is now not necesary for each data domain team to have the database connection string in their subgraph.
 
-Each team should obtain two things:
+Each data domain team should obtain two things from the connector deployment repository:
 
-1. The schema object from the DataConnectorLink from the connector repository
+1. The schema object from the `DataConnectorLink` from the connector repository
 2. The read and write URLs from the `.env.cloud` file from the team that deployed the connector
 
-First, copy the schema object from the connector repository's DataConnectorLink into your team's DataConnectorLink.
-Then, add the connector URLs and authorization header to your team's `.env.cloud` file:
+#### Step 3.1
 
-```env
-APP_MYPOSTGRES_AUTHORIZATION_HEADER="Bearer <authorization-header>"
-APP_MYPOSTGRES_READ_URL="http://<build-id>.gcp.postgres.ndc.internal/deployment/<uuid>-read"
-APP_MYPOSTGRES_WRITE_URL="http://<build-id>.gcp.postgres.ndc.internal/deployment/<uuid>-write"
+```sh
+ddn connector init my_postgres --hub-connector hasura/postgres
 ```
+
+This will create a stub `DataConnectorLink` object in their project.
+
+#### Step 3.2
+
+Copy the `DataConnectorLink` object from the connector repository's `app/metadata/my_postgres.hml` file and replace it
+in your team's `app/metadata/my_postgres.hml` file. This contains the database structure and capabilities.
+
+#### Step 3.3
 
 Now you can introspect and add the models, commands, and relationships which you need for your specific use case:
 
 ```sh
 ddn connector show-resources my_postgres
-ddn connector models add "*"
-ddn connector commands add "*"
-ddn connector relationships add "*"
+ddn model add my_postgres "*"
+ddn command add my_postgres "*"
+ddn relationship add my_postgres "*"
+```
+
+#### Step 3.4
+
+Initialize the project:
+
+```sh
+ddn project init
+```
+
+#### Step 3.5
+
+Then, replace the connector URLs, authorization header and service token secret in your team's `.env.cloud` file with
+the values from the connector repository:
+
+```env
+APP_MY_POSTGRES_AUTHORIZATION_HEADER="Bearer <authorization-header>"
+APP_MY_POSTGRES_READ_URL="http://<build-id>.gcp.postgres.ndc.internal/deployment/<uuid>-read"
+APP_MY_POSTGRES_WRITE_URL="http://<build-id>.gcp.postgres.ndc.internal/deployment/<uuid>-write"
+APP_MY_POSTGRES_HASURA_SERVICE_TOKEN_SECRET="<hasura-service-token-secret>"
 ```
 
 ### Step 4. Data Domain Teams: Build and deploy their supergraphs
