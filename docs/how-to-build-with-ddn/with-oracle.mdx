@@ -31,16 +31,6 @@ This tutorial assumes you're starting from scratch. We'll use an Docker containe
 but you can easily follow the steps if you already have data seeded in an existing Oracle database; Hasura will never
 modify your source schema.
 
-:::warning Oracle on Apple Silicon
-
-Oracle does not support Apple Silicon. If you are using an Apple Silicon Mac, you can use Colima to run Oracle.
-
-1. Install [Colima](https://github.com/abiosoft/colima#installation)
-2. Run `colima start --arch x86_64 --memory 4`
-3. Run the Docker commands below as normal
-
-:::
-
 <Prereqs />
 
 ## Tutorial
@@ -95,6 +85,17 @@ docker run -d \
   gvenzl/oracle-xe:21.3.0-slim
 ```
 
+:::tip Startup time
+
+The Oracle container may take a minute or so to start up. You can check on its progress by running
+`docker logs oracle-server`. You should see something like the following:
+
+```plaintext
+DATABASE IS READY TO USE!
+```
+
+:::
+
 ```sh title="Use the SQL*PLUS shell to start the SQL prompt:"
 docker exec -it oracle-server sqlplus example/mypassword@local.hasura.dev:1521/XEPDB1
 ```
@@ -136,8 +137,8 @@ ddn connector show-resources my_oracle
 ddn models add my_oracle "EXAMPLE.USERS"
 ```
 
-Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
-Metadata Language file to represent the `users` table from Oracle in your API as a
+Open the `app/metadata` directory and you'll find a newly-generated file: `ExampleUsers.hml`. The DDN CLI will use this
+Hasura Hasura Metadata Language file to represent the `users` table from Oracle in your API as a
 [model](/reference/metadata-reference/models.mdx).
 
 ### Step 7. Create a new build
@@ -308,7 +309,7 @@ query GetPosts {
 
 ### Step 13. Create a relationship
 
-```yaml title="Open the Posts.hml file and add the following to the end:"
+```yaml title="Open the ExamplePosts.hml file and add the following to the end:"
 ---
 kind: Relationship
 version: v1
@@ -427,5 +428,6 @@ Here's what you just accomplished:
 
 Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
 
-Take a look at our Oracle docs to learn more about how to use Hasura DDN with Oracle. Or, if you're ready, get started
-with adding [permissions](/reference/metadata-reference/permissions.mdx) to control access to your API.
+Take a look at our [Oracle docs](/reference/connectors/oracle/index.mdx) to learn more about how to use Hasura DDN with
+Oracle. Or, if you're ready, get started with adding [permissions](/reference/metadata-reference/permissions.mdx) to
+control access to your API.
