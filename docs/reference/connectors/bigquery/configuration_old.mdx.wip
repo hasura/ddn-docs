@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 sidebar_label: Configuration
 description:
   "Reference documentation for the setup process for the Hasura BigQuery connector, including connection URI details,
@@ -9,14 +9,14 @@ keywords:
   - configuration
 ---
 
-# Configuration Reference
+# Configuration Reference for BigQuery
 
 ## Introduction
 
-The configuration is a metadata object that lists all the database entities — such as tables — that the data connector
-has to know about in order to serve queries. It never changes during the lifetime of the data connector service
-instance. When your database schema changes you will have to update the configuration accordingly, see
-[updating with introspection](#updating-with-introspection).
+The configuration is a metadata object that lists all the BigQuery entities — such as tables, views, and materialized
+views — that the data connector needs to know about to serve queries effectively. This configuration remains static
+during the lifetime of the data connector service instance. When your BigQuery schema changes, you will need to update
+the configuration accordingly through the provided introspection process.
 
 ## Structure
 
@@ -24,6 +24,7 @@ The configuration object is a JSON object with the following fields:
 
 ```json
 {
+  "version": "v1",
   "connection_uri": {
     "value": "...",
     "variable": "..."
@@ -34,14 +35,24 @@ The configuration object is a JSON object with the following fields:
     "connection_timeout": 30000,
     "initialization_fail_timeout": 30000
   },
-  "schemas": ["public"],
-  "tables": [...],
+  "schemas": [],
+  "tables": [],
   "functions": [],
   "native_operations": {}
 }
 ```
 
-### Property: connection_uri
+### Property: version
+
+Specifies the version of the configuration format. Currently, only "v1" is supported.
+
+```json
+{
+  "version": "v1"
+}
+```
+
+### Property: connection_uri {#connection-uri}
 
 The connection URI for the BigQuery database. This is a required field that can be specified either as a direct string
 value or as a reference to an environment variable:
@@ -64,16 +75,34 @@ Or using an environment variable:
 }
 ```
 
-### Property: schemas
+### Property: connection_pool_settings
 
-This is an optional array of schema names to include in the introspection process. If not provided, all schemas will be
-included. **Any schema passed in the JDBC URL will take precedence.**
-
-Example:
+Optional settings to configure the connection pool:
 
 ```json
 {
-  "schemas": ["schema1", "schema2"]
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  }
+}
+```
+
+- `max_connections`: Maximum number of connections in the pool (default: 10)
+- `min_idle`: Minimum number of idle connections maintained in the pool (default: 1)
+- `connection_timeout`: Maximum time in milliseconds to wait for a connection from the pool (default: 30000)
+- `initialization_fail_timeout`: Maximum time in milliseconds to wait for the pool to be initialized (default: 30000)
+
+### Property: schemas
+
+An optional array of schema names to include in the introspection process. If not provided, all accessible schemas will
+be introspected.
+
+```json
+{
+  "schemas": ["mydataset1", "mydataset2"]
 }
 ```
 
@@ -145,6 +174,68 @@ Example:
   ]
 }
 ```
+
+#### Column Types
+
+BigQuery supports several data types, which are represented in the configuration as follows:
+
+1. **Scalar Types**:
+
+   ```json
+   {
+     "scalar_type": "STRING"
+   }
+   ```
+
+   Supported scalar types include:
+
+   - `STRING`
+   - `INT64`
+   - `FLOAT64`
+   - `NUMERIC`
+   - `BIGNUMERIC`
+   - `BOOLEAN`
+   - `DATE`
+   - `DATETIME`
+   - `TIME`
+   - `TIMESTAMP`
+   - `BYTES`
+   - `GEOGRAPHY`
+   - `JSON`
+
+2. **Array Types**:
+
+   ```json
+   {
+     "array_type": {
+       "scalar_type": "STRING"
+     }
+   }
+   ```
+
+3. **Range Types**:
+
+   ```json
+   {
+     "range_type": "DATE"
+   }
+   ```
+
+   Supported range types:
+
+   - `DATE`
+   - `DATETIME`
+   - `TIMESTAMP`
+
+4. **Struct Types**:
+   ```json
+   {
+     "struct_type": {
+       "field1": { "scalar_type": "STRING" },
+       "field2": { "scalar_type": "INT64" }
+     }
+   }
+   ```
 
 ### Property: functions
 
