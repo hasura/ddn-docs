@@ -58,6 +58,8 @@ ddn supergraph init .
 ddn connector init my_postgres -i
 ```
 
+#### Step 1.1: Introspect the database
+
 After [initializing the connector](/how-to-build-with-ddn/with-postgresql.mdx), you can introspect the database to
 understand its structure:
 
@@ -66,6 +68,8 @@ ddn connector introspect my_postgres
 ddn connector show-resources my_postgres
 ```
 
+#### Step 1.2: Add resources
+
 Add any resources you need:
 
 ```sh
@@ -73,6 +77,21 @@ ddn model add my_postgres "*"
 ddn command add my_postgres "*"
 ddn relationship add my_postgres "*"
 ```
+
+#### Step 1.3: Set a connector region
+
+Optionally, [set a region for the connector](/deployment/hasura-ddn/region-routing.mdx):
+
+```yaml title="app/connector/my_postgres/connector.yaml"
+regionConfiguration:
+  - region: gcp-us-west2
+    mode: ReadWrite
+    envMapping:
+      CONNECTION_URI:
+        fromEnv: APP_MY_POSTGRES_CONNECTION_URI
+```
+
+#### Step 1.4: Initialize a project
 
 Determine where the connector should be deployed. If you are using public DDN you will need a project:
 
@@ -83,14 +102,18 @@ ddn project init
 This will respond with a project ID and the subgraphs which were created. It will also create a `.env.cloud` file with
 some initial values.
 
-In this file, add a `HASURA_SERVICE_TOKEN_SECRET` environment variable with a random value. This will be used to secure
-and authenticate the connector when it is built and deployed.
+#### Step 1.5: Add a service token secret
+
+In `.env.cloud` file, add a `HASURA_SERVICE_TOKEN_SECRET` environment variable with a random value. This will be used to
+secure and authenticate the connector when it is built and deployed.
 
 ```env
 APP_MY_POSTGRES_HASURA_SERVICE_TOKEN_SECRET="fdAwGRXSTVAe-gSdTpRtxw=="
 ```
 
-Next, build and deploy the connector to Hasura DDN:
+#### Step 1.6: Build and deploy the connector
+
+Build and deploy the connector to Hasura DDN:
 
 ```sh
 ddn connector build create --connector ./app/connector/my_postgres/connector.yaml --target-env-file ./.env.cloud  --target-subgraph ./app/subgraph.yaml --target-connector-link my_postgres
