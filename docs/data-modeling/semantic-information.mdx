@@ -1,0 +1,248 @@
+---
+title: "Semantic Information"
+description: "Add additional semantic information to DDN project metadata using the description column"
+---
+
+# Semantic Information in PromptQL
+
+PromptQL uses Hasura DDN project metadata to understand your data model and create appropriate query plans. While the
+basic metadata provides structural information, adding semantic descriptions helps the LLM better understand the context
+and purpose of your data model elements.
+
+## Overview
+
+The `description` field can be added to various metadata elements to provide semantic context:
+
+- Models (database tables)
+- Commands (custom functions)
+- Fields (table columns)
+- Arguments (function parameters)
+- Relationships
+- Types
+
+## Adding Descriptions
+
+### Commands
+
+When defining custom functions, use the `description` field to explain:
+
+- Purpose of the function
+- Expected inputs and their formats
+- Return value structure
+- Usage examples
+- Any important constraints or limitations
+
+**Example: Web Search Command**
+
+```yaml
+kind: Command
+version: v1
+definition:
+  name: WebSearch
+  graphql:
+    rootFieldName: webSearch
+    rootFieldKind: Query
+  description: |
+    Perform a web search using DuckDuckGo and return the results.
+    Takes in default input arguments for limit and region.
+    limit is the number of results to return, default 10.
+    region is the region to search in, default "us-en".
+
+    Args:
+        search_term (str): The term to search for.
+
+    Returns:
+        List[Result]: A list of search result objects.
+  arguments:
+    - name: searchTerm
+      type: String!
+      description: The search query term to look up. Should be a clear, specific search phrase.
+    - name: limit
+      type: Int!
+      description: Maximum number of search results to return. Must be between 1 and 100.
+    - name: region
+      type: String!
+      description: Geographic region code for search results (e.g., us-en, uk-en).
+  source:
+    dataConnectorName: duckduckgo
+    argumentMapping:
+      limit: limit
+      region: region
+      searchTerm: search_term
+    dataConnectorCommand:
+      function: web_search
+  outputType: "[WebSearch!]!"
+```
+
+### Models (Database Tables)
+
+For database tables, describe:
+
+- What the table represents
+- Key relationships
+- Important business rules
+- Data lifecycle information
+
+**Example: Customer Table**
+
+```yaml
+kind: Model
+version: v1
+definition:
+  name: customers
+  description: |
+    Stores customer information for both individual and business accounts.
+    Customers can have multiple addresses and orders.
+    Inactive customers are soft-deleted (is_active=false) rather than removed.
+    Customer IDs are globally unique across all regions.
+  fields:
+    - name: id
+      type: uuid
+      description: Globally unique identifier for the customer. Used across all systems.
+    - name: customer_type
+      type: String
+      description: Type of customer account: 'individual' or 'business'. Affects pricing and service levels.
+    - name: is_active
+      type: Boolean
+      description: |
+        Indicates if the customer account is active.
+        False means soft-deleted, but records are retained for compliance.
+```
+
+### Fields (Table Columns)
+
+For fields, describe:
+
+- Purpose of the field
+- Valid values or ranges
+- Business rules affecting the field
+- Special formats or patterns
+
+**Example: Order Status Field**
+
+```yaml
+name: status
+type: String
+description: |
+  Current status of the order.
+  Possible values:
+  - 'pending': Initial state
+  - 'processing': Payment confirmed
+  - 'shipped': Order dispatched
+  - 'delivered': Confirmed receipt
+  - 'cancelled': Order cancelled
+  Only moves forward except for 'cancelled' state.
+```
+
+### Relationships
+
+Describe the business meaning of relationships and any important constraints.
+
+**Example: Customer-Order Relationship**
+
+```yaml
+kind: Relationship
+version: v1
+definition:
+  name: customer_orders
+  source: customers
+  target: orders
+  description: |
+    Links customers to their orders. One customer can have multiple orders.
+    Orders cannot exist without a customer.
+    Historical orders are retained even if customer is deactivated.
+```
+
+## Best Practices
+
+1. **Be Specific**
+
+   - Use clear, unambiguous language
+   - Include specific constraints and rules
+   - Mention edge cases and special handling
+
+2. **Structure Descriptions**
+
+   - Use consistent formatting
+   - Break into sections for complex descriptions
+   - Include examples for unclear cases
+
+3. **Include Business Context**
+
+   - Explain why, not just what
+   - Reference business rules
+   - Note dependencies and relationships
+
+4. **Document Constraints**
+   - Value ranges and formats
+   - Required fields
+   - Validation rules
+   - Update conditions
+
+## Example: Complete Model with Semantic Information
+
+Here's a comprehensive example showing semantic descriptions at multiple levels:
+
+```yaml
+kind: Model
+version: v1
+definition:
+  name: product_inventory
+  description: |
+    Manages product inventory across all warehouses.
+    Updated in real-time with inventory movements.
+    Integrates with order processing and procurement systems.
+    Maintains historical inventory levels with daily snapshots.
+  fields:
+    - name: product_id
+      type: uuid
+      description: Unique product identifier. References master product catalog.
+
+    - name: warehouse_id
+      type: uuid
+      description: Identifier of the warehouse where product is stored. Foreign key to warehouses table.
+
+    - name: quantity_available
+      type: Int
+      description: |
+        Current available quantity for sale.
+        Excludes reserved and damaged items.
+        Negative values not allowed.
+        Updated via inventory_movement table.
+
+    - name: reorder_point
+      type: Int
+      description: |
+        Quantity threshold that triggers reorder.
+        Calculated weekly based on 30-day moving average of daily sales.
+        Must be greater than zero.
+
+    - name: last_counted_at
+      type: timestamp
+      description: |
+        Timestamp of last physical inventory count.
+        Updated by inventory audit process.
+        Should not be more than 30 days old.
+
+  relationships:
+    - name: warehouse
+      target: warehouses
+      description: Links to warehouse details. Each product-warehouse combination must be unique.
+
+    - name: product
+      target: products
+      description: Links to product master data. Inactive products still maintain inventory records.
+```
+
+## Impact of Semantic Metadata on PromptQL
+
+Good semantic information helps PromptQL:
+
+- Generate more accurate query plans
+- Better understand business rules and constraints
+- Make appropriate choices for data filtering and aggregation
+- Provide more relevant responses to natural language queries
+- Handle edge cases correctly
+
+The more crisper and relevant context you provide through descriptions, the better PromptQL can understand and work with
+your data model.

@@ -21,16 +21,16 @@ function HomepageHeader() {
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
         </div>
-        <div className='flex justify-center flex-w'>
+        <div className="flex justify-center flex-w">
           <Link className="button button--primary button--lg m-2" to="/index">
-            Hasura Docs
+            Hasura PromptQL Docs
           </Link>
           <Link className="button button--secondary button--lg m-2" to="/wiki/">
             Docs Wiki
           </Link>
         </div>
-        <div className={"flex justify-center"}>
-          <img src={useBaseUrl('/img/hasuras.png')} alt="Hasuras Image"/>
+        <div className={'flex justify-center'}>
+          <img src={useBaseUrl('/img/hasuras.png')} alt="Hasuras Image" />
         </div>
       </div>
     </header>

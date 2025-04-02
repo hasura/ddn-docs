@@ -21,14 +21,15 @@ keywords:
 ---
 
 import Prereqs from "@site/docs/_prereqs.mdx";
+import { PqlChat, User, Pql, QueryPlanComponent } from "@site/src/components/PqlChat/PqlChat";
 
-# Get Started with Hasura DDN and PostgreSQL
+# Get Started with Hasura PromptQL and PostgreSQL
 
 ## Overview
 
 This tutorial takes about twenty minutes to complete. You'll learn how to:
 
-- Set up a new Hasura DDN project
+- Set up a new Hasura DDN project to use with PromptQL
 - Connect it to a PostgreSQL database
 - Generate Hasura metadata
 - Create a build
@@ -36,7 +37,7 @@ This tutorial takes about twenty minutes to complete. You'll learn how to:
 - Create relationships
 - Mutate data
 
-Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your API.
+Additionally, we'll familiarize you with the steps and workflows necessary to iterate on your data source.
 
 This tutorial assumes you're starting from scratch; a PostgreSQL docker image ships with the data connector you'll use
 in just a bit to connect a locally-running database to Hasura, but you can easily follow the steps if you already have
@@ -48,7 +49,7 @@ data seeded; Hasura will never modify your source schema.
 
 ### Step 1. Authenticate your CLI
 
-```sh title="Before you can create a new Hasura DDN project, you need to authenticate your CLI:"
+```sh title="Before you can create a new Hasura DDN project for PromptQL, you need to authenticate your CLI:"
 ddn auth login
 ```
 
@@ -58,7 +59,7 @@ acknowledge your login, giving you access to Hasura Cloud resources.
 ### Step 2. Scaffold out a new local project
 
 ```sh title="Next, create a new local project:"
-ddn supergraph init my-project && cd my-project
+ddn supergraph init my-project --with-promptql && cd my-project
 ```
 
 Once you move into this directory, you'll see your project scaffolded out for you. You can view the structure by either
@@ -105,9 +106,11 @@ CREATE TABLE users (
 );
 
 --- Insert some data
-INSERT INTO users (name, age) VALUES ('Alice', 25);
-INSERT INTO users (name, age) VALUES ('Bob', 30);
-INSERT INTO users (name, age) VALUES ('Charlie', 35);
+INSERT INTO users (name, age)
+VALUES
+  ('Alice', 25),
+  ('Bob', 30),
+  ('Charlie', 35);
 ```
 
 You can verify this worked by using Adminer to query all records from the `users` table:
@@ -125,7 +128,7 @@ ddn connector introspect my_pg
 After running this, you should see a representation of your database's schema in the
 `app/connector/my_pg/configuration.json` file; you can view this using `cat` or open the file in your editor.
 
-```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
+```sh title="Additionally, you can check which resources are available — and their status — at any point using the CLI:"
 ddn connector show-resources my_pg
 ```
 
@@ -136,8 +139,66 @@ ddn model add my_pg users
 ```
 
 Open the `app/metadata` directory and you'll find a newly-generated file: `Users.hml`. The DDN CLI will use this Hasura
-Metadata Language file to represent the `users` table from PostgreSQL in your API as a
+Metadata Language file to represent the `users` table from PostgreSQL to PromptQL as a
 [model](/reference/metadata-reference/models.mdx).
+
+### Step 8. Add semantic information to your model
+
+It is highly recommended to provide extra natural language descriptions of the resources in your project so that the LLM
+can better understand your data model and create appropriate query plans.
+
+The description field can be added to various metadata elements to provide semantic context.
+
+Let's add a description to the `users` table. Find the Model definition in the `users.hml` file in the `app/metadata/`
+directory and add a description:
+
+```yaml
+---
+kind: Model
+version: v2
+definition:
+  name: users
+  # highlight-start
+  description: |
+    Users are the people who use the app. 
+    They have a name, age, and id. 
+    They include customers and administrators.
+    The id is an auto-incrementing integer.
+  # highlight-end
+  objectType: users
+  source:
+    dataConnectorName: my_pg
+    collection: users
+  filterExpressionType: users_bool_exp
+  aggregateExpression: users_agg_exp
+  orderByExpression: users_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: users
+      subscription:
+        rootField: users
+    selectUniques:
+      - queryRootField: users_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: users_by_id
+    filterInputTypeName: users_filter_input
+    aggregate:
+      queryRootField: users_aggregate
+      subscription:
+        rootField: users_aggregate
+```
+
+For this demo the description is very basic but in a real app with Models representing database tables it's important to
+describe:
+
+- What the table represents
+- Key relationships
+- Important business rules
+- Data lifecycle information
+
+See more about [semantic information here](/data-modeling/semantic-information.mdx).
 
 ### Step 8. Create a new build
 
@@ -155,45 +216,25 @@ ddn run docker-start
 
 Your terminal will be taken over by logs for the different services.
 
-### Step 10. Run your first query
+### Step 10. Chat about the users
 
 ```sh title="In a new terminal tab, open your local console:"
 ddn console --local
 ```
 
-```graphql title="In the GraphiQL explorer of the console, write this query:"
-query {
-  users {
-    id
-    name
-    age
-  }
-}
-```
+Once the PromptQL interface is open, ask a question about your data:
 
-```json title="You'll get the following response:"
-{
-  "data": {
-    "users": [
-      {
-        "id": 1,
-        "name": "Alice",
-        "age": 25
-      },
-      {
-        "id": 2,
-        "name": "Bob",
-        "age": 30
-      },
-      {
-        "id": 3,
-        "name": "Charlie",
-        "age": 35
-      }
-    ]
-  }
-}
-```
+<PqlChat>
+  <User>How many users are there?</User>
+  <Pql>
+    I'll count the number of users in the database.
+    <QueryPlanComponent>
+      1. Query the app.users table to count the total number of users <br />
+      2. Store the result in a table artifact
+    </QueryPlanComponent>
+  </Pql>
+  <Pql>There are 3 users in the database.</Pql>
+</PqlChat>
 
 ### Step 11. Iterate on your PostgreSQL schema
 
@@ -252,7 +293,49 @@ In `app/connector/my_pg/configuration.json`, you'll see schema updated to includ
 #### Step 12.2. Update your metadata
 
 ```sh title="Add the posts model:"
-ddn model add my_pg "posts"
+ddn model add my_pg posts
+```
+
+#### Step 12.3. Describe your model
+
+In the same way we described the `users` model, we can describe the `posts` model so that the LLM can better understand
+the data and create appropriate query plans:
+
+```yaml
+---
+kind: Model
+version: v2
+definition:
+  name: posts
+  # highlight-start
+  description: |
+    Posts are the blog-like content that users create. They have a id, title, content, created_at, and user_id. 
+    User_id is a foreign key to the users table and represents the author of the post. If a user is deleted, 
+    their post will be deleted. user_id is a required field.
+  # highlight-end
+  objectType: posts
+  source:
+    dataConnectorName: my_pg
+    collection: posts
+  filterExpressionType: posts_bool_exp
+  aggregateExpression: posts_agg_exp
+  orderByExpression: posts_order_by_exp
+  graphql:
+    selectMany:
+      queryRootField: posts
+      subscription:
+        rootField: posts
+    selectUniques:
+      - queryRootField: posts_by_id
+        uniqueIdentifier:
+          - id
+        subscription:
+          rootField: posts_by_id
+    filterInputTypeName: posts_filter_input
+    aggregate:
+      queryRootField: posts_aggregate
+      subscription:
+        rootField: posts_aggregate
 ```
 
 #### Step 12.3. Create a new build
@@ -267,55 +350,86 @@ ddn supergraph build local
 ddn run docker-start
 ```
 
-### Step 13. Query your new build
+### Step 13. Chat about the posts
 
-```graphql title="Head back to your console and query the posts model:"
-query GetPosts {
-  posts {
-    id
-    title
-    content
-  }
-}
-```
+Open the PromptQL interface and ask another question about your data:
 
-```json title="You'll get a response like this:"
-{
-  "data": {
-    "posts": [
-      {
-        "id": 1,
-        "title": "My First Post",
-        "content": "This is Alice's first post."
-      },
-      {
-        "id": 2,
-        "title": "Another Post",
-        "content": "Alice writes again!"
-      },
-      {
-        "id": 3,
-        "title": "Bob's Post",
-        "content": "Bob shares his thoughts."
-      },
-      {
-        "id": 4,
-        "title": "Hello World",
-        "content": "Charlie joins the conversation."
-      }
-    ]
-  }
-}
-```
+<PqlChat>
+  <User>Show me the titles of all the posts.</User>
+  <Pql>
+    I'll retrieve all post titles from the database.
+    <QueryPlanComponent>
+      1. Query the app.posts table to get all post titles <br />
+      2. Store the results in a table artifact for display
+    </QueryPlanComponent>
+  </Pql>
+  <Pql>
+    <div>
+      Here are all the posts:
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>My First Post</td>
+          </tr>
+          <tr>
+            <td>Another Post</td>
+          </tr>
+          <tr>
+            <td>Bob's Post</td>
+          </tr>
+          <tr>
+            <td>Hello World</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </Pql>
+</PqlChat>
 
 ### Step 14. Create a relationship
 
 ```sh title="Since there's already a foreign key on the posts table in PostgreSQL, we can easily add the relationship:"
-ddn relationship add my_pg "posts"
+ddn relationship add my_pg posts
 ```
 
 You'll see a new metadata object added to the `app/metadata/posts.hml` file of kind `Relationship` explaining the
 relationship between `posts` and `users`.
+
+### Step 15. Add a description to the relationship
+
+Again, it's important to provide semantic information to the LLM so that it can create appropriate query plans.
+
+```yaml
+---
+kind: Relationship
+version: v1
+definition:
+  name: user
+  # highlight-start
+  description: |
+    References the user who created the post. 
+    One user can have many posts. 
+    Posts cannot exist without a user. 
+    Posts are deleted when the user is deleted.
+  # highlight-end
+  sourceType: posts
+  target:
+    model:
+      name: users
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: user_id
+      target:
+        modelField:
+          - fieldName: id
+```
 
 ### Step 15. Rebuild your project
 
@@ -327,71 +441,49 @@ ddn supergraph build local
 ddn run docker-start
 ```
 
-### Step 16. Query using your relationship
+### Step 16. Chat with your data using the relationship
 
-```graphql title="Now, execute a nested query using your relationship:"
-query GetPosts {
-  posts {
-    id
-    title
-    content
-    user {
-      id
-      name
-      age
-    }
-  }
-}
-```
+Open the PromptQL interface and ask another question about your data:
 
-```json title="Which should return a result like this:"
-{
-  "data": {
-    "posts": [
-      {
-        "id": 1,
-        "title": "My First Post",
-        "content": "This is Alice's first post.",
-        "user": {
-          "id": 1,
-          "name": "Alice",
-          "age": 25
-        }
-      },
-      {
-        "id": 2,
-        "title": "Another Post",
-        "content": "Alice writes again!",
-        "user": {
-          "id": 1,
-          "name": "Alice",
-          "age": 25
-        }
-      },
-      {
-        "id": 3,
-        "title": "Bob's Post",
-        "content": "Bob shares his thoughts.",
-        "user": {
-          "id": 2,
-          "name": "Bob",
-          "age": 30
-        }
-      },
-      {
-        "id": 4,
-        "title": "Hello World",
-        "content": "Charlie joins the conversation.",
-        "user": {
-          "id": 3,
-          "name": "Charlie",
-          "age": 35
-        }
-      }
-    ]
-  }
-}
-```
+<PqlChat>
+  <User>Show me all the posts that Alice has written and their content</User>
+  <Pql>
+    I'll help you find all posts written by Alice. Let me query the posts and join with the users table to find Alice's
+    posts.
+    <QueryPlanComponent>
+      1. Join the posts and users tables to find posts where the user's name is 'Alice' <br />
+      2. Select the post title, content, and creation timestamp <br />
+      3. Order the posts by creation timestamp (most recent first) <br />
+      4. Store the results in an artifact for display
+    </QueryPlanComponent>
+  </Pql>
+  <Pql>
+    <div>
+      Here are all of Alice's posts:
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>My First Post</td>
+            <td>This is Alice's first post.</td>
+            <td>2025-04-02T12:57:40.981280</td>
+          </tr>
+          <tr>
+            <td>Another Post</td>
+            <td>Alice writes again!</td>
+            <td>2025-04-02T12:57:40.981280</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </Pql>
+</PqlChat>
 
 ### Step 17. Add all commands
 
@@ -405,6 +497,28 @@ ddn command add my_pg "*"
 You'll see newly-generated metadata files in the `metadata` directory for your connector that represent insert, update,
 and delete operations.
 
+Step 18. Describe the commands
+
+As ever, it's important to provide semantic information to the LLM so that it can create appropriate query plans. For
+example, for the `insert_users` command, we can add a description to the metadata:
+
+```yaml
+description: |
+  Insert one or more new users into the users table.
+
+  Args:
+      objects: Array of user objects to insert, each containing:
+          - name (text!): The name of the user
+          - age (int_4!): The age of the user
+          - id (int_4): Optional ID for the user (auto-generated if not provided)
+      post_check: Optional permission predicate to validate the inserted data
+
+  Returns:
+      insert_users_response containing:
+          - affected_rows: Number of rows inserted
+          - returning: Array of the inserted user objects
+```
+
 ```sh title="As your metadata has changed, create a new build:"
 ddn supergraph build local
 ```
@@ -413,46 +527,39 @@ ddn supergraph build local
 ddn run docker-start
 ```
 
-### Step 18. Insert new data
+### Step 18. Add a new user using natural language
 
-```graphql title="Create a new post for Charlie:"
-mutation InsertSinglePost {
-  insertPosts(
-    objects: {
-      content: "I am an expert in Bird Law and I demand satisfaction."
-      title: "Charlie has more to say"
-      userId: "3"
-    }
-  ) {
-    returning {
-      id
-      title
-      content
-      user {
-        id
-        name
-      }
-    }
-  }
-}
-```
+<PqlChat>
+  <User>Insert a new user Alex who is 57 years old.</User>
+  <Pql>
+    I'll help you insert a new user named Alex into the database.
+    <QueryPlanComponent>
+      1. Insert a new row into the app.users table with: <br />
+      name = 'Alex' <br />
+      age = 57 <br />
+      The id will be auto-generated by the database <br />
+      2. Verify the insertion by retrieving the newly inserted user
+    </QueryPlanComponent>
+  </Pql>
+  <Pql>Alex, age 57, has been inserted into the database.</Pql>
+</PqlChat>
 
 You should see a response that returns your inserted data along with the `id` and `name` fields for the author.
 
 ## Next steps
 
-Congratulations on completing your first Hasura DDN project with PostgreSQL! 🎉
+Congratulations on completing your first Hasura PromptQL project with PostgreSQL! 🎉
 
 Here's what you just accomplished:
 
 - You started with a fresh project and connected it to a local PostgreSQL database.
-- You set up metadata to represent your tables and relationships, which acts as the blueprint for your API.
-- Then, you created a build — essentially compiling everything into a ready-to-use API — and successfully ran your first
-  GraphQL queries to fetch data.
+- You set up metadata to represent your tables and relationships, which acts as the blueprint for PromptQL.
+- Then, you created a build — essentially compiling everything into a ready-to-use structure — and successfully ran your
+  first PromptQL queries to fetch data.
 - Along the way, you learned how to iterate on your schema and refresh your metadata to reflect changes.
-- Finally, we looked at how to enable mutations and insert data using your new API.
+- Finally, we looked at how to enable mutations and insert data using PromptQL.
 
 Now, you're equipped to connect and expose your data, empowering you to iterate and scale with confidence. Great work!
 
-Take a look at our PostgreSQL docs to learn more about how to use Hasura DDN with PostgreSQL. Or, if you're ready, get
-started with adding [permissions](/auth/permissions/index.mdx) to control access to your API.
+Take a look at our PostgreSQL docs to learn more about how to use Hasura PromptQL with PostgreSQL. Or, if you're ready,
+get started with adding [permissions](/auth/permissions/index.mdx) to control access to your data.

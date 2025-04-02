@@ -23,8 +23,8 @@ const BOT_ROUTES = {
 };
 
 const config: Config = {
-  title: 'Hasura DDN Docs',
-  tagline: 'Instant GraphQL on all your data',
+  title: 'Hasura PromptQL Docs',
+  tagline: 'Talk to your data with natural language',
   favicon: 'img/favicon.png',
 
   // Set the production url of your site here
