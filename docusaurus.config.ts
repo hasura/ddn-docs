@@ -145,10 +145,6 @@ const config: Config = {
       apiKey: '10f3d9d2cd836eec903fcabbd6d50139',
       indexName: 'hasura',
     },
-    announcementBar: {
-      id: 'announcementBar-5', // Increment on change
-      content: `This is the documentation for Hasura DDN, the future of data delivery. <a target="_blank" rel="noopener noreferrer" href="https://hasura.io/docs/latest/index/">Click here for the Hasura v2.x docs</a>.`,
-    },
     navbar: {
       title: '',
       hideOnScroll: true,

@@ -6,9 +6,6 @@ import DocRootLayoutSidebar from '@theme/DocRoot/Layout/Sidebar';
 import DocRootLayoutMain from '@theme/DocRoot/Layout/Main';
 import styles from './styles.module.css';
 import useIsBrowser from '@docusaurus/useIsBrowser';
-import BrowserOnly from '@docusaurus/BrowserOnly';
-import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
-import fetchUser from '@theme/DocRoot/Layout/FetchUser';
 import posthog from 'posthog-js';
 import { initOpenReplay, startOpenReplayTracking } from '@site/src/components/OpenReplay/OpenReplay';
 
