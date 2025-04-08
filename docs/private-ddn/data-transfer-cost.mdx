@@ -48,12 +48,14 @@ Data transfer generally refers to network traffic moving between different netwo
 ## Cost Considerations by Deployment Model
 
 ### Dedicated Data Plane
+
     * The Data Plane runs in a VPC managed by Hasura within their cloud account (AWS, GCP, or Azure).
     * **Egress Costs:** Primarily driven by API responses sent from the Hasura-managed VPC to the internet or across regions/AZs.
     * **Private Connectivity Costs:** Data transferred between the Hasura-managed VPC and your customer VPC via VPC Peering, Private Link, etc., will incur costs based on the cloud provider's pricing for that specific service.
     * *Billing:* Costs are based on the cloud provider Hasura uses for your dedicated instance and its specific regional pricing. These costs are passed through on your Hasura invoice.
 
 ### BYOC (Bring Your Own Cloud) Data Plane
+
     * The Data Plane runs within your own cloud account and VPC.
     * **Egress Costs:** Driven by API responses sent from *your* VPC to the internet (via your NAT Gateway, Internet Gateway, etc.). Also includes any traffic leaving your VPC boundary, such as sending observability data or metadata communication with the Hasura Control Plane (though this is typically low volume).
     * **Internal Transfer:** Traffic between the Data Plane and data sources *within the same VPC and AZ* is often free, but traffic crossing AZs or VPC peering connections within your own environment may incur costs based on your cloud provider's policies.
@@ -73,3 +75,9 @@ Data transfer generally refers to network traffic moving between different netwo
 * **Use private connectivity**: The most expensive component on data transfer is ingress and egress through a NAT Gateway. All internet traffic from the data plane, that is not via a Load Balancer goes through the NAT Gateway. So, make sure that you are connecting to your data sourcs via private connectivity options like VPC Peering, Private Link etc.
 
 For detailed pricing specifics, always refer to the official documentation of the underlying cloud provider (AWS, GCP, Azure) for the specific regions and services you are using.
+
+Here are a few helpful links:
+
+- [AWS: Understanding data transfer charges](https://docs.aws.amazon.com/cur/latest/userguide/cur-data-transfers-charges.html)
+- [GCP: Network Pricing](https://cloud.google.com/vpc/network-pricing?hl=en)
+- [Azure: Bandwidth Pricing](https://azure.microsoft.com/en-us/pricing/details/bandwidth/)
