@@ -1,0 +1,354 @@
+---
+sidebar_position: 2
+sidebar_label: Configuration
+description:
+  "Reference documentation for the setup process for the Hasura Redshift connector, including connection URI details,
+  and native queries."
+keywords:
+  - redshift
+  - configuration
+---
+
+# Configuration Reference
+
+## Introduction
+
+The configuration is a metadata object that lists all the database entities — such as tables — that the Amazon Redshift
+connector has to know about in order to serve queries. It never changes during the lifetime of the data connector
+service instance. When your database schema changes you will have to update the configuration accordingly, see
+[updating with introspection](#updating-with-introspection).
+
+## Structure
+
+The configuration object is a JSON object with the following fields:
+
+```json
+{
+  "version": "v2",
+  "connection_uri": {
+    "value": "",
+    "variable": ""
+  },
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  },
+  "schemas": [],
+  "tables": [],
+  "functions": [],
+  "native_operations": {}
+}
+```
+
+### Property: Version
+
+Specifies the version of the configuration format. Current version is `v2`.
+
+```json
+{
+  "version": "v2"
+}
+```
+
+### Property: Connection URI
+
+The connection URI to connect to the Amazon Redshift database. This is a required field.
+
+The value can either be a literal string or a reference to an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "value": "jdbc:redshift://your-cluster-name.region.redshift.amazonaws.com:5439/database?user=username&password=password"
+  }
+}
+```
+
+Or using an environment variable:
+
+```json
+{
+  "connection_uri": {
+    "variable": "REDSHIFT_JDBC_URL"
+  }
+}
+```
+
+### Property: Connection Pool Settings
+
+This is an optional configuration for the connection pool.
+
+```json
+{
+  "connection_pool_settings": {
+    "max_connections": 10,
+    "min_idle": 1,
+    "connection_timeout": 30000,
+    "initialization_fail_timeout": 30000
+  }
+}
+```
+
+| Property                      | Description                                 | Default |
+| ----------------------------- | ------------------------------------------- | ------- |
+| `max_connections`             | Maximum number of connections in the pool   | 10      |
+| `min_idle`                    | Minimum number of idle connections          | 1       |
+| `connection_timeout`          | Connection timeout in milliseconds          | 30000   |
+| `initialization_fail_timeout` | Initialization fail timeout in milliseconds | 30000   |
+
+### Property: Schemas
+
+This is an optional array of schema names to include in the introspection process. If not provided, all schemas will be
+included except for system schemas such as `information_schema`, `pg_catalog`, `pg_internal`, and `pg_auto_copy`.
+
+Example:
+
+```json
+{
+  "schemas": ["public", "other_schema"]
+}
+```
+
+### Property: Tables
+
+This is an array of table definitions, generated automatically during introspection.
+
+Example:
+
+```json
+{
+  "tables": [
+    {
+      "name": "database.schema.table_name",
+      "description": null,
+      "category": "TABLE",
+      "columns": [
+        {
+          "name": "id",
+          "description": null,
+          "nullable": false,
+          "auto_increment": false,
+          "is_primarykey": true,
+          "data": {
+            "database_type": "integer",
+            "metadata": null
+          }
+        },
+        {
+          "name": "name",
+          "description": null,
+          "nullable": true,
+          "auto_increment": false,
+          "data": {
+            "database_type": "varchar",
+            "metadata": null
+          }
+        },
+        {
+          "name": "amount",
+          "description": null,
+          "nullable": true,
+          "auto_increment": false,
+          "data": {
+            "database_type": "decimal",
+            "metadata": {
+              "type": "numeric",
+              "precision": 10,
+              "scale": 2
+            }
+          }
+        }
+      ],
+      "primary_keys": ["id"],
+      "foreign_keys": {
+        "fk_constraint_name": {
+          "column_mapping": {
+            "department_id": "id"
+          },
+          "foreign_collection": "database.schema.departments"
+        }
+      }
+    }
+  ]
+}
+```
+
+### Redshift Data Types
+
+The Redshift connector supports the following data types:
+
+| Redshift Data Type       | Description                                   |
+| ------------------------ | --------------------------------------------- |
+| `bigint`                 | 8-byte signed integer                         |
+| `boolean`                | Logical boolean (true/false)                  |
+| `char`                   | Fixed-length character string                 |
+| `date`                   | Calendar date (year, month, day)              |
+| `decimal`                | Exact numeric with user-specified precision   |
+| `double precision`       | Double-precision floating-point number        |
+| `geometry`               | Spatial data type for geometric objects       |
+| `geography`              | Spatial data type for geographic objects      |
+| `hllsketch`              | HyperLogLog sketch for cardinality estimation |
+| `integer`                | 4-byte signed integer                         |
+| `interval year to month` | Time interval (years, months)                 |
+| `interval day to second` | Time interval (days, hours, minutes, seconds) |
+| `real`                   | Single-precision floating-point number        |
+| `smallint`               | 2-byte signed integer                         |
+| `super`                  | Semi-structured data type                     |
+| `text`                   | Variable-length character string              |
+| `time`                   | Time of day (without timezone)                |
+| `timetz`                 | Time of day (with timezone)                   |
+| `timestamp`              | Date and time (without timezone)              |
+| `timestamptz`            | Date and time (with timezone)                 |
+| `varbyte`                | Variable-length binary data                   |
+| `varchar`                | Variable-length character string              |
+
+### Property: Functions
+
+This is an array of function definitions. Currently, this feature is not fully supported.
+
+Example:
+
+```json
+{
+  "functions": [
+    {
+      "name": "function_name",
+      "description": "Function description"
+    }
+  ]
+}
+```
+
+### Property: Native Operations
+
+This is a JSON object containing key-value pairs of Native Operations to be used in the data connector.
+
+Two types of Native Operations are supported: **NativeQueries** and **NativeMutations**.
+
+Example:
+
+```json
+{
+  "native_operations": {
+    "queries": {
+      "get_employees": {
+        "sql": {
+          "value": "SELECT * FROM schema.employees WHERE department_id = :department_id"
+        },
+        "columns": {
+          "id": {
+            "name": "id",
+            "type": {
+              "scalar_type": "integer"
+            },
+            "nullable": false,
+            "description": null
+          },
+          "name": {
+            "name": "name",
+            "type": {
+              "scalar_type": "varchar"
+            },
+            "nullable": true,
+            "description": null
+          }
+        },
+        "arguments": {
+          "department_id": {
+            "name": "department_id",
+            "type": {
+              "scalar_type": "integer"
+            },
+            "nullable": false,
+            "description": null
+          }
+        },
+        "description": "Get employees by department ID"
+      }
+    },
+    "mutations": {
+      "update_employee": {
+        "sql": {
+          "value": "UPDATE schema.employees SET name = :name WHERE id = :id"
+        },
+        "columns": {
+          "affected_rows": {
+            "name": "affected_rows",
+            "type": {
+              "scalar_type": "integer"
+            },
+            "nullable": false,
+            "description": null
+          }
+        },
+        "arguments": {
+          "id": {
+            "name": "id",
+            "type": {
+              "scalar_type": "integer"
+            },
+            "nullable": false,
+            "description": null
+          },
+          "name": {
+            "name": "name",
+            "type": {
+              "scalar_type": "varchar"
+            },
+            "nullable": true,
+            "description": null
+          }
+        },
+        "description": "Update employee name"
+      }
+    }
+  }
+}
+```
+
+Native operations can be defined either inline as literal SQL or loaded from a file:
+
+```json
+{
+  "sql": {
+    "value": "SELECT * FROM employees"
+  }
+}
+```
+
+Or from a file:
+
+```json
+{
+  "sql": {
+    "file": "/path/to/query.sql"
+  }
+}
+```
+
+## Updating with Introspection
+
+Whenever the schema of your Redshift database changes, you will need to update your data connector configuration
+accordingly to reflect those changes.
+
+Running the introspection command will:
+
+- Connect to the database with the specified connection URI
+- Scan the database schema for tables, views, and their columns
+- Generate a new configuration file with updated table definitions
+- Preserve existing native operations and other custom settings
+
+To update the configuration, you can use the CLI tool:
+
+```bash
+redshift-cli introspect --connection-uri "jdbc:redshift://..." --output config.json
+```
+
+Or using an environment variable:
+
+```bash
+export REDSHIFT_JDBC_URL="jdbc:redshift://..."
+redshift-cli introspect --output config.json
+```
