@@ -155,7 +155,7 @@ Definition of a data connector - version 1.
 | `name` | [DataConnectorName](#dataconnectorlink-dataconnectorname) | true | The name of the data connector. |
 | `url` | [DataConnectorUrlV1](#dataconnectorlink-dataconnectorurlv1) | true | The url(s) to access the data connector. |
 | `headers` | [HttpHeaders](#dataconnectorlink-httpheaders) | false | Key value map of HTTP headers to be sent with each request to the data connector. This is meant for protocol level use between engine and the data connector. |
-| `schema` | [SchemaAndCapabilitiesV01](#dataconnectorlink-schemaandcapabilitiesv01) | true | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
+| `schema` | [VersionedSchemaAndCapabilities](#dataconnectorlink-versionedschemaandcapabilities) | true | The schema of the data connector. This schema is used as the source of truth when serving requests and the live schema of the data connector is not looked up. |
 | `argumentPresets` | [[DataConnectorArgumentPreset](#dataconnectorlink-dataconnectorargumentpreset)] | false | Argument presets that applies to all functions and procedures of this data connector. Defaults to no argument presets. |
 | `responseHeaders` | [ResponseHeaders](#dataconnectorlink-responseheaders) / null | false | HTTP response headers configuration that is forwarded from a data connector to the client. |
 
@@ -233,9 +233,17 @@ An expression which evaluates to a value that can be used in permissions and var
 | Key | Value | Required | Description |
 |-----|-----|-----|-----|
 | `literal` |  | false |  |
-| `sessionVariable` | string | false |  |
+| `sessionVariable` | [OpenDdSessionVariable](#dataconnectorlink-openddsessionvariable) | false |  |
 | `valueFromEnv` | string | false |  |
 
+
+
+#### OpenDdSessionVariable {#dataconnectorlink-openddsessionvariable}
+
+Used to represent the name of a session variable, like "x-hasura-role".
+
+
+**Value:** string
 
 
 #### DataConnectorArgumentName {#dataconnectorlink-dataconnectorargumentname}
@@ -244,6 +252,32 @@ The name of an argument as defined by a data connector.
 
 
 **Value:** string
+
+
+#### VersionedSchemaAndCapabilities {#dataconnectorlink-versionedschemaandcapabilities}
+
+Versioned schema and capabilities for a data connector.
+
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [SchemaAndCapabilitiesV01](#dataconnectorlink-schemaandcapabilitiesv01) | Version 0.1 of schema and capabilities for a data connector. |
+| [SchemaAndCapabilitiesV02](#dataconnectorlink-schemaandcapabilitiesv02) | Version 0.2 of schema and capabilities for a data connector. |
+
+
+
+#### SchemaAndCapabilitiesV02 {#dataconnectorlink-schemaandcapabilitiesv02}
+
+Version 0.2 of schema and capabilities for a data connector.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `version` | `v0.2` | true |  |
+| `schema` | [Schema Response](https://hasura.github.io/ndc-spec/specification/schema/index.html) | true |  |
+| `capabilities` | [Capabilities Response](https://hasura.github.io/ndc-spec/specification/capabilities.html) | true |  |
+
 
 
 #### SchemaAndCapabilitiesV01 {#dataconnectorlink-schemaandcapabilitiesv01}
