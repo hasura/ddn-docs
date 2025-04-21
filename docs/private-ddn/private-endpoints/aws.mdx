@@ -1,0 +1,111 @@
+---
+sidebar_position: 2
+sidebar_label: AWS
+description: "Learn how to create and manage private endpoints using AWS PrivateLink"
+keywords:
+  - hasura ddn
+  - private ddn
+  - private endpoints
+  - aws private link
+  - vpc endpoints
+  - secure connectivity
+  - enterprise
+  - data privacy
+  - compliance
+---
+
+import Thumbnail from "@site/src/components/Thumbnail";
+
+# AWS Private Endpoints
+
+AWS Private Endpoints use AWS PrivateLink technology to establish private connectivity between your VPC and Hasura's Data Plane. This section covers how to create and manage private endpoints using AWS PrivateLink.
+
+{/*
+TODO: Add diagram showing:
+1. Customer VPC with applications
+2. AWS PrivateLink connection
+3. Hasura Data Plane VPC
+4. Clear indication that traffic doesn't traverse the public internet
+
+Place the image at: static/img/private-ddn/aws-private-endpoint-architecture.png
+*/}
+
+*AWS Private Endpoint architecture enables secure connectivity between your VPC and Hasura's Data Plane through AWS PrivateLink, bypassing the public internet.*
+
+## Prerequisites
+
+Before creating an AWS Private Endpoint, you need:
+
+1. A Private DDN Data Plane deployed in AWS
+2. An AWS VPC Endpoint Service in your AWS account
+3. Appropriate IAM permissions to manage VPC Endpoint Services
+
+## Creating an AWS Private Endpoint
+
+### Step 1: Service Principal Information
+
+1. Navigate to your Data Plane details page in the Hasura Console
+2. Click the "Create Private Endpoint" button
+3. In the modal, you'll see the service principal ARN that needs to be added to your endpoint service permissions
+   - Format: `arn:aws:iam::DATAPLANE_ACCOUNT_ID:role/ROLE_NAME`
+4. Add this ARN to your VPC Endpoint Service permissions in your AWS account
+5. Enter your VPC Endpoint Service name in the input field
+   - Format: `com.amazonaws.vpce.REGION.vpce-svc-XXXXXXXX`
+6. Click "Validate" to proceed
+
+### Step 2: Select Availability Zones and Configure Options
+
+1. After validation, you'll be prompted to select availability zones
+2. Choose the availability zones where you want to create the endpoint
+   - It's recommended to select at least two zones for high availability
+   - Only zones that match with private subnets will be available for selection
+3. Enter a name for your endpoint
+   - The name must be unique within your Data Plane
+   - Name must be between 2 and 20 characters
+   - Name must start with a lowercase letter
+   - Name can only contain lowercase letters and numbers
+
+### Step 3: Create the Endpoint
+
+1. Review your selections and click "Create"
+2. The system will initiate the endpoint creation process
+3. You'll be returned to the Data Plane details page where you can monitor the endpoint status
+
+## Endpoint Status Lifecycle
+
+AWS Private Endpoints go through several status states during their lifecycle:
+
+1. **Pending Acceptance**: The connection request has been sent to your AWS account and is waiting for acceptance
+2. **In Progress**: The connection has been accepted and the endpoint is being created or modified
+3. **Active**: The endpoint is active and ready for use
+4. **Deleting**: The endpoint is in the process of being deleted
+5. **Failed**: The endpoint creation failed
+6. **Rejected**: The request was rejected by the service provider
+7. **Expired**: The connection request expired
+
+## Using Private Endpoints
+
+Once your endpoint is in the "Active" status:
+
+1. The endpoint DNS addresses will be displayed in the private endpoints table
+2. Format: `vpce-xxxx-yyyy.service-name.region.vpce.amazonaws.com`
+3. Use these DNS addresses in your supergraph configuration to connect to your data sources from the Data Plane
+
+## Managing Private Endpoints
+
+From the Data Plane details page, you can:
+
+- **View** all your private endpoints and their status
+- **Update** an endpoint to add or remove availability zones
+- **Delete** an endpoint when it's no longer needed
+
+## Troubleshooting
+
+### Common Issues
+
+- **Endpoint stuck in "Pending Acceptance" status**: Verify that you've accepted the endpoint connection request in your AWS account
+- **Validation errors**: Ensure the service principal ARN has been correctly added to your VPC Endpoint Service permissions
+
+### Getting Help
+
+If you encounter issues with private endpoints, contact Hasura support through your enterprise support channel.
