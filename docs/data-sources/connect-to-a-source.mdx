@@ -49,6 +49,20 @@ it requires:
 
 <Tabs groupId="source-preference" className="api-tabs">
 
+<TabItem value="BigQuery" label="BigQuery">
+
+| ENV        | Example                                                                                                                                                                                               | Description                                       |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `JDBC_URL` | `jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=project-id;DefaultDataset=dataset;OAuthType=0;OAuthServiceAcctEmail=service-account-email;OAuthPvtKey=/etc/connector/key.json;` | The JDBC URL to connect to the BigQuery database. |
+
+:::info BigQuery specific characteristics
+
+See [here](/how-to-build-with-ddn/with-bigquery.mdx) for instructions on saving your service account key file
+
+:::
+
+</TabItem>
+
 <TabItem value="ClickHouse" label="ClickHouse">
 
 | ENV                 | Example             | Description                                               |
@@ -56,6 +70,14 @@ it requires:
 | `CONNECTION_STRING` | `https://host:8123` | The HTTP(S) connection string to the ClickHouse instance. |
 | `USERNAME`          | `default`           | The database username.                                    |
 | `PASSWORD`          | `default`           | The database password.                                    |
+
+</TabItem>
+<TabItem value="Databricks" label="Databricks">
+
+| ENV            | Example                                                                                                                                                                  | Description                                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `JDBC_URL`     | `jdbc:databricks://<host>:<port>/default;transportMode=http;ssl=1;AuthMech=3;httpPath=/sql/1.0/warehouses/<warehouse-id>;UID=token;PWD=<access-token>;ConnCatalog=main;` | You can construct the base of this using your Databricks UI under `SQL Warehouses` » `<name-of-warehouse>` » `Connection details`. |
+| `JDBC_SCHEMAS` | `default,public`                                                                                                                                                         | A comma-separated list of schemas within the referenced catalog.                                                                   |
 
 </TabItem>
 <TabItem value="DuckDB" label="DuckDB">
@@ -77,11 +99,30 @@ it requires:
 | `ELASTICSEARCH_INDEX_PATTERN` | `hasura*`                                                      | The pattern for matching Elasticsearch indices, potentially including wildcards, used by the connector                                                                     |
 
 </TabItem>
-<TabItem value="PostgreSQL" label="PostgreSQL">
+<TabItem value="HTTP" label="HTTP">
 
-| ENV              | Example                                       | Description                                                            |
-| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
-| `CONNECTION_URI` | `postgresql://user:password@host:5432/dbname` | The full connection string used to connect to the PostgreSQL database. |
+The HTTP connector won't prompt you for any environment variables. When you initialize the connector, a `config.yaml`
+will be generated where you can list valid specs for your API(s).
+
+Learn more [here](/reference/connectors/http/index.mdx).
+
+</TabItem>
+
+<TabItem value="GraphQL" label="GraphQL">
+
+| ENV                | Example                                     | Description                                |
+| ------------------ | ------------------------------------------- | ------------------------------------------ |
+| `GRAPHQL_ENDPOINT` | `https://spacex-production.up.railway.app/` | The GraphQL endpoint for the existing API. |
+
+:::info The GraphQL connector is highly configurable
+
+When you first initialize the connector, the CLI will only ask for the API's endpoint. You can further configure the
+connector — such as choosing different configurations for introspection vs. execution — using the connector's
+configuration file.
+
+Learn more [here](/reference/connectors/graphql/configuration.mdx).
+
+:::
 
 </TabItem>
 <TabItem value="MongoDB" label="MongoDB">
@@ -91,6 +132,13 @@ it requires:
 | `MONGO_DB_URL` | `mongodb://host:27017/db_name` | The full connection string — **including the database name** — used to connect to the MongoDB instance. |
 
 </TabItem>
+<TabItem value="SQLServer" label="MSSQL">
+
+| ENV              | Example                                                                                                | Description                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `CONNECTION_URI` | `Server=local.hasura.dev,1433;Database=master;Uid=sa;Password=Password123;TrustServerCertificate=true` | `TrustServerCertificate=true` should only be added for local databases. |
+
+</TabItem>
 <TabItem value="MySQL" label="MySQL">
 
 | ENV        | Example                                        | Description                         |
@@ -98,6 +146,29 @@ it requires:
 | `JDBC_URL` | `jdbc:mysql://user:password@host:3306/db_name` | This connector requires a JDBC URL. |
 
 </TabItem>
+<TabItem value="PostgreSQL" label="PostgreSQL">
+
+| ENV              | Example                                       | Description                                                            |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
+| `CONNECTION_URI` | `postgresql://user:password@host:5432/dbname` | The full connection string used to connect to the PostgreSQL database. |
+
+</TabItem>
+<TabItem value="Prometheus" label="Prometheus">
+
+| ENV              | Example                 | Description                                                                                          |
+| ---------------- | ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| `CONNECTION_URL` | `https://<host>:<port>` | The full connection string used to connect to the Prometheus server. By default, the port is `9090`. |
+
+</TabItem>
+<TabItem value="Qdrant" label="Qdrant">
+
+| ENV              | Example                                       | Description                                                                                                                                          |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `QDRANT_URL`     | `https://<cluster-id>.<region>.<host>:<port>` | The connection string for the Qdrant database, including the port. You can generate this by selecting `Connect` under the Cluster in your dashboard. |
+| `QDRANT_API_KEY` | `eyJ...`                                      | The Qdrant API key presented to you when the cluster was provisioned.                                                                                |
+
+</TabItem>
+
 <TabItem value="Snowflake" label="Snowflake">
 
 | ENV        | Example                                                                                                                                                                                       | Description                         |
@@ -112,6 +183,47 @@ username, and password) or more granular depending on your settings within Snowf
 :::
 
 </TabItem>
+<TabItem value="Storage" label="Storage">
+
+| ENV                 | Example                                    | Description                                              |
+| ------------------- | ------------------------------------------ | -------------------------------------------------------- |
+| `ACCESS_KEY_ID`     | `AKIAIOSFODNN7EXAMPLE`                     | Your AWS access key ID used to authenticate with S3.     |
+| `SECRET_ACCESS_KEY` | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` | Your AWS secret access key used to authenticate with S3. |
+| `STORAGE_ENDPOINT`  | `https://s3.amazonaws.com`                 | The S3 service endpoint URL.                             |
+| `DEFAULT_BUCKET`    | `my-app-bucket`                            | The default S3 bucket name where files will be stored.   |
+
+:::info These environment variables are AWS-specific
+
+Upon initialization, the connector will prompt you for the environment variables listed above. However, you can
+configure this connector to work with any S3-compatible cloud provider. Check the configuration docs for more
+information.
+
+:::
+
+</TabItem>
+<TabItem value="Stripe" label="Stripe">
+
+| ENV                        | Example                               | Description                                                                                                                         |
+| -------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `STRIPE_BEARER_AUTH_TOKEN` | `sk_<test\|prod>_<unique_identifier>` | A **secret** key for your account, retrievable from your [API Keys dashboard in Stripe](https://dashboard.stripe.com/test/apikeys). |
+
+</TabItem>
+<TabItem value="Trino" label="Trino">
+
+| ENV        | Example                                                          | Description                         |
+| ---------- | ---------------------------------------------------------------- | ----------------------------------- |
+| `JDBC_URL` | `jdbc:trino://<host>:<port>/<database>/<schema>?user=<username>` | This connector requires a JDBC URL. |
+
+</TabItem>
+<TabItem value="Turso" label="Turso">
+
+| ENV                | Example                             | Description                                                                                                                                        |
+| ------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TURSO_URL`        | `libsql://dbname-username.turso.io` | The connection string for the Turso database, using `libsql` protocol. You can generate this from the database's overview in your Turso dashboard. |
+| `TURSO_AUTH_TOKEN` | `eyJ...`                            | A Turso auth token with access to the same database; this is also available via the Turso dashboard.                                               |
+
+</TabItem>
+
 </Tabs>
 
 If your data source requires a connection string or endpoint, the CLI will confirm that it successfully tested the
