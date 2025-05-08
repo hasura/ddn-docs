@@ -17,134 +17,81 @@ toc_max_heading_level: 4
 Native Queries allow you to run custom SQL queries on your Oracle database. These allow you to run queries that are not
 supported by Hasura's GraphQL engine as virtual tables in Oracle.
 
-Two types of native queries are supported in the Oracle connector: **Inline** and **Parameterized**.
+Native queries can also be added directly to the configuration.json, but it is deprecated now in favour of the following.
 
-## Configuration
 
-The following fields should be specified for a Native Query entry:
+## Structure
 
-- `sql`: An object which contains the SQL expression to use for the Native Query and the parameters. These fields should
-  be added inside the object field `parts` (which is a list). For parameterized queries, another object should be added
-  alongside the SQL query that specifies the parameter. (E.g., for the SQL query
-  `SELECT * FROM CHINOOK.ARTIST WHERE ARTISTID = ` the parameter value is `ARTISTID`)
-- `columns`: The returning columns from the Native Query.
-- `arguments`: Names and types of arguments that can be passed to this Native Query. These are substituted for
-  parameters present in the SQL query and are required to have the same name as the parameter. (E.g., if the parameter
-  value is `ARTISTID`, then the argument name needs to be `ARTISTID` as well)
-- `description`: Information about the Native Query.
-- `isProcedure`: It is always `false` for native queries (`true` for native mutations, which is not supported yet)
+A Native Query is a single SQL statement that returns results and can take arguments. The SQL structure of a Native
+Query is specified in the [Native Operation syntax](/reference/connectors/oracle/native-operations/syntax.mdx) page.
 
-### Structure
+## Create a Native Query
 
-```JSON
-{
-  "native_query_name": {
-    "sql": {
-      "parts": [
-        {
-          "type": "text",
-          "value": "sql query"
-        },
-        {
-          "type": "parameter",
-          "value": "parameter_name"
-        }
-      ]
-    },
-    "columns": {
-      "column1_name": {
-        "type": "named",
-        "name": "column1_type"
-      },
-      "column2_name": {
-        "type": "nullable",
-        "underlying_type": {
-          "type": "named",
-          "name": "column2_type"
-        }
-      }
-    },
-    "arguments": {
-      "parameter_name": {
-        "description": null,
-        "type": {
-          "type": "named",
-          "name": "parameter_type"
-        }
-      }
-    },
-    "description": null,
-    "isProcedure": false
-  }
-}
+To create a new Native Query, create a new SQL file inside the connector configuration directory, then use the `ddn` CLI
+to add it to the connector configuration. For example:
+
+1. Create a new directory structure under the connector configuration:
+
+   ```sh
+   mkdir -p my_subgraph/connector/oracle-connector/native_operations/queries/
+   ```
+
+2. Create a new SQL file `my_subgraph/connector/oracle-connector/native_operations/queries/artist_by_id_between.sql` with
+   the following content:
+
+   ```sql
+   SELECT *
+   FROM "Artist"
+   WHERE "Name" LIKE :name
+     AND "ArtistId" > {{lower_bound}}
+     AND "ArtistId" < {{upper_bound}}
+   ```
+
+3. Create a new entry in the connector configuration:
+
+   NOTE: The `operation-path` provided should be relative to the configuration directory. It means that for the below case,
+   the SQL file is expected to be present at `<ddn-project-root>/my_subgraph/connector/oracle-connector/native-operations/queries/artist_by_id_between.sql`
+
+   ```sh
+   ddn connector plugin --connector my_subgraph/connector/oracle-connector/connector.yaml -- \
+     native-queries create --operation-path native_operations/queries/artist_by_id_between.sql --name artist_by_id_between
+   ```
+
+4. If your data connector is running, run the following command to update your metadata to track the new native query:
+
+   ```sh
+   ddn connector-link update oracle_connector --add-all-resources
+   ```
+
+   If you get a `connection refused` error, it means that your data connector is not running. You can either start the
+   data connector and try again, or, run the following commands to update your metadata to track the new native query:
+
+   ```sh
+   # start the connector and introspect your DB
+   ddn connector introspect oracle_connector
+
+   # update your metadata to track the new native query
+   ddn model add oracle_connector "artist_by_id_between"
+   ```
+
+## Updating a Native Query
+
+A Native Query can be updated with the `create` command and setting the `--overwrite` option. For example:
+
+```sh
+ddn connector plugin --connector my_subgraph/connector/oracle_connector/connector.yaml -- \
+  native-queries create --name artist_by_id_between --operation-path native_operations/queries/artist_by_id_between.sql  --overwrite
 ```
 
-#### Example: Inline native query
+### Usage
 
-```JSON
-{
-  "native_query_inline": {
-    "sql": {
-      "parts": [
-        {
-          "type": "text",
-          "value": "SELECT 1 AS result FROM DUAL"
-        }
-      ]
-    },
-    "columns": {
-      "result": {
-        "type": "named",
-        "name": "INT"
-      }
-    },
-    "arguments": {},
-    "description": ""
-  }
-}
-```
+With the example above, you can then use the query in your GraphQL API like this:
 
-#### Example: Parameterized native query
-
-```JSON
-{
-  "ArtistById_parameterized": {
-    "sql": {
-      "parts": [
-        {
-          "type": "text",
-          "value": "SELECT * FROM CHINOOK.ARTIST WHERE ARTISTID = "
-        },
-        {
-          "type": "parameter",
-          "value": "ARTISTID"
-        }
-      ]
-    },
-    "columns": {
-      "ARTISTID": {
-        "type": "named",
-        "name": "INT"
-      },
-      "NAME": {
-        "type": "nullable",
-        "underlying_type": {
-          "type": "named",
-          "name": "STRING"
-        }
-      }
-    },
-    "arguments": {
-      "ARTISTID": {
-        "description": null,
-        "type": {
-          "type": "named",
-          "name": "INT"
-        }
-      }
-    },
-    "description": null,
-    "isProcedure": false
+```graphql
+query {
+  artist_by_id_between(args: {name: "Black", lower_bound: 10, upper_bound: 50}) {
+    ArtistId
+    Name
   }
 }
 ```
