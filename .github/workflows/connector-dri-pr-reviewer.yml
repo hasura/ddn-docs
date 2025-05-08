@@ -10,7 +10,6 @@
 # 5. Get the DRI for the connector from the DRI mapping table
 # 6. Request a review from the DRI
 
-
 name: Connector Docs DRI Reviewer
 
 on:
@@ -48,37 +47,25 @@ jobs:
         with:
           github-token: ${{secrets.DOCS_GITHUB_TOKEN}}
           script: |
-            const response = await github.request('GET /repos/{owner}/{repo}/contents/{path}', {
-              owner: 'hasura',
-              repo: 'docs-services',
-              path: 'docs-server/src/connector-dri-mapping.md'
-            });
-
-            const decodedContent = Buffer.from(response.data.content, 'base64').toString();
-            const markdownTableData = decodedContent;
-
-            function parseMarkdownTable(markdown) {
-              const lines = markdown.trim().split("\n").filter(line => line.trim().startsWith("|"));
-              if (lines.length < 2) {
-                console.warn("Markdown table is too short or invalid.");
-                return [];
+            // Helper function to fetch DRI information by property and value
+            async function getDRIByProperty(property, value) {
+              const url = `https://website-api.hasura.io/docs-services/docs-server/dri/lookup?property=${encodeURIComponent(property)}&value=${encodeURIComponent(value)}`;
+              
+              try {
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                  console.error(`Error fetching DRI data: ${response.status} ${response.statusText}`);
+                  return null;
+                }
+                
+                const data = await response.json();
+                return data.length > 0 ? data[0] : null;
+              } catch (error) {
+                console.error(`Failed to fetch DRI data: ${error.message}`);
+                return null;
               }
-              const parseRow = (line) =>
-                line.trim().slice(1, -1).split("|").map(cell => cell.trim());
-
-              const headers = parseRow(lines[0]);
-              const rows = lines.slice(2).map(parseRow); // skip header and separator
-
-              return rows.map(row => {
-                const obj = {};
-                headers.forEach((header, index) => {
-                  obj[header] = row[index] || "";
-                });
-                return obj;
-              });
             }
-
-            const connectorDRIdata = parseMarkdownTable(markdownTableData);
 
             const changedFiles = `${{ steps.changed_connector_files.outputs.all_modified_files }}`.split(' ').filter(f => f.length > 0);
             if (changedFiles.length === 0) {
@@ -92,9 +79,14 @@ jobs:
 
             for (const filePath of changedFiles) {
               const match = filePath.match(connectorPathRegex);
+              
               if (match && match[1]) {
                 const connectorFolder = match[1];
-                const connectorInfo = connectorDRIdata.find(row => row['registry-folder'] === connectorFolder);
+                console.log(`Looking up DRI for connector folder: ${connectorFolder}`);
+                
+                // Fetch DRI information from the API
+                const connectorInfo = await getDRIByProperty('registry-folder', connectorFolder);
+                
                 if (connectorInfo && connectorInfo['dri-github-handle'] && connectorInfo['dri-github-handle'].toLowerCase() !== 'null') {
                   let handle = connectorInfo['dri-github-handle'];
                   if (handle.startsWith('@')) {
@@ -102,7 +94,10 @@ jobs:
                   }
                   if (handle) {
                     assignees.add(handle);
+                    console.log(`Found DRI ${handle} for connector ${connectorFolder}`);
                   }
+                } else {
+                  console.log(`No DRI found for connector folder: ${connectorFolder}`);
                 }
               }
             }
