@@ -55,6 +55,15 @@ The setup involves creating an IAM role in your AWS account that establishes a t
 
 <summary>cloudformation.yaml</summary>
 ```bash
+Parameters:
+  ExternalId:
+    Type: String
+    Default: hasura-cloud
+    Description: External ID for the trust relationship with Hasura Cloud
+    MinLength: 2
+    MaxLength: 1224
+    AllowedPattern: "[A-Za-z0-9+=,.@:\\/-]*"
+
 Resources:
   BootstrapRole:
     Type: AWS::IAM::Role
@@ -69,7 +78,7 @@ Resources:
             Action: sts:AssumeRole
             Condition:
               StringEquals:
-                sts:ExternalId: hasura-cloud
+                sts:ExternalId: !Ref ExternalId
   BootstrapPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -262,7 +271,8 @@ Outputs:
      aws cloudformation create-stack \
        --stack-name hasura-cloud-byoc \
        --template-body file://cloudformation.yaml \
-       --capabilities CAPABILITY_NAMED_IAM
+       --capabilities CAPABILITY_NAMED_IAM \
+       --parameters ParameterKey=ExternalId,ParameterValue=hasura-cloud
 
      # Wait for creation to complete
      aws cloudformation wait stack-create-complete \
@@ -275,7 +285,8 @@ Outputs:
      aws cloudformation update-stack \
        --stack-name hasura-cloud-byoc \
        --template-body file://cloudformation.yaml \
-       --capabilities CAPABILITY_NAMED_IAM
+       --capabilities CAPABILITY_NAMED_IAM \
+       --parameters ParameterKey=ExternalId,ParameterValue=hasura-cloud
 
      # Wait for update to complete
      aws cloudformation wait stack-update-complete \
@@ -303,6 +314,13 @@ Share the following with the Hasura team:
 
 - (Required) Role ARN (From output above)
 - (Required) AWS Region
+- (Optional) External ID
+  - The external ID used in the trust relationship between your AWS account and Hasura's AWS account
+  - This is the value you specified for the `ExternalId` parameter in the CloudFormation template
+  - If not specified, the default value "hasura-cloud" will be used
+  - Must have a minimum of 2 characters and a maximum of 1,224 characters
+  - Must be alphanumeric without white space, but can include the following symbols: plus (+), equal (=), comma (,), period (.), at (@), colon (:), forward slash (/), and hyphen (-)
+  - **Important**: Make sure to provide this value to the Hasura team if you've customized it
 - (Optional) Preferred Availability Zones
   - Use AZ IDs (e.g., use1-az1, use1-az2) instead of AZ names (us-east-1a, us-east-1b)
   - You can get the AZ IDs by running:
