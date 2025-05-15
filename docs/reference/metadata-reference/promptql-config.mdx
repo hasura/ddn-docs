@@ -1,0 +1,149 @@
+---
+sidebar_position: 17
+sidebar_label: PromptQL Configuration
+description:
+  "PromptQLConfig is a metadata object that defines the configuration of PromptQL for your project. It includes the LLM
+  to be used, the system instructions, and other settings."
+keywords:
+  - PromptQL
+  - PromptQLConfig
+  - metadata
+  - configuration
+  - LLM
+  - system instructions
+toc_max_heading_level: 4
+---
+
+# PromptQL Configuration
+
+## Introduction
+
+Your PromptQlConfig is a metadata object that defines the configuration of PromptQL for your project. It includes the
+LLM to be used, the system instructions, and other settings.
+
+```yaml title="Example PromptQlConfig"
+kind: PromptQlConfig
+version: v2
+definition:
+  llm:
+    provider: openai
+    model: o3-mini
+  ai_primitives_llm:
+    provider: openai
+    model: gpt-4o
+  system_instructions: |
+    You are a helpful AI Assistant.
+```
+
+## Metadata structure
+
+### PromptQlConfigV2 {#promptqlconfigv2-promptqlconfigv2}
+
+Definition of the configuration of PromptQL, v2
+
+| Key          | Value                                                  | Required | Description                                                 |
+| ------------ | ------------------------------------------------------ | -------- | ----------------------------------------------------------- |
+| `kind`       | `PromptQlConfig`                                       | true     |                                                             |
+| `version`    | `v2`                                                   | true     |                                                             |
+| `definition` | [PromptQlConfigV2](#promptqlconfigv2-promptqlconfigv2) | true     | Definition of the configuration of PromptQL for the project |
+
+#### PromptQlConfigV2 {#promptqlconfigv2-promptqlconfigv2}
+
+Definition of the configuration of PromptQL for the project
+
+| Key                  | Value                                           | Required | Description                                                                                                                              |
+| -------------------- | ----------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `systemInstructions` | string / null                                   | false    | Custom system instructions provided to every PromptQL thread that allows tailoring of behavior to match to the project's specific needs. |
+| `llm`                | [LlmConfig](#promptqlconfigv2-llmconfig)        | true     | Configuration of the LLM to be used for PromptQL                                                                                         |
+| `aiPrimitivesLlm`    | [LlmConfig](#promptqlconfigv2-llmconfig) / null | false    | Configuration of the LLM to be used for AI primitives, such as classification, summarization etc                                         |
+| `featureFlags`       | object / null                                   | false    | Feature flags to be used for PromptQL                                                                                                    |
+
+#### LlmConfig {#promptqlconfigv2-llmconfig}
+
+Configuration of the LLM to be used for PromptQL
+
+**One of the following values:**
+
+| Value                                                      | Description                                            |
+| ---------------------------------------------------------- | ------------------------------------------------------ |
+| [HasuraLlmConfig](#promptqlconfigv2-hasurallmconfig)       | Configuration settings for the Hasura-configured LLM   |
+| [OpenAiLlmConfig](#promptqlconfigv2-openaillmconfig)       | Configuration settings for an OpenAI LLM               |
+| [AnthropicLlmConfig](#promptqlconfigv2-anthropicllmconfig) | Configuration settings for an Anthropic LLM            |
+| [AzureLlmConfig](#promptqlconfigv2-azurellmconfig)         | Configuration settings for an Azure-provided LLM       |
+| [GeminiLlmConfig](#promptqlconfigv2-geminillmconfig)       | Configuration settings for a Gemini LLM                |
+| [BedrockLlmConfig](#promptqlconfigv2-bedrockllmconfig)     | Configuration settings for an AWS Bedrock-provided LLM |
+
+#### BedrockLlmConfig {#promptqlconfigv2-bedrockllmconfig}
+
+Configuration settings for an AWS Bedrock-provided LLM
+
+| Key                  | Value                                                  | Required | Description                                              |
+| -------------------- | ------------------------------------------------------ | -------- | -------------------------------------------------------- |
+| `provider`           | `bedrock`                                              | true     |                                                          |
+| `modelId`            | string                                                 | true     | The specific AWS Bedrock model to use.                   |
+| `regionName`         | string                                                 | true     | The specific AWS Bedrock region to use.                  |
+| `awsAccessKeyId`     | [EnvironmentValue](#promptqlconfigv2-environmentvalue) | true     | The AWS access key ID to use for the AWS Bedrock API     |
+| `awsSecretAccessKey` | [EnvironmentValue](#promptqlconfigv2-environmentvalue) | true     | The AWS secret access key to use for the AWS Bedrock API |
+
+#### GeminiLlmConfig {#promptqlconfigv2-geminillmconfig}
+
+Configuration settings for a Gemini LLM
+
+| Key        | Value                                                  | Required | Description                                                                         |
+| ---------- | ------------------------------------------------------ | -------- | ----------------------------------------------------------------------------------- |
+| `provider` | `gemini`                                               | true     |                                                                                     |
+| `model`    | string / null                                          | false    | The specific Gemini model to use. If not specified, the default model will be used. |
+| `apiKey`   | [EnvironmentValue](#promptqlconfigv2-environmentvalue) | true     | The API key to use for the Gemini API                                               |
+
+#### AzureLlmConfig {#promptqlconfigv2-azurellmconfig}
+
+Configuration settings for an Azure-provided LLM
+
+| Key          | Value                                                  | Required | Description                                                                                |
+| ------------ | ------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------ |
+| `provider`   | `azure`                                                | true     |                                                                                            |
+| `apiVersion` | string / null                                          | false    | The specific Azure API version to use. If not specified, the default version will be used. |
+| `model`      | string / null                                          | false    | The specific Azure model to use. If not specified, the default model will be used.         |
+| `endpoint`   | string                                                 | true     | The endpoint to use for the Azure LLM API                                                  |
+| `apiKey`     | [EnvironmentValue](#promptqlconfigv2-environmentvalue) | true     | The API key to use for the Azure API                                                       |
+
+#### AnthropicLlmConfig {#promptqlconfigv2-anthropicllmconfig}
+
+Configuration settings for an Anthropic LLM
+
+| Key        | Value                                                  | Required | Description                                                                                |
+| ---------- | ------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------ |
+| `provider` | `anthropic`                                            | true     |                                                                                            |
+| `model`    | string / null                                          | false    | The specific Anthropic model to use. If not specified, the default model will be used.     |
+| `baseUrl`  | string / null                                          | false    | The base URL to use for the Anthropic API. If not specified, the default URL will be used. |
+| `apiKey`   | [EnvironmentValue](#promptqlconfigv2-environmentvalue) | true     | The API key to use for the Anthropic API                                                   |
+
+#### OpenAiLlmConfig {#promptqlconfigv2-openaillmconfig}
+
+Configuration settings for an OpenAI LLM
+
+| Key        | Value                                                  | Required | Description                                                                             |
+| ---------- | ------------------------------------------------------ | -------- | --------------------------------------------------------------------------------------- |
+| `provider` | `openai`                                               | true     |                                                                                         |
+| `model`    | string / null                                          | false    | The specific OpenAI model to use. If not specified, the default model will be used.     |
+| `baseUrl`  | string / null                                          | false    | The base URL to use for the OpenAI API. If not specified, the default URL will be used. |
+| `apiKey`   | [EnvironmentValue](#promptqlconfigv2-environmentvalue) | true     | The API key to use for the OpenAI API                                                   |
+
+#### EnvironmentValue {#promptqlconfigv2-environmentvalue}
+
+Either a literal string or a reference to a Hasura secret
+
+**Must have exactly one of the following fields:**
+
+| Key            | Value  | Required | Description |
+| -------------- | ------ | -------- | ----------- |
+| `value`        | string | false    |             |
+| `valueFromEnv` | string | false    |             |
+
+#### HasuraLlmConfig {#promptqlconfigv2-hasurallmconfig}
+
+Configuration settings for the Hasura-configured LLM
+
+| Key        | Value    | Required | Description |
+| ---------- | -------- | -------- | ----------- |
+| `provider` | `hasura` | true     |             |
