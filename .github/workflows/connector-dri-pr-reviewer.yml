@@ -3,12 +3,11 @@
 # This workflow automatically assigns the Connector DRI to the PR for any edits to the connector docs.
 #
 # How it works:
-# 1. Get the connector docs DRI mapping table from the docs-services repo
-# 2. Parse the markdown table into a JSON object
-# 3. Get the list of changed files in the PR
-# 4. For each changed file, check if it's a connector doc and get the connector folder name
-# 5. Get the DRI for the connector from the DRI mapping table
-# 6. Request a review from the DRI
+# 1. Identifies changed files in PR that match connector documentation paths
+# 2. For each changed file, extracts the connector folder name using regex
+# 3. Queries an external API endpoint to get the DRI information for each connector folder
+# 4. Processes DRI GitHub handles (removing @ prefix if present)
+# 5. Requests reviews from all identified DRIs on the PR
 
 name: Connector Docs DRI Reviewer
 
@@ -76,29 +75,36 @@ jobs:
 
             const assignees = new Set();
             const connectorPathRegex = /^docs\/reference\/connectors\/([^\/]+)\//;
+            const uniqueConnectorFolders = new Set();
 
+            // First extract all unique connector folders
             for (const filePath of changedFiles) {
               const match = filePath.match(connectorPathRegex);
-              
               if (match && match[1]) {
-                const connectorFolder = match[1];
-                console.log(`Looking up DRI for connector folder: ${connectorFolder}`);
-                
-                // Fetch DRI information from the API
-                const connectorInfo = await getDRIByProperty('registry-folder', connectorFolder);
-                
-                if (connectorInfo && connectorInfo['dri-github-handle'] && connectorInfo['dri-github-handle'].toLowerCase() !== 'null') {
-                  let handle = connectorInfo['dri-github-handle'];
-                  if (handle.startsWith('@')) {
-                    handle = handle.substring(1);
-                  }
-                  if (handle) {
-                    assignees.add(handle);
-                    console.log(`Found DRI ${handle} for connector ${connectorFolder}`);
-                  }
-                } else {
-                  console.log(`No DRI found for connector folder: ${connectorFolder}`);
+                uniqueConnectorFolders.add(match[1]);
+              }
+            }
+
+            console.log(`Found unique connector folders: ${Array.from(uniqueConnectorFolders).join(', ')}`);
+
+            // Now fetch DRI information for each unique connector folder
+            for (const connectorFolder of uniqueConnectorFolders) {
+              console.log(`Looking up DRI for connector folder: ${connectorFolder}`);
+              
+              // Fetch DRI information from the API
+              const connectorInfo = await getDRIByProperty('registry-folder', connectorFolder);
+              
+              if (connectorInfo && connectorInfo['dri-github-handle'] && connectorInfo['dri-github-handle'].toLowerCase() !== 'null') {
+                let handle = connectorInfo['dri-github-handle'];
+                if (handle.startsWith('@')) {
+                  handle = handle.substring(1);
                 }
+                if (handle) {
+                  assignees.add(handle);
+                  console.log(`Found DRI ${handle} for connector ${connectorFolder}`);
+                }
+              } else {
+                console.log(`No DRI found for connector folder: ${connectorFolder}`);
               }
             }
 
