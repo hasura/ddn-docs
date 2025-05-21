@@ -8,6 +8,8 @@
 # 3. Queries an external API endpoint to get the DRI information for each connector ID
 # 4. Processes DRI GitHub handles (removing @ prefix if present)
 # 5. Requests reviews from all identified DRIs on the PR
+#
+# Note: The DRI endpoint ALWAYS returns an array, even when there's just one result.
 
 name: Connector Docs DRI Reviewer
 
@@ -82,7 +84,7 @@ jobs:
                 }
                 
                 const data = await response.json();
-                return data.length > 0 ? data[0] : null;
+                return data;  // Return the entire array as the DRI endpoint always returns an array
               } catch (error) {
                 console.error(`Failed to fetch DRI data: ${error.message}`);
                 return null;
@@ -128,7 +130,31 @@ jobs:
                     console.log(`Found connector IDs in ${filePath}: ${connectorIds.join(', ')}`);
                   }
                 } else {
-                  console.log(`No connector IDs found in ${filePath}`);
+                  console.log(`No connector IDs found in frontmatter of ${filePath}, checking for _category_.json`);
+                  // Check if there's a _category_.json file in the same directory
+                  const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+                  const categoryFilePath = `${dirPath}/_category_.json`;
+                  
+                  try {
+                    if (fs.existsSync(categoryFilePath)) {
+                      console.log(`Found _category_.json at ${categoryFilePath}`);
+                      const categoryContent = fs.readFileSync(categoryFilePath, 'utf8');
+                      const categoryData = JSON.parse(categoryContent);
+                      
+                      if (categoryData.customProps && categoryData.customProps['connector-ids'] && 
+                          Array.isArray(categoryData.customProps['connector-ids'])) {
+                        const categoryConnectorIds = categoryData.customProps['connector-ids'];
+                        categoryConnectorIds.forEach(id => uniqueConnectorIds.add(id));
+                        console.log(`Found connector IDs in ${categoryFilePath}: ${categoryConnectorIds.join(', ')}`);
+                      } else {
+                        console.log(`No connector IDs found in ${categoryFilePath}`);
+                      }
+                    } else {
+                      console.log(`No _category_.json found in directory ${dirPath}`);
+                    }
+                  } catch (error) {
+                    console.error(`Error processing _category_.json for ${filePath}: ${error.message}`);
+                  }
                 }
               } catch (error) {
                 console.error(`Error reading file ${filePath}: ${error.message}`);
@@ -156,7 +182,8 @@ jobs:
                     console.log(`Found DRI ${handle} for connector ${connectorId}`);
                   }
                 } else {
-                console.log(`No DRI found for connector ID: ${connectorId}`);
+                  console.log(`No DRI found for connector ID: ${connectorId}`);
+                }
               }
             }
 
