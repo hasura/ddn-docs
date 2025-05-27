@@ -1,0 +1,203 @@
+# Connector Docs DRI Reviewer Workflow
+#
+# This workflow automatically assigns the Connector DRI to the PR for any edits to connector docs.
+#
+# How it works:
+# 1. Identifies changed MDX files in PR within the docs directory
+# 2. For each changed file, extracts connector IDs from the frontmatter's 'connector-ids' section
+# 3. Queries an external API endpoint to get the DRI information for each connector ID
+# 4. Processes DRI GitHub handles (removing @ prefix if present)
+# 5. Requests reviews from all identified DRIs on the PR
+#
+# Note: The DRI endpoint ALWAYS returns an array, even when there's just one result.
+
+name: Connector Docs DRI Reviewer
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'docs/**/*.mdx'
+  workflow_dispatch:
+
+jobs:
+  connector-docs-dri-reviewer:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
+          fetch-depth: 1
+
+      - name: Get changed MDX files
+        id: changed_mdx_files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: docs/**/*.mdx
+
+      - name: Install js-yaml
+        run: npm install js-yaml
+
+      - name: Assign DRI based on connector IDs in frontmatter
+        if: steps.changed_mdx_files.outputs.all_modified_files != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.DOCS_GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+
+            // Helper function to fetch DRI information by property and value
+            async function getDRIByProperty(property, value) {
+              
+              const url = `https://website-api.hasura.io/docs-services/docs-server/dri/lookup?property=${encodeURIComponent(property)}&value=${encodeURIComponent(value)}`;
+              
+              try {
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                  console.error(`Error fetching DRI data: ${response.status} ${response.statusText}`);
+                  return null;
+                }
+                
+                const data = await response.json();
+                return data;  // Return the entire array as the DRI endpoint always returns an array
+              } catch (error) {
+                console.error(`Failed to fetch DRI data: ${error.message}`);
+                return null;
+              }
+            }
+
+            // Parse frontmatter from MDX file content
+            function extractFrontmatter(content) {
+              const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---/;
+              const match = content.match(frontMatterRegex);
+              
+              if (match && match[1]) {
+                try {
+                  return yaml.load(match[1]);
+                } catch (error) {
+                  console.error(`Failed to parse frontmatter: ${error.message}`);
+                }
+              }
+              return null;
+            }
+
+            const changedFiles = `${{ steps.changed_mdx_files.outputs.all_modified_files }}`.split(' ').filter(f => f.length > 0);
+            if (changedFiles.length === 0) {
+              console.log("No MDX files changed.");
+              return;
+            }
+            console.log("Changed MDX files:", changedFiles);
+
+            const assignees = new Set();
+            const uniqueConnectorIds = new Set();
+
+            // Extract connector IDs from frontmatter in changed files
+            for (const filePath of changedFiles) {
+              console.log(`Processing file: ${filePath}`);
+              try {
+                const fileContent = fs.readFileSync(filePath, 'utf8');
+                const frontmatter = extractFrontmatter(fileContent);
+                
+                if (frontmatter && frontmatter.custom_props && frontmatter.custom_props['connector-ids']) {
+                  const connectorIds = frontmatter.custom_props['connector-ids'];
+                  if (Array.isArray(connectorIds)) {
+                    connectorIds.forEach(id => uniqueConnectorIds.add(id));
+                    console.log(`Found connector IDs in ${filePath}: ${connectorIds.join(', ')}`);
+                  }
+                } else {
+                  console.log(`No connector IDs found in frontmatter of ${filePath}, checking for _category_.json`);
+                  // Check if there's a _category_.json file in the same directory
+                  const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+                  const categoryFilePath = `${dirPath}/_category_.json`;
+                  
+                  try {
+                    if (fs.existsSync(categoryFilePath)) {
+                      console.log(`Found _category_.json at ${categoryFilePath}`);
+                      const categoryContent = fs.readFileSync(categoryFilePath, 'utf8');
+                      const categoryData = JSON.parse(categoryContent);
+                      
+                      if (categoryData.customProps && categoryData.customProps['connector-ids'] && 
+                          Array.isArray(categoryData.customProps['connector-ids'])) {
+                        const categoryConnectorIds = categoryData.customProps['connector-ids'];
+                        categoryConnectorIds.forEach(id => uniqueConnectorIds.add(id));
+                        console.log(`Found connector IDs in ${categoryFilePath}: ${categoryConnectorIds.join(', ')}`);
+                      } else {
+                        console.log(`No connector IDs found in ${categoryFilePath}`);
+                      }
+                    } else {
+                      console.log(`No _category_.json found in directory ${dirPath}`);
+                    }
+                  } catch (error) {
+                    console.error(`Error processing _category_.json for ${filePath}: ${error.message}`);
+                  }
+                }
+              } catch (error) {
+                console.error(`Error reading file ${filePath}: ${error.message}`);
+              }
+            }
+
+            console.log(`Found unique connector IDs: ${Array.from(uniqueConnectorIds).join(', ')}`);
+
+            // Fetch DRI information for each unique connector ID
+            for (const connectorId of uniqueConnectorIds) {
+              console.log(`Looking up DRI for connector ID: ${connectorId}`);
+              
+              // Fetch DRI information from the API
+              const driInfoArray = await getDRIByProperty('connector-id', connectorId);
+              
+              if (driInfoArray && driInfoArray.length > 0) {
+                const connectorInfo = driInfoArray[0]; // Get the first item from the array
+                if (connectorInfo['dri-github-handle'] && connectorInfo['dri-github-handle'].toLowerCase() !== 'null') {
+                  let handle = connectorInfo['dri-github-handle'];
+                  if (handle.startsWith('@')) {
+                    handle = handle.substring(1);
+                  }
+                  if (handle) {
+                    assignees.add(handle);
+                    console.log(`Found DRI ${handle} for connector ${connectorId}`);
+                  }
+                } else {
+                  console.log(`No DRI found for connector ID: ${connectorId}`);
+                }
+              }
+            }
+
+            const drIndividuals = Array.from(assignees);
+            if (drIndividuals.length > 0) {
+              console.log(`Requesting review from DRIs: ${drIndividuals.join(', ')} on PR #${context.issue.number}`);
+              try {
+                const response = await github.rest.pulls.requestReviewers({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                  reviewers: drIndividuals
+                });
+                console.log("Reviewers Response:", response);
+                console.log("Done requesting reviews from DRIs.");
+              } catch (error) {
+                console.error("Failed to assign reviewers:", error.message);
+                // Add a comment to the PR indicating the issue
+                try {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    body: `⚠️ Failed to assign the following DRIs as reviewers: ${drIndividuals.join(', ')}\n\nError: ${error.message}\n\nPlease consider adding them manually.`
+                  });
+                  console.log("Added comment about reviewer assignment failure");
+                } catch (commentError) {
+                  console.error("Failed to add comment about reviewer failure:", commentError.message);
+                }
+              }
+            } else {
+              console.log("No DRIs found to request a review for the changed files.");
+            }
