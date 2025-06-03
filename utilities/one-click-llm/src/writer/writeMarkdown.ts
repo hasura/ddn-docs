@@ -3,7 +3,7 @@ import { join, dirname, resolve } from 'path';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { fileURLToPath } from 'node:url';
 
-const BASE_URL = 'https://hasura.io/docs/promptql';
+const BASE_URL = 'https://hasura.io/docs/3.0';
 
 async function expandPartials(content: string, docPath: string, rootDir: string, depth: number = 0): Promise<string> {
   if (depth > 10) {
