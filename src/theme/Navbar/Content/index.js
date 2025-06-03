@@ -13,6 +13,7 @@ import styles from './styles.module.css';
 import DocsLogoLight from '@site/static/img/docs-logo-light.svg';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import { AiChatBot } from '@site/src/components/AiChatBot/AiChatBot';
+import CopyLLM from '@site/src/components/CopyLlmText';
 
 function useNavbarItems() {
   // TODO temporary casting until ThemeConfig type is improved
@@ -107,6 +108,7 @@ export default function NavbarContent() {
             <BrowserOnly fallback={<div>Loading...</div>}>{() => <AiChatBot />}</BrowserOnly>
           </a>
           <NavbarItems items={rightItems} />
+          <CopyLLM />
         </>
       }
     />
