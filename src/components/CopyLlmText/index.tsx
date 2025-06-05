@@ -5,11 +5,33 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 export default function CopyLLM() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isOpen, setIsOpen] = useState(false);
+  const [fileContent, setFileContent] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const FILE_NAME = 'llms-full.txt';
 
   const fileUrl = useBaseUrl(`/${FILE_NAME}`);
+
+  // Prefetch the file once so that clipboard write can happen synchronously
+  useEffect(() => {
+    let isMounted = true;
+    fetch(fileUrl)
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch file.');
+        return res.text();
+      })
+      .then(text => {
+        if (isMounted) setFileContent(text);
+      })
+      .catch(err => {
+        // Silently fail – try again later in the click handler
+        console.warn('Prefetch failed', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fileUrl]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -24,21 +46,53 @@ export default function CopyLLM() {
     };
   }, []);
 
+  /**
+   * Cross-browser clipboard write with Safari fallback.
+   */
+  async function copyToClipboard(text: string) {
+    // Try modern API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch (err) {
+        console.warn('navigator.clipboard.writeText failed, falling back', err);
+      }
+    }
+
+    // Fallback for Safari / older browsers
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+
   async function handleCopy() {
     let showLoadingTimer: NodeJS.Timeout | undefined;
 
     try {
-      // Adding a timer to deal with debouncing and janky issues
+      // Show loading state if the operation takes noticeable time
       showLoadingTimer = setTimeout(() => {
         setStatus('loading');
       }, 300);
 
-      const response = await fetch(fileUrl);
-      if (!response.ok) {
-        throw new Error('Failed to fetch file.');
+      // Use prefetched content when available to keep copy within user-gesture
+      let text = fileContent;
+      if (!text) {
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error('Failed to fetch file.');
+        }
+        text = await response.text();
+        setFileContent(text); // cache for the next time
       }
-      const text = await response.text();
-      await navigator.clipboard.writeText(text);
+
+      await copyToClipboard(text);
 
       clearTimeout(showLoadingTimer);
       setStatus('success');
