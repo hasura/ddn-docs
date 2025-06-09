@@ -13,6 +13,7 @@ import DocBreadcrumbs from '@theme/DocBreadcrumbs';
 import Unlisted from '@theme/Unlisted';
 import CustomFooter from '@site/src/components/CustomFooter';
 import HasuraBanner from '@site/src/components/HasuraBanner';
+import CanonicalUrl from '@site/src/components/CanonicalUrl';
 import type { Props } from '@theme/DocItem/Layout';
 
 import styles from './styles.module.css';
@@ -44,24 +45,27 @@ export default function DocItemLayout({ children }: Props): JSX.Element {
     metadata: { unlisted },
   } = useDoc();
   return (
-    <div className="row">
-      <div className={clsx('col', !docTOC.hidden && styles.docItemCol)}>
-        {unlisted && <Unlisted />}
-        <DocVersionBanner />
-        <div className={styles.docItemContainer}>
-          <article>
-            <DocBreadcrumbs />
-            <DocVersionBadge />
-            {docTOC.mobile}
-            <DocItemContent>{children}</DocItemContent>
-            <DocItemFooter />
-          </article>
-          <DocItemPaginator />
-          <HasuraBanner />
-          <CustomFooter />
+    <>
+      <CanonicalUrl />
+      <div className="row">
+        <div className={clsx('col', !docTOC.hidden && styles.docItemCol)}>
+          {unlisted && <Unlisted />}
+          <DocVersionBanner />
+          <div className={styles.docItemContainer}>
+            <article>
+              <DocBreadcrumbs />
+              <DocVersionBadge />
+              {docTOC.mobile}
+              <DocItemContent>{children}</DocItemContent>
+              <DocItemFooter />
+            </article>
+            <DocItemPaginator />
+            <HasuraBanner />
+            <CustomFooter />
+          </div>
         </div>
+        {docTOC.desktop && <div className="col col--3">{docTOC.desktop}</div>}
       </div>
-      {docTOC.desktop && <div className="col col--3">{docTOC.desktop}</div>}
-    </div>
+    </>
   );
 }
