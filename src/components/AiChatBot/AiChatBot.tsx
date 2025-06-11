@@ -126,7 +126,11 @@ export function AiChatBot({ style }) {
       if (!isOpen) return;
 
       websocket = new WebSocket(
-        encodeURI(`${docsBotEndpointURL}?version=${hasuraVersion}&userId=${storedUserID}${queryDevToken}`)
+        encodeURI(
+          `${docsBotEndpointURL}?version=${
+            hasuraVersion == 3 ? 'ddn' : hasuraVersion
+          }&userId=${storedUserID}${queryDevToken}`
+        )
       );
 
       websocket.onopen = () => {
