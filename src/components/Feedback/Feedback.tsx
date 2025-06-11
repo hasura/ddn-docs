@@ -60,7 +60,7 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
         userFeedback: notes,
         pageTitle: document.title,
         pageUrl: window.location.href,
-        version: hasuraVersion,
+        version: hasuraVersion == 3 ? 'ddn' : hasuraVersion,
         docsUserId: storedUserID,
       });
 
