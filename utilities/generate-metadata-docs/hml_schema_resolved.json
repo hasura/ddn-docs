@@ -65,7 +65,10 @@
                                 "2025-03-11",
                                 "2025-03-12",
                                 "2025-03-21",
-                                "2025-03-26"
+                                "2025-03-26",
+                                "2025-04-03",
+                                "2025-04-24",
+                                "2025-05-30"
                               ]
                             },
                             {
@@ -86,7 +89,7 @@
                   "description": "Definition of the authentication configuration used by the API server.",
                   "oneOf": [
                     {
-                      "title": "AuthConfig1",
+                      "title": "AuthConfigV1",
                       "description": "Definition of the authentication configuration v1, used by the API server.",
                       "type": "object",
                       "required": ["definition", "kind", "version"],
@@ -101,7 +104,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV1",
-                          "title": "AuthConfigV1",
+                          "title": "AuthConfig1",
                           "description": "Definition of the authentication configuration v1, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -684,7 +687,7 @@
                       "additionalProperties": false
                     },
                     {
-                      "title": "AuthConfig2",
+                      "title": "AuthConfigV2",
                       "description": "Definition of the authentication configuration v2, used by the API server.",
                       "type": "object",
                       "required": ["definition", "kind", "version"],
@@ -699,7 +702,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV2",
-                          "title": "AuthConfigV2",
+                          "title": "AuthConfig2",
                           "description": "Definition of the authentication configuration v2, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -714,7 +717,7 @@
                       "additionalProperties": false
                     },
                     {
-                      "title": "AuthConfig3",
+                      "title": "AuthConfigV3",
                       "type": "object",
                       "required": ["definition", "kind", "version"],
                       "properties": {
@@ -728,7 +731,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV3",
-                          "title": "AuthConfigV3",
+                          "title": "AuthConfig3",
                           "description": "Definition of the authentication configuration v3, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -1040,6 +1043,425 @@
                                   "additionalProperties": false
                                 }
                               ]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "title": "AuthConfigV4",
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["AuthConfig"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v4"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV4",
+                          "title": "AuthConfigV4",
+                          "description": "Definition of the authentication configuration v4, used by the API server.",
+                          "type": "object",
+                          "required": ["mode"],
+                          "properties": {
+                            "mode": {
+                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/2/properties/definition/properties/mode"
+                            },
+                            "alternativeModes": {
+                              "type": ["array", "null"],
+                              "items": {
+                                "$id": "https://hasura.io/jsonschemas/metadata/AlternativeMode",
+                                "title": "AlternativeMode",
+                                "description": "Alternative Authentication Modes",
+                                "type": "object",
+                                "required": ["config", "identifier"],
+                                "properties": {
+                                  "identifier": {
+                                    "type": "string"
+                                  },
+                                  "config": {
+                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/2/properties/definition/properties/mode"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                {
+                  "$id": "https://hasura.io/jsonschemas/metadata/PromptQlConfig",
+                  "title": "PromptQlConfig",
+                  "description": "Definition of the configuration of PromptQL for the project",
+                  "oneOf": [
+                    {
+                      "title": "PromptQlConfigV2",
+                      "description": "Definition of the configuration of PromptQL, v2",
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["PromptQlConfig"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v2"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/PromptQlConfigV2",
+                          "title": "PromptQlConfigV2",
+                          "description": "Definition of the configuration of PromptQL for the project",
+                          "type": "object",
+                          "required": ["llm"],
+                          "properties": {
+                            "systemInstructions": {
+                              "description": "Custom system instructions provided to every PromptQL thread that allows tailoring of behavior to match to the project's specific needs.",
+                              "type": ["string", "null"]
+                            },
+                            "llm": {
+                              "description": "Configuration of the LLM to be used for PromptQL",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/LlmConfig",
+                                  "title": "LlmConfig",
+                                  "description": "Configuration of the LLM to be used for PromptQL",
+                                  "oneOf": [
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/HasuraLlmConfig",
+                                      "title": "HasuraLlmConfig",
+                                      "description": "Configuration settings for the Hasura-configured LLM",
+                                      "type": "object",
+                                      "required": ["provider"],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": ["hasura"]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/OpenAiLlmConfig",
+                                      "title": "OpenAiLlmConfig",
+                                      "description": "Configuration settings for an OpenAI LLM",
+                                      "type": "object",
+                                      "required": ["apiKey", "provider"],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": ["openai"]
+                                        },
+                                        "model": {
+                                          "description": "The specific OpenAI model to use. If not specified, the default model will be used.",
+                                          "type": ["string", "null"]
+                                        },
+                                        "baseUrl": {
+                                          "description": "The base URL to use for the OpenAI API. If not specified, the default URL will be used.",
+                                          "type": ["string", "null"]
+                                        },
+                                        "apiKey": {
+                                          "description": "The API key to use for the OpenAI API",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/AnthropicLlmConfig",
+                                      "title": "AnthropicLlmConfig",
+                                      "description": "Configuration settings for an Anthropic LLM",
+                                      "type": "object",
+                                      "required": ["apiKey", "provider"],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": ["anthropic"]
+                                        },
+                                        "model": {
+                                          "description": "The specific Anthropic model to use. If not specified, the default model will be used.",
+                                          "type": ["string", "null"]
+                                        },
+                                        "baseUrl": {
+                                          "description": "The base URL to use for the Anthropic API. If not specified, the default URL will be used.",
+                                          "type": ["string", "null"]
+                                        },
+                                        "apiKey": {
+                                          "description": "The API key to use for the Anthropic API",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/AzureLlmConfig",
+                                      "title": "AzureLlmConfig",
+                                      "description": "Configuration settings for an Azure-provided LLM",
+                                      "type": "object",
+                                      "required": ["apiKey", "endpoint", "provider"],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": ["azure"]
+                                        },
+                                        "apiVersion": {
+                                          "description": "The specific Azure API version to use. If not specified, the default version will be used.",
+                                          "type": ["string", "null"]
+                                        },
+                                        "model": {
+                                          "description": "The specific Azure model to use. If not specified, the default model will be used.",
+                                          "type": ["string", "null"]
+                                        },
+                                        "endpoint": {
+                                          "description": "The endpoint to use for the Azure LLM API",
+                                          "type": "string"
+                                        },
+                                        "apiKey": {
+                                          "description": "The API key to use for the Azure API",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/GeminiLlmConfig",
+                                      "title": "GeminiLlmConfig",
+                                      "description": "Configuration settings for a Gemini LLM",
+                                      "type": "object",
+                                      "required": ["apiKey", "provider"],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": ["gemini"]
+                                        },
+                                        "model": {
+                                          "description": "The specific Gemini model to use. If not specified, the default model will be used.",
+                                          "type": ["string", "null"]
+                                        },
+                                        "apiKey": {
+                                          "description": "The API key to use for the Gemini API",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        },
+                                        "safetySettings": {
+                                          "description": "Safety settings for the Gemini API",
+                                          "anyOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/GeminiSafetySettings",
+                                              "title": "GeminiSafetySettings",
+                                              "type": "object",
+                                              "properties": {
+                                                "harassment": {
+                                                  "description": "Negative or harmful comments targeting identity and/or protected attributes.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0/oneOf/4/properties/safetySettings/anyOf/0/properties/dangerous/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "hateSpeech": {
+                                                  "description": "Content that is rude, disrespectful, or profane.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0/oneOf/4/properties/safetySettings/anyOf/0/properties/dangerous/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "sexuallyExplicit": {
+                                                  "description": "Contains references to sexual acts or other lewd content.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0/oneOf/4/properties/safetySettings/anyOf/0/properties/dangerous/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "dangerous": {
+                                                  "description": "Promotes, facilitates, or encourages harmful acts.",
+                                                  "anyOf": [
+                                                    {
+                                                      "description": "Configuration settings for a Gemini LLM",
+                                                      "oneOf": [
+                                                        {
+                                                          "description": "Always show regardless of probability of unsafe content",
+                                                          "type": "string",
+                                                          "enum": ["blockNone"]
+                                                        },
+                                                        {
+                                                          "description": "Block when high probability of unsafe content",
+                                                          "type": "string",
+                                                          "enum": ["blockOnlyHigh"]
+                                                        },
+                                                        {
+                                                          "description": "Block when medium or high probability of unsafe content",
+                                                          "type": "string",
+                                                          "enum": ["blockMediumAndAbove"]
+                                                        },
+                                                        {
+                                                          "description": "Block when low, medium or high probability of unsafe content",
+                                                          "type": "string",
+                                                          "enum": ["blockLowAndAbove"]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "civicIntegrity": {
+                                                  "description": "Election-related queries.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0/oneOf/4/properties/safetySettings/anyOf/0/properties/dangerous/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/BedrockLlmConfig",
+                                      "title": "BedrockLlmConfig",
+                                      "description": "Configuration settings for an AWS Bedrock-provided LLM",
+                                      "type": "object",
+                                      "required": [
+                                        "awsAccessKeyId",
+                                        "awsSecretAccessKey",
+                                        "modelId",
+                                        "provider",
+                                        "regionName"
+                                      ],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": ["bedrock"]
+                                        },
+                                        "modelId": {
+                                          "description": "The specific AWS Bedrock model to use.",
+                                          "type": "string"
+                                        },
+                                        "regionName": {
+                                          "description": "The specific AWS Bedrock region to use.",
+                                          "type": "string"
+                                        },
+                                        "awsAccessKeyId": {
+                                          "description": "The AWS access key ID to use for the AWS Bedrock API",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        },
+                                        "awsSecretAccessKey": {
+                                          "description": "The AWS secret access key to use for the AWS Bedrock API",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "aiPrimitivesLlm": {
+                              "description": "Configuration of the default LLM to be used for AI primitives, such as classification, summarization etc",
+                              "anyOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "overrideAiPrimitivesLlm": {
+                              "description": "Configuration of specific LLMs to be used for AI primitives, such as classification, summarization etc",
+                              "default": [],
+                              "type": "array",
+                              "items": {
+                                "$id": "https://hasura.io/jsonschemas/metadata/AiPrimitivesLlmConfig",
+                                "title": "AiPrimitivesLlmConfig",
+                                "description": "Configure PromptQL to use a particular LLM for a specific primitive",
+                                "type": "object",
+                                "required": ["llm", "primitiveName"],
+                                "properties": {
+                                  "primitiveName": {
+                                    "description": "The name of the operation to override",
+                                    "allOf": [
+                                      {
+                                        "$id": "https://hasura.io/jsonschemas/metadata/LlmPrimitive",
+                                        "title": "LlmPrimitive",
+                                        "description": "The name of an LLM primitive, such as `classify`, `summarize`, `extract` and `visualize`.",
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  "llm": {
+                                    "description": "The configuration to use for this operation",
+                                    "allOf": [
+                                      {
+                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "featureFlags": {
+                              "description": "Feature flags to be used for PromptQL",
+                              "type": ["object", "null"],
+                              "additionalProperties": true
                             }
                           },
                           "additionalProperties": false
@@ -2490,6 +2912,20 @@
                                                   "properties": {
                                                     "type": {
                                                       "type": "string",
+                                                      "enum": ["millisecond"]
+                                                    },
+                                                    "result_type": {
+                                                      "description": "The result type, which must be a defined scalar type in the schema response.",
+                                                      "type": "string"
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "required": ["result_type", "type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
                                                       "enum": ["second"]
                                                     },
                                                     "result_type": {
@@ -3211,6 +3647,153 @@
                                                       "type": "null"
                                                     }
                                                   ]
+                                                },
+                                                "relational_query": {
+                                                  "description": "Does the connector support the relational query API? This feature is experimental and subject to breaking changes within minor versions.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalQueryCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "DatePartScalarExpressionCapability": {
+                                              "title": "Date Part Scalar Expression Capability",
+                                              "type": "object",
+                                              "properties": {
+                                                "year": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "quarter": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "month": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "week": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "day_of_week": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "day_of_year": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "day": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "hour": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "minute": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "second": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "microsecond": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "millisecond": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "nanosecond": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
                                                 }
                                               }
                                             },
@@ -3521,6 +4104,1160 @@
                                                   "allOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/ExistsCapabilities"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalAggregateCapabilities": {
+                                              "title": "Relational Aggregate Capabilities",
+                                              "type": "object",
+                                              "required": ["expression"],
+                                              "properties": {
+                                                "expression": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalExpressionCapabilities"
+                                                },
+                                                "group_by": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalAggregateExpressionCapabilities": {
+                                              "title": "Relational Aggregate Expression Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "avg": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "bool_and": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "bool_or": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "count": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalAggregateFunctionCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "first_value": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "last_value": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "max": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "median": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "min": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "string_agg": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "sum": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "var": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalAggregateFunctionCapabilities": {
+                                              "title": "Relational Aggregate Function Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "distinct": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalComparisonExpressionCapabilities": {
+                                              "title": "Relational Filter Expression Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "between": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "contains": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "greater_than_eq": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "greater_than": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ilike": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "in_list": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "is_false": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "is_nan": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "is_null": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "is_true": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "is_zero": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "less_than_eq": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "less_than": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "like": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalConditionalExpressionCapabilities": {
+                                              "title": "Relational Conditional Expression Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "case": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "nullif": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalExpressionCapabilities": {
+                                              "title": "Relational Expression Capabilities",
+                                              "type": "object",
+                                              "required": [
+                                                "aggregate",
+                                                "comparison",
+                                                "conditional",
+                                                "scalar",
+                                                "window"
+                                              ],
+                                              "properties": {
+                                                "conditional": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalConditionalExpressionCapabilities"
+                                                },
+                                                "comparison": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalComparisonExpressionCapabilities"
+                                                },
+                                                "scalar": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalScalarExpressionCapabilities"
+                                                },
+                                                "aggregate": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalAggregateExpressionCapabilities"
+                                                },
+                                                "window": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalWindowExpressionCapabilities"
+                                                }
+                                              }
+                                            },
+                                            "RelationalJoinCapabilities": {
+                                              "title": "Relational Join Capabilities",
+                                              "type": "object",
+                                              "required": ["expression", "join_types"],
+                                              "properties": {
+                                                "expression": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalExpressionCapabilities"
+                                                },
+                                                "join_types": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalJoinTypeCapabilities"
+                                                }
+                                              }
+                                            },
+                                            "RelationalJoinTypeCapabilities": {
+                                              "title": "Relational Join Type Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "left": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "right": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "inner": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "full": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "left_semi": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "left_anti": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "right_semi": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "right_anti": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalProjectionCapabilities": {
+                                              "title": "Relational Projection Capabilities",
+                                              "type": "object",
+                                              "required": ["expression"],
+                                              "properties": {
+                                                "expression": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalExpressionCapabilities"
+                                                }
+                                              }
+                                            },
+                                            "RelationalQueryCapabilities": {
+                                              "title": "Relational Query Capabilities",
+                                              "description": "Describes which features of the relational query API are supported by the connector. This feature is experimental and subject to breaking changes within minor versions.",
+                                              "type": "object",
+                                              "required": ["project"],
+                                              "properties": {
+                                                "project": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalProjectionCapabilities"
+                                                },
+                                                "filter": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalExpressionCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "sort": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalSortCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "join": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalJoinCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "aggregate": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalAggregateCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "window": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalWindowCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalScalarExpressionCapabilities": {
+                                              "title": "Relational Scalar Expression Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "abs": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "and": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "array_element": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "btrim": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ceil": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "character_length": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "coalesce": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "concat": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "cos": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "current_date": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "current_time": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "current_timestamp": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "date_part": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/DatePartScalarExpressionCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "date_trunc": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "divide": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "exp": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "floor": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "get_field": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "greatest": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "least": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "left": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ln": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "log": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "log10": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "log2": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "lpad": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ltrim": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "minus": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "modulo": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "multiply": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "negate": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "not": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "nvl": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "or": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "plus": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "power": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "random": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "replace": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "reverse": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "right": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "round": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "rpad": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "rtrim": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "sqrt": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "str_pos": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "substr_index": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "substr": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "tan": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "to_date": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "to_lower": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "to_timestamp": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "to_upper": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "trunc": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalSortCapabilities": {
+                                              "title": "Relational Sort Capabilities",
+                                              "type": "object",
+                                              "required": ["expression"],
+                                              "properties": {
+                                                "expression": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalExpressionCapabilities"
+                                                }
+                                              }
+                                            },
+                                            "RelationalWindowCapabilities": {
+                                              "title": "Relational Window Capabilities",
+                                              "type": "object",
+                                              "required": ["expression"],
+                                              "properties": {
+                                                "expression": {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalExpressionCapabilities"
+                                                }
+                                              }
+                                            },
+                                            "RelationalWindowExpressionCapabilities": {
+                                              "title": "Relational Window Expression Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "row_number": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "dense_rank": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ntile": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "rank": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "cume_dist": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "percent_rank": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
                                                     }
                                                   ]
                                                 }
@@ -7688,6 +9425,40 @@
                                                         "additionalProperties": false
                                                       },
                                                       {
+                                                        "description": "Filters objects based on the nested field of a model.",
+                                                        "type": "object",
+                                                        "required": ["nestedField"],
+                                                        "properties": {
+                                                          "nestedField": {
+                                                            "$id": "https://hasura.io/jsonschemas/metadata/NestedFieldPredicate",
+                                                            "title": "NestedFieldPredicate",
+                                                            "description": "Nested field predicate filters objects of a source model based on a predicate on the nested field.",
+                                                            "type": "object",
+                                                            "required": ["fieldName", "predicate"],
+                                                            "properties": {
+                                                              "fieldName": {
+                                                                "description": "The name of the field in the object type of the model to follow.",
+                                                                "allOf": [
+                                                                  {
+                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                                  }
+                                                                ]
+                                                              },
+                                                              "predicate": {
+                                                                "description": "The predicate to apply on the related objects.",
+                                                                "allOf": [
+                                                                  {
+                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          }
+                                                        },
+                                                        "additionalProperties": false
+                                                      },
+                                                      {
                                                         "description": "Filters objects based on the relationship of a model.",
                                                         "type": "object",
                                                         "required": ["relationship"],
@@ -7786,6 +9557,21 @@
                                             "type": "boolean"
                                           }
                                         },
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "relationalInsert": {
+                                    "description": "The permissions for relational insert operations on this model for this role. If this is null, the role is not allowed to perform relational inserts on this model. This is only applicable for data connectors that support relational operations.",
+                                    "anyOf": [
+                                      {
+                                        "$id": "https://hasura.io/jsonschemas/metadata/RelationalInsertPermission",
+                                        "title": "RelationalInsertPermission",
+                                        "description": "Defines the permissions for relational insert operations on a model for a role. If null, the role is not allowed to perform relational inserts on this model. This is only applicable for data connectors that support relational operations.",
+                                        "type": "object",
                                         "additionalProperties": false
                                       },
                                       {
