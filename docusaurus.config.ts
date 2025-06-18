@@ -18,8 +18,8 @@ const DOCS_SERVER_URLS = {
 
 const BOT_ROUTES = {
   development: `ws://${DOCS_SERVER_ROOT_URLS.development}/bot/query`,
-  production: `wss://${DOCS_SERVER_ROOT_URLS.production}/bot/query`,
-  staging: `wss://${DOCS_SERVER_ROOT_URLS.staging}/bot/query`,
+  production: `wss://${DOCS_SERVER_ROOT_URLS.production}/docs-services/docs-server/bot/query`,
+  staging: `wss://${DOCS_SERVER_ROOT_URLS.staging}/docs-services/docs-server/bot/query`,
 };
 
 const config: Config = {
