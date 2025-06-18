@@ -72,20 +72,29 @@ definition:
     - identifier: "user2"
       config:
         webhook:
-          url: "https://my-auth-service.example.com/validate-user2"
+          url:
+            valueFromEnv: USER2_URL
           method: "POST"
     - identifier: "webhook"
       config:
         webhook:
-          url: "https://my-auth-service.example.com/validate"
+          url:
+            value: "https://my-auth-service.example.com/validate"
           method: "POST"
     - identifier: "jwt"
       config:
         jwt:
-          jwkUrl: "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
-          audience: "my-firebase-app"
+          key:
+            jwkFromUrl: "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
+          audience: ["my-firebase-app"]
           issuer: "https://securetoken.google.com/my-firebase-app"
-          claims_namespace: "https://hasura.io/jwt/claims"
+          claimsConfig:
+            namespace:
+              claimsFormat: Json
+              location: "https://hasura.io/jwt/claims"
+          tokenLocation: 
+            type: Header
+            name: "Authorization"
 ```
 
 In this example:
@@ -103,11 +112,12 @@ header with the identifier of the desired mode.
 
 ### Example Requests
 
-Default mode (no header needed):
+Default mode (JWT with fixed key):
 
 ```bash
 curl https://your-hasura-endpoint.hasura-ddn.com/v1/graphql \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-fixed-key-jwt-token" \
   -d '{"query": "{ users { id name } }"}'
 ```
 
