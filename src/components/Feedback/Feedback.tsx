@@ -54,13 +54,14 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
       // { pageTitle, pageUrl, score, userFeedback, version, docsUserId }
 
       const storedUserID = localStorage.getItem('hasuraDocsUserID') as string | 'null';
+      const destinationUrl = docsServerURL + '/feedback/public-new-feedback';
 
       const raw = JSON.stringify({
         score: rating,
         userFeedback: notes,
         pageTitle: document.title,
         pageUrl: window.location.href,
-        version: hasuraVersion == 3 ? 'ddn' : hasuraVersion,
+        version: hasuraVersion,
         docsUserId: storedUserID,
       });
 
@@ -71,20 +72,15 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
         redirect: 'follow' as RequestRedirect,
       };
 
-      fetch(docsServerURL + '/feedback/public-new-feedback?', requestOptions)
-        .then(response => response.text())
-        .catch(error => console.error('error', error));
+      fetch(destinationUrl, requestOptions)
+        .then(response => {
+          console.log('Feedback submission status:', response.ok ? 'Success' : 'Failed');
+          return response.text();
+        })
+        .catch(error => {
+          console.error('Feedback submission failed:', error);
+        });
     };
-
-    // if (!window.location.hostname.includes('hasura.io')) {
-    //   alert(
-    //     'Hey! We like that you like our docs and chose to use them 🎉\n\nHowever, you might want to remove the feedback component or modify the route you hit, lest you want us reading what people think of your site ✌️'
-    //   );
-    //   setRating(null);
-    //   setNotes(null);
-    //   setIsSubmitSuccess(true);
-    //   return;
-    // }
 
     sendData()
       .then(() => {
@@ -193,7 +189,7 @@ export const Feedback = ({ metadata }: { metadata: any }) => {
                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
                         d="M15.0439 4.60446C15.3512 3.98188 15.5048 3.67058 15.7134 3.57113C15.8949 3.48459 16.1058 3.48459 16.2873 3.57113C16.4959 3.67058 16.6495 3.98188 16.9568 4.60446L19.8724 10.5111C19.9631 10.6949 20.0085 10.7868 20.0748 10.8581C20.1335 10.9213 20.2039 10.9725 20.2821 11.0089C20.3704 11.0499 20.4718 11.0648 20.6746 11.0944L27.1963 12.0476C27.8831 12.148 28.2265 12.1982 28.3854 12.366C28.5236 12.5119 28.5887 12.7124 28.5623 12.9117C28.5321 13.1408 28.2835 13.3829 27.7863 13.8672L23.0689 18.4619C22.9219 18.6052 22.8483 18.6768 22.8009 18.762C22.7589 18.8374 22.7319 18.9203 22.7215 19.006C22.7098 19.1029 22.7272 19.204 22.7619 19.4064L23.8749 25.8962C23.9923 26.5807 24.051 26.9229 23.9407 27.126C23.8447 27.3027 23.6741 27.4267 23.4764 27.4633C23.2492 27.5055 22.9418 27.3438 22.3271 27.0206L16.4968 23.9545C16.3152 23.859 16.2243 23.8112 16.1286 23.7924C16.0439 23.7758 15.9568 23.7758 15.872 23.7924C15.7764 23.8112 15.6855 23.859 15.5039 23.9545L9.67356 27.0206C9.05888 27.3438 8.75154 27.5055 8.52429 27.4633C8.32657 27.4267 8.15596 27.3027 8.05998 27.126C7.94966 26.9229 8.00836 26.5807 8.12576 25.8962L9.23884 19.4064C9.27354 19.204 9.29089 19.1029 9.27915 19.006C9.26876 18.9203 9.24181 18.8374 9.1998 18.762C9.15236 18.6768 9.07883 18.6052 8.93177 18.4619L4.2144 13.8672C3.71721 13.3829 3.46861 13.1408 3.43836 12.9117C3.41204 12.7124 3.47706 12.5119 3.61533 12.366C3.77424 12.1982 4.11762 12.148 4.80438 12.0476L11.3261 11.0944C11.5289 11.0648 11.6303 11.0499 11.7186 11.0089C11.7968 10.9725 11.8672 10.9213 11.9259 10.8581C11.9922 10.7868 12.0376 10.6949 12.1283 10.5111L15.0439 4.60446Z"
-                        stroke="#3970FD"
+                        stroke="#b6fc34"
                         stroke-width="1.5"
                         stroke-linecap="round"
                         stroke-linejoin="round"
