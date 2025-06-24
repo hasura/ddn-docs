@@ -8,7 +8,7 @@ instructions on how to install, run, and contribute to the project.
 To install the necessary dependencies, simply run:
 
 ```bash
-$ yarn
+yarn
 ```
 
 ## Local Development
@@ -16,7 +16,7 @@ $ yarn
 To start a local development server and preview the docs:
 
 ```bash
-$ yarn start
+yarn start
 ```
 
 This command will open a browser window, and any changes you make will automatically reflect without needing to restart
@@ -27,7 +27,7 @@ the server. Perfect for quick iterations!
 To build the documentation for production:
 
 ```bash
-$ yarn build
+yarn build
 ```
 
 This generates static content into the `build` directory, which can be hosted using any static hosting service.
