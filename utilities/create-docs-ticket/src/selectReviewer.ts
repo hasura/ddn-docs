@@ -15,10 +15,9 @@ function findReviewerByName(reviewers: Reviewer[], name: string): Reviewer | und
 export const selectReviewer = (reviewers: Reviewer[]): Reviewer => {
   const hour = getCurrentHour();
 
-  const sean = findReviewerByName(reviewers, 'Sean');
   const rob = findReviewerByName(reviewers, 'Rob');
 
-  if (!sean || !rob) {
+  if (!rob) {
     throw new Error('Reviewer not found');
   }
 
