@@ -22,5 +22,5 @@ export const selectReviewer = (reviewers: Reviewer[]): Reviewer => {
     throw new Error('Reviewer not found');
   }
 
-  return hour < 12 ? sean : rob;
+  return rob;
 };
