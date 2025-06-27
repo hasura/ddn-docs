@@ -114,6 +114,8 @@ Resources:
               - iam:GetRole
               - iam:GetServiceLinkedRoleDeletionStatus
               - sqs:GetQueueAttributes
+              - rds:DescribeDBEngineVersions
+              - rds:DescribeOrderableDBInstanceOptions
             Resource: '*'
           - Effect: Allow
             Action:
@@ -143,6 +145,14 @@ Resources:
               - events:TagResource
               - iam:CreateOpenIDConnectProvider
               - iam:TagOpenIDConnectProvider
+              - rds:CreateDBInstance
+              - rds:CreateDBCluster
+              - rds:CreateDBSubnetGroup
+              - rds:CreateDBParameterGroup
+              - rds:CreateDBClusterParameterGroup
+              - rds:CreateOptionGroup
+              - rds:CreateEventSubscription
+              - rds:AddTagsToResource
             Resource: '*'
             Condition:
               StringEquals:
@@ -241,6 +251,7 @@ Resources:
               - sqs:*
               - acm:*
               - events:*
+              - rds:*
             Resource: '*'
             Condition:
               StringEquals:
@@ -364,6 +375,7 @@ gcloud services enable \
   multiclusterservicediscovery.googleapis.com \
   trafficdirector.googleapis.com \
   multiclusteringress.googleapis.com \
+  sqladmin.googleapis.com \
   container.googleapis.com \
   certificatemanager.googleapis.com --project ${GCP_PROJECT_ID}
 ```
@@ -414,6 +426,10 @@ gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
   --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
   --role roles/iam.serviceAccountAdmin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/cloudsql.admin
 
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
   --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
