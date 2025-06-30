@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const requiredEnvVars = ['LINEAR_TEAM_ID', 'SEAN_INFO', 'ROB_INFO', 'REPO_OWNER', 'REPO_NAME', 'DOCS_GITHUB_TOKEN'];
+const requiredEnvVars = ['LINEAR_TEAM_ID', 'ROB_INFO', 'REPO_OWNER', 'REPO_NAME', 'DOCS_GITHUB_TOKEN'];
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
     throw new Error(`Missing required environment variable: ${envVar}`);
@@ -24,7 +24,7 @@ if (!title || !url) {
 
 const main = async (title: string, url: string): Promise<string> => {
   try {
-    const reviewerList: Reviewer[] = [JSON.parse(process.env.SEAN_INFO!), JSON.parse(process.env.ROB_INFO!)];
+    const reviewerList: Reviewer[] = [JSON.parse(process.env.ROB_INFO!)];
     const reviewer = selectReviewer(reviewerList);
     const ticket = await createLinearTicket({ prTitle: title, prUrl: url, assignedReviewer: reviewer });
     const issue = await ticket.issue;
