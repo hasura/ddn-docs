@@ -14,18 +14,48 @@ keywords:
 
 ## Introduction
 
-This tutorial demonstrates how to use dynamic connections with the PostgreSQL connector to implement read/write splitting and load balancing. We'll configure a primary database for writes and multiple read replicas for queries, with automatic routing based on operation type.
+This tutorial demonstrates how to use dynamic connections with the PostgreSQL connector to implement read/write
+splitting and load balancing. We'll configure a primary database for writes and multiple read replicas for queries, with
+automatic routing based on operation type.
 
 ## Overview
 
-In this setup:
-- **Primary database**: Handles all mutations and mutation explanations
-- **Read replicas**: Handle queries in a round-robin fashion for load distribution
-- **Webhook**: Routes requests based on operation type and maintains round-robin state
+The dynamic connection routing system uses a pre-NDC webhook to intercept requests before they reach the PostgreSQL
+connector, allowing us to route operations to different databases based on the operation type.
+
+```mermaid
+---
+title: Dynamic Connection Routing Flow
+---
+graph TD
+    Client[Client] -->|1. GraphQL Request| Engine[Hasura Engine]
+    Engine -->|2. Ndc Request + Session| Webhook["Pre-NDC Hook<br />• Receive NDC request + session<br/>• Check operation type<br/>• Add connection_name parameter<br/>• Return modified request"]
+    Webhook -->|3. Modified NDC Request| Engine
+    Engine -->|4. Modified NDC Request| Connector[PostgreSQL Connector]
+    Connector -->|5. Query| Database[(Selected Database)]
+    Database -->|6. Results| Connector
+    Connector -->|7. NDC Response| Engine
+    Engine -->|8. GraphQL Response| Client
+
+    style Webhook fill:#fff2cc,stroke:#d6b656
+    style Database fill:#e1d5e7,stroke:#9673a6
+    style Connector fill:#ccffcc
+```
+
+### Request Flow
+
+1. **Client sends GraphQL request** to Hasura Engine
+2. **Engine triggers pre-NDC hook**, sending request details to the webhook
+3. **Webhook analyzes operation type** and adds appropriate `connection_name` to the request
+4. **Engine forwards modified request** to PostgreSQL connector with `connection_name` parameter
+5. **Connector routes to selected database** based on the `connection_name`
+6. **Database processes query** and returns results
+7. **Results flow back** through connector → engine → client
 
 ## Prerequisites
 
-This tutorial demonstrates how to use dynamic connections with the PostgreSQL connector to implement read/write splitting and load balancing. Before we begin configuring dynamic routing, you'll need to complete these setup steps:
+This tutorial demonstrates how to use dynamic connections with the PostgreSQL connector to implement read/write
+splitting and load balancing. Before we begin configuring dynamic routing, you'll need to complete these setup steps:
 
 ### 1. Create a Hasura DDN project
 
@@ -39,7 +69,8 @@ ddn connector init -i  # select hasura/postgres, use defaults for all options
 
 ### 2. Set up multiple databases
 
-For this tutorial, we'll simulate a primary-replica setup using a single PostgreSQL instance with multiple databases. In production, these would be separate database servers.
+For this tutorial, we'll simulate a primary-replica setup using a single PostgreSQL instance with multiple databases. In
+production, these would be separate database servers.
 
 #### Create the database initialization script
 
@@ -54,7 +85,7 @@ CREATE TABLE IF NOT EXISTS "table" (
   name TEXT NOT NULL
 );
 
-INSERT INTO "table" (name) VALUES 
+INSERT INTO "table" (name) VALUES
   ('Primary Record 1'),
   ('Primary Record 2'),
   ('Primary Record 3');
@@ -72,7 +103,7 @@ CREATE TABLE IF NOT EXISTS "table" (
   name TEXT NOT NULL
 );
 
-INSERT INTO "table" (name) VALUES 
+INSERT INTO "table" (name) VALUES
   ('Follower1 Record 1'),
   ('Follower1 Record 2'),
   ('Follower1 Record 3');
@@ -85,7 +116,7 @@ CREATE TABLE IF NOT EXISTS "table" (
   name TEXT NOT NULL
 );
 
-INSERT INTO "table" (name) VALUES 
+INSERT INTO "table" (name) VALUES
   ('Follower2 Record 1'),
   ('Follower2 Record 2'),
   ('Follower2 Record 3');
@@ -98,7 +129,7 @@ CREATE TABLE IF NOT EXISTS "table" (
   name TEXT NOT NULL
 );
 
-INSERT INTO "table" (name) VALUES 
+INSERT INTO "table" (name) VALUES
   ('Follower3 Record 1'),
   ('Follower3 Record 2'),
   ('Follower3 Record 3');
@@ -140,7 +171,9 @@ The `-v` flag removes the volumes, ensuring the database starts fresh and runs t
 
 ### 3. Create the webhook runtime environment
 
-Set up a webhook server that will handle the dynamic routing logic. In this tutorial, we'll create a simple Node.js/Express server, but in production you would typically use your preferred hosting platform (AWS Lambda, Vercel, Railway, etc.).
+Set up a webhook server that will handle the dynamic routing logic. In this tutorial, we'll create a simple
+Node.js/Express server, but in production you would typically use your preferred hosting platform (AWS Lambda, Vercel,
+Railway, etc.).
 
 #### Set up the webhook project structure
 
@@ -257,7 +290,8 @@ CMD ["npm", "start"]
 
 ## Step 1: Update connector configuration for dynamic connections
 
-First, we need to configure the PostgreSQL connector to support multiple database connections and update the environment variables.
+First, we need to configure the PostgreSQL connector to support multiple database connections and update the environment
+variables.
 
 ### Update connector configuration
 
@@ -406,21 +440,18 @@ app.post("/pre/ndc", (req: Request<{}, {}, WebhookRequest>, res: Response) => {
     }
 
     // Route mutations to primary database
-    if (
-      requestData.operationType === "mutation" ||
-      requestData.operationType === "mutationExplain"
-    ) {
+    if (requestData.operationType === "mutation" || requestData.operationType === "mutationExplain") {
       requestData.ndcRequest.request_arguments["connection_name"] = "primary";
       console.log("Routing mutation to primary database");
     } else {
       // Route queries to read replicas using round-robin
       const selectedFollower = followerConnections[currentFollowerIndex];
-      
+
       // Increment the index for the next request
       currentFollowerIndex = (currentFollowerIndex + 1) % followerConnections.length;
-      
+
       console.log(`Round-robin selected connection: ${selectedFollower}`);
-      
+
       requestData.ndcRequest.request_arguments["connection_name"] = selectedFollower;
     }
 
@@ -444,7 +475,7 @@ Update your main `compose.yaml` file to include the webhook service:
 ```yaml
 services:
   # ... your existing services (engine, otel-collector, etc.)
-  
+
   webhook:
     build:
       context: webhook
@@ -532,12 +563,14 @@ We should now have a complete setup for dynamic routing with read/write splittin
 ## Step 4: Test the dynamic routing
 
 1. **Build and start the services:**
+
    ```bash
    ddn supergraph build local
    ddn run docker-start
    ```
 
 2. **Test a query (should use read replica):**
+
    ```graphql
    query {
      table {
@@ -548,9 +581,10 @@ We should now have a complete setup for dynamic routing with read/write splittin
    ```
 
 3. **Test a mutation (should use primary):**
+
    ```graphql
    mutation {
-     insert_table(objects: [{name: "test"}]) {
+     insert_table(objects: [{ name: "test" }]) {
        affected_rows
        returning {
          id
@@ -564,35 +598,3 @@ We should now have a complete setup for dynamic routing with read/write splittin
    ```bash
    docker logs dynamic-demo-webhook-1
    ```
-
-## How It Works
-
-The dynamic connection routing system uses a pre-NDC webhook to intercept requests before they reach the PostgreSQL connector, allowing us to route operations to different databases based on the operation type.
-
-```mermaid
----
-title: Dynamic Connection Routing Flow
----
-graph TD
-    Client[Client] -->|1. GraphQL Request| Engine[Hasura Engine]
-    Engine -->|2. Ndc Request + Session| Webhook["Pre-NDC Hook<br />• Receive NDC request + session<br/>• Check operation type<br/>• Add connection_name parameter<br/>• Return modified request"]
-    Webhook -->|3. Modified NDC Request| Engine
-    Engine -->|4. Modified NDC Request| Connector[PostgreSQL Connector]
-    Connector -->|5. Query| Database[(Selected Database)]
-    Database -->|6. Results| Connector
-    Connector -->|7. NDC Response| Engine
-    Engine -->|8. GraphQL Response| Client
-    
-    style Webhook fill:#fff2cc,stroke:#d6b656
-    style Database fill:#e1d5e7,stroke:#9673a6
-    style Connector fill:#ccffcc
-```
-### Request Flow:
-
-1. **Client sends GraphQL request** to Hasura Engine
-2. **Engine triggers pre-NDC hook**, sending request details to the webhook
-3. **Webhook analyzes operation type** and adds appropriate `connection_name` to the request
-4. **Engine forwards modified request** to PostgreSQL connector with `connection_name` parameter
-5. **Connector routes to selected database** based on the `connection_name`
-6. **Database processes query** and returns results
-7. **Results flow back** through connector → engine → client
