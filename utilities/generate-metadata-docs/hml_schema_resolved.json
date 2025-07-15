@@ -68,7 +68,8 @@
                                 "2025-03-26",
                                 "2025-04-03",
                                 "2025-04-24",
-                                "2025-05-30"
+                                "2025-05-30",
+                                "2025-07-11"
                               ]
                             },
                             {
@@ -104,7 +105,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV1",
-                          "title": "AuthConfig1",
+                          "title": "AuthConfigV1",
                           "description": "Definition of the authentication configuration v1, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -702,7 +703,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV2",
-                          "title": "AuthConfig2",
+                          "title": "AuthConfigV2",
                           "description": "Definition of the authentication configuration v2, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -731,7 +732,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV3",
-                          "title": "AuthConfig3",
+                          "title": "AuthConfigV3",
                           "description": "Definition of the authentication configuration v3, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -1065,7 +1066,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV4",
-                          "title": "AuthConfig4",
+                          "title": "AuthConfigV4",
                           "description": "Definition of the authentication configuration v4, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -1148,6 +1149,154 @@
                                         "provider": {
                                           "type": "string",
                                           "enum": ["hasura"]
+                                        },
+                                        "fallback": {
+                                          "description": "The fallback LLM to use if the Hasura API is unavailable",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        },
+                                        "specificLlm": {
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/HasuraSpecificLlmConfig",
+                                              "title": "LlmConfig",
+                                              "description": "Configuration of the LLM to be used for PromptQL",
+                                              "oneOf": [
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/HasuraLlmOpenAiConfig",
+                                                  "title": "HasuraLlmOpenAiConfig",
+                                                  "description": "Configuration settings for an OpenAI LLM, to be used via the Hasura-configured LLM proxy",
+                                                  "type": "object",
+                                                  "required": ["provider"],
+                                                  "properties": {
+                                                    "provider": {
+                                                      "type": "string",
+                                                      "enum": ["openai"]
+                                                    },
+                                                    "model": {
+                                                      "description": "The specific OpenAI model to use. If not specified, the default model will be used.",
+                                                      "type": ["string", "null"]
+                                                    },
+                                                    "baseUrl": {
+                                                      "description": "The base URL to use for the OpenAI API. If not specified, the default URL will be used.",
+                                                      "type": ["string", "null"]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/HasuraLlmAnthropicConfig",
+                                                  "title": "HasuraLlmAnthropicConfig",
+                                                  "description": "Configuration settings for an Anthropic LLM, to be used via the Hasura-configured LLM proxy",
+                                                  "type": "object",
+                                                  "required": ["provider"],
+                                                  "properties": {
+                                                    "provider": {
+                                                      "type": "string",
+                                                      "enum": ["anthropic"]
+                                                    },
+                                                    "model": {
+                                                      "description": "The specific Anthropic model to use. If not specified, the default model will be used.",
+                                                      "type": ["string", "null"]
+                                                    },
+                                                    "baseUrl": {
+                                                      "description": "The base URL to use for the Anthropic API. If not specified, the default URL will be used.",
+                                                      "type": ["string", "null"]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/HasuraLlmAzureConfig",
+                                                  "title": "HasuraLlmAzureConfig",
+                                                  "description": "Configuration settings for an Azure-provided LLM, to be used via the Hasura-configured LLM proxy",
+                                                  "type": "object",
+                                                  "required": ["endpoint", "provider"],
+                                                  "properties": {
+                                                    "provider": {
+                                                      "type": "string",
+                                                      "enum": ["azure"]
+                                                    },
+                                                    "apiVersion": {
+                                                      "description": "The specific Azure API version to use. If not specified, the default version will be used.",
+                                                      "type": ["string", "null"]
+                                                    },
+                                                    "model": {
+                                                      "description": "The specific Azure model to use. If not specified, the default model will be used.",
+                                                      "type": ["string", "null"]
+                                                    },
+                                                    "endpoint": {
+                                                      "description": "The endpoint to use for the Azure LLM API",
+                                                      "type": "string"
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/HasuraLlmGeminiConfig",
+                                                  "title": "HasuraLlmGeminiConfig",
+                                                  "description": "Configuration settings for a Gemini LLM, to be used via the Hasura-configured LLM proxy",
+                                                  "type": "object",
+                                                  "required": ["provider"],
+                                                  "properties": {
+                                                    "provider": {
+                                                      "type": "string",
+                                                      "enum": ["gemini"]
+                                                    },
+                                                    "model": {
+                                                      "description": "The specific Gemini model to use. If not specified, the default model will be used.",
+                                                      "type": ["string", "null"]
+                                                    },
+                                                    "safetySettings": {
+                                                      "description": "Safety settings for the Gemini API",
+                                                      "anyOf": [
+                                                        {
+                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0/oneOf/4/properties/safetySettings/anyOf/0"
+                                                        },
+                                                        {
+                                                          "type": "null"
+                                                        }
+                                                      ]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/HasuraLlmBedrockConfig",
+                                                  "title": "HasuraLlmBedrockConfig",
+                                                  "description": "Configuration settings for an AWS Bedrock-provided LLM, to be used via the Hasura-configured LLM proxy",
+                                                  "type": "object",
+                                                  "required": ["modelId", "provider"],
+                                                  "properties": {
+                                                    "provider": {
+                                                      "type": "string",
+                                                      "enum": ["bedrock"]
+                                                    },
+                                                    "modelId": {
+                                                      "description": "The specific AWS Bedrock model to use.",
+                                                      "type": "string"
+                                                    },
+                                                    "regionName": {
+                                                      "description": "The specific AWS Bedrock region to use. If not specified, the region configured in the Hasura LLM proxy will be used.",
+                                                      "type": ["string", "null"]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
                                         }
                                       },
                                       "additionalProperties": false
@@ -1178,6 +1327,18 @@
                                               "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
                                             }
                                           ]
+                                        },
+                                        "fallback": {
+                                          "description": "The fallback LLM to use if the OpenAI API is unavailable",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
                                         }
                                       },
                                       "additionalProperties": false
@@ -1206,6 +1367,18 @@
                                           "allOf": [
                                             {
                                               "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        },
+                                        "fallback": {
+                                          "description": "The fallback LLM to use if the Anthropic API is unavailable",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            },
+                                            {
+                                              "type": "null"
                                             }
                                           ]
                                         }
@@ -1240,6 +1413,18 @@
                                           "allOf": [
                                             {
                                               "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        },
+                                        "fallback": {
+                                          "description": "The fallback LLM to use if the Azure API is unavailable",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            },
+                                            {
+                                              "type": "null"
                                             }
                                           ]
                                         }
@@ -1364,6 +1549,18 @@
                                               "type": "null"
                                             }
                                           ]
+                                        },
+                                        "fallback": {
+                                          "description": "The fallback LLM to use if the Gemini API is unavailable",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
                                         }
                                       },
                                       "additionalProperties": false
@@ -1373,13 +1570,7 @@
                                       "title": "BedrockLlmConfig",
                                       "description": "Configuration settings for an AWS Bedrock-provided LLM",
                                       "type": "object",
-                                      "required": [
-                                        "awsAccessKeyId",
-                                        "awsSecretAccessKey",
-                                        "modelId",
-                                        "provider",
-                                        "regionName"
-                                      ],
+                                      "required": ["awsAccessKeyId", "awsSecretAccessKey", "modelId", "provider", "regionName"],
                                       "properties": {
                                         "provider": {
                                           "type": "string",
@@ -1406,6 +1597,18 @@
                                           "allOf": [
                                             {
                                               "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        },
+                                        "fallback": {
+                                          "description": "The fallback LLM to use if the AWS Bedrock API is unavailable",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            },
+                                            {
+                                              "type": "null"
                                             }
                                           ]
                                         }
@@ -1460,6 +1663,48 @@
                                 },
                                 "additionalProperties": false
                               }
+                            },
+                            "threadTitleGeneration": {
+                              "description": "Configure title generation for threads in the PromptQL playground",
+                              "default": null,
+                              "anyOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/ThreadTitleGenerationConfig",
+                                  "title": "ThreadTitleGenerationConfig",
+                                  "description": "Configure title generation for threads in the PromptQL playground",
+                                  "type": "object",
+                                  "required": ["enable"],
+                                  "properties": {
+                                    "enable": {
+                                      "description": "Whether or not to enable thread title generation (default: true)",
+                                      "type": "boolean"
+                                    },
+                                    "llm": {
+                                      "description": "The LLM configuration to use for thread title generation. If not specified, the summarize AI primitive LLM is used.",
+                                      "default": null,
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "maxAssistantActions": {
+                              "description": "Maximum number of assistant actions that can be performed autonomously before the process is interrupted",
+                              "default": null,
+                              "type": ["integer", "null"],
+                              "format": "uint32",
+                              "minimum": 0
                             },
                             "featureFlags": {
                               "description": "Feature flags to be used for PromptQL to enable and disable experimental features",
@@ -1657,13 +1902,7 @@
                                           "$schema": "http://json-schema.org/draft-07/schema#",
                                           "title": "Schema Response",
                                           "type": "object",
-                                          "required": [
-                                            "collections",
-                                            "functions",
-                                            "object_types",
-                                            "procedures",
-                                            "scalar_types"
-                                          ],
+                                          "required": ["collections", "functions", "object_types", "procedures", "scalar_types"],
                                           "properties": {
                                             "scalar_types": {
                                               "description": "A list of scalar types which will be used as the types of collection columns",
@@ -2182,13 +2421,7 @@
                                             "CollectionInfo": {
                                               "title": "Collection Info",
                                               "type": "object",
-                                              "required": [
-                                                "arguments",
-                                                "foreign_keys",
-                                                "name",
-                                                "type",
-                                                "uniqueness_constraints"
-                                              ],
+                                              "required": ["arguments", "foreign_keys", "name", "type", "uniqueness_constraints"],
                                               "properties": {
                                                 "name": {
                                                   "description": "The name of the collection\n\nNote: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database.",
@@ -2549,13 +2782,7 @@
                                           "$schema": "http://json-schema.org/draft-07/schema#",
                                           "title": "Schema Response",
                                           "type": "object",
-                                          "required": [
-                                            "collections",
-                                            "functions",
-                                            "object_types",
-                                            "procedures",
-                                            "scalar_types"
-                                          ],
+                                          "required": ["collections", "functions", "object_types", "procedures", "scalar_types"],
                                           "properties": {
                                             "scalar_types": {
                                               "description": "A list of scalar types which will be used as the types of collection columns",
@@ -2597,6 +2824,17 @@
                                               "anyOf": [
                                                 {
                                                   "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/schema/definitions/CapabilitySchemaInfo"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "request_arguments": {
+                                              "description": "Request level arguments which are required for queries and mutations",
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/schema/definitions/RequestLevelArguments"
                                                 },
                                                 {
                                                   "type": "null"
@@ -2754,6 +2992,17 @@
                                                   "additionalProperties": {
                                                     "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/schema/definitions/UniquenessConstraint"
                                                   }
+                                                },
+                                                "relational_mutations": {
+                                                  "description": "Information about relational mutation capabilities for this collection",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/schema/definitions/RelationalMutationInfo"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
                                                 }
                                               }
                                             },
@@ -3258,15 +3507,58 @@
                                                 }
                                               }
                                             },
+                                            "RelationalMutationInfo": {
+                                              "title": "Relational Mutation Info",
+                                              "type": "object",
+                                              "required": ["deletable", "insertable", "updatable"],
+                                              "properties": {
+                                                "insertable": {
+                                                  "description": "Whether inserts are supported for this collection",
+                                                  "type": "boolean"
+                                                },
+                                                "updatable": {
+                                                  "description": "Whether updates are supported for this collection",
+                                                  "type": "boolean"
+                                                },
+                                                "deletable": {
+                                                  "description": "Whether deletes are supported for this collection",
+                                                  "type": "boolean"
+                                                }
+                                              }
+                                            },
+                                            "RequestLevelArguments": {
+                                              "title": "Request Level Arguments",
+                                              "type": "object",
+                                              "required": ["mutation_arguments", "query_arguments", "relational_query_arguments"],
+                                              "properties": {
+                                                "query_arguments": {
+                                                  "description": "Any arguments that all Query requests require",
+                                                  "type": "object",
+                                                  "additionalProperties": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/schema/definitions/ArgumentInfo"
+                                                  }
+                                                },
+                                                "mutation_arguments": {
+                                                  "description": "Any arguments that all Mutation requests require",
+                                                  "type": "object",
+                                                  "additionalProperties": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/schema/definitions/ArgumentInfo"
+                                                  }
+                                                },
+                                                "relational_query_arguments": {
+                                                  "description": "Any arguments that all Relational Query requests require",
+                                                  "type": "object",
+                                                  "additionalProperties": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/schema/definitions/ArgumentInfo"
+                                                  }
+                                                }
+                                              }
+                                            },
                                             "ScalarType": {
                                               "title": "Scalar Type",
                                               "description": "The definition of a scalar type, i.e. types that can be used as the types of columns.",
                                               "type": "object",
-                                              "required": [
-                                                "aggregate_functions",
-                                                "comparison_operators",
-                                                "representation"
-                                              ],
+                                              "required": ["aggregate_functions", "comparison_operators", "representation"],
                                               "properties": {
                                                 "representation": {
                                                   "description": "A description of valid values for this scalar type.",
@@ -3685,6 +3977,17 @@
                                                       "type": "null"
                                                     }
                                                   ]
+                                                },
+                                                "relational_mutation": {
+                                                  "description": "Does the connector support the relational mutation API? This feature is experimental and subject to breaking changes within minor versions.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalMutationCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
                                                 }
                                               }
                                             },
@@ -3813,6 +4116,16 @@
                                                   ]
                                                 },
                                                 "nanosecond": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "epoch": {
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
@@ -4279,6 +4592,56 @@
                                                       "type": "null"
                                                     }
                                                   ]
+                                                },
+                                                "stddev": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "stddev_pop": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "approx_percentile_cont": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "array_agg": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "approx_distinct": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
                                                 }
                                               }
                                             },
@@ -4473,13 +4836,7 @@
                                             "RelationalExpressionCapabilities": {
                                               "title": "Relational Expression Capabilities",
                                               "type": "object",
-                                              "required": [
-                                                "aggregate",
-                                                "comparison",
-                                                "conditional",
-                                                "scalar",
-                                                "window"
-                                              ],
+                                              "required": ["aggregate", "comparison", "conditional", "scalar", "window"],
                                               "properties": {
                                                 "conditional": {
                                                   "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalConditionalExpressionCapabilities"
@@ -4495,6 +4852,16 @@
                                                 },
                                                 "window": {
                                                   "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalWindowExpressionCapabilities"
+                                                },
+                                                "scalar_types": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalScalarTypeCapabilities"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
                                                 }
                                               }
                                             },
@@ -4597,6 +4964,43 @@
                                                 }
                                               }
                                             },
+                                            "RelationalMutationCapabilities": {
+                                              "title": "Relational Mutation Capabilities",
+                                              "description": "Describes which features of the relational mutation API are supported by the connector. This feature is experimental and subject to breaking changes within minor versions.",
+                                              "type": "object",
+                                              "properties": {
+                                                "insert": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "update": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "delete": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
                                             "RelationalProjectionCapabilities": {
                                               "title": "Relational Projection Capabilities",
                                               "type": "object",
@@ -4665,6 +5069,16 @@
                                                       "type": "null"
                                                     }
                                                   ]
+                                                },
+                                                "union": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
                                                 }
                                               }
                                             },
@@ -4693,6 +5107,16 @@
                                                   ]
                                                 },
                                                 "array_element": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "binary_concat": {
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
@@ -5193,6 +5617,23 @@
                                                   ]
                                                 },
                                                 "trunc": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalScalarTypeCapabilities": {
+                                              "title": "Relational Scalar Type Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "interval": {
+                                                  "description": "Does the connector support the INTERVAL scalar type? Both interval literals and casts to the INTERVAL type are implied by this capability.",
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
@@ -6344,13 +6785,7 @@
                           "title": "ObjectBooleanExpressionTypeV1",
                           "description": "Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of `BooleanExpressionType`.",
                           "type": "object",
-                          "required": [
-                            "comparableFields",
-                            "dataConnectorName",
-                            "dataConnectorObjectType",
-                            "name",
-                            "objectType"
-                          ],
+                          "required": ["comparableFields", "dataConnectorName", "dataConnectorObjectType", "name", "objectType"],
                           "properties": {
                             "name": {
                               "description": "The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.",
@@ -6703,11 +7138,7 @@
                                                 "title": "DataConnectorOperatorMapping",
                                                 "description": "Mapping between OpenDD operator names and the names used in the data connector schema",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "operatorMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "operatorMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "Name of the data connector this mapping applies to",
@@ -7385,11 +7816,7 @@
                                                 "title": "DataConnectorAggregationFunctionMapping",
                                                 "description": "Definition of how to map an aggregate expression's aggregation functions to data connector aggregation functions.",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "functionMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "functionMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "The data connector being mapped to",
@@ -7630,7 +8057,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelV1",
-                          "title": "Model1",
+                          "title": "ModelV1",
                           "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.",
                           "type": "object",
                           "required": ["name", "objectType", "orderableFields"],
@@ -8131,7 +8558,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelV2",
-                          "title": "Model2",
+                          "title": "ModelV2",
                           "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md.",
                           "type": "object",
                           "required": ["name", "objectType"],
@@ -10304,6 +10731,205 @@
                                             },
                                             {
                                               "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            {
+                              "title": "LifecyclePreNdcRequestPluginHook",
+                              "description": "Definition of a lifecycle plugin hook for the pre-ndc-request stage.",
+                              "type": "object",
+                              "required": ["config", "connectors", "name", "pre", "url"],
+                              "properties": {
+                                "pre": {
+                                  "type": "string",
+                                  "enum": ["ndcRequest"]
+                                },
+                                "name": {
+                                  "description": "The name of the lifecycle plugin hook.",
+                                  "type": "string"
+                                },
+                                "connectors": {
+                                  "description": "A list of data connectors that this plugin hook should be applied to. There can only be one plugin hook of this type per data connector.",
+                                  "type": "array",
+                                  "items": {
+                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/name/allOf/0"
+                                  }
+                                },
+                                "url": {
+                                  "description": "The URL to access the lifecycle plugin hook.",
+                                  "allOf": [
+                                    {
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                    }
+                                  ]
+                                },
+                                "config": {
+                                  "description": "Configuration for the lifecycle plugin hook.",
+                                  "allOf": [
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreNdcRequestPluginHookConfig",
+                                      "title": "LifecyclePreNdcRequestPluginHookConfig",
+                                      "description": "config for pre-ndc-request hook Configuration for a lifecycle plugin hook.",
+                                      "type": "object",
+                                      "required": ["request"],
+                                      "properties": {
+                                        "request": {
+                                          "description": "Configuration for the request to the lifecycle plugin hook.",
+                                          "allOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreNdcRequestPluginHookConfigRequest",
+                                              "title": "LifecyclePreNdcRequestPluginHookConfigRequest",
+                                              "description": "Configuration for a lifecycle plugin hook request.",
+                                              "type": "object",
+                                              "properties": {
+                                                "headers": {
+                                                  "description": "Configuration for the headers.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/headers/allOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "session": {
+                                                  "description": "Configuration for the session (includes roles and session variables).",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ndcRequest": {
+                                                  "description": "Configuration for the request.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            {
+                              "title": "LifecyclePreNdcResponsePluginHook",
+                              "description": "Definition of a lifecycle plugin hook for the pre-ndc-response stage.",
+                              "type": "object",
+                              "required": ["config", "connectors", "name", "pre", "url"],
+                              "properties": {
+                                "pre": {
+                                  "type": "string",
+                                  "enum": ["ndcResponse"]
+                                },
+                                "name": {
+                                  "description": "The name of the lifecycle plugin hook.",
+                                  "type": "string"
+                                },
+                                "connectors": {
+                                  "description": "A list of data connectors that this plugin hook should be applied to. There can only be one plugin hook of this type per data connector.",
+                                  "type": "array",
+                                  "items": {
+                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/name/allOf/0"
+                                  }
+                                },
+                                "url": {
+                                  "description": "The URL to access the lifecycle plugin hook.",
+                                  "allOf": [
+                                    {
+                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                    }
+                                  ]
+                                },
+                                "config": {
+                                  "description": "Configuration for the lifecycle plugin hook.",
+                                  "allOf": [
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreNdcResponsePluginHookConfig",
+                                      "title": "LifecyclePreNdcResponsePluginHookConfig",
+                                      "description": "Configuration for a lifecycle plugin hook.",
+                                      "type": "object",
+                                      "required": ["request"],
+                                      "properties": {
+                                        "request": {
+                                          "description": "Configuration for the request to the lifecycle plugin hook.",
+                                          "allOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreNdcResponsePluginHookConfigRequest",
+                                              "title": "LifecyclePreNdcResponsePluginHookConfigRequest",
+                                              "description": "Configuration for a lifecycle plugin hook request.",
+                                              "type": "object",
+                                              "properties": {
+                                                "headers": {
+                                                  "description": "Configuration for the headers.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/headers/allOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "session": {
+                                                  "description": "Configuration for the session (includes roles and session variables).",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ndcRequest": {
+                                                  "description": "Configuration for the request.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "ndcResponse": {
+                                                  "description": "Configuration for the response.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/config/allOf/0/properties/request/allOf/0/properties/session/anyOf/0"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              "additionalProperties": false
                                             }
                                           ]
                                         }
