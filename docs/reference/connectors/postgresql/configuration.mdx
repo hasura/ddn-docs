@@ -856,5 +856,68 @@ The `mutationsPrefix` configuration option is an optional string that controls t
 Setting `mutationsPrefix`: "" will completely remove the prefix, simplifying mutation names in line with common user
 preferences.
 
+## `dynamicSettings`
+
+:::info New in v3.0.0
+
+Dynamic connection settings are supported since data connector version `v3.0.0`.
+
+:::
+
+The `dynamicSettings` field enables dynamic database connections, allowing connection URIs to be specified at request time rather than being fixed in the configuration. This is useful for multi-tenant applications or scenarios where different database connections are needed for different operations.
+
+There are two modes available:
+
+#### Named Mode
+
+```yaml
+"dynamicSettings": {
+  "mode": "Named",
+  "connectionUris": {
+    "variable": "CONNECTION_URIS_JSON",
+    // OR
+    "map": {
+      "tenant1": "postgres://user:password@host:port/tenant1",
+      "tenant2": { "variable": "TENANT2_CONNECTION_URI" }
+    }
+  },
+  "fallbackToStatic": true,
+  "eagerConnections": false
+}
+```
+
+In Named mode:
+- `connectionUris`: Specifies a map of connection names to connection URIs. This can be provided either as:
+  - `variable`: An environment variable containing a JSON object mapping connection names to connection URIs
+  - `map`: A direct mapping of connection names to connection URIs (which can be literal strings or objects with a `variable` key)
+- `fallbackToStatic`: When set to `true`, the connector will use the main `connectionUri` if the requested connection name is not found or if no connection name is provided in the request. If `false`, an error will be returned for unknown connection names or missing connection name arguments.
+- `eagerConnections`: When set to `true`, connection pools for all named connections are created at startup. When `false` (default), connection pools are created lazily when first requested.
+
+With this configuration, requests can include a `connection_name` argument to select which connection to use.
+
+#### Dynamic Mode
+
+```yaml
+"dynamicSettings": {
+  "mode": "Dynamic",
+  "fallbackToStatic": true
+}
+```
+
+In Dynamic mode:
+- `fallbackToStatic`: When set to `true`, the connector will use the main `connectionUri` if no connection string is provided in the request. If `false`, an error will be returned when no connection string is provided.
+
+With this configuration, requests can include a `connection_string` argument to provide an arbitrary connection string at runtime.
+
+:::caution Security Considerations
+
+Dynamic mode allows clients to provide arbitrary connection strings. This can be a security risk if not properly secured. Ensure that:
+
+1. Access to the connector is properly authenticated and authorized
+2. Connection strings are validated before use
+3. Consider using Named mode instead for more controlled access
+
+:::
+
 [Configuration JSON Schema]: https://github.com/hasura/ndc-postgres/blob/main/static/schema.json
 [NDC Postgres Issue Tracker]: http://github.com/hasura/ndc-postgres/issues
