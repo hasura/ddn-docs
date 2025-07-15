@@ -29,9 +29,9 @@ title: Dynamic Connection Routing Flow
 ---
 graph TD
     Client[Client] -->|1. GraphQL Request| Engine[Hasura Engine]
-    Engine -->|2. Ndc Request + Session| Webhook["Pre-NDC Hook<br />• Receive NDC request + session<br/>• Check operation type<br/>• Add connection_name parameter<br/>• Return modified request"]
+    Engine -->|2. Ndc Request + Session| Webhook["Pre-NDC Hook<br />• Receive NDC request + session<br/>• Check operation type<br/>• Add connection_name request argument<br/>• Return modified request"]
     Webhook -->|3. Modified NDC Request| Engine
-    Engine -->|4. Modified NDC Request| Connector[PostgreSQL Connector]
+    Engine -->|4. Modified NDC Request| Connector["PostgreSQL Connector<br \>Use connection_name request argument to choose database credentials"]
     Connector -->|5. Query| Database[(Selected Database)]
     Database -->|6. Results| Connector
     Connector -->|7. NDC Response| Engine
