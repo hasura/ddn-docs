@@ -27,11 +27,13 @@ plugin's response.
 
 Plugins can be applied at the following steps:
 
-| Execution Step   | Description                                                                                                                                          | Example Usage                                                                |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| **Pre-Parse**    | The first step in the execution pipeline, where custom logic can be applied before the query is parsed and its internal representation is generated. | Add an allowlist layer to restrict access to specific queries and mutations. |
-| **Pre-Response** | The final step in the execution pipeline, where custom logic can be added after the query is executed but before the response is sent to the client. | Trigger Slack notifications after a mutation is executed.                    |
-| **Pre-Route**    | The first step in the routing pipeline, where custom logic can be applied to the requests on other than pre-defined endpoints.                       | Add a custom endpoint to DDN.                                                |
+| Execution Step       | Description                                                                                                                                                   | Example Usage                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Pre-Parse**        | The first step in the execution pipeline, where custom logic can be applied before the query is parsed and its internal representation is generated.          | Add an allowlist layer to restrict access to specific queries and mutations.                    |
+| **Pre-NDC Request**  | Applied before sending requests to data connectors, allowing modification of NDC requests or returning responses directly without calling the data connector. | Transform requests, implement caching by returning cached responses, or add request validation. |
+| **Pre-NDC Response** | Applied after receiving responses from data connectors, allowing modification of NDC responses.                                                               | Transform or enrich data connector responses, or store responses for caching purposes.          |
+| **Pre-Response**     | The final step in the execution pipeline, where custom logic can be added after the query is executed but before the response is sent to the client.          | Trigger Slack notifications after a mutation is executed.                                       |
+| **Pre-Route**        | The first step in the routing pipeline, where custom logic can be applied to the requests on other than pre-defined endpoints.                                | Add a custom endpoint to DDN.                                                                   |
 
 ## Architecture
 
@@ -43,8 +45,10 @@ graph RL
     Client[Client] -->|"Request (/graphql)"| Authentication
     Authentication --> Query_Parsing_and_Planning["Query parsing and planning"]
     Query_Parsing_and_Planning --> Execute_Query["Execute query"]
-    Execute_Query <-->|Fetch Data| Data_Connector["Data connector"]
-    Execute_Query --> Post_Processing["Post-processing"]
+    Execute_Query --> Pre_NDC_Request_Hooks["Pre-NDC request hooks"]
+    Pre_NDC_Request_Hooks -->|Fetch Data| Data_Connector["Data connector"]
+    Data_Connector --> Pre_NDC_Response_Hooks["Pre-NDC response hooks"]
+    Pre_NDC_Response_Hooks --> Post_Processing["Post-processing"]
     Post_Processing --> Pre_Response_Hooks["Pre-response hooks"]
     Post_Processing -->|Response| Client
 
@@ -404,3 +408,201 @@ In this example, the engine is configured with two `pre-route` plugins. The engi
 `Pre-route hook 1` or `Pre-route hook 2` based on the path. If the path matches `/v1/api/users/admin`, the engine sends
 the request to `Pre-route hook 1`. If the path matches `/v1/api/users/*`, the engine sends the request to
 `Pre-route hook 2`.
+
+## Pre-NDC Request Plugin
+
+The `pre-ndc-request` plugin is triggered before sending requests to data connectors. This plugin can either modify the
+NDC request or return a response directly, bypassing the data connector call entirely.
+
+There can only be one `pre-ndc-request` plugin configured per data connector.
+
+For pre-ndc-request plugin configuration
+[click here](reference/metadata-reference/engine-plugins.mdx#lifecyclepluginhook-lifecyclepluginhook-lifecycleprendcrequestpluginhook).
+
+### Pre-NDC Request Plugin Request
+
+A sample request that is sent to the `pre-ndc-request` plugin is as follows:
+
+```json
+{
+  "session": {
+    "role": "user",
+    "variables": {
+      "x-hasura-role": "user",
+      "x-hasura-user-id": "123"
+    }
+  },
+  "ndcRequest": {
+    "collection": "users",
+    "query": {
+      "fields": {
+        "id": {
+          "type": "column",
+          "column": "id"
+        },
+        "name": {
+          "type": "column",
+          "column": "name"
+        }
+      }
+    },
+    "arguments": {},
+    "collection_relationships": {}
+  },
+  "dataConnectorName": "my_connector",
+  "operationType": "query",
+  "ndcVersion": "v0.2.x"
+}
+```
+
+:::info Customize the request
+
+The request sent to the plugin can be customized based on the plugin's
+[configuration](reference/metadata-reference/engine-plugins.mdx#lifecyclepluginhook-lifecyclepluginhook-lifecycleprendcrequestpluginhookconfigrequest).
+
+:::
+
+### Pre-NDC Request Plugin Response
+
+The plugin can respond in the following ways:
+
+| Response Type      | HTTP Status Code | Response Body            | Description                                                                |
+| ------------------ | ---------------- | ------------------------ | -------------------------------------------------------------------------- |
+| `Continue`         | `204`            | None                     | The original request will be used without modification.                    |
+| `Modified Request` | `200`            | `{"ndcRequest": {...}}`  | A modified request that will replace the original.                         |
+| `Direct Response`  | `200`            | `{"ndcResponse": {...}}` | A response that will be used instead of calling the data connector.        |
+| `User Error`       | `400`            | Error object             | The plugin encountered a user error, which will be returned to the client. |
+| `Internal Error`   | `500`            | Error object             | Treated as an internal error.                                              |
+
+### Use Cases
+
+The `pre-ndc-request` plugin can be used for various functionalities:
+
+- **Request Transformation**: Modify NDC requests before they reach the data connector.
+- **Request Validation**: Validate requests and return errors for invalid operations.
+- **Caching**: Return cached responses directly without calling the data connector.
+- **Request Logging**: Log all requests for audit purposes while allowing them to proceed.
+- **Mock Responses**: Return mock data for testing or development environments.
+
+### Example Configuration
+
+```yaml title="Here is an example of a pre-ndc-request plugin configuration in DDN metadata:"
+kind: LifecyclePluginHook
+version: v1
+definition:
+  name: my-pre-ndc-request-plugin
+  url:
+    valueFromEnv: PRE_NDC_REQUEST_PLUGIN_URL
+  pre: ndcRequest
+  connectors:
+    - my_postgres_connector
+  config:
+    request:
+      headers:
+        additional:
+          hasura-m-auth:
+            value: "your-strong-m-auth-key"
+      session: {}
+      ndcRequest: {}
+```
+
+## Pre-NDC Response Plugin
+
+The `pre-ndc-response` plugin is triggered after receiving responses from data connectors but before further processing.
+This plugin allows modification of NDC responses.
+
+There can only be one `pre-ndc-response` plugin configured per data connector.
+
+For pre-ndc-response plugin configuration
+[click here](reference/metadata-reference/engine-plugins.mdx#lifecyclepluginhook-lifecyclepluginhook-lifecycleprendcresponsepluginhook).
+
+### Pre-NDC Response Plugin Request
+
+A sample request that is sent to the `pre-ndc-response` plugin is as follows:
+
+```json
+{
+  "session": {
+    "role": "user",
+    "variables": {
+      "x-hasura-role": "user",
+      "x-hasura-user-id": "123"
+    }
+  },
+  "ndcRequest": {
+    "collection": "users",
+    "query": {
+      "fields": {
+        "id": {
+          "type": "column",
+          "column": "id"
+        }
+      }
+    }
+  },
+  "ndcResponse": {
+    "rows": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      }
+    ]
+  },
+  "dataConnectorName": "my_connector",
+  "operationType": "query",
+  "ndcVersion": "v0.2.x"
+}
+```
+
+:::info Customize the request
+
+The request sent to the plugin can be customized based on the plugin's
+[configuration](reference/metadata-reference/engine-plugins.mdx#lifecyclepluginhook-lifecyclepluginhook-lifecycleprendcresponsepluginhookconfigrequest).
+
+:::
+
+### Pre-NDC Response Plugin Response
+
+The plugin can respond in the following ways:
+
+| Response Type       | HTTP Status Code | Response Body         | Description                                                                |
+| ------------------- | ---------------- | --------------------- | -------------------------------------------------------------------------- |
+| `Continue`          | `204`            | None                  | The original response will be used without modification.                   |
+| `Modified Response` | `200`            | Modified NDC response | A modified NDC response that will replace the original.                    |
+| `User Error`        | `400`            | Error object          | The plugin encountered a user error, which will be returned to the client. |
+| `Internal Error`    | `500`            | Error object          | Treated as an internal error.                                              |
+
+### Use Cases
+
+The `pre-ndc-response` plugin can be used for:
+
+- **Response Transformation**: Modify or enrich data connector responses.
+- **Data Filtering**: Filter sensitive data from responses based on user permissions.
+- **Response Caching**: Store responses for future caching purposes.
+- **Response Logging**: Log responses for audit or analytics purposes.
+- **Data Enrichment**: Add additional data to responses from external sources.
+
+### Example Configuration
+
+```yaml title="Here is an example of a pre-ndc-response plugin configuration in DDN metadata:"
+kind: LifecyclePluginHook
+version: v1
+definition:
+  name: my-pre-ndc-response-plugin
+  url:
+    valueFromEnv: PRE_NDC_RESPONSE_PLUGIN_URL
+  pre: ndcResponse
+  connectors:
+    - my_postgres_connector
+  config:
+    request:
+      headers:
+        additional:
+          hasura-m-auth:
+            value: "your-strong-m-auth-key"
+      session: {}
+      ndcRequest: {}
+      ndcResponse: {}
+```
