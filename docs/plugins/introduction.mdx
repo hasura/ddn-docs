@@ -150,12 +150,15 @@ The request sent to the plugin can be customized based on the plugin's
 The `pre-parse` plugin has the ability to control the execution pipeline by returning a specific response to DDN. The
 response determines whether execution continues, halts, or returns an error. The possible response types are:
 
-| Response Type    | HTTP Status Code | Response Body | Description                                                                                    |
-| ---------------- | ---------------- | ------------- | ---------------------------------------------------------------------------------------------- |
-| `Continue`       | `204`            | None          | Execution continues without interruption.                                                      |
-| `Response`       | `200`            | Response body | Execution halts, and the provided response is returned to the client.                          |
-| `User Error`     | `400`            | Error object  | Execution halts, and the provided error is returned to the client as a user error.             |
-| `Internal Error` | `500`            | Error object  | Execution halts, and the provided error is returned to the client as an internal server error. |
+| Response Type             | HTTP Status Code | Response Body        | Description                                                                                    |
+| ------------------------- | ---------------- | -------------------- | ---------------------------------------------------------------------------------------------- |
+| `Continue`                | `204`            | None                 | Execution continues without interruption.                                                      |
+| `Response`                | `200`            | Response body        | Execution halts, and the provided response is returned to the client.                          |
+| `Continue with new query` | `299`\*          | GraphQL query object | Execution continues with the modified GraphQL query.                                           |
+| `User Error`              | `400`            | Error object         | Execution halts, and the provided error is returned to the client as a user error.             |
+| `Internal Error`          | `500`            | Error object         | Execution halts, and the provided error is returned to the client as an internal server error. |
+
+\*_Note: HTTP status code 299 is a non-standard code specifically used by DDN for query modification._
 
 :::warning Response Validation
 
@@ -175,6 +178,9 @@ The `pre-parse` plugin can be used to add a multitude of functionalities to DDN.
 - **Custom Query Validation**: Add custom query validation logic to ensure that the incoming query is valid based on
   custom business logic.
 - **Cache Get**: Implement a cache get layer to fetch the response from the cache before executing the query.
+- **Query Transformation**: Transform queries to use different field names or structures for API versioning
+- **Deprecation Management**: Automatically update queries using deprecated fields to use current alternatives
+- **Multi-tenant Query Injection**: Add tenant-specific filters to ensure data isolation
 
 ### Multiple Pre-Parse Plugins
 
@@ -189,18 +195,38 @@ Let’s consider an example where the engine uses two pre-parse plugins: `Pre-pa
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Initial as "Initial Request"
-    participant "Pre-parse Hook 1"
-    participant "Pre-parse Hook 2"
-    participant "Query Parsing and Planning"
+    participant Engine as "DDN Engine"
+    participant Hook1 as "Pre-parse Hook 1"
+    participant Hook2 as "Pre-parse Hook 2"
+    participant Parser as "Query Parsing and Planning"
 
-    Client ->> Initial: Request to engine
-    Initial ->> "Pre-parse Hook 1": Request
-    "Pre-parse Hook 1" ->> Initial: Response
-    Initial ->> "Pre-parse Hook 2": Request
-    "Pre-parse Hook 2" ->> Initial: Response
-    Initial ->> "Query Parsing and Planning": Continue
-    "Query Parsing and Planning" ->> Client: Response
+    Client ->> Engine: GraphQL Request (Original Query)
+    Engine ->> Hook1: Original Query + Session
+
+    alt Hook1 returns Continue (204)
+        Hook1 ->> Engine: Continue (no changes)
+        Engine ->> Hook2: Original Query + Session
+    else Hook1 returns Continue with new query (299)
+        Hook1 ->> Engine: Modified Query A
+        Engine ->> Hook2: Modified Query A + Session
+    else Hook1 returns Response/Error (200/400/500)
+        Hook1 ->> Engine: Direct Response/Error
+        Engine ->> Client: Response/Error (skip remaining hooks)
+    end
+
+    alt Hook2 returns Continue (204)
+        Hook2 ->> Engine: Continue (no changes)
+        Engine ->> Parser: Current Query
+    else Hook2 returns Continue with new query (299)
+        Hook2 ->> Engine: Modified Query B
+        Engine ->> Parser: Modified Query B
+    else Hook2 returns Response/Error (200/400/500)
+        Hook2 ->> Engine: Direct Response/Error
+        Engine ->> Client: Response/Error (skip execution)
+    end
+
+    Parser ->> Engine: Parsed Query
+    Engine ->> Client: Final Response
 ```
 
 Here’s how the process works:
@@ -216,7 +242,37 @@ The `Continue` response body is ignored by DDN. Plugins returning a `Continue` r
 
 :::
 
-#### Case 2: Response, User Error, or Internal Error
+#### Case 2: Continue with new query
+
+If `Pre-parse Hook 1` returns a `Continue with new query` response (HTTP status code 299), the engine proceeds to send
+the request to `Pre-parse Hook 2` with the modified query. Each subsequent plugin in the chain receives the query as
+modified by the previous plugin. This continues until all configured pre-parse plugins have been executed.
+
+**Response Body Requirements:** The `Continue with new query` response body must contain a valid GraphQL query object.
+The expected response body format is:
+
+```json
+{
+  "query": "query MyQuery($author_id: Int!) { getAuthorById(author_id: $author_id) { first_name last_name email } }",
+  "variables": { "author_id": 10 },
+  "operationName": "MyQuery"
+}
+```
+
+**Error Handling:**
+
+- If the query syntax is invalid, the engine will return a GraphQL syntax error to the client
+- If the response body is malformed JSON, the engine will return a 400 Bad Request error
+- If required fields (`query`) are missing, the engine will return a validation error
+- Variables and operationName are optional but should match the query if provided
+
+**Query Transformation Sequence:**
+
+1. Original query → Pre-parse Hook 1 → Modified Query A
+2. Modified Query A → Pre-parse Hook 2 → Modified Query B
+3. Modified Query B → Query execution
+
+#### Case 3: Response, User Error, or Internal Error
 
 If `Pre-parse Hook 1` returns any of the following:
 
@@ -247,13 +303,25 @@ plugins will still execute.
 
 :::
 
-If all pre-parse plugins return a `Continue` response (HTTP status code 204), the engine completes execution and sends
-its generated response to the client.
+If all pre-parse plugins return a `Continue` response (HTTP status code 204) or a `Continue with new query` response
+(HTTP status code 299), the engine completes execution and sends its generated response to the client.
 
-:::info Can pre-parse plugins modify the request?
+:::info Query Modification Capabilities
 
-No, pre-parse plugins cannot alter the request itself. They only influence the execution pipeline by returning specific
-responses.
+**Can pre-parse plugins modify the request?**
+
+Yes, pre-parse plugins can modify the GraphQL query by returning a `Continue with new query` response (HTTP status code
+299).
+
+**Use Cases for Query Modification:**
+
+- **Query allowlisting with transformation**: Transform blocked queries into allowed alternatives
+- **Field-level access control**: Remove unauthorized fields from queries based on user permissions
+- **Deprecation handling**: Automatically update queries using deprecated fields to use new alternatives
+- **Multi-tenancy**: Inject tenant-specific filters into queries
+- **Query normalization**: Standardize query format and structure
+
+Please note that the session information will be carried forward and cannot be modified by pre-parse plugins.
 
 :::
 
