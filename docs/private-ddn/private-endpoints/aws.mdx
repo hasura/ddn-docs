@@ -26,7 +26,7 @@ AWS Private Endpoints leverage AWS PrivateLink technology to establish secure, p
 
 AWS PrivateLink uses AWS's internal network to create private connections between services. The process works as follows:
 
-1. You create a VPC Endpoint Service in your AWS account, backed by a Network Load Balancer
+1. You create a VPC Endpoint Service in your AWS account, backed by a Network Load Balancer.  See **Prerequisites** section below
 2. You provide Hasura with your VPC Endpoint Service name
 3. Hasura creates a VPC Endpoint in the Data Plane VPC that connects to your endpoint service
 4. AWS creates Elastic Network Interfaces (ENIs) in the Data Plane subnets
@@ -42,9 +42,20 @@ Before creating an AWS Private Endpoint, ensure you have the following:
    - The Data Plane region should match the region where you want to create the private endpoint
 
 2. **An AWS VPC Endpoint Service in your AWS account**
-   - Created and configured with a Network Load Balancer
    - In the same region as your Data Plane
-   - - The "Acceptance Required" setting can be enabled or disabled based on your security requirements
+       - The "Acceptance Required" setting can be enabled or disabled based on your security requirements
+   - Created and configured with a Network Load Balancer (NLB)
+       - If an RDS is used, Hasura recommends using AWS Lambda as a helper function to automate the registration of Amazon RDS instance
+         IP addresses with a Network Load Balancer (NLB) target group.  Please follow [this](https://aws.amazon.com/blogs/database/access-amazon-rds-across-vpcs-using-aws-privatelink-and-network-load-balancer/) external document for the setup required to do this.  Below are a few important details:
+             - You, as the customer, are referenced as **VPC-B** within this doc.
+             - Skip any instructions in the document which reference **VPC-A**.
+             - The **Role ARN**, in the format of `arn:aws:iam::DATAPLANE_ACCOUNT_ID:role/ROLE_NAME`, comes from the Data Plane details page under Hasura Console.  This is required to be input during one of the steps referenced in the instructions.
+
+         Note that the purpose of the AWS Lambda in this solution is to:
+             - Automate IP target registration for RDS behind an NLB, enabling cross-VPC access via PrivateLink, despite RDS not directly supporting NLB registration.
+             - Discover the IP addresses of the RDS instance endpoints (via DNS).
+             - Register those IPs as IP targets in the NLB target group.
+             - Keep the registration up-to-date, especially after a failover or change in IP.
 
 3. **Appropriate IAM permissions**
    - Permissions to manage your VPC Endpoint Service
