@@ -105,7 +105,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV1",
-                          "title": "AuthConfig1",
+                          "title": "AuthConfig (V1)",
                           "description": "Definition of the authentication configuration v1, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -703,7 +703,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV2",
-                          "title": "AuthConfig2",
+                          "title": "AuthConfig (V2)",
                           "description": "Definition of the authentication configuration v2, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -732,7 +732,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV3",
-                          "title": "AuthConfig3",
+                          "title": "AuthConfig (V3)",
                           "description": "Definition of the authentication configuration v3, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -1066,7 +1066,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/AuthConfigV4",
-                          "title": "AuthConfig4",
+                          "title": "AuthConfig (V4)",
                           "description": "Definition of the authentication configuration v4, used by the API server.",
                           "type": "object",
                           "required": ["mode"],
@@ -1622,6 +1622,146 @@
                                       "additionalProperties": false
                                     }
                                   ]
+                                }
+                              ]
+                            },
+                            "schemaSelector": {
+                              "description": "The configuration for schema selection. Defaults to including all tables and columns.",
+                              "anyOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/SchemaSelectorConfig",
+                                  "title": "SchemaSelectorConfig",
+                                  "description": "Configuration for schema selection in PromptQL",
+                                  "oneOf": [
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/SchemaSelector",
+                                      "title": "SchemaSelector",
+                                      "description": "LLM-based schema selector configuration",
+                                      "type": "object",
+                                      "required": ["llm", "type"],
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": ["llm_selector"]
+                                        },
+                                        "llm": {
+                                          "description": "LLM configuration to use for schema selection",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            }
+                                          ]
+                                        },
+                                        "maxItems": {
+                                          "description": "Maximum number of items to select",
+                                          "type": ["integer", "null"],
+                                          "format": "uint32",
+                                          "minimum": 0
+                                        },
+                                        "instructions": {
+                                          "description": "Custom instructions for the LLM selector",
+                                          "type": ["string", "null"]
+                                        },
+                                        "alwaysInclude": {
+                                          "description": "Schema items to always include in the selection",
+                                          "anyOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/SchemaSelection",
+                                              "title": "SchemaSelection",
+                                              "description": "Schema selection configuration specifying tables and functions to include",
+                                              "type": "object",
+                                              "properties": {
+                                                "tables": {
+                                                  "description": "Schemas in the database. The key is the schema name. Values are lists of table names in the schema.",
+                                                  "default": {},
+                                                  "type": "object",
+                                                  "additionalProperties": {
+                                                    "type": "array",
+                                                    "items": {
+                                                      "type": "string"
+                                                    }
+                                                  }
+                                                },
+                                                "functions": {
+                                                  "description": "Functions in the database. Values are the function names.",
+                                                  "default": [],
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/FixedSchema",
+                                      "title": "FixedSchema",
+                                      "description": "Fixed schema selector configuration",
+                                      "type": "object",
+                                      "required": ["tables", "type"],
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": ["fixed"]
+                                        },
+                                        "tables": {
+                                          "description": "List of tables to include with their specific columns",
+                                          "type": "array",
+                                          "items": {
+                                            "$id": "https://hasura.io/jsonschemas/metadata/FixedSchemaTable",
+                                            "title": "FixedSchemaTable",
+                                            "description": "Configuration for a fixed schema table with specific columns",
+                                            "type": "object",
+                                            "required": ["columns", "schemaName", "tableName"],
+                                            "properties": {
+                                              "schemaName": {
+                                                "description": "The name of the schema",
+                                                "type": "string"
+                                              },
+                                              "tableName": {
+                                                "description": "The name of the table",
+                                                "type": "string"
+                                              },
+                                              "columns": {
+                                                "description": "List of column names to include. If empty, all columns are included.",
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "additionalProperties": false
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/AllSchema",
+                                      "title": "AllSchema",
+                                      "description": "All schema selector configuration (includes all available schemas)",
+                                      "type": "object",
+                                      "required": ["type"],
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": ["all"]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
                                 }
                               ]
                             },
@@ -4598,7 +4738,7 @@
                                                 "string_agg": {
                                                   "anyOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalOrderedAggregateFunctionCapabilities"
                                                     },
                                                     {
                                                       "type": "null"
@@ -4658,7 +4798,7 @@
                                                 "array_agg": {
                                                   "anyOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalOrderedAggregateFunctionCapabilities"
                                                     },
                                                     {
                                                       "type": "null"
@@ -4682,6 +4822,22 @@
                                               "type": "object",
                                               "properties": {
                                                 "distinct": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalCaseCapabilities": {
+                                              "title": "Relational Case Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "scrutinee": {
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
@@ -4748,6 +4904,16 @@
                                                   ]
                                                 },
                                                 "in_list": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "is_distinct_from": {
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
@@ -4846,7 +5012,7 @@
                                                 "case": {
                                                   "anyOf": [
                                                     {
-                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalCaseCapabilities"
                                                     },
                                                     {
                                                       "type": "null"
@@ -5028,6 +5194,32 @@
                                                   ]
                                                 },
                                                 "delete": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "RelationalOrderedAggregateFunctionCapabilities": {
+                                              "title": "Relational Ordered Aggregate Function Capabilities",
+                                              "type": "object",
+                                              "properties": {
+                                                "distinct": {
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "order_by": {
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
@@ -5672,6 +5864,17 @@
                                               "properties": {
                                                 "interval": {
                                                   "description": "Does the connector support the INTERVAL scalar type? Both interval literals and casts to the INTERVAL type are implied by this capability.",
+                                                  "anyOf": [
+                                                    {
+                                                      "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "from_type": {
+                                                  "description": "Does the connector support `from_type` in cast?",
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/LeafCapability"
@@ -8109,7 +8312,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelV1",
-                          "title": "Model1",
+                          "title": "ModelV1",
                           "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations.",
                           "type": "object",
                           "required": ["name", "objectType", "orderableFields"],
@@ -8610,7 +8813,7 @@
                         },
                         "definition": {
                           "$id": "https://hasura.io/jsonschemas/metadata/ModelV2",
-                          "title": "Model2",
+                          "title": "ModelV2",
                           "description": "The definition of a data model. A data model is a collection of objects of a particular type. Models can support one or more CRUD operations. ModelV2 implements the changes described in rfcs/open-dd-expression-type-changes.md.",
                           "type": "object",
                           "required": ["name", "objectType"],
@@ -10608,6 +10811,71 @@
                                                 }
                                               },
                                               "additionalProperties": false
+                                            }
+                                          ]
+                                        },
+                                        "mode": {
+                                          "description": "Configuration for the mode of the plugin hook (synchronous or asynchronous) If not specified, the default is asynchronous.",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreResponsePluginHookMode",
+                                              "title": "LifecyclePreResponsePluginHookMode",
+                                              "description": "Configuration for the mode of the plugin hook (synchronous or asynchronous)",
+                                              "oneOf": [
+                                                {
+                                                  "title": "LifecyclePreResponsePluginHookSynchronousModeConfig",
+                                                  "description": "Synchronous mode. The engine will wait for the plugin hook to respond before continuing.",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["synchronous"]
+                                                    },
+                                                    "onPluginFailure": {
+                                                      "description": "Configuration for the on-plugin-failure behavior of the plugin hook (default: fail).",
+                                                      "default": "fail",
+                                                      "allOf": [
+                                                        {
+                                                          "$id": "https://hasura.io/jsonschemas/metadata/OnPluginFailure",
+                                                          "title": "OnPluginFailure",
+                                                          "description": "Configuration for the on-plugin-failure behavior of the plugin hook.",
+                                                          "oneOf": [
+                                                            {
+                                                              "description": "Fail the request if the plugin hook fails.",
+                                                              "type": "string",
+                                                              "enum": ["fail"]
+                                                            },
+                                                            {
+                                                              "description": "Continue with the request if the plugin hook fails.",
+                                                              "type": "string",
+                                                              "enum": ["continue"]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "title": "LifecyclePreResponsePluginHookAsynchronousModeConfig",
+                                                  "description": "Asynchronous mode. The engine will not wait for the plugin hook to respond before continuing.",
+                                                  "type": "object",
+                                                  "required": ["type"],
+                                                  "properties": {
+                                                    "type": {
+                                                      "type": "string",
+                                                      "enum": ["asynchronous"]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "null"
                                             }
                                           ]
                                         }

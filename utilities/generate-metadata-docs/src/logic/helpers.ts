@@ -145,7 +145,22 @@ export function getArrayItemType(metadataObject: JSONSchema7Definition): JSONSch
 }
 
 export function getTitle(metadataObject: JSONSchema7Definition): string {
-  return metadataObject.title || getParsedRef(metadataObject.$ref);
+  if (metadataObject.title) {
+    return metadataObject.title;
+  }
+
+  if (metadataObject.$ref) {
+    return getParsedRef(metadataObject.$ref);
+  }
+
+  // Handle wrapper objects with kind and version (like Model oneOf entries)
+  if (metadataObject.properties?.kind?.enum?.[0] && metadataObject.properties?.version?.enum?.[0]) {
+    const kind = metadataObject.properties.kind.enum[0];
+    const version = metadataObject.properties.version.enum[0];
+    return `${kind} (${version})`; // e.g., "Model (v1)"
+  }
+
+  return undefined;
 }
 
 export function getDescription(metadataObject: JSONSchema7Definition): string {
