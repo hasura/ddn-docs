@@ -69,7 +69,8 @@
                                 "2025-04-03",
                                 "2025-04-24",
                                 "2025-05-30",
-                                "2025-07-11"
+                                "2025-07-11",
+                                "2025-08-19"
                               ]
                             },
                             {
@@ -1290,6 +1291,39 @@
                                                     }
                                                   },
                                                   "additionalProperties": false
+                                                },
+                                                {
+                                                  "$id": "https://hasura.io/jsonschemas/metadata/HasuraLlmVertexConfig",
+                                                  "title": "HasuraLlmVertexConfig",
+                                                  "description": "Configuration settings for a Vertex LLM, to be used via the Hasura-configured LLM proxy",
+                                                  "type": "object",
+                                                  "required": ["modelId", "provider"],
+                                                  "properties": {
+                                                    "provider": {
+                                                      "type": "string",
+                                                      "enum": ["vertex"]
+                                                    },
+                                                    "modelId": {
+                                                      "description": "The specific Gemini/Vertex model to use",
+                                                      "type": "string"
+                                                    },
+                                                    "googleLocation": {
+                                                      "description": "The Vertex AI location (e.g., us-central1)",
+                                                      "type": ["string", "null"]
+                                                    },
+                                                    "safetySettings": {
+                                                      "description": "Safety settings for Gemini-compatible models on Vertex",
+                                                      "anyOf": [
+                                                        {
+                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0/oneOf/4/properties/safetySettings/anyOf/0"
+                                                        },
+                                                        {
+                                                          "type": "null"
+                                                        }
+                                                      ]
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
                                                 }
                                               ]
                                             },
@@ -1552,6 +1586,69 @@
                                         },
                                         "fallback": {
                                           "description": "The fallback LLM to use if the Gemini API is unavailable",
+                                          "default": null,
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "$id": "https://hasura.io/jsonschemas/metadata/VertexLlmConfig",
+                                      "title": "VertexLlmConfig",
+                                      "description": "Configuration settings for a Google Vertex AI LLM",
+                                      "type": "object",
+                                      "required": [
+                                        "googleLocation",
+                                        "googleProject",
+                                        "googleServiceAccountKeyJson",
+                                        "modelId",
+                                        "provider"
+                                      ],
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "enum": ["vertex"]
+                                        },
+                                        "modelId": {
+                                          "description": "The specific Gemini/Vertex model to use",
+                                          "type": "string"
+                                        },
+                                        "googleProject": {
+                                          "description": "The GCP project ID used for Vertex AI",
+                                          "type": "string"
+                                        },
+                                        "googleLocation": {
+                                          "description": "The Vertex AI location (e.g., us-central1)",
+                                          "type": "string"
+                                        },
+                                        "googleServiceAccountKeyJson": {
+                                          "description": "The Google service account key JSON to authenticate to Vertex AI",
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/15/oneOf/0/properties/definition/oneOf/0/properties/url/allOf/0"
+                                            }
+                                          ]
+                                        },
+                                        "safetySettings": {
+                                          "description": "Safety settings for Gemini-compatible models on Vertex",
+                                          "anyOf": [
+                                            {
+                                              "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/2/oneOf/0/properties/definition/properties/llm/allOf/0/oneOf/4/properties/safetySettings/anyOf/0"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        },
+                                        "fallback": {
+                                          "description": "The fallback LLM to use if Vertex is unavailable",
                                           "default": null,
                                           "anyOf": [
                                             {
@@ -9843,6 +9940,161 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["TypePermissions"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v2"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/TypePermissionsV2",
+                          "title": "TypePermissionsV1",
+                          "description": "Definition of permissions for an OpenDD type.",
+                          "type": "object",
+                          "required": ["permissions", "typeName"],
+                          "properties": {
+                            "typeName": {
+                              "description": "The name of the type for which permissions are being defined. Must be an object type.",
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/name/allOf/0"
+                                }
+                              ]
+                            },
+                            "permissions": {
+                              "description": "Type permissions definitions",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/TypePermissionOperand",
+                                  "title": "TypePermissionOperand",
+                                  "description": "Configuration for type permissions",
+                                  "oneOf": [
+                                    {
+                                      "title": "RoleBased",
+                                      "description": "Definition of role-based type permissions on an OpenDD object type",
+                                      "type": "object",
+                                      "required": ["roleBased"],
+                                      "properties": {
+                                        "roleBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/0/properties/definition/properties/permissions/items"
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "title": "RulesBased",
+                                      "description": "Definition of rules-based type permissions on an OpenDD object type",
+                                      "type": "object",
+                                      "required": ["rulesBased"],
+                                      "properties": {
+                                        "rulesBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$id": "https://hasura.io/jsonschemas/metadata/TypeAuthorizationRule",
+                                            "title": "TypeAuthorizationRule",
+                                            "description": "A rule that determines which fields of a type are available to a user",
+                                            "oneOf": [
+                                              {
+                                                "type": "object",
+                                                "required": ["allowFields"],
+                                                "properties": {
+                                                  "allowFields": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/12/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/denyFields"
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["denyFields"],
+                                                "properties": {
+                                                  "denyFields": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/Fields",
+                                                    "title": "Fields",
+                                                    "description": "A list of fields to allow/deny when the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "required": ["fields"],
+                                                    "properties": {
+                                                      "fields": {
+                                                        "type": "array",
+                                                        "items": {
+                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                        }
+                                                      },
+                                                      "condition": {
+                                                        "anyOf": [
+                                                          {
+                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                          },
+                                                          {
+                                                            "type": "null"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["fieldPreset"],
+                                                "properties": {
+                                                  "fieldPreset": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/InputTypeFieldPreset",
+                                                    "title": "InputTypeFieldPreset",
+                                                    "description": "A preset value for a field that applies when the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "required": ["fieldName", "value"],
+                                                    "properties": {
+                                                      "condition": {
+                                                        "anyOf": [
+                                                          {
+                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                          },
+                                                          {
+                                                            "type": "null"
+                                                          }
+                                                        ]
+                                                      },
+                                                      "fieldName": {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/2/oneOf/0/properties/definition/properties/globalIdFields/items"
+                                                      },
+                                                      "value": {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   ]
                 },
@@ -10327,6 +10579,390 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["ModelPermissions"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v2"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/ModelPermissionsV2",
+                          "title": "ModelPermissionsV2",
+                          "description": "Definition of permissions for an OpenDD model.",
+                          "type": "object",
+                          "required": ["modelName", "permissions"],
+                          "properties": {
+                            "modelName": {
+                              "description": "The name of the model for which permissions are being defined.",
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/name/allOf/0"
+                                }
+                              ]
+                            },
+                            "permissions": {
+                              "description": "Permissions for this model",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/ModelPermissionOperand",
+                                  "title": "ModelPermissionOperand",
+                                  "description": "Configuration for role-based model permissions",
+                                  "oneOf": [
+                                    {
+                                      "title": "RoleBased",
+                                      "description": "Definition of role-based type permissions on an OpenDD model",
+                                      "type": "object",
+                                      "required": ["roleBased"],
+                                      "properties": {
+                                        "roleBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items"
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "title": "RulesBased",
+                                      "description": "Definition of rules-based type permissions on an OpenDD model",
+                                      "type": "object",
+                                      "required": ["rulesBased"],
+                                      "properties": {
+                                        "rulesBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$id": "https://hasura.io/jsonschemas/metadata/ModelAuthorizationRule",
+                                            "title": "ModelAuthorizationRule",
+                                            "description": "A rule that determines which model and argument presets are available to a user",
+                                            "oneOf": [
+                                              {
+                                                "type": "object",
+                                                "required": ["allow"],
+                                                "properties": {
+                                                  "allow": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/Allow",
+                                                    "title": "Allow",
+                                                    "description": "Allow access if the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "condition": {
+                                                        "anyOf": [
+                                                          {
+                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                          },
+                                                          {
+                                                            "type": "null"
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["deny"],
+                                                "properties": {
+                                                  "deny": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/Deny",
+                                                    "title": "Deny",
+                                                    "description": "Deny access if the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "required": ["condition"],
+                                                    "properties": {
+                                                      "condition": {
+                                                        "$id": "https://hasura.io/jsonschemas/metadata/Condition",
+                                                        "title": "Condition",
+                                                        "description": "A boolean expression used to determine if a rules-based permission should be applied.",
+                                                        "oneOf": [
+                                                          {
+                                                            "description": "Combine multiple Conditions with `&&`",
+                                                            "type": "object",
+                                                            "required": ["and"],
+                                                            "properties": {
+                                                              "and": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                                }
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Combine multiple Conditions with `||`",
+                                                            "type": "object",
+                                                            "required": ["or"],
+                                                            "properties": {
+                                                              "or": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                                }
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Negate a Condition",
+                                                            "type": "object",
+                                                            "required": ["not"],
+                                                            "properties": {
+                                                              "not": {
+                                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Compare two ValueExpressions for equality",
+                                                            "type": "object",
+                                                            "required": ["equal"],
+                                                            "properties": {
+                                                              "equal": {
+                                                                "$id": "https://hasura.io/jsonschemas/metadata/Comparison",
+                                                                "title": "Comparison",
+                                                                "description": "A left and right value for comparison",
+                                                                "type": "object",
+                                                                "required": ["left", "right"],
+                                                                "properties": {
+                                                                  "left": {
+                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
+                                                                  },
+                                                                  "right": {
+                                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
+                                                                  }
+                                                                },
+                                                                "additionalProperties": false
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Is the left value contained in the right value? The right value must be an array type.",
+                                                            "type": "object",
+                                                            "required": ["contains"],
+                                                            "properties": {
+                                                              "contains": {
+                                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition/oneOf/3/properties/equal"
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Is the left value greater than the right value?",
+                                                            "type": "object",
+                                                            "required": ["greaterThan"],
+                                                            "properties": {
+                                                              "greaterThan": {
+                                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition/oneOf/3/properties/equal"
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Is the left value less than the right value?",
+                                                            "type": "object",
+                                                            "required": ["lessThan"],
+                                                            "properties": {
+                                                              "lessThan": {
+                                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition/oneOf/3/properties/equal"
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Is the left value greater than or equal to the right value?",
+                                                            "type": "object",
+                                                            "required": ["greaterThanOrEqual"],
+                                                            "properties": {
+                                                              "greaterThanOrEqual": {
+                                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition/oneOf/3/properties/equal"
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Is the left value less than or equal to the right value?",
+                                                            "type": "object",
+                                                            "required": ["lessThanOrEqual"],
+                                                            "properties": {
+                                                              "lessThanOrEqual": {
+                                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition/oneOf/3/properties/equal"
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "description": "Is the value null?",
+                                                            "type": "object",
+                                                            "required": ["isNull"],
+                                                            "properties": {
+                                                              "isNull": {
+                                                                "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/11/oneOf/0/properties/definition/properties/mapping/items/properties/source/allOf/0/oneOf/0/properties/value"
+                                                              }
+                                                            },
+                                                            "additionalProperties": false
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["presetArgument"],
+                                                "properties": {
+                                                  "presetArgument": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/PresetArgument",
+                                                    "title": "PresetArgument",
+                                                    "description": "A preset value for an argument that applies when the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "required": ["argumentName", "value"],
+                                                    "properties": {
+                                                      "argumentName": {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/9/oneOf/0/properties/definition/properties/arguments/items/properties/name"
+                                                      },
+                                                      "condition": {
+                                                        "anyOf": [
+                                                          {
+                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                          },
+                                                          {
+                                                            "type": "null"
+                                                          }
+                                                        ]
+                                                      },
+                                                      "value": {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/properties/permissions/items/properties/argumentPresets/items/properties/value/allOf/0"
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["filter"],
+                                                "properties": {
+                                                  "filter": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/Filter",
+                                                    "title": "Filter",
+                                                    "description": "A filter that applies when the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "required": ["predicate"],
+                                                    "properties": {
+                                                      "condition": {
+                                                        "anyOf": [
+                                                          {
+                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                          },
+                                                          {
+                                                            "type": "null"
+                                                          }
+                                                        ]
+                                                      },
+                                                      "predicate": {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/0/properties/definition/properties/permissions/items/properties/select/anyOf/0/properties/filter/allOf/0/anyOf/1"
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["allowRelationalOperations"],
+                                                "properties": {
+                                                  "allowRelationalOperations": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/AllowRelationalOperations",
+                                                    "title": "AllowRelationalOperations",
+                                                    "description": "Allow these relational operations if the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "required": ["operations"],
+                                                    "properties": {
+                                                      "condition": {
+                                                        "anyOf": [
+                                                          {
+                                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                          },
+                                                          {
+                                                            "type": "null"
+                                                          }
+                                                        ]
+                                                      },
+                                                      "operations": {
+                                                        "type": "array",
+                                                        "items": {
+                                                          "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/5/properties/denyRelationalOperations/properties/operations/items"
+                                                        }
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["denyRelationalOperations"],
+                                                "properties": {
+                                                  "denyRelationalOperations": {
+                                                    "$id": "https://hasura.io/jsonschemas/metadata/DenyRelationalOperations",
+                                                    "title": "DenyRelationalOperations",
+                                                    "description": "Deny these relational operations if the condition evaluates to `true`",
+                                                    "type": "object",
+                                                    "required": ["condition", "operations"],
+                                                    "properties": {
+                                                      "condition": {
+                                                        "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny/properties/condition"
+                                                      },
+                                                      "operations": {
+                                                        "type": "array",
+                                                        "items": {
+                                                          "$id": "https://hasura.io/jsonschemas/metadata/RelationalOperation",
+                                                          "title": "RelationalOperation",
+                                                          "description": "An operation on a model",
+                                                          "type": "string",
+                                                          "enum": ["insert", "update", "delete"]
+                                                        }
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   ]
                 },
@@ -10500,6 +11136,115 @@
                                 },
                                 "additionalProperties": false
                               }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["CommandPermissions"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v2"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/CommandPermissionsV2",
+                          "title": "CommandPermissionsV2",
+                          "description": "Definition of permissions for an OpenDD command.",
+                          "type": "object",
+                          "required": ["commandName", "permissions"],
+                          "properties": {
+                            "commandName": {
+                              "description": "The name of the command for which permissions are being defined.",
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/10/oneOf/0/properties/definition/properties/name/allOf/0"
+                                }
+                              ]
+                            },
+                            "permissions": {
+                              "description": "The permissions for the command.",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/CommandPermissionOperand",
+                                  "title": "CommandPermissionOperand",
+                                  "description": "Configuration for role-based command permissions",
+                                  "oneOf": [
+                                    {
+                                      "title": "RoleBased",
+                                      "description": "Definition of role-based permissions on an OpenDD command",
+                                      "type": "object",
+                                      "required": ["roleBased"],
+                                      "properties": {
+                                        "roleBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/14/oneOf/0/properties/definition/properties/permissions/items"
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "title": "RulesBased",
+                                      "description": "Definition of a rules-based permissions on an OpenDD command",
+                                      "type": "object",
+                                      "required": ["rulesBased"],
+                                      "properties": {
+                                        "rulesBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$id": "https://hasura.io/jsonschemas/metadata/CommandAuthorizationRule",
+                                            "title": "CommandAuthorizationRule",
+                                            "description": "A rule that determines which commands and argument presets are available to a user",
+                                            "oneOf": [
+                                              {
+                                                "type": "object",
+                                                "required": ["allow"],
+                                                "properties": {
+                                                  "allow": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/0/properties/allow"
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["deny"],
+                                                "properties": {
+                                                  "deny": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny"
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["presetArgument"],
+                                                "properties": {
+                                                  "presetArgument": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/2/properties/presetArgument"
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              ]
                             }
                           },
                           "additionalProperties": false

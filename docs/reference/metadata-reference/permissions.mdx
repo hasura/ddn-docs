@@ -211,15 +211,17 @@ definition:
 ## Metadata structure
 
 
-### TypePermissions {#typepermissions-typepermissions}
+#### TypePermissions {#typepermissions-typepermissions}
 
 Definition of permissions for an OpenDD type.
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `TypePermissions` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [TypePermissionsV1](#typepermissions-typepermissionsv1) | true | Definition of permissions for an OpenDD type. |
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [TypePermissions (v1)](#typepermissions-typepermissions-(v1)) |  |
+| [TypePermissions (v2)](#typepermissions-typepermissions-(v2)) |  |
 
  **Example:**
 
@@ -241,6 +243,26 @@ definition:
           - article_id
           - author_id
 ```
+
+
+#### TypePermissions (v2) {#typepermissions-typepermissions-(v2)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `TypePermissions` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [TypePermissionsV1](#typepermissions-typepermissionsv1) | true | Definition of permissions for an OpenDD type. |
+
+
+
+#### TypePermissions (v1) {#typepermissions-typepermissions-(v1)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `TypePermissions` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [TypePermissionsV1](#typepermissions-typepermissionsv1) | true | Definition of permissions for an OpenDD type. |
+
 
 
 #### TypePermissionsV1 {#typepermissions-typepermissionsv1}
@@ -356,15 +378,17 @@ The name of a user-defined type.
 
 
 **Value:** string
-### ModelPermissions {#modelpermissions-modelpermissions}
+#### ModelPermissions {#modelpermissions-modelpermissions}
 
 Definition of permissions for an OpenDD model.
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `ModelPermissions` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [ModelPermissionsV1](#modelpermissions-modelpermissionsv1) | true | Definition of permissions for an OpenDD model. |
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [ModelPermissions (v1)](#modelpermissions-modelpermissions-(v1)) |  |
+| [ModelPermissions (v2)](#modelpermissions-modelpermissions-(v2)) |  |
 
  **Examples:**
 
@@ -410,6 +434,175 @@ definition:
                 value:
                   sessionVariable: x-hasura-user-id
 ```
+
+
+#### ModelPermissions (v2) {#modelpermissions-modelpermissions-(v2)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ModelPermissions` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [ModelPermissionsV2](#modelpermissions-modelpermissionsv2) | true | Definition of permissions for an OpenDD model. |
+
+
+
+#### ModelPermissionsV2 {#modelpermissions-modelpermissionsv2}
+
+Definition of permissions for an OpenDD model.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `modelName` | [ModelName](#modelpermissions-modelname) | true | The name of the model for which permissions are being defined. |
+| `permissions` | [ModelPermissionOperand](#modelpermissions-modelpermissionoperand) | true | Permissions for this model |
+
+
+
+#### ModelPermissionOperand {#modelpermissions-modelpermissionoperand}
+
+Configuration for role-based model permissions
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `roleBased` | [[ModelPermission](#modelpermissions-modelpermission)] | false |  |
+| `rulesBased` | [[ModelAuthorizationRule](#modelpermissions-modelauthorizationrule)] | false |  |
+
+
+
+#### ModelAuthorizationRule {#modelpermissions-modelauthorizationrule}
+
+A rule that determines which model and argument presets are available to a user
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `allow` | [Allow](#modelpermissions-allow) | false | Allow access if the condition evaluates to `true` |
+| `deny` | [Deny](#modelpermissions-deny) | false | Deny access if the condition evaluates to `true` |
+| `presetArgument` | [PresetArgument](#modelpermissions-presetargument) | false | A preset value for an argument that applies when the condition evaluates to `true` |
+| `filter` | [Filter](#modelpermissions-filter) | false | A filter that applies when the condition evaluates to `true` |
+| `allowRelationalOperations` | [AllowRelationalOperations](#modelpermissions-allowrelationaloperations) | false | Allow these relational operations if the condition evaluates to `true` |
+| `denyRelationalOperations` | [DenyRelationalOperations](#modelpermissions-denyrelationaloperations) | false | Deny these relational operations if the condition evaluates to `true` |
+
+
+
+#### DenyRelationalOperations {#modelpermissions-denyrelationaloperations}
+
+Deny these relational operations if the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `condition` | [Condition](#modelpermissions-condition) | true |  |
+| `operations` | [[RelationalOperation](#modelpermissions-relationaloperation)] | true |  |
+
+
+
+#### AllowRelationalOperations {#modelpermissions-allowrelationaloperations}
+
+Allow these relational operations if the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `condition` | [Condition](#modelpermissions-condition) / null | false |  |
+| `operations` | [[RelationalOperation](#modelpermissions-relationaloperation)] | true |  |
+
+
+
+#### RelationalOperation {#modelpermissions-relationaloperation}
+
+An operation on a model
+
+
+**Value:** `insert` / `update` / `delete`
+
+
+#### Filter {#modelpermissions-filter}
+
+A filter that applies when the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `condition` | [Condition](#modelpermissions-condition) / null | false |  |
+| `predicate` | [ModelPredicate](#modelpermissions-modelpredicate) | true |  |
+
+
+
+#### PresetArgument {#modelpermissions-presetargument}
+
+A preset value for an argument that applies when the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `argumentName` | [ArgumentName](#modelpermissions-argumentname) | true |  |
+| `condition` | [Condition](#modelpermissions-condition) / null | false |  |
+| `value` | [ValueExpressionOrPredicate](#modelpermissions-valueexpressionorpredicate) | true |  |
+
+
+
+#### Deny {#modelpermissions-deny}
+
+Deny access if the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `condition` | [Condition](#modelpermissions-condition) | true | A boolean expression used to determine if a rules-based permission should be applied. |
+
+
+
+#### Allow {#modelpermissions-allow}
+
+Allow access if the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `condition` | [Condition](#modelpermissions-condition) / null | false |  |
+
+
+
+#### Condition {#modelpermissions-condition}
+
+A boolean expression used to determine if a rules-based permission should be applied.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `and` | [[Condition](#modelpermissions-condition)] | false |  |
+| `or` | [[Condition](#modelpermissions-condition)] | false |  |
+| `not` | [Condition](#modelpermissions-condition) | false |  |
+| `equal` | [Comparison](#modelpermissions-comparison) | false | A left and right value for comparison |
+| `contains` | [Comparison](#modelpermissions-comparison) | false |  |
+| `greaterThan` | [Comparison](#modelpermissions-comparison) | false |  |
+| `lessThan` | [Comparison](#modelpermissions-comparison) | false |  |
+| `greaterThanOrEqual` | [Comparison](#modelpermissions-comparison) | false |  |
+| `lessThanOrEqual` | [Comparison](#modelpermissions-comparison) | false |  |
+| `isNull` | [ValueExpression](#modelpermissions-valueexpression) | false |  |
+
+
+
+#### Comparison {#modelpermissions-comparison}
+
+A left and right value for comparison
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `left` | [ValueExpression](#modelpermissions-valueexpression) | true |  |
+| `right` | [ValueExpression](#modelpermissions-valueexpression) | true |  |
+
+
+
+#### ModelPermissions (v1) {#modelpermissions-modelpermissions-(v1)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `ModelPermissions` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [ModelPermissionsV1](#modelpermissions-modelpermissionsv1) | true | Definition of permissions for an OpenDD model. |
+
 
 
 #### ModelPermissionsV1 {#modelpermissions-modelpermissionsv1}
@@ -700,15 +893,17 @@ The name of data model.
 
 
 **Value:** string
-### CommandPermissions {#commandpermissions-commandpermissions}
+#### CommandPermissions {#commandpermissions-commandpermissions}
 
 Definition of permissions for an OpenDD command.
 
-| Key | Value | Required | Description |
-|-----|-----|-----|-----|
-| `kind` | `CommandPermissions` | true |  |
-| `version` | `v1` | true |  |
-| `definition` | [CommandPermissionsV1](#commandpermissions-commandpermissionsv1) | true | Definition of permissions for an OpenDD command. |
+
+**One of the following values:**
+
+| Value | Description |
+|-----|-----|
+| [CommandPermissions (v1)](#commandpermissions-commandpermissions-(v1)) |  |
+| [CommandPermissions (v2)](#commandpermissions-commandpermissions-(v2)) |  |
 
  **Example:**
 
@@ -723,6 +918,131 @@ definition:
     - role: user
       allowExecution: true
 ```
+
+
+#### CommandPermissions (v2) {#commandpermissions-commandpermissions-(v2)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `CommandPermissions` | true |  |
+| `version` | `v2` | true |  |
+| `definition` | [CommandPermissionsV2](#commandpermissions-commandpermissionsv2) | true | Definition of permissions for an OpenDD command. |
+
+
+
+#### CommandPermissionsV2 {#commandpermissions-commandpermissionsv2}
+
+Definition of permissions for an OpenDD command.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `commandName` | [CommandName](#commandpermissions-commandname) | true | The name of the command for which permissions are being defined. |
+| `permissions` | [CommandPermissionOperand](#commandpermissions-commandpermissionoperand) | true | The permissions for the command. |
+
+
+
+#### CommandPermissionOperand {#commandpermissions-commandpermissionoperand}
+
+Configuration for role-based command permissions
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `roleBased` | [[CommandPermission](#commandpermissions-commandpermission)] | false |  |
+| `rulesBased` | [[CommandAuthorizationRule](#commandpermissions-commandauthorizationrule)] | false |  |
+
+
+
+#### CommandAuthorizationRule {#commandpermissions-commandauthorizationrule}
+
+A rule that determines which commands and argument presets are available to a user
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `allow` | [Allow](#commandpermissions-allow) | false |  |
+| `deny` | [Deny](#commandpermissions-deny) | false |  |
+| `presetArgument` | [PresetArgument](#commandpermissions-presetargument) | false |  |
+
+
+
+#### PresetArgument {#commandpermissions-presetargument}
+
+A preset value for an argument that applies when the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `argumentName` | [ArgumentName](#commandpermissions-argumentname) | true |  |
+| `condition` | [Condition](#commandpermissions-condition) / null | false |  |
+| `value` | [ValueExpressionOrPredicate](#commandpermissions-valueexpressionorpredicate) | true |  |
+
+
+
+#### Deny {#commandpermissions-deny}
+
+Deny access if the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `condition` | [Condition](#commandpermissions-condition) | true | A boolean expression used to determine if a rules-based permission should be applied. |
+
+
+
+#### Allow {#commandpermissions-allow}
+
+Allow access if the condition evaluates to `true`
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `condition` | [Condition](#commandpermissions-condition) / null | false |  |
+
+
+
+#### Condition {#commandpermissions-condition}
+
+A boolean expression used to determine if a rules-based permission should be applied.
+
+
+**Must have exactly one of the following fields:**
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `and` | [[Condition](#commandpermissions-condition)] | false |  |
+| `or` | [[Condition](#commandpermissions-condition)] | false |  |
+| `not` | [Condition](#commandpermissions-condition) | false |  |
+| `equal` | [Comparison](#commandpermissions-comparison) | false | A left and right value for comparison |
+| `contains` | [Comparison](#commandpermissions-comparison) | false |  |
+| `greaterThan` | [Comparison](#commandpermissions-comparison) | false |  |
+| `lessThan` | [Comparison](#commandpermissions-comparison) | false |  |
+| `greaterThanOrEqual` | [Comparison](#commandpermissions-comparison) | false |  |
+| `lessThanOrEqual` | [Comparison](#commandpermissions-comparison) | false |  |
+| `isNull` | [ValueExpression](#commandpermissions-valueexpression) | false |  |
+
+
+
+#### Comparison {#commandpermissions-comparison}
+
+A left and right value for comparison
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `left` | [ValueExpression](#commandpermissions-valueexpression) | true |  |
+| `right` | [ValueExpression](#commandpermissions-valueexpression) | true |  |
+
+
+
+#### CommandPermissions (v1) {#commandpermissions-commandpermissions-(v1)}
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `kind` | `CommandPermissions` | true |  |
+| `version` | `v1` | true |  |
+| `definition` | [CommandPermissionsV1](#commandpermissions-commandpermissionsv1) | true | Definition of permissions for an OpenDD command. |
+
 
 
 #### CommandPermissionsV1 {#commandpermissions-commandpermissionsv1}
