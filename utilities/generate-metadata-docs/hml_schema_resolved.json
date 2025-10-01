@@ -1667,13 +1667,7 @@
                                       "title": "BedrockLlmConfig",
                                       "description": "Configuration settings for an AWS Bedrock-provided LLM",
                                       "type": "object",
-                                      "required": [
-                                        "awsAccessKeyId",
-                                        "awsSecretAccessKey",
-                                        "modelId",
-                                        "provider",
-                                        "regionName"
-                                      ],
+                                      "required": ["awsAccessKeyId", "awsSecretAccessKey", "modelId", "provider", "regionName"],
                                       "properties": {
                                         "provider": {
                                           "type": "string",
@@ -1949,6 +1943,13 @@
                               "format": "uint32",
                               "minimum": 0
                             },
+                            "maxTableArtifactSampleRows": {
+                              "description": "Maximum number of rows to show to the LLM when sampling table artifacts",
+                              "default": null,
+                              "type": ["integer", "null"],
+                              "format": "uint32",
+                              "minimum": 0
+                            },
                             "featureFlags": {
                               "description": "Feature flags to be used for PromptQL to enable and disable experimental features",
                               "anyOf": [
@@ -1969,6 +1970,10 @@
                                     "enable_visualizations_v2": {
                                       "description": "Enable the experimental visualizations v2 feature",
                                       "type": ["boolean", "null"]
+                                    },
+                                    "enable_visualizations_v3": {
+                                      "description": "Enable the experimental visualizations v3 feature",
+                                      "type": ["boolean", "null"]
                                     }
                                   },
                                   "additionalProperties": true
@@ -1977,6 +1982,13 @@
                                   "type": "null"
                                 }
                               ]
+                            },
+                            "contextWindowLimit": {
+                              "description": "Maximum number of tokens to be used for the context window for threads.",
+                              "default": null,
+                              "type": ["integer", "null"],
+                              "format": "uint32",
+                              "minimum": 0
                             }
                           },
                           "additionalProperties": false
@@ -2145,13 +2157,7 @@
                                           "$schema": "http://json-schema.org/draft-07/schema#",
                                           "title": "Schema Response",
                                           "type": "object",
-                                          "required": [
-                                            "collections",
-                                            "functions",
-                                            "object_types",
-                                            "procedures",
-                                            "scalar_types"
-                                          ],
+                                          "required": ["collections", "functions", "object_types", "procedures", "scalar_types"],
                                           "properties": {
                                             "scalar_types": {
                                               "description": "A list of scalar types which will be used as the types of collection columns",
@@ -2187,6 +2193,17 @@
                                               "items": {
                                                 "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/schema/definitions/ProcedureInfo"
                                               }
+                                            },
+                                            "request_arguments": {
+                                              "description": "Request level arguments which are required for queries and mutations",
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/schema/definitions/RequestLevelArguments"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
                                             }
                                           },
                                           "definitions": {
@@ -2670,13 +2687,7 @@
                                             "CollectionInfo": {
                                               "title": "Collection Info",
                                               "type": "object",
-                                              "required": [
-                                                "arguments",
-                                                "foreign_keys",
-                                                "name",
-                                                "type",
-                                                "uniqueness_constraints"
-                                              ],
+                                              "required": ["arguments", "foreign_keys", "name", "type", "uniqueness_constraints"],
                                               "properties": {
                                                 "name": {
                                                   "description": "The name of the collection\n\nNote: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database.",
@@ -2802,6 +2813,27 @@
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/schema/definitions/Type"
                                                     }
                                                   ]
+                                                }
+                                              }
+                                            },
+                                            "RequestLevelArguments": {
+                                              "title": "Request Level Arguments",
+                                              "type": "object",
+                                              "required": ["mutation_arguments", "query_arguments"],
+                                              "properties": {
+                                                "query_arguments": {
+                                                  "description": "Any arguments that all Query requests require",
+                                                  "type": "object",
+                                                  "additionalProperties": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/schema/definitions/ArgumentInfo"
+                                                  }
+                                                },
+                                                "mutation_arguments": {
+                                                  "description": "Any arguments that all Mutation requests require",
+                                                  "type": "object",
+                                                  "additionalProperties": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/0/properties/schema/definitions/ArgumentInfo"
+                                                  }
                                                 }
                                               }
                                             }
@@ -3037,13 +3069,7 @@
                                           "$schema": "http://json-schema.org/draft-07/schema#",
                                           "title": "Schema Response",
                                           "type": "object",
-                                          "required": [
-                                            "collections",
-                                            "functions",
-                                            "object_types",
-                                            "procedures",
-                                            "scalar_types"
-                                          ],
+                                          "required": ["collections", "functions", "object_types", "procedures", "scalar_types"],
                                           "properties": {
                                             "scalar_types": {
                                               "description": "A list of scalar types which will be used as the types of collection columns",
@@ -3790,11 +3816,7 @@
                                             "RequestLevelArguments": {
                                               "title": "Request Level Arguments",
                                               "type": "object",
-                                              "required": [
-                                                "mutation_arguments",
-                                                "query_arguments",
-                                                "relational_query_arguments"
-                                              ],
+                                              "required": ["mutation_arguments", "query_arguments", "relational_query_arguments"],
                                               "properties": {
                                                 "query_arguments": {
                                                   "description": "Any arguments that all Query requests require",
@@ -3823,11 +3845,7 @@
                                               "title": "Scalar Type",
                                               "description": "The definition of a scalar type, i.e. types that can be used as the types of columns.",
                                               "type": "object",
-                                              "required": [
-                                                "aggregate_functions",
-                                                "comparison_operators",
-                                                "representation"
-                                              ],
+                                              "required": ["aggregate_functions", "comparison_operators", "representation"],
                                               "properties": {
                                                 "representation": {
                                                   "description": "A description of valid values for this scalar type.",
@@ -5131,13 +5149,7 @@
                                             "RelationalExpressionCapabilities": {
                                               "title": "Relational Expression Capabilities",
                                               "type": "object",
-                                              "required": [
-                                                "aggregate",
-                                                "comparison",
-                                                "conditional",
-                                                "scalar",
-                                                "window"
-                                              ],
+                                              "required": ["aggregate", "comparison", "conditional", "scalar", "window"],
                                               "properties": {
                                                 "conditional": {
                                                   "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/schema/allOf/0/oneOf/1/properties/capabilities/definitions/RelationalConditionalExpressionCapabilities"
@@ -7123,13 +7135,7 @@
                           "title": "ObjectBooleanExpressionTypeV1",
                           "description": "Definition of a type representing a boolean expression on an Open DD object type. Deprecated in favour of `BooleanExpressionType`.",
                           "type": "object",
-                          "required": [
-                            "comparableFields",
-                            "dataConnectorName",
-                            "dataConnectorObjectType",
-                            "name",
-                            "objectType"
-                          ],
+                          "required": ["comparableFields", "dataConnectorName", "dataConnectorObjectType", "name", "objectType"],
                           "properties": {
                             "name": {
                               "description": "The name to give this object boolean expression type, used to refer to it elsewhere in the metadata. Must be unique across all types defined in this subgraph.",
@@ -7482,11 +7488,7 @@
                                                 "title": "DataConnectorOperatorMapping",
                                                 "description": "Mapping between OpenDD operator names and the names used in the data connector schema",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "operatorMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "operatorMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "Name of the data connector this mapping applies to",
@@ -8164,11 +8166,7 @@
                                                 "title": "DataConnectorAggregationFunctionMapping",
                                                 "description": "Definition of how to map an aggregate expression's aggregation functions to data connector aggregation functions.",
                                                 "type": "object",
-                                                "required": [
-                                                  "dataConnectorName",
-                                                  "dataConnectorScalarType",
-                                                  "functionMapping"
-                                                ],
+                                                "required": ["dataConnectorName", "dataConnectorScalarType", "functionMapping"],
                                                 "properties": {
                                                   "dataConnectorName": {
                                                     "description": "The data connector being mapped to",
@@ -9791,6 +9789,70 @@
                           }
                         ]
                       }
+                    },
+                    {
+                      "kind": "TypePermissions",
+                      "version": "v2",
+                      "definition": {
+                        "typeName": "article",
+                        "roleBased": {
+                          "permissions": [
+                            {
+                              "role": "admin",
+                              "output": {
+                                "allowedFields": ["article_id", "author_id", "title"]
+                              }
+                            },
+                            {
+                              "role": "user",
+                              "output": {
+                                "allowedFields": ["article_id", "author_id"]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "kind": "TypePermissions",
+                      "version": "v2",
+                      "definition": {
+                        "typeName": "movie",
+                        "permissions": {
+                          "rulesBased": [
+                            {
+                              "allowFields": {
+                                "condition": {
+                                  "contains": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": ["admin", "user", "user_not", "user_and", "user_or", "limited_fields_user"]
+                                    }
+                                  }
+                                },
+                                "fields": ["movie_id", "rating", "title", "release_date"]
+                              }
+                            },
+                            {
+                              "denyFields": {
+                                "condition": {
+                                  "contains": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": ["limited_fields_user"]
+                                    }
+                                  }
+                                },
+                                "fields": ["rating"]
+                              }
+                            }
+                          ]
+                        }
+                      }
                     }
                   ],
                   "oneOf": [
@@ -10164,6 +10226,102 @@
                             }
                           }
                         ]
+                      }
+                    },
+                    {
+                      "kind": "ModelPermissions",
+                      "version": "v2",
+                      "definition": {
+                        "modelName": "actors_by_movie",
+                        "permissions": {
+                          "rulesBased": [
+                            {
+                              "allow": {
+                                "condition": {
+                                  "contains": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": ["admin", "user_with_preset_movie_id"]
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "presetArgument": {
+                                "condition": {
+                                  "equal": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": "user_with_preset_movie_id"
+                                    }
+                                  }
+                                },
+                                "argumentName": "movie_id",
+                                "value": {
+                                  "literal": 1
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "kind": "ModelPermissions",
+                      "version": "v2",
+                      "definition": {
+                        "modelName": "actors",
+                        "permissions": {
+                          "rulesBased": [
+                            {
+                              "allow": {
+                                "condition": {
+                                  "contains": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": ["admin", "object_relationship_user"]
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "filter": {
+                                "condition": {
+                                  "equal": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": "object_relationship_user"
+                                    }
+                                  }
+                                },
+                                "predicate": {
+                                  "relationship": {
+                                    "name": "Country",
+                                    "predicate": {
+                                      "fieldComparison": {
+                                        "field": "name",
+                                        "operator": "_eq",
+                                        "value": {
+                                          "literal": "UK"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
                       }
                     }
                   ],
@@ -10986,6 +11144,57 @@
                             "allowExecution": true
                           }
                         ]
+                      }
+                    },
+                    {
+                      "kind": "CommandPermissions",
+                      "version": "v2",
+                      "definition": {
+                        "commandName": "get_actors_with_filter",
+                        "permissions": {
+                          "rulesBased": [
+                            {
+                              "allow": {
+                                "condition": {
+                                  "contains": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": ["filter_user"]
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "presetArgument": {
+                                "condition": {
+                                  "equal": {
+                                    "left": {
+                                      "sessionVariable": "x-hasura-role"
+                                    },
+                                    "right": {
+                                      "literal": "filter_user"
+                                    }
+                                  }
+                                },
+                                "argumentName": "actor_bool_exp",
+                                "value": {
+                                  "booleanExpression": {
+                                    "fieldComparison": {
+                                      "field": "actor_id",
+                                      "operator": "_eq",
+                                      "value": {
+                                        "literal": 4
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
                       }
                     }
                   ],
@@ -11856,7 +12065,7 @@
                                               "type": "object",
                                               "properties": {
                                                 "headers": {
-                                                  "description": "Configuration for the headers.",
+                                                  "description": "Configuration for additional static header values to send to the plugin",
                                                   "anyOf": [
                                                     {
                                                       "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/0/oneOf/0/properties/definition/properties/headers/allOf/0"
@@ -11887,6 +12096,13 @@
                                                       "type": "null"
                                                     }
                                                   ]
+                                                },
+                                                "forwardHeaders": {
+                                                  "description": "Headers to be forwarded from the incoming request.",
+                                                  "type": ["array", "null"],
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
                                                 }
                                               },
                                               "additionalProperties": false
@@ -12007,6 +12223,194 @@
                               "additionalProperties": false
                             }
                           ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                {
+                  "$id": "https://hasura.io/jsonschemas/metadata/View",
+                  "title": "View",
+                  "description": "Definition of a SQL view that can be created in the data layer",
+                  "examples": [
+                    {
+                      "kind": "View",
+                      "version": "v1",
+                      "definition": {
+                        "name": "customer_summary",
+                        "sqlExpression": "SELECT customer_id, COUNT(*) as order_count FROM orders GROUP BY customer_id",
+                        "description": "Summary of customer orders"
+                      }
+                    }
+                  ],
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["View"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v1"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/ViewV1",
+                          "title": "ViewV1",
+                          "description": "Definition of a SQL view that can be created in the data layer",
+                          "type": "object",
+                          "required": ["name", "sqlExpression"],
+                          "properties": {
+                            "name": {
+                              "description": "The name of the view",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/ViewName",
+                                  "title": "ViewName",
+                                  "description": "The name of a SQL view.",
+                                  "type": "string",
+                                  "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
+                                }
+                              ]
+                            },
+                            "sqlExpression": {
+                              "description": "SQL query that defines the view",
+                              "type": "string"
+                            },
+                            "description": {
+                              "description": "Optional description",
+                              "type": ["string", "null"]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                {
+                  "$id": "https://hasura.io/jsonschemas/metadata/ViewPermissions",
+                  "title": "ViewPermissions",
+                  "description": "Definition of permissions for an OpenDD view.",
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["definition", "kind", "version"],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["ViewPermissions"]
+                        },
+                        "version": {
+                          "type": "string",
+                          "enum": ["v1"]
+                        },
+                        "definition": {
+                          "$id": "https://hasura.io/jsonschemas/metadata/ViewPermissionsV1",
+                          "title": "ViewPermissionsV1",
+                          "description": "Definition of permissions for an OpenDD view.",
+                          "type": "object",
+                          "required": ["permissions", "viewName"],
+                          "properties": {
+                            "viewName": {
+                              "description": "The name of the view for which permissions are being defined.",
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/16/oneOf/0/properties/definition/properties/name/allOf/0"
+                                }
+                              ]
+                            },
+                            "permissions": {
+                              "description": "View permissions definitions",
+                              "allOf": [
+                                {
+                                  "$id": "https://hasura.io/jsonschemas/metadata/ViewPermissionOperand",
+                                  "title": "ViewPermissionOperand",
+                                  "description": "Configuration for view permissions",
+                                  "oneOf": [
+                                    {
+                                      "title": "RoleBased",
+                                      "description": "Definition of role-based view permissions on an OpenDD view",
+                                      "type": "object",
+                                      "required": ["roleBased"],
+                                      "properties": {
+                                        "roleBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$id": "https://hasura.io/jsonschemas/metadata/ViewPermission",
+                                            "title": "ViewPermission",
+                                            "description": "Defines the permissions for a view for a role.",
+                                            "type": "object",
+                                            "required": ["allow", "role"],
+                                            "properties": {
+                                              "role": {
+                                                "description": "The role for which permissions are being defined.",
+                                                "allOf": [
+                                                  {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/0/oneOf/1/oneOf/0/properties/definition/properties/allowRoleEmulationBy/anyOf/0"
+                                                  }
+                                                ]
+                                              },
+                                              "allow": {
+                                                "description": "Whether access is allowed or denied for this role.",
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "additionalProperties": false
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "title": "RulesBased",
+                                      "description": "Definition of rules-based view permissions on an OpenDD view",
+                                      "type": "object",
+                                      "required": ["rulesBased"],
+                                      "properties": {
+                                        "rulesBased": {
+                                          "type": "array",
+                                          "items": {
+                                            "$id": "https://hasura.io/jsonschemas/metadata/ViewAuthorizationRule",
+                                            "title": "ViewAuthorizationRule",
+                                            "description": "A rule that determines whether a view is accessible to a user",
+                                            "oneOf": [
+                                              {
+                                                "type": "object",
+                                                "required": ["allow"],
+                                                "properties": {
+                                                  "allow": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/0/properties/allow"
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": ["deny"],
+                                                "properties": {
+                                                  "deny": {
+                                                    "$ref": "#/definitions/SubgraphObject/anyOf/0/anyOf/1/oneOf/13/oneOf/1/properties/definition/properties/permissions/allOf/0/oneOf/1/properties/rulesBased/items/oneOf/1/properties/deny"
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "additionalProperties": false
