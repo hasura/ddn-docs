@@ -27,6 +27,7 @@ using either of the two methods:
 
 1. [Using a Docker image](#using-a-docker-image)
 2. [Using Cloudflare Wrangler](#using-cloudflare-wrangler)
+3. [Using AWS Lambda](#using-aws-lambda)
 
 ## Using a Docker Image
 
@@ -35,25 +36,27 @@ use similar configurations to deploy the plugin using Kubernetes or any other co
 
 ### Step 1. Set up plugin for local development
 
-Add the following service to your root-level `docker-compose.yaml` file (this is the one located at
-`<project-root>/docker-compose.yaml`). Add this new service at the same level as your existing `services` entries:
+Add the following service to your root-level `compose.yaml` file (this is the one located at
+`<project-root>/compose.yaml`). Add this new service at the same level as your existing `services` entries:
 
 ```yaml
 restified-endpoints:
-  build:
-    context: https://github.com/hasura/engine-plugin-restified-endpoint.git
+  image: ghcr.io/hasura/engine-plugin-restified-endpoint:latest
   ports:
     - 8787:8787
   environment:
-    - OTEL_EXPORTER_OTLP_ENDPOINT=https://gateway.otlp.hasura.io:443/v1/traces
-    - OTEL_EXPORTER_PAT=your-pat-here
-    - GRAPHQL_SERVER_URL=http://engine:3000
-    - HASURA_DDN_PLUGIN_CONFIG_PATH=plugin_config
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://local.hasura.dev:4317}
+      GRAPHQL_SERVER_URL: http://engine:3280
+      HASURA_DDN_PLUGIN_CONFIG_PATH: /app/plugin_config
   volumes:
     - ./restified-endpoints-config:/app/plugin_config
+  labels:
+    io.hasura.ddn.service-name: restified-endpoints
+  extra_hosts:
+    - local.hasura.dev:host-gateway
 ```
 
-Here, we're building the image from the `engine-plugin-restified-endpoint` repository. We're also forwarding the
+Here, we're setting up the `restified-endpoints`  service from the `engine-plugin-restified-endpoint` image. We're also forwarding the
 `plugin_config` directory to the container. This directory will contain the configuration for the plugin. Here is the
 structure of the `plugin_config` directory:
 
@@ -71,11 +74,11 @@ The `configuration.json` file is used to configure the plugin. Here's an example
       "additional": {
         "Content-Type": "application/json"
       },
-      "forward": ["X-Hasura-Role", "Authorization", "X-Hasura-ddn-token"]
+      "forward": ["X-Hasura-Role", "Authorization", "x-hasura-ddn-token"]
     }
   },
   "headers": {
-    "hasura-m-auth": "zZkhKqFjqXR4g5MZCsJUZCnhCcoPyZ"
+    "hasura-m-auth": "<your-strong-m-auth-key>"
   },
   "restifiedEndpoints": [
     {
@@ -100,7 +103,7 @@ The RESTified endpoints configuration includes:
     - `forward`: Headers to be forwarded from the request to the GraphQL server.
 - `headers.hasura-m-auth`: The `hasura-m-auth` header is a custom header that is used to authenticate the requests to
   the plugin. You can use any strong key here to authenticate the plugin. DDN will automatically add this header to the
-  requests to the plugin.
+  requests to the plugin. You can also use the `HASURA_M_AUTH` environment variable for this header.
 - `restifiedEndpoints`: Configuration for the RESTified endpoints. Each endpoint includes:
   - `path`: The path of the endpoint (this can include path parameters like `:name`, which is used in the query as
     variables)
@@ -125,7 +128,7 @@ definition:
     matchPath: "/v1/api/rest/*"
     matchMethods: ["GET", "POST"]
     request:
-      method: GET
+      method: POST
       headers:
         forward:
           - Authorization
@@ -162,7 +165,7 @@ Moreover, on DDN cloud, for security reasons, only the `/v1/api/rest/*` path is 
 :::info Using environment variables
 
 We've used `valueFromEnv` so that we can dynamically and securely add values from our environment variables. You can add
-these values to your root-level `.env` and then map them in the `globals` subgraph.yaml file. Alternatively, you can
+these values to your root-level `.env` and then map them in the `globals/subgraph.yaml` file. Alternatively, you can
 include raw strings here using `value` instead of `valueFromEnv` and passing the keys.
 
 :::
@@ -195,7 +198,7 @@ M_AUTH_KEY="your-strong-m-auth-key"
 
 The `hasura-m-auth` header is a custom header that is used to authenticate the requests to the allowlist plugin. You can
 use any strong key here to authenticate the plugin. DDN will automatically add this header to the requests to the
-plugin. Also, make sure to update the `src/config.ts` file (in step 5) with the same key.
+plugin.
 
 :::
 
@@ -300,7 +303,6 @@ export const Config = {
     "hasura-m-auth": "your-strong-m-auth-key",
   },
   restifiedEndpoints: [
-    ...,
     {
       path: "/v1/api/rest/users",
       methods: ["GET", "POST"],
@@ -311,7 +313,8 @@ export const Config = {
           }
         }
       `,
-    }
+    },
+    // Add more RESTified endpoints here
   ],
 };
 ```
@@ -387,6 +390,181 @@ ddn project init .
 :::
 
 ### Step 9. Apply the build
+
+Apply the build to make it the default one served by your Hasura DDN project endpoint. You can do this from the DDN
+console by choosing the build from the `Builds` tab and clicking `Apply Build`.
+
+The engine will execute the plugin for each requests to the RESTified GraphQL endpoints you defined.
+
+```sh title="As in the earlier example, you can test this by navigating to the endpoint for any paths you've set up in your plugin's configuration:"
+# E.g., https://profound-applet-5420.ddn.hasura.app/v1/api/rest/users
+https://<your_Hasura_DDN_project_url_excluding_graphql>/v1/api/rest/<endpoint_path>
+```
+
+## Using AWS Lambda
+
+In this example, we're using AWS CDK to deploy our plugin as a Lambda service. You can get started with
+AWS CDK [here](https://docs.aws.amazon.com/lambda/latest/dg/lambda-cdk-tutorial.html).
+
+### Step 1. Clone the source code
+
+Clone [`restified-endpoints` plugin template](https://github.com/hasura/engine-plugin-restified-endpoint):
+
+```bash
+git clone https://github.com/hasura/engine-plugin-restified-endpoint.git
+```
+
+### Step 2. Install dependencies
+
+Navigate to the new directory and install the dependencies.
+
+```bash
+cd engine-plugin-restified-endpoint
+npm install
+```
+
+Start the local development server.
+
+```bash
+npm start
+```
+
+### Step 3. Add the plugin configuration
+
+Follow the steps in the [docker image plugin configuration](#step-2-add-the-plugin-configuration) section to add the
+plugin configuration.
+
+### Step 4. Create a new build for local development
+
+Create a new supergraph build.
+
+```bash
+ddn supergraph build local
+```
+
+Start the console for the local supergraph.
+
+```bash
+ddn console --local
+```
+
+You can now test the plugin by making a request to the RESTified GraphQL endpoints defined in the plugin's
+configuration.
+
+### Step 5. Update the plugin config
+
+Update the `src/config.ts` file with the RESTified GraphQL endpoints that you want to add.
+
+```typescript
+export const Config = {
+  graphqlServer: {
+    headers: {
+      additional: {
+        "Content-Type": "application/json",
+      },
+      // Please make sure to forward the authentication headers here
+      forward: ["x-hasura-role", "authorization", "x-hasura-ddn-token"],
+    },
+  },
+  headers: {
+    "hasura-m-auth": "your-strong-m-auth-key",
+  },
+  restifiedEndpoints: [
+    {
+      path: "/v1/api/rest/users",
+      methods: ["GET", "POST"],
+      query: `
+        query MyQuery($limit: Int = 10, $offset: Int = 0) {
+          Users(limit: $limit, offset: $offset) {
+            Name
+          }
+        }
+      `,
+    },
+    // Add more RESTified endpoints here
+  ],
+};
+```
+
+### Step 6. Configure the plugin variables
+
+In `restified-endpoints-plugin` directory, change the GraphQL URL in the `src/lambda.ts` file.
+
+```ts
+app.all(
+  "/",
+  routeHandler(
+    process.env.GRAPHQL_SERVER_URL || "http://localhost:3000/graphql",
+    config,
+  ),
+);
+```
+
+Change the AWS CDK deployment configurations in `bin/serverless-aws.ts` and `lib/serverless-aws-stack.ts` files. 
+
+### Step 7. Build the plugin
+
+For your plugin to be reachable by your hosted supergraph, we can deploy with any service that hosts HTTPS services. 
+First, build the code and dependencies for AWS Lambda manifests.
+
+**Linux / MacOS**
+
+```bash
+npm run build:lambda
+```
+
+**Windows**
+
+- Run `npm run build`.
+- Copy `package.lambda.json` to `dist/package.lambda.json`.
+- Go to `dist` folder and install packages `npm install`.
+
+### Step 8. Deploy the plugin
+
+Install AWS CDK `npm install -g aws-cdk`. 
+Login or export environment variables of AWS account.
+Run bootstrap for the first deployment.
+
+```bash
+cdk synth
+cdk bootstrap
+```
+
+Deploy the stack.
+
+```bash
+cdk deploy
+```
+
+
+This will deploy the plugin to AWS Lambda and return the URL of the hosted service. Next, update the .env.cloud
+file with the URL.
+
+```bash
+RESTIFIED_ENDPOINTS_URL="https://<lambda-url>"
+M_AUTH_KEY="your-strong-m-auth-key"
+```
+
+### Step 9. Create a new build
+
+Create a new supergraph build on Hasura DDN to check your work in the cloud.
+
+```bash
+ddn supergraph build create
+```
+
+:::info Cloud project required
+
+In order for this command to succeed, you'll need a cloud project paired with your local metadata. If you don't already
+have one, you can create one using the CLI.
+
+```sh title="From the root of the project directory, run:"
+ddn project init .
+```
+
+:::
+
+### Step 10. Apply the build
 
 Apply the build to make it the default one served by your Hasura DDN project endpoint. You can do this from the DDN
 console by choosing the build from the `Builds` tab and clicking `Apply Build`.
