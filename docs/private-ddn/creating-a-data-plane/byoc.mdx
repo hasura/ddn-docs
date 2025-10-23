@@ -63,6 +63,13 @@ Parameters:
     MinLength: 2
     MaxLength: 1224
     AllowedPattern: "[A-Za-z0-9+=,.@:\\/-]*"
+  GCPProjectName:
+    Type: String
+    Default: hasura-lux
+    Description: GCP project ID for OIDC provider
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: "[a-z0-9-]*"
 
 Resources:
   BootstrapRole:
@@ -116,6 +123,9 @@ Resources:
               - sqs:GetQueueAttributes
               - rds:DescribeDBInstances
               - rds:DescribeOrderableDBInstanceOptions
+              - s3:ListBucket
+              - s3:ListBucketVersions
+              - kms:ListAliases
             Resource: '*'
           - Effect: Allow
             Action:
@@ -183,6 +193,7 @@ Resources:
               - iam:DeleteInstanceProfile
               - iam:DeleteOpenIDConnectProvider
               - iam:DeletePolicy
+              - iam:DeleteRolePolicy
               - iam:DeleteRole
               - iam:DeleteServiceLinkedRole
               - iam:DetachRolePolicy
@@ -216,6 +227,10 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/HasuraWorkloadAutomationRole-*
               - !Sub arn:aws:iam::${AWS::AccountId}:role/vpc-cni-*
               - !Sub arn:aws:iam::${AWS::AccountId}:role/ebsCsiDriverRole-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/kms-control-plane-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/bee-control-plane-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/bee-data-plane-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/promptql-artifact-server-*
               # Instance Profiles
               - !Sub arn:aws:iam::${AWS::AccountId}:instance-profile/dataplane_*
               # Policies
@@ -225,6 +240,7 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:policy/karpenter-controller-*
               # OIDC Providers
               - !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/oidc.eks.*
+              - !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/container.googleapis.com/v1/projects/${GCPProjectName}/*
               # Service Roles
               - !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot
           - Effect: Allow
@@ -241,23 +257,40 @@ Resources:
                   - rds.amazonaws.com
           - Effect: Allow
             Action:
+              - ec2:*
               - eks:*
               - globalaccelerator:*
               - sqs:*
               - acm:*
               - events:*
               - rds:*
+              - s3:*
+              - kms:*
             Resource: '*'
             Condition:
               StringEquals:
                 aws:ResourceTag/Created-By: HasuraCloud
           - Effect: Allow
             Action:
-              - ec2:*
-            Resource: '*'
-            Condition:
-              StringEquals:
-                ec2:ResourceTag/Created-By: HasuraCloud
+              - s3:Get*
+              - s3:CreateBucket
+              - s3:PutBucketPublicAccessBlock
+              - s3:PutBucketVersioning
+              - s3:PutBucketPolicy
+              - s3:PutBucketTagging
+              - s3:DeleteBucketPolicy
+              - s3:DeleteObjectVersion
+              - s3:DeleteBucket
+            Resource:
+              - !Sub arn:aws:s3:::metadata-store-keys-*
+              - !Sub arn:aws:s3:::metadata-store-*
+              - !Sub arn:aws:s3:::promptql-store-*
+          - Effect: Allow
+            Action:
+              - kms:CreateAlias
+              - kms:DeleteAlias
+            Resource:
+              - !Sub arn:aws:kms:*:${AWS::AccountId}:alias/bee
 
 Outputs:
   RoleArn:
@@ -373,7 +406,9 @@ gcloud services enable \
   sqladmin.googleapis.com \
   servicenetworking.googleapis.com \
   container.googleapis.com \
-  certificatemanager.googleapis.com --project ${GCP_PROJECT_ID}
+  certificatemanager.googleapis.com \
+  storage.googleapis.com \
+  cloudkms.googleapis.com --project ${GCP_PROJECT_ID}
 ```
 
 - Create following IAM Policy bindings for Hasura's `ddn-automation` service account:
@@ -413,7 +448,7 @@ gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
   --member='serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com' \
   --role='roles/resourcemanager.projectIamAdmin' \
-  --condition='^:^title=Restrict IAM Granting for ddn-automation:description=Restrict ddn-automation to granting specific roles to specific members:expression=api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/container.defaultNodeServiceAccount"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/container.admin"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/compute.networkViewer"])'
+  --condition='^:^title=Restrict IAM Granting for ddn-automation:description=Restrict ddn-automation to granting specific roles to specific members:expression=api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/container.defaultNodeServiceAccount"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/container.admin"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/compute.networkViewer"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/cloudkms.cryptoKeyDecrypter"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/cloudkms.cryptoKeyEncrypterDecrypter"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/storage.objectAdmin"]) || api.getAttribute("iam.googleapis.com/modifiedGrantsByRole", []).hasOnly(["roles/storage.objectViewer"])'
 
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
   --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
@@ -430,6 +465,14 @@ gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
 gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
   --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
   --role roles/iam.workloadIdentityPoolAdmin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/storage.admin
+
+gcloud projects add-iam-policy-binding ${GCP_PROJECT_ID} \
+  --member "serviceAccount:ddn-automation@hasura-ddn.iam.gserviceaccount.com" \
+  --role roles/cloudkms.admin
 ```
 </details>
 
@@ -502,7 +545,7 @@ Use the provided Azure Bicep template to automatically set up the required roles
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "2560153094460201751"
+      "templateHash": "17100090430408911702"
     }
   },
   "parameters": {
@@ -584,7 +627,7 @@ Use the provided Azure Bicep template to automatically set up the required roles
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "3705801931007012674"
+              "templateHash": "4955557183172246065"
             }
           },
           "parameters": {
@@ -618,8 +661,9 @@ Use the provided Azure Bicep template to automatically set up the required roles
             "managedIdentityContributorRoleId": "e40ec5ca-96e0-45a2-b4ff-59039f2c2b59",
             "managedIdentityOperatorRoleId": "f1a07417-d97a-45cb-824c-7a7467783830",
             "aksContributorRoleId": "ed7f3fbd-7b88-4dd4-9017-9adb7ce333f8",
+            "storageAccountContributorRoleId": "17d1049b-9a84-46fb-8f53-869881c3d3ab",
             "rbacAdministratorRoleId": "f58310d9-a9f6-439a-9e8d-f62e7b41a168",
-            "rbacCondition": "!(ActionMatches{'Microsoft.Authorization/roleAssignments/write'} OR ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) OR (@Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {4d97b98b-1d4f-4787-a291-c67834d212e7, acdd72a7-3385-48ef-bd42-f606fba81ae7, b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b} AND @Request[Microsoft.Authorization/roleAssignments:PrincipalType] ForAnyOfAnyValues:StringEqualsIgnoreCase {'ServicePrincipal', 'MSI'})"
+            "rbacCondition": "!(ActionMatches{'Microsoft.Authorization/roleAssignments/write'} OR ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) OR (@Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {4d97b98b-1d4f-4787-a291-c67834d212e7, acdd72a7-3385-48ef-bd42-f606fba81ae7, b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b, ba92f5b4-2d11-453d-a403-e96b0029c9fe, 2a2b9908-6ea1-4ae2-8e65-a410df84e7d1} AND @Request[Microsoft.Authorization/roleAssignments:PrincipalType] ForAnyOfAnyValues:StringEqualsIgnoreCase {'ServicePrincipal', 'MSI'})"
           },
           "resources": [
             {
@@ -668,6 +712,16 @@ Use the provided Azure Bicep template to automatically set up the required roles
               "name": "[guid(resourceGroup().id, variables('aksContributorRoleId'), parameters('principalId'), 'aks')]",
               "properties": {
                 "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('aksContributorRoleId'))]",
+                "principalId": "[parameters('principalId')]",
+                "principalType": "[parameters('principalType')]"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, variables('storageAccountContributorRoleId'), parameters('principalId'), 'storage')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('storageAccountContributorRoleId'))]",
                 "principalId": "[parameters('principalId')]",
                 "principalType": "[parameters('principalType')]"
               }
