@@ -113,6 +113,7 @@ Resources:
               - ec2:DescribeVpcs
               - ec2:DescribeVpcEndpointServices
               - ec2:DescribeVpcEndpoints
+              - ec2:DescribeVpcEndpointServiceConfigurations
               - eks:DeleteAddon
               - eks:DescribeAddon
               - eks:DescribeCluster
@@ -126,6 +127,13 @@ Resources:
               - s3:ListBucket
               - s3:ListBucketVersions
               - kms:ListAliases
+              - elasticloadbalancing:DescribeTargetGroups
+              - elasticloadbalancing:DescribeLoadBalancers
+              - elasticloadbalancing:DescribeTargetGroupAttributes
+              - elasticloadbalancing:DescribeLoadBalancerAttributes
+              - elasticloadbalancing:DescribeTags
+              - elasticloadbalancing:DescribeListeners
+              - elasticloadbalancing:DescribeListenerAttributes
             Resource: '*'
           - Effect: Allow
             Action:
@@ -142,6 +150,7 @@ Resources:
               - ec2:CreateSecurityGroup
               - ec2:AuthorizeSecurityGroupIngress
               - ec2:CreateVpcEndpoint
+              - ec2:CreateVpcEndpointServiceConfiguration
               - eks:CreateCluster
               - eks:CreateNodegroup
               - globalaccelerator:CreateAccelerator
@@ -157,6 +166,9 @@ Resources:
               - iam:TagOpenIDConnectProvider
               - rds:CreateDBSubnetGroup
               - rds:CreateDBInstance
+              - elasticloadbalancing:CreateTargetGroup
+              - elasticloadbalancing:CreateLoadBalancer
+              - lambda:CreateFunction
             Resource: '*'
             Condition:
               StringEquals:
@@ -177,6 +189,15 @@ Resources:
             Condition:
               StringEquals:
                 aws:ResourceTag/karpenter.sh/discovery: dataplane
+          - Effect: Allow
+            Action:
+              - ec2:AuthorizeSecurityGroupIngress
+              - ec2:RevokeSecurityGroupIngress
+            Resource:
+              - !Sub arn:aws:ec2:*:${AWS::AccountId}:security-group/*
+            Condition:
+              StringEquals:
+                aws:ResourceTag/aws:eks:cluster-name: dataplane
           - Effect: Allow
             Action:
               - eks:AssociateAccessPolicy
@@ -231,6 +252,7 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/bee-control-plane-*
               - !Sub arn:aws:iam::${AWS::AccountId}:role/bee-data-plane-*
               - !Sub arn:aws:iam::${AWS::AccountId}:role/promptql-artifact-server-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/dataplane-eks-api-lambda-role-*
               # Instance Profiles
               - !Sub arn:aws:iam::${AWS::AccountId}:instance-profile/dataplane_*
               # Policies
@@ -238,6 +260,8 @@ Resources:
               - !Sub arn:aws:iam::${AWS::AccountId}:policy/autoscaler-controller-*
               - !Sub arn:aws:iam::${AWS::AccountId}:policy/global-accelerator-operator-*
               - !Sub arn:aws:iam::${AWS::AccountId}:policy/karpenter-controller-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/dataplane-eks-api-register-targets-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/dataplane-eks-api-deregister-targets-*
               # OIDC Providers
               - !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/oidc.eks.*
               - !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/container.googleapis.com/v1/projects/${GCPProjectName}/*
@@ -266,6 +290,8 @@ Resources:
               - rds:*
               - s3:*
               - kms:*
+              - elasticloadbalancing:*
+              - lambda:*
             Resource: '*'
             Condition:
               StringEquals:
@@ -291,6 +317,10 @@ Resources:
               - kms:DeleteAlias
             Resource:
               - !Sub arn:aws:kms:*:${AWS::AccountId}:alias/bee
+          - Effect: Allow
+            Action:
+              - vpce:AllowMultiRegion
+            Resource: '*'
 
 Outputs:
   RoleArn:
