@@ -225,7 +225,10 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
     markdownValue += `| Value | Description |\n|-----|-----|\n`;
     (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).forEach(option => {
       const valueType = handleSchemaDefinition(option);
-      markdownValue += `| ${valueType} | ${getDescription(option)} |\n`;
+      // Skip empty rows for excluded entities
+      if (valueType) {
+        markdownValue += `| ${valueType} | ${getDescription(option)} |\n`;
+      }
     });
 
     const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle);
