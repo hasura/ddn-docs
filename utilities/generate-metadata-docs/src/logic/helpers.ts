@@ -167,12 +167,49 @@ export function getDescription(metadataObject: JSONSchema7Definition): string {
   return metadataObject.description ? removeNewLineCharacter(metadataObject.description) : '';
 }
 
+/**
+ * Entities whose v2 examples should be excluded from documentation.
+ */
+const EXCLUDED_V2_EXAMPLE_ENTITIES = [
+  'TypePermissions',
+  'ModelPermissions',
+  'CommandPermissions'
+];
+
+/**
+ * Check if an example should be excluded based on version.
+ * Filters out v2 examples for specific permission types.
+ */
+function shouldExcludeExample(title: string | undefined, example: any): boolean {
+  if (!title || !example) return false;
+
+  // Check if this is a permission entity that should exclude v2 examples
+  if (EXCLUDED_V2_EXAMPLE_ENTITIES.includes(title)) {
+    // Check if the example has version: "v2"
+    if (example.version === 'v2') {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function getExamples(metadataObject: JSONSchema7Definition): string {
   let examples = '';
   if (metadataObject.examples) {
-    examples =
-      `\n **Example${metadataObject.examples.length > 1 ? 's' : ''}:**` +
-      metadataObject.examples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``).join('\n\n');
+    const title = getTitle(metadataObject);
+
+    // Filter out excluded examples
+    const filteredExamples = metadataObject.examples.filter(
+      example => !shouldExcludeExample(title, example)
+    );
+
+    // Only generate examples section if there are examples left after filtering
+    if (filteredExamples.length > 0) {
+      examples =
+        `\n **Example${filteredExamples.length > 1 ? 's' : ''}:**` +
+        filteredExamples.map(example => `\n\n\`\`\`yaml\n${jsYaml.dump(example)}\`\`\``).join('\n\n');
+    }
   }
 
   return examples;
