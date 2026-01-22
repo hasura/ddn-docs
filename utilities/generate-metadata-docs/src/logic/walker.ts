@@ -17,6 +17,32 @@ import {
 } from './helpers';
 import { externalMetadataRefs, topLevelMetadataRefs } from '../entities/objects';
 
+/**
+ * Entities to exclude from documentation generation.
+ * These entities and their child types will be hidden from the docs.
+ *
+ * Note: The actual schema uses versioned entities like "TypePermissions (v2)"
+ * based on the kind and version properties in the schema.
+ */
+const EXCLUDED_ENTITIES = [
+  'TypePermissionsV2',
+  'TypePermissions (v2)',
+  'ModelPermissionsV2',
+  'ModelPermissions (v2)',
+  'CommandPermissionsV2',
+  'CommandPermissions (v2)'
+];
+
+/**
+ * Check if a title should be excluded from documentation.
+ */
+function shouldExcludeEntity(title: string | undefined): boolean {
+  if (!title) return false;
+
+  // Check if the title matches any excluded entity exactly
+  return EXCLUDED_ENTITIES.includes(title);
+}
+
 export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string {
   const markdownArray = [];
   const visitedRefs = {
@@ -24,8 +50,16 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
     ...externalMetadataRefs,
   };
 
+  // Track excluded entities to skip their child types
+  const excludedRefs = new Set<string>();
+
   // needed to generate uniq anchor tags
   const rootTitle = getTitle(metadataObject);
+
+  // Check if the root entity should be excluded
+  if (shouldExcludeEntity(rootTitle)) {
+    return ''; // Return empty string for excluded entities
+  }
 
   // generate Schema markdownArray and return reference of Schema
   function handleSchemaDefinition(metadataObject: JSONSchema7Definition, isSource: boolean = false): string {
@@ -42,6 +76,17 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
     let typeDefinition = ``;
 
     const refTitle = getTitle(metadataObject);
+
+    // Skip excluded entities and their children
+    if (shouldExcludeEntity(refTitle)) {
+      excludedRefs.add(refTitle);
+      return ''; // Return empty string for excluded entities
+    }
+
+    // Skip if this is a child of an excluded entity
+    if (refTitle && excludedRefs.has(refTitle)) {
+      return '';
+    }
 
     if (refTitle && Object.keys(visitedRefs).includes(refTitle) && !isSource) {
       return visitedRefs[refTitle];
@@ -180,7 +225,10 @@ export function getSchemaMarkdown(metadataObject: JSONSchema7Definition): string
     markdownValue += `| Value | Description |\n|-----|-----|\n`;
     (metadataObject.allOf || metadataObject.anyOf || metadataObject.oneOf).forEach(option => {
       const valueType = handleSchemaDefinition(option);
-      markdownValue += `| ${valueType} | ${getDescription(option)} |\n`;
+      // Skip empty rows for excluded entities
+      if (valueType) {
+        markdownValue += `| ${valueType} | ${getDescription(option)} |\n`;
+      }
     });
 
     const markdown = generateSchemaObjectMarkdown(metadataObject, markdownValue, rootTitle);
