@@ -83,6 +83,10 @@ definition:
           algorithm: HS256
           key:
             valueFromEnv: AUTH_SECRET
+  # Optional: propagate session vars as trace attributes
+  sessionVariableToTraceAttributeMap:
+    - sessionVariable: x-hasura-tenant-id
+      traceAttribute: tenant-id
 ```
 
 | **Field**       | **Description**                                                                                                                                                                                                                                                                     | **Reference**                                    |
@@ -111,6 +115,9 @@ definition:
         headers:
           additional:
             user-agent: "Hasura DDN"
+  sessionVariableToTraceAttributeMap:
+    - sessionVariable: x-hasura-tenant-id
+      traceAttribute: tenant-id
 ```
 
 | **Field**             | **Description**                                                                                                                                                           | **Reference**                                                          |
@@ -158,6 +165,7 @@ Definition of the authentication configuration v4, used by the API server.
 |-----|-----|-----|-----|
 | `mode` | [AuthModeConfigV3](#authconfig-authmodeconfigv3) | true |  |
 | `alternativeModes` | [[AlternativeMode](#authconfig-alternativemode)] / null | false |  |
+| `sessionVariableToTraceAttributeMap` | [[SessionVariableToTraceAttributeMapping](#authconfig-sessionvariabletotraceattributemapping)] / null | false | Maps session variable values from the authenticated identity to OpenTelemetry trace attributes. Propagated as baggage to all downstream services. Works with all auth modes. |
 
 
 
@@ -169,6 +177,17 @@ Alternative Authentication Modes
 |-----|-----|-----|-----|
 | `identifier` | string | true |  |
 | `config` | [AuthModeConfigV3](#authconfig-authmodeconfigv3) | true |  |
+
+
+
+#### SessionVariableToTraceAttributeMapping {#authconfig-sessionvariabletotraceattributemapping}
+
+Mapping of a session variable to an OpenTelemetry trace attribute.
+
+| Key | Value | Required | Description |
+|-----|-----|-----|-----|
+| `sessionVariable` | string | true | The session variable name (e.g. `x-hasura-tenant-id`). |
+| `traceAttribute` | string | true | The trace attribute key under which the value will appear on spans and be propagated downstream (e.g. `tenant-id`). |
 
 
 

@@ -764,3 +764,29 @@ Hasura with Clerk.
 
 By default, Keycloak uses the `RSA-OAEP` algorithm, which the Hasura DDN engine doesn't support. Remove the algorithm in
 the `Realm Settings -> Keys -> Add Providers` tab.
+
+## Propagating claims to traces
+
+You can forward selected session variables (derived from JWT claims) into OpenTelemetry trace attributes using the
+`sessionVariableToTraceAttributeMap` field in your `AuthConfigV4`.
+
+This is useful for correlating traces by tenant, user, or organization in multi-tenant setups.
+
+```yaml
+kind: AuthConfig
+version: v4
+definition:
+  mode:
+    jwt:
+      # ... your JWT config ...
+  sessionVariableToTraceAttributeMap:
+    - sessionVariable: x-hasura-tenant-id
+      traceAttribute: tenant-id
+    - sessionVariable: x-hasura-org-id
+      traceAttribute: org-id
+```
+
+The mapped values will appear as attributes on every span and be propagated via the `baggage` HTTP header to all
+downstream services (NDC connectors, webhooks, plugins).
+
+For more details, see the [AuthConfig reference](/reference/metadata-reference/auth-config).
