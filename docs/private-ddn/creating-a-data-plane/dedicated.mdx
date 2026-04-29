@@ -53,7 +53,8 @@ Click the `Create Data Plane` button.
   - Google Cloud Platform (GCP)
   - Microsoft Azure
 - **Region:** Select the geographical region for your Data Plane.
-- **Zones:** Select availability zones for your Data Plane. The maximum number of zones depends on your Hasura Private DDN subscription.
+- **Zones:** Select availability zones for your Data Plane. The maximum number of zones depends on your Hasura Private
+  DDN subscription.
   - For **AWS**: Use AZ IDs (e.g., use1-az1, use1-az2)
   - For **GCP**: Use zone names (e.g., us-west2-a, us-west2-b)
   - For **Azure**: Use physical zone names (e.g., eastus-az1, eastus-az2)
@@ -82,6 +83,7 @@ tolerance.
 **Steps to View Available Zones:**
 
 Using AWS CLI:
+
 ```bash
 aws ec2 describe-availability-zones \
   --region us-east-1 \
@@ -90,6 +92,7 @@ aws ec2 describe-availability-zones \
 ```
 
 Example output:
+
 ```
 -----------------------------
 | DescribeAvailabilityZones |
@@ -103,12 +106,14 @@ Example output:
 ```
 
 Note: Replace `us-east-1` in the command with your desired region.
+
 </details>
 
 <details>
   <summary>GCP zones</summary>
 
-**Zones in Google Cloud Platform (GCP)** are identified by their zone names, which follow a consistent pattern across all GCP projects. Unlike AWS, GCP uses straightforward zone names that don't require separate ID mapping.
+**Zones in Google Cloud Platform (GCP)** are identified by their zone names, which follow a consistent pattern across
+all GCP projects. Unlike AWS, GCP uses straightforward zone names that don't require separate ID mapping.
 
 **Why Use Zone Names?**
 
@@ -125,6 +130,7 @@ tolerance.
 **Steps to View Available Zones:**
 
 Using gcloud CLI:
+
 ```bash
 gcloud compute zones list \
   --filter="region:us-west2" \
@@ -132,6 +138,7 @@ gcloud compute zones list \
 ```
 
 Example output:
+
 ```
 NAME        REGION    STATUS
 us-west2-a  us-west2  UP
@@ -140,30 +147,33 @@ us-west2-c  us-west2  UP
 ```
 
 Note: Replace `us-west2` in the command with your desired region.
+
 </details>
 
 <details>
   <summary>Azure zones</summary>
 
-**Physical Zone Names** are unique identifiers for Azure Availability Zones within a region. Using physical zone names ensures
-consistency across different Azure subscriptions and optimizes performance by aligning your Data Plane with your database's
-physical location.
+**Physical Zone Names** are unique identifiers for Azure Availability Zones within a region. Using physical zone names
+ensures consistency across different Azure subscriptions and optimizes performance by aligning your Data Plane with your
+database's physical location.
 
 **Why Use Physical Zone Names Instead of Logical Zones?**
 
-- **Consistency:** Physical zone names are consistent across all Azure subscriptions, whereas logical zones (1,2,3) can map differently.
+- **Consistency:** Physical zone names are consistent across all Azure subscriptions, whereas logical zones (1,2,3) can
+  map differently.
 - **Performance:** Deploying resources in the same physical zone reduces latency.
 - **Cost Efficiency:** Avoids cross-zone network costs by ensuring resources are within the same physical zone.
 
-Note: When selecting physical zones, ensure they correspond to the zones where your database resides to maintain low latency and
-avoid cross-zone network costs. It is recommended to choose at least two physical zones for higher availability and fault
-tolerance.
+Note: When selecting physical zones, ensure they correspond to the zones where your database resides to maintain low
+latency and avoid cross-zone network costs. It is recommended to choose at least two physical zones for higher
+availability and fault tolerance.
 
 [Learn more about Azure Physical vs Logical Zone Mapping](https://learn.microsoft.com/en-us/azure/availability-zones/az-overview#physical-and-logical-availability-zones)
 
 **Steps to View Available Zones:**
 
 Using Azure CLI:
+
 ```bash
 az rest --method get \
   --uri '/subscriptions/{subscriptionId}/locations?api-version=2022-12-01' \
@@ -171,6 +181,7 @@ az rest --method get \
 ```
 
 Example output:
+
 ```json
 [
   {
@@ -195,10 +206,14 @@ Example output:
 ```
 
 Note: Replace `eastus` in the command with your desired region name.
+
 </details>
 
-- **VPC CIDR:** A /16-/19 CIDR block that defines the IP address range for your Data Plane's Virtual Private Cloud (VPC). Default value: 10.0.0.0/16.
-- **Kubernetes Service CIDR:** A /16-/20 CIDR block used for Kubernetes service cluster IP addresses in your Data Plane. This CIDR range is used internally by Kubernetes to assign IP addresses to services running in the cluster. Default value: 172.20.0.0/16.
+- **VPC CIDR:** A /16-/20 CIDR block that defines the IP address range for your Data Plane's Virtual Private Cloud
+  (VPC). Default value: 10.0.0.0/16. See [Why Hasura Requires a /16 to /20 CIDR Range](#why-hasura-requires-a-16-to-20-cidr-range) for details on this requirement.
+- **Kubernetes Service CIDR:** A /16-/20 CIDR block used for Kubernetes service cluster IP addresses in your Data Plane.
+  This CIDR range is used internally by Kubernetes to assign IP addresses to services running in the cluster. Default
+  value: 172.20.0.0/16.
 
 :::warning Important When choosing your VPC CIDR and Kubernetes Service CIDR:
 
@@ -211,17 +226,66 @@ Note: Replace `eastus` in the command with your desired region name.
 :::
 
 Data Plane Configuration form for AWS:
+
 <Thumbnail src="/img/data-plane/vpc-form.png" alt="Data Plane Creation Form" width="800px" />
 
 <br></br>
 
 Data Plane Configuration form for GCP and Azure:
+
 <Thumbnail src="/img/data-plane/vpc-form-gcp-azure.png" alt="Data Plane Creation Form" width="800px" />
+
+<br></br>
+
+Azure Data Plane configuration example:
+
+<Thumbnail src="/img/data-plane/azure-create-data-plane.png" alt="Azure Data Plane Configuration Form" width="800px" />
+
+#### Why Hasura Requires a /16 to /20 CIDR Range
+
+When creating a Data Plane, Hasura requires a VPC CIDR block between /16 and /20 (providing between 4,096 and 65,536 IP
+addresses). This requirement exists because:
+
+**Kubernetes Infrastructure Requirements:**
+
+- **Pod IP Allocation:** Each pod running in the Kubernetes cluster receives its own IP address. A production data plane
+  can run hundreds or thousands of pods across multiple services.
+- **Service IP Allocation:** Kubernetes services require dedicated ClusterIP addresses for internal service discovery.
+- **Node IP Allocation:** Each worker node in the cluster requires IP addresses for the node itself and its network
+  interfaces.
+
+**Operational Headroom:**
+
+- **Scaling Capacity:** The data plane needs room to scale horizontally during traffic spikes or when adding new
+  features.
+- **Rolling Updates:** During deployments, both old and new pods run simultaneously, temporarily doubling IP usage.
+- **Multi-AZ Deployment:** For high availability, resources are distributed across multiple availability zones, each
+  requiring subnet IP ranges.
+
+**Network Segmentation:**
+
+- **Subnet Division:** The VPC CIDR is divided into multiple subnets (public, private, etc.) for security
+  isolation.
+- **Future Growth:** Additional subnets may be needed for new services, private endpoints, or integration requirements.
+
+**Why Not Smaller?**
+
+A /21 or smaller CIDR provides fewer than 2,048 addresses. After accounting for cloud provider reserved addresses,
+subnet division, and Kubernetes overhead, this leaves insufficient room for workloads and scaling.
+
+**Why Not Larger than /16?**
+
+A /16 provides 65,536 addresses, which is typically sufficient for even the largest enterprise deployments. Larger
+ranges (/15 or bigger) would reserve excessive IP space that's unlikely to be utilized.
+
+:::warning[/20 CIDR Limitations]
+A /20 CIDR range provides limited IP capacity (~4,096 addresses). Heavy usage of custom connectors without [build hibernation](https://hasura.io/docs/3.0/reference/supergraph-build-hibernation/) may lead to IP address exhaustion. For deployments expecting many concurrent connectors, we recommend using /19 or larger CIDR ranges.
+:::
 
 ### Step 3. Create and Monitor your Data Plane
 
 Click the `Create` button after filling out all required fields. The creation process will begin, and you'll see your
-Data Plane listed with a `Creating` status. The creation process typically takes 60 minutes to complete for AWS and GCP deployments, and 2-3 business days for Azure deployments.
+Data Plane listed with a `Creating` status. The creation process typically takes 60 minutes to complete.
 
 <Thumbnail src="/img/data-plane/data-plane-page.png" alt="Data Plane Page" width="1000px" />
 
