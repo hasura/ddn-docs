@@ -25,6 +25,12 @@ on:
 jobs:
   connector-docs-dri-reviewer:
     runs-on: ubuntu-latest
+    # SECURITY: Only run for PRs from the same repository to prevent Pwn Request attacks.
+    # This workflow uses `pull_request_target` (runs with base repo secrets) and checks out
+    # the PR HEAD from the fork. Without this guard, an attacker could open a PR from a fork
+    # with malicious code (e.g. a postinstall script in package.json) that would execute with
+    # access to DOCS_GITHUB_TOKEN. External fork PRs will need manual reviewer assignment.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       pull-requests: write
 
